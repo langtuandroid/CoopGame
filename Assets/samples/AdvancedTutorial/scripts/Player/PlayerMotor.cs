@@ -131,7 +131,7 @@ namespace Bolt.AdvancedTutorial
 			if (movingDir.x != 0 || movingDir.z != 0)
 			{
 				moving = true;
-				movingDir = Vector3.Normalize(Quaternion.Euler(0, yaw, 0) * movingDir);
+				// movingDir = Vector3.Normalize(Quaternion.Euler(0, yaw, 0) * movingDir);
 			}
 
 			//

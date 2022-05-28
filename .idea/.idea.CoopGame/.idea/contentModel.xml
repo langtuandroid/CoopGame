@@ -109,6 +109,7 @@
                 <e p="ServerCallbacks.cs" t="Include" />
                 <e p="TokenCallbacks.cs" t="Include" />
               </e>
+              <e p="CursorUtils.cs" t="Include" />
               <e p="Enemies" t="Include">
                 <e p="RedCube.cs" t="Include" />
               </e>

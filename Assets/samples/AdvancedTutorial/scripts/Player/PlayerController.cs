@@ -1,3 +1,4 @@
+using Bolt.Samples.AdvancedTutorial.scripts;
 using UnityEngine;
 using Photon.Bolt;
 using Photon.Bolt.Utils;
@@ -22,6 +23,8 @@ namespace Bolt.AdvancedTutorial
 		float pitch;
 
 		PlayerMotor _motor;
+		private Camera camera;
+		private Vector3 cursorPosition;
 
 		[SerializeField]
 		WeaponBase[] _weapons;
@@ -39,6 +42,7 @@ namespace Bolt.AdvancedTutorial
 		void Awake()
 		{
 			_motor = GetComponent<PlayerMotor>();
+			camera = Camera.main;
 		}
 
 		void Update()
@@ -75,11 +79,10 @@ namespace Bolt.AdvancedTutorial
 
 			if (mouse)
 			{
-				yaw += (Input.GetAxisRaw("Mouse X") * MOUSE_SENSEITIVITY);
-				yaw %= 360f;
+				var plane = new Plane(transform.up, transform.position);
 
-				pitch += (-Input.GetAxisRaw("Mouse Y") * MOUSE_SENSEITIVITY);
-				pitch = Mathf.Clamp(pitch, -85f, +85f);
+				CursorUtils.getCursorWorldPosition(camera, plane, out cursorPosition);
+				yaw = Vector3.SignedAngle(Vector3.forward, cursorPosition - transform.position, Vector3.up);
 			}
 		}
 

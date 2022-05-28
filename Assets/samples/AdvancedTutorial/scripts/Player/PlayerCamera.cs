@@ -1,5 +1,10 @@
+using System.Numerics;
+using Bolt.Samples.AdvancedTutorial.scripts;
 using Photon.Bolt;
 using UnityEngine;
+using Plane = UnityEngine.Plane;
+using Quaternion = UnityEngine.Quaternion;
+using Vector3 = UnityEngine.Vector3;
 
 namespace Bolt.AdvancedTutorial
 {
@@ -11,29 +16,16 @@ namespace Bolt.AdvancedTutorial
 		// camera target
 		Transform _target;
 
-		// if we are aiming or not
-		// bool _aiming = false;
-
 		// current camera distance
-		float _distance = 0f;
-
-		// accumulated time for aiming transition
-		// float _aimingAcc = 0f;
+		private float distance = 25f;
+		private float pitch = -45;
+		private float cameraStretch = 0.1f;
 
 		[SerializeField]
 		Transform cam;
 
 		[SerializeField]
-		float height = 2.3f;
-
-		[SerializeField]
-		float offset = 0.75f;
-
-		[SerializeField]
 		float aimingDistance = 1f;
-
-		[SerializeField]
-		float runningDistance = 3f;
 
 		[SerializeField]
 		float runningSmoothTime = 0.1f;
@@ -44,21 +36,19 @@ namespace Bolt.AdvancedTutorial
 		[SerializeField]
 		Transform dummyTarget;
 
-		public Camera myCamera {
-			get { return cam.GetComponent<Camera> (); }
-		}
+		private Camera camComponent;
+		private Vector3 cursorPosition;
+
 
 		public System.Func<int> getHealth;
-		public System.Func<bool> getAiming;
-		public System.Func<float> getPitch;
 
 		void Awake ()
 		{
 			DontDestroyOnLoad (gameObject);
-			_distance = runningDistance;
+			camComponent = cam.GetComponent<Camera> ();;
 		}
 
-		void LateUpdate ()
+		void Update ()
 		{
 			UpdateCamera (true);
 		}
@@ -66,41 +56,20 @@ namespace Bolt.AdvancedTutorial
 		void UpdateCamera (bool allowSmoothing)
 		{
 			if (_target) {
-				//var h = getHealth != null ? getHealth () : 100;
-				var a = getAiming != null ? getAiming () : false;
-				var p = getPitch != null ? getPitch () : 0f;
+				Cursor.lockState = CursorLockMode.Confined;
 
-				Cursor.lockState = CursorLockMode.Locked;
-				Cursor.visible = false;
+				var plane = new Plane(_target.up, _target.position);
 
-				// if (_aiming) {
-				// 	if (a == false) {
-				// 		_aiming = false;
-				// 		_aimingAcc = 0f;
-				// 	}
-				// } else {
-				// 	if (a) {
-				// 		_aiming = true;
-				// 		_aimingAcc = 0f;
-				// 	}
-				// }
-				//
-				// _aimingAcc += Time.deltaTime;
+				CursorUtils.getCursorWorldPosition(camComponent, plane, out cursorPosition);
 
-				// if (_aiming) {
-				// 	_distance = Mathf.Lerp (_distance, aimingDistance, _aimingAcc / 0.4f);
-				// } else {
-				// 	_distance = Mathf.Lerp (_distance, runningDistance, _aimingAcc / 0.4f);
-				// }
-				_distance = runningDistance;
+				CalculateCameraTransform(_target, pitch, distance, out var pos, out var rot);
+				var deltaStretch = cameraStretch * (cursorPosition - _target.position);
+				deltaStretch.z *= deltaStretch.z > 0 ? 0.4f : 2f;
+				pos += deltaStretch;
 
-				Vector3 pos;
-				Quaternion rot;
-
-				CalculateCameraTransform (_target, p, _distance, out pos, out rot);
-
-				if (allowSmoothing) {
-					pos = Vector3.SmoothDamp (transform.position, pos, ref _velocity, runningSmoothTime);
+				if (allowSmoothing)
+				{
+					pos = Vector3.SmoothDamp(transform.position, pos, ref _velocity, runningSmoothTime);
 				}
 
 				transform.position = pos;
@@ -122,30 +91,23 @@ namespace Bolt.AdvancedTutorial
 			CalculateCameraTransform (target, pitch, aimingDistance, out pos, out rot);
 		}
 
-		public void CalculateCameraTransform (Transform target, float pitch, float distance, out Vector3 pos, out Quaternion rot)
+		private void CalculateCameraTransform(Transform target, float pitch, float distance, out Vector3 pos,
+			out Quaternion rot)
 		{
-
 			// copy transform to dummy
 			dummyTarget.position = target.position;
-			dummyTarget.rotation = target.rotation;
 
 			// move position to where we want it
-			dummyTarget.position += new Vector3 (0, height, 0);
-			dummyTarget.position += dummyTarget.right * offset;
+			dummyTarget.position += new Vector3(0, distance, 0);
 
 			// clamp and calculate pitch rotation
-			Quaternion pitchRotation = Quaternion.Euler (pitch, 0, 0);
+			var pitchRotation = Quaternion.Euler(pitch, 0, 0);
 
-			pos = dummyTarget.position;
-			pos += (-dummyTarget.forward * distance);
-
-			pos = dummyTarget.InverseTransformPoint (pos);
-			pos = pitchRotation * pos;
-			pos = dummyTarget.TransformPoint (pos);
+			pos = target.position + pitchRotation * (dummyTarget.position - target.position);
 
 			// calculate look-rotation by setting position and looking at target
 			dummyRig.position = pos;
-			dummyRig.LookAt (dummyTarget.position);
+			dummyRig.LookAt(target.position);
 
 			rot = dummyRig.rotation;
 		}

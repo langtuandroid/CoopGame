@@ -41,7 +41,7 @@ namespace Bolt.AdvancedTutorial
 			}
 
 			if (clips != null && clips.Length > 0) {
-				GetComponent<AudioSource> ().PlayOneShot (clips [Random.Range (0, clips.Length)]);
+				// GetComponent<AudioSource> ().PlayOneShot (clips [Random.Range (0, clips.Length)]);
 			}
 
 			played = true;

@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 using Bolt.Samples.AdvancedTutorial.scripts.Enemies;
 using Photon.Bolt;
 
@@ -7,31 +6,27 @@ namespace Bolt.AdvancedTutorial
 {
 	public class WeaponRifle : WeaponBase
 	{
+		private float attackSphereRadius = 2f;
+
 		public override void OnOwner (PlayerCommand cmd, BoltEntity entity)
 		{
 			if (entity.IsOwner) {
 				IPlayerState state = entity.GetState<IPlayerState> ();
 				PlayerController controller = entity.GetComponent<PlayerController> ();
 
-				Vector3 pos;
-				Quaternion look;
-
-				// this calculate the looking angle for this specific entity
-				PlayerCamera.instance.CalculateCameraAimTransform (entity.transform, state.pitch, out pos, out look);
-
-				// display debug
-				Debug.DrawRay (pos, look * Vector3.forward);
-
-				using (var hits = BoltNetwork.RaycastAll (new Ray (pos, look * Vector3.forward), cmd.ServerFrame)) {
+				var spherePosition = entity.transform.position + entity.transform.forward * attackSphereRadius + entity.transform.up * attackSphereRadius;
+				
+				using (var hits = BoltNetwork.OverlapSphereAll(spherePosition, attackSphereRadius, cmd.ServerFrame)) {
 					for (int i = 0; i < hits.count; ++i) {
 						var hit = hits.GetHit (i);
+						
 						// var serializer = hit.body.GetComponent<PlayerController>();
 
 						// if ((serializer != null) && (serializer.state.team != state.team)) {
 						// 	serializer.ApplyDamage (controller.activeWeapon.damagePerBullet);
 						// 	break;
 						// }
-						
+
 						var redCube = hit.body.GetComponent<RedCube>();
 						if (redCube != null)
 						{

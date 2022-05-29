@@ -126,7 +126,7 @@ namespace Bolt.AdvancedTutorial
 		void OnFire()
 		{
 			// play sfx
-			_weaponSfxSource.PlayOneShot(activeWeapon.fireSound);
+			// _weaponSfxSource.PlayOneShot(activeWeapon.fireSound);
 
 			GameUI.instance.crosshair.Spread += 0.1f;
 
@@ -219,7 +219,7 @@ namespace Bolt.AdvancedTutorial
 					state.Aiming = cmd.Input.aiming;
 
 					// deal with weapons
-					if (cmd.Input.aiming && cmd.Input.fire)
+					if (cmd.Input.fire)
 					{
 						FireWeapon(cmd);
 					}

@@ -9,11 +9,8 @@ namespace Bolt.AdvancedTutorial
 	public class ServerCallbacks : GlobalEventListener
 	{
 		public static bool ListenServer = true;
-
-		public override bool PersistBetweenStartupAndShutdown()
-		{
-			return base.PersistBetweenStartupAndShutdown();
-		}
+		private float lastEnemiesSpawnTime;
+		private long enemiesSpawnTimeDelay = 5;
 
 		void Awake()
 		{
@@ -21,7 +18,6 @@ namespace Bolt.AdvancedTutorial
 			{
 				Player.CreateServerPlayer();
 				Player.serverPlayer.name = "SERVER";
-				BoltNetwork.Instantiate(BoltPrefabs.RedCube, Vector3.zero + Vector3.up * 2, Quaternion.identity);
 			}
 		}
 
@@ -35,6 +31,21 @@ namespace Bolt.AdvancedTutorial
 					p.Spawn();
 				}
 			}
+			if (Time.time -  lastEnemiesSpawnTime > enemiesSpawnTimeDelay)
+			{
+				lastEnemiesSpawnTime = Time.time;
+				for (var i = 0; i < 10; i++)
+				{
+					BoltNetwork.Instantiate(BoltPrefabs.RedCube, RandomSpawn(), Quaternion.identity);
+				}
+			}
+		}
+		
+		static Vector3 RandomSpawn()
+		{
+			float x = Random.Range(-32f, +32f);
+			float z = Random.Range(-32f, +32f);
+			return new Vector3(x, 2f, z);
 		}
 
 		public override void ConnectRequest(UdpEndPoint endpoint, IProtocolToken token)

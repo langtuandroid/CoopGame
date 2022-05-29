@@ -18,9 +18,9 @@ namespace Bolt.AdvancedTutorial
 		public BoltEntity entity;
 		public BoltConnection connection;
 
-		public IPlayerState state
+		public IBobState state
 		{
-			get { return entity.GetState<IPlayerState>(); }
+			get { return entity.GetState<IBobState>(); }
 		}
 
 		public bool isServer
@@ -84,7 +84,7 @@ namespace Bolt.AdvancedTutorial
 
 		public void InstantiateEntity()
 		{
-			entity = BoltNetwork.Instantiate(BoltPrefabs.Player, new TestToken(), RandomSpawn(), Quaternion.identity);
+			entity = BoltNetwork.Instantiate(BoltPrefabs.Bob, new TestToken(), RandomSpawn(), Quaternion.identity);
 
 			state.name = name;
 			state.team = redPlayers.Count() >= bluePlayers.Count() ? TEAM_BLUE : TEAM_RED;
@@ -139,9 +139,9 @@ namespace Bolt.AdvancedTutorial
 
 		static Vector3 RandomSpawn()
 		{
-			float x = UE.Random.Range(-32f, +32f);
-			float z = UE.Random.Range(-32f, +32f);
-			return new Vector3(x, 32f, z);
+			float x = UE.Random.Range(-5f, +5f);
+			float z = UE.Random.Range(-5f, +5f);
+			return new Vector3(x, 3f, z);
 		}
 
 	}

@@ -17,8 +17,8 @@ namespace Bolt.AdvancedTutorial
 		Transform _target;
 
 		// current camera distance
-		private float distance = 25f;
-		private float pitch = -45;
+		private float distance = 20f;
+		private float pitch = -40;
 		private float cameraStretch = 0.1f;
 
 		[SerializeField]
@@ -64,7 +64,7 @@ namespace Bolt.AdvancedTutorial
 
 				CalculateCameraTransform(_target, pitch, distance, out var pos, out var rot);
 				var deltaStretch = cameraStretch * (cursorPosition - _target.position);
-				deltaStretch.z *= deltaStretch.z > 0 ? 0.4f : 2f;
+				deltaStretch.z *= deltaStretch.z > 0 ? 0.4f : 2f; //fix fov difference stretching
 				pos += deltaStretch;
 
 				if (allowSmoothing)

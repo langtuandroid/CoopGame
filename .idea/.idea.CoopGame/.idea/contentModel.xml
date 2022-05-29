@@ -125,6 +125,7 @@
                 <e p="GameUI.cs" t="Include" />
               </e>
               <e p="Player" t="Include">
+                <e p="BobController.cs" t="Include" />
                 <e p="Player.cs" t="Include" />
                 <e p="PlayerCamera.cs" t="Include" />
                 <e p="PlayerController.cs" t="Include" />
@@ -148,6 +149,7 @@
               <e p="Weapon" t="Include">
                 <e p="WeaponBase.cs" t="Include" />
                 <e p="WeaponBazooka.cs" t="Include" />
+                <e p="WeaponMelee.cs" t="Include" />
                 <e p="WeaponRifle.cs" t="Include" />
               </e>
             </e>

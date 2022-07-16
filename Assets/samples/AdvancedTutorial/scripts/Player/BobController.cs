@@ -1,7 +1,9 @@
+using System;
 using Bolt.Samples.AdvancedTutorial.scripts;
 using UnityEngine;
 using Photon.Bolt;
 using Photon.Bolt.Utils;
+using Random = UnityEngine.Random;
 
 namespace Bolt.AdvancedTutorial
 {
@@ -232,23 +234,36 @@ namespace Bolt.AdvancedTutorial
 
 		void AnimatePlayer(PlayerCommand cmd)
 		{
-			// FWD <> BWD movement
-			if (cmd.Input.forward ^ cmd.Input.backward)
+			if ((cmd.Input.left ^ cmd.Input.right) | (cmd.Input.forward ^ cmd.Input.backward))
 			{
-				state.MoveZ = cmd.Input.forward ? 1 : -1;
+				var inputX = 0;
+				if (cmd.Input.left ^ cmd.Input.right)
+				{
+					inputX = cmd.Input.right ? 1 : -1;
+				}
+				
+				var inputZ = 0;
+				if (cmd.Input.forward ^ cmd.Input.backward)
+				{
+					inputZ = cmd.Input.forward ? 1 : -1;
+				}
+
+				var moveVector = new Vector3(inputX, 0, inputZ);
+				var moveAngle = Vector3.SignedAngle(Vector3.forward, moveVector, Vector3.up);
+				var animationAngle = -Mathf.Deg2Rad * (cmd.Input.yaw - moveAngle);
+				
+				state.MoveZ = (float) Math.Cos(animationAngle);
+				var moveX = (float) Math.Sin(animationAngle);
+				if (state.MoveZ < 0)
+				{
+					// moveX *= -1;
+				}
+				state.MoveX = moveX;
+				Debug.Log("YAW : " + cmd.Input.yaw + "  MOVE: " + moveAngle + "  ANIM: " + (animationAngle * Mathf.Rad2Deg));
 			}
 			else
 			{
 				state.MoveZ = 0;
-			}
-
-			// LEFT <> RIGHT movement
-			if (cmd.Input.left ^ cmd.Input.right)
-			{
-				state.MoveX = cmd.Input.right ? 1 : -1;
-			}
-			else
-			{
 				state.MoveX = 0;
 			}
 

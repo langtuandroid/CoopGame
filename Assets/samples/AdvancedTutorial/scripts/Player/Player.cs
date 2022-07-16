@@ -84,7 +84,7 @@ namespace Bolt.AdvancedTutorial
 
 		public void InstantiateEntity()
 		{
-			entity = BoltNetwork.Instantiate(BoltPrefabs.Bob, new TestToken(), RandomSpawn(), Quaternion.identity);
+			entity = BoltNetwork.Instantiate(BoltPrefabs.Man, new TestToken(), RandomSpawn(), Quaternion.identity);
 
 			state.name = name;
 			state.team = redPlayers.Count() >= bluePlayers.Count() ? TEAM_BLUE : TEAM_RED;

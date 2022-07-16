@@ -254,10 +254,6 @@ namespace Bolt.AdvancedTutorial
 				
 				state.MoveZ = (float) Math.Cos(animationAngle);
 				var moveX = (float) Math.Sin(animationAngle);
-				if (state.MoveZ < 0)
-				{
-					// moveX *= -1;
-				}
 				state.MoveX = moveX;
 				Debug.Log("YAW : " + cmd.Input.yaw + "  MOVE: " + moveAngle + "  ANIM: " + (animationAngle * Mathf.Rad2Deg));
 			}

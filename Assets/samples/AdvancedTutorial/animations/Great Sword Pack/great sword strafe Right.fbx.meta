@@ -1,11 +1,11 @@
 fileFormatVersion: 2
-guid: e20b4e68523e94947be9e0a8540bc88e
+guid: bd3a8225f14aff242b3d8d1934d1762d
 ModelImporter:
   serializedVersion: 20200
   internalIDToNameTable:
   - first:
       74: -203655887218126122
-    second: Jump
+    second: Right strafe
   externalObjects: {}
   materials:
     materialImportMode: 2
@@ -35,18 +35,18 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Jump
+      name: Right strafe
       takeName: mixamo.com
       internalID: 0
       firstFrame: 0
-      lastFrame: 16
+      lastFrame: 19
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 0
+      loopTime: 1
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -298,7 +298,7 @@ ModelImporter:
       scale: {x: 1, y: 1, z: 1}
     - name: mixamorig:Hips
       parentName: man(Clone)
-      position: {x: 0.0000025249003, y: 0.80954874, z: 0.0049594687}
+      position: {x: 0.0000025249003, y: 0.8095487, z: 0.0049594687}
       rotation: {x: 0.0000028957254, y: -0.0000029272855, z: -0.00006214843, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: mixamorig:RightUpLeg
@@ -323,7 +323,7 @@ ModelImporter:
       scale: {x: 1, y: 1, z: 1}
     - name: mixamorig:RightToe_End
       parentName: mixamorig:RightToeBase
-      position: {x: -0, y: 0.10984485, z: 0}
+      position: {x: -0, y: 0.10984484, z: 0}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: mixamorig:LeftUpLeg
@@ -338,7 +338,7 @@ ModelImporter:
       scale: {x: 1, y: 1, z: 1}
     - name: mixamorig:LeftFoot
       parentName: mixamorig:LeftLeg
-      position: {x: -0, y: 0.3066815, z: 0}
+      position: {x: -0, y: 0.30668148, z: 0}
       rotation: {x: 0.5554041, y: 0.098428346, z: -0.07030755, w: 0.82273626}
       scale: {x: 1, y: 1, z: 1}
     - name: mixamorig:LeftToeBase
@@ -383,7 +383,7 @@ ModelImporter:
       scale: {x: 1, y: 1, z: 1}
     - name: mixamorig:RightHand
       parentName: mixamorig:RightForeArm
-      position: {x: -0, y: 0.24734025, z: 0}
+      position: {x: -0, y: 0.24734023, z: 0}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: mixamorig:Neck
@@ -398,7 +398,7 @@ ModelImporter:
       scale: {x: 1, y: 1, z: 1}
     - name: mixamorig:HeadTop_End
       parentName: mixamorig:Head
-      position: {x: -0, y: 0.993237, z: -0.024092123}
+      position: {x: -0, y: 0.993237, z: -0.024092121}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: mixamorig:LeftShoulder

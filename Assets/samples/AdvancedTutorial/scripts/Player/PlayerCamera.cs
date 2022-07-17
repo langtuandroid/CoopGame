@@ -28,7 +28,7 @@ namespace Bolt.AdvancedTutorial
 		float aimingDistance = 1f;
 
 		[SerializeField]
-		float runningSmoothTime = 0.1f;
+		float runningSmoothTime = 0.95f;
 
 		[SerializeField]
 		Transform dummyRig;
@@ -69,7 +69,7 @@ namespace Bolt.AdvancedTutorial
 
 				if (allowSmoothing)
 				{
-					pos = Vector3.SmoothDamp(transform.position, pos, ref _velocity, runningSmoothTime);
+					pos = Vector3.Lerp(transform.position, pos, runningSmoothTime);
 				}
 
 				transform.position = pos;

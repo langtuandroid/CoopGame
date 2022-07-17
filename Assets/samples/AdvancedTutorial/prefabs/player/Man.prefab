@@ -329,6 +329,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: man
       objectReference: {fileID: 0}
+    - target: {fileID: 2106145266610383287, guid: edbc3fe0cf3f3bc47a3179d43560b786, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: a18d497006067e84f978e5755df9847a, type: 2}
     - target: {fileID: 5866666021909216657, guid: edbc3fe0cf3f3bc47a3179d43560b786, type: 3}
       propertyPath: m_Controller
       value: 
@@ -336,6 +340,10 @@ PrefabInstance:
     - target: {fileID: 5866666021909216657, guid: edbc3fe0cf3f3bc47a3179d43560b786, type: 3}
       propertyPath: m_WarningMessage
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: edbc3fe0cf3f3bc47a3179d43560b786, type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: edbc3fe0cf3f3bc47a3179d43560b786, type: 3}

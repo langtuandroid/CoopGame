@@ -325,6 +325,7 @@ MonoBehaviour:
   damagePerBullet: 25
   refireRate: 5
   fireFrame: 0
+  takeDamageDelayFrames: 25
 --- !u!1001 &45693183358587935
 PrefabInstance:
   m_ObjectHideFlags: 0

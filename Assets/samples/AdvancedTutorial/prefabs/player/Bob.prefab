@@ -219,7 +219,7 @@ MonoBehaviour:
   gravityForce: -9.81
   jumpForce: 25
   jumpTotalFrames: 30
-  movingSpeed: 4
+  movingSpeed: 6
   maxVelocity: 32
   drag: {x: 1, y: 0, z: 1}
   layerMask:

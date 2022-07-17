@@ -48,7 +48,7 @@ namespace Bolt.AdvancedTutorial
 			camComponent = cam.GetComponent<Camera> ();;
 		}
 
-		void Update ()
+		void LateUpdate ()
 		{
 			UpdateCamera (true);
 		}

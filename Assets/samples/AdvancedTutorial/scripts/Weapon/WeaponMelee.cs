@@ -9,49 +9,62 @@ namespace Bolt.AdvancedTutorial
 	public class WeaponMelee : WeaponBase
 	{
 		private float attackSphereRadius = 1.5f;
+		[SerializeField]
+		private int takeDamageDelayFrames = 28;
 
 		public override void OnOwner (PlayerCommand cmd, BoltEntity entity)
 		{
-			if (entity.IsOwner) {
-				IBobState state = entity.GetState<IBobState> ();
-				BobController controller = entity.GetComponent<BobController> ();
+			if (entity.IsOwner)
+			{
+				StartCoroutine(AttackDelayed(cmd, entity));
+			}
+		}
 
-				var spherePosition = entity.transform.position + entity.transform.forward * attackSphereRadius; 
-				var hitsUnder = BoltNetwork.OverlapSphereAll(spherePosition, attackSphereRadius, cmd.ServerFrame);
-				var hitsForward = BoltNetwork.OverlapSphereAll(spherePosition + entity.transform.up, attackSphereRadius, cmd.ServerFrame);
-				var hitsUpper = BoltNetwork.OverlapSphereAll(spherePosition + entity.transform.up * 2, attackSphereRadius, cmd.ServerFrame);
+		private IEnumerator<WaitForEndOfFrame> AttackDelayed(PlayerCommand cmd, BoltEntity entity)
+		{
+			while (fireFrame + takeDamageDelayFrames > BoltNetwork.ServerFrame)
+			{
+				yield return new WaitForEndOfFrame();
+			}
+			
+			IBobState state = entity.GetState<IBobState> ();
+			BobController controller = entity.GetComponent<BobController> ();
 
-				var hitsMap = new Dictionary <BoltHitboxBody, BoltPhysicsHit>();
-				for (var i = 0; i < hitsUnder.count; ++i)
+			var spherePosition = entity.transform.position + entity.transform.forward * attackSphereRadius; 
+			var hitsUnder = BoltNetwork.OverlapSphereAll(spherePosition, attackSphereRadius, cmd.ServerFrame);
+			var hitsForward = BoltNetwork.OverlapSphereAll(spherePosition + entity.transform.up, attackSphereRadius, cmd.ServerFrame);
+			var hitsUpper = BoltNetwork.OverlapSphereAll(spherePosition + entity.transform.up * 2, attackSphereRadius, cmd.ServerFrame);
+
+			var hitsMap = new Dictionary <BoltHitboxBody, BoltPhysicsHit>();
+			for (var i = 0; i < hitsUnder.count; ++i)
+			{
+				var hit = hitsUnder.GetHit(i);
+				hitsMap[hit.body] = hit;
+			}
+			for (var i = 0; i < hitsForward.count; ++i)
+			{
+				var hit = hitsForward.GetHit(i);
+				hitsMap[hit.body] = hit;
+			}
+			for (var i = 0; i < hitsUpper.count; ++i)
+			{
+				var hit = hitsUpper.GetHit(i);
+				hitsMap[hit.body] = hit;
+			}
+
+			foreach (var hit in hitsMap.Values)
+			{
+				// var serializer = hit.body.GetComponent<PlayerController>();
+
+				// if ((serializer != null) && (serializer.state.team != state.team)) {
+				// 	serializer.ApplyDamage (controller.activeWeapon.damagePerBullet);
+				// 	break;
+				// }
+
+				var redCube = hit.body.GetComponent<RedCube>();
+				if (redCube != null)
 				{
-					var hit = hitsUnder.GetHit(i);
-					hitsMap[hit.body] = hit;
-				}
-				for (var i = 0; i < hitsForward.count; ++i)
-				{
-					var hit = hitsForward.GetHit(i);
-					hitsMap[hit.body] = hit;
-				}
-				for (var i = 0; i < hitsUpper.count; ++i)
-				{
-					var hit = hitsUpper.GetHit(i);
-					hitsMap[hit.body] = hit;
-				}
-
-				foreach (var hit in hitsMap.Values)
-				{
-					// var serializer = hit.body.GetComponent<PlayerController>();
-
-					// if ((serializer != null) && (serializer.state.team != state.team)) {
-					// 	serializer.ApplyDamage (controller.activeWeapon.damagePerBullet);
-					// 	break;
-					// }
-
-					var redCube = hit.body.GetComponent<RedCube>();
-					if (redCube != null)
-					{
-						redCube.ApplyDamage(controller.activeWeapon.damagePerBullet);
-					}
+					redCube.ApplyDamage(controller.activeWeapon.damagePerBullet);
 				}
 			}
 		}

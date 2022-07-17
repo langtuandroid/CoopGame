@@ -229,6 +229,7 @@
         {
           "Name": "respawnFrame",
           "Enabled": true,
+          "Expanded": true,
           "ReplicationMode": 1,
           "Comment": "",
           "Priority": 1,
@@ -4892,24 +4893,6 @@
           }
         },
         {
-          "Name": "Jump",
-          "Enabled": true,
-          "Expanded": true,
-          "Comment": "",
-          "Priority": 1,
-          "PropertyType": {
-            "$type": "Photon.Bolt.Compiler.PropertyTypeTrigger, bolt.compiler"
-          },
-          "AssetSettings": {
-            "$type": "Photon.Bolt.Compiler.PropertyStateSettings, bolt.compiler",
-            "ExtrapolationErrorTolerance": 0.1,
-            "_ExtrapolationCorrectionFrames": 3,
-            "ExtrapolationMaxFrames": 9,
-            "MecanimMode": 1,
-            "MecanimDirection": 1
-          }
-        },
-        {
           "Name": "Aiming",
           "Enabled": true,
           "Expanded": true,
@@ -4925,6 +4908,41 @@
             "ExtrapolationMaxFrames": 9,
             "MecanimMode": 1,
             "MecanimDirection": 1
+          }
+        },
+        {
+          "Name": "IsGrounded",
+          "Enabled": true,
+          "Expanded": true,
+          "Comment": "",
+          "Priority": 1,
+          "PropertyType": {
+            "$type": "Photon.Bolt.Compiler.PropertyTypeBool, bolt.compiler"
+          },
+          "AssetSettings": {
+            "$type": "Photon.Bolt.Compiler.PropertyStateSettings, bolt.compiler",
+            "ExtrapolationErrorTolerance": 0.1,
+            "_ExtrapolationCorrectionFrames": 3,
+            "ExtrapolationMaxFrames": 9,
+            "MecanimMode": 1,
+            "MecanimDirection": 1
+          }
+        },
+        {
+          "Name": "tokenTest",
+          "Enabled": true,
+          "Expanded": true,
+          "ReplicationMode": 1,
+          "Priority": 1,
+          "PropertyType": {
+            "$type": "Photon.Bolt.Compiler.PropertyTypeProtocolToken, bolt.compiler"
+          },
+          "AssetSettings": {
+            "$type": "Photon.Bolt.Compiler.PropertyStateSettings, bolt.compiler",
+            "ExtrapolationErrorTolerance": 0.25,
+            "_ExtrapolationCorrectionFrames": 6,
+            "ExtrapolationMaxFrames": 9,
+            "SnapMagnitude": 10.0
           }
         },
         {
@@ -4944,23 +4962,6 @@
             "MecanimMode": 1,
             "MecanimDirection": 1,
             "MecanimLayer": 1
-          }
-        },
-        {
-          "Name": "tokenTest",
-          "Enabled": true,
-          "Expanded": true,
-          "ReplicationMode": 1,
-          "Priority": 1,
-          "PropertyType": {
-            "$type": "Photon.Bolt.Compiler.PropertyTypeProtocolToken, bolt.compiler"
-          },
-          "AssetSettings": {
-            "$type": "Photon.Bolt.Compiler.PropertyStateSettings, bolt.compiler",
-            "ExtrapolationErrorTolerance": 0.25,
-            "_ExtrapolationCorrectionFrames": 6,
-            "ExtrapolationMaxFrames": 9,
-            "SnapMagnitude": 10.0
           }
         }
       ],

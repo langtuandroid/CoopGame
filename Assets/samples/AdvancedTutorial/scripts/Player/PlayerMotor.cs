@@ -31,7 +31,7 @@ namespace Bolt.AdvancedTutorial
 		int jumpTotalFrames = 30;
 
 		[SerializeField]
-		float movingSpeed = 4f;
+		float movingSpeed = 6f;
 
 		[SerializeField]
 		float maxVelocity = 32f;
@@ -68,6 +68,12 @@ namespace Bolt.AdvancedTutorial
 				return p;
 			}
 		}
+
+		public bool isGrounded
+		{
+			get { return _state.isGrounded; }
+		}
+		
 
 		public bool jumpStartedThisFrame
 		{
@@ -127,6 +133,7 @@ namespace Bolt.AdvancedTutorial
 			{
 				movingDir.x = right ? +1 : -1;
 			}
+			movingDir.Normalize();
 
 			if (movingDir.x != 0 || movingDir.z != 0)
 			{
@@ -140,12 +147,6 @@ namespace Bolt.AdvancedTutorial
 				if (jump && _state.jumpFrames == 0)
 				{
 					_state.jumpFrames = (byte)jumpTotalFrames;
-					_state.velocity += movingDir * movingSpeed;
-				}
-
-				if (moving && _state.jumpFrames == 0)
-				{
-					Move(movingDir * movingSpeed);
 				}
 			}
 			else
@@ -161,6 +162,11 @@ namespace Bolt.AdvancedTutorial
 				force = jumpForce * force;
 
 				Move(new Vector3(0, force, 0));
+			}
+			
+			if (moving)
+			{
+				Move(movingDir * movingSpeed);
 			}
 
 			// decrease jump frames

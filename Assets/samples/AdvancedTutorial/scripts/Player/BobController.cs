@@ -201,7 +201,14 @@ namespace Bolt.AdvancedTutorial
 			else
 			{
 				// move and save the resulting state
-				var result = _motor.Move(cmd.Input.forward, cmd.Input.backward, cmd.Input.left, cmd.Input.right, cmd.Input.jump, cmd.Input.yaw);
+				var result = _motor.Move(
+					cmd.Input.forward && !isAttacking(),
+					cmd.Input.backward && !isAttacking(),
+					cmd.Input.left && !isAttacking(),
+					cmd.Input.right && !isAttacking(),
+					cmd.Input.jump && !isAttacking(),
+					cmd.Input.yaw
+					);
 
 				cmd.Result.position = result.position;
 				cmd.Result.velocity = result.velocity;
@@ -264,15 +271,12 @@ namespace Bolt.AdvancedTutorial
 			}
 
 			// JUMP
-			if (_motor.jumpStartedThisFrame)
-			{
-				state.Jump();
-			}
+			state.IsGrounded = _motor.isGrounded;
 		}
 
 		void FireWeapon(PlayerCommand cmd)
 		{
-			if (activeWeapon.fireFrame + activeWeapon.refireRate <= BoltNetwork.ServerFrame)
+			if (state.IsGrounded && activeWeapon.fireFrame + activeWeapon.refireRate <= BoltNetwork.ServerFrame)
 			{
 				activeWeapon.fireFrame = BoltNetwork.ServerFrame;
 
@@ -285,5 +289,11 @@ namespace Bolt.AdvancedTutorial
 				}
 			}
 		}
+
+		private bool isAttacking()
+		{
+			return activeWeapon.fireFrame + activeWeapon.refireRate > BoltNetwork.ServerFrame;
+		}
+
 	}
 }

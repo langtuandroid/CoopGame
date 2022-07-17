@@ -69,7 +69,7 @@ namespace Bolt.AdvancedTutorial
 
 				if (allowSmoothing)
 				{
-					pos = Vector3.Lerp(transform.position, pos, runningSmoothTime);
+					pos = Vector3.SmoothDamp(transform.position, pos, ref _velocity, runningSmoothTime);
 				}
 
 				transform.position = pos;

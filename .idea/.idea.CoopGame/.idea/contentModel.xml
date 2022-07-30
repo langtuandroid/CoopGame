@@ -104,6 +104,11 @@
         <e p="samples" t="Include">
           <e p="AdvancedTutorial" t="Include">
             <e p="Scripts" t="Include">
+              <e p="Actions" t="Include">
+                <e p="ObjectWithGettingDamage.cs" t="Include" />
+                <e p="ObjectWithGettingKnockBack.cs" t="Include" />
+                <e p="ObjectWithGettingStun - Copy.cs" t="Include" />
+              </e>
               <e p="Callbacks" t="Include">
                 <e p="PlayerCallbacks.cs" t="Include" />
                 <e p="ServerCallbacks.cs" t="Include" />

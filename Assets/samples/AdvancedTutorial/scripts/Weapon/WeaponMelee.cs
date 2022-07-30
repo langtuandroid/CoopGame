@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Bolt.samples.AdvancedTutorial.scripts.Actions;
 using UnityEngine;
 using Bolt.Samples.AdvancedTutorial.scripts.Enemies;
 using Photon.Bolt;
@@ -61,11 +62,12 @@ namespace Bolt.AdvancedTutorial
 				// 	break;
 				// }
 
-				var redCube = hit.body.GetComponent<RedCube>();
-				if (redCube != null)
-				{
-					redCube.ApplyDamage(controller.activeWeapon.damagePerBullet);
-				}
+				var takingDamageObject = hit.body.GetComponent<ObjectWithTakingDamage>();
+				takingDamageObject?.DealDamage(controller.activeWeapon.damagePerBullet);
+				var knockableObject = hit.body.GetComponent<ObjectWithGettingKnockBack>();
+				knockableObject?.ApplyKnockBack(entity.transform.forward, 1.5f);
+				var stunnableObject = hit.body.GetComponent<ObjectWithGettingStun>();
+				stunnableObject?.ApplyStun(0.5f);
 			}
 		}
 

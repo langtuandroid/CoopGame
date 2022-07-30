@@ -34,7 +34,7 @@ namespace Bolt.AdvancedTutorial
 			if (Time.time -  lastEnemiesSpawnTime > enemiesSpawnTimeDelay)
 			{
 				lastEnemiesSpawnTime = Time.time;
-				for (var i = 0; i < 10; i++)
+				for (var i = 0; i < 5; i++)
 				{
 					BoltNetwork.Instantiate(BoltPrefabs.RedCube, RandomSpawn(), Quaternion.identity);
 				}

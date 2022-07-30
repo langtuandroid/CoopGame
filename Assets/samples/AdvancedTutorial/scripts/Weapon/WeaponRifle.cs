@@ -1,3 +1,4 @@
+using Bolt.samples.AdvancedTutorial.scripts.Actions;
 using UnityEngine;
 using Bolt.Samples.AdvancedTutorial.scripts.Enemies;
 using Photon.Bolt;
@@ -27,11 +28,8 @@ namespace Bolt.AdvancedTutorial
 						// 	break;
 						// }
 
-						var redCube = hit.body.GetComponent<RedCube>();
-						if (redCube != null)
-						{
-							redCube.ApplyDamage(controller.activeWeapon.damagePerBullet);
-						}
+						var takingDamageObject = hit.body.GetComponent<ObjectWithTakingDamage>();
+						takingDamageObject?.DealDamage(controller.activeWeapon.damagePerBullet);
 					}
 				}
 			}

@@ -34,9 +34,9 @@ namespace Bolt.AdvancedTutorial
 			BobController controller = entity.GetComponent<BobController> ();
 
 			var spherePosition = entity.transform.position + entity.transform.forward * attackSphereRadius;
-			// var hitsUnder = BoltNetwork.OverlapSphereAll(spherePosition, attackSphereRadius, cmd.ServerFrame);
-			// var hitsForward = BoltNetwork.OverlapSphereAll(spherePosition + entity.transform.up, attackSphereRadius, cmd.ServerFrame);
-			// var hitsUpper = BoltNetwork.OverlapSphereAll(spherePosition + entity.transform.up * 2, attackSphereRadius, cmd.ServerFrame);
+			var hitsUnder = BoltNetwork.OverlapSphereAll(spherePosition, attackSphereRadius, cmd.ServerFrame);
+			var hitsForward = BoltNetwork.OverlapSphereAll(spherePosition + entity.transform.up, attackSphereRadius, cmd.ServerFrame);
+			var hitsUpper = BoltNetwork.OverlapSphereAll(spherePosition + entity.transform.up * 2, attackSphereRadius, cmd.ServerFrame);
 
 			var color = new Color(Random.value, Random.value, Random.value, 0.1f);
 			// DebugHelper.DrawSphere(spherePosition, attackSphereRadius, color);

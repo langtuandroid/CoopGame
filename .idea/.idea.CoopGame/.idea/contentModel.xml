@@ -145,6 +145,7 @@
               <e p="Utils" t="Include">
                 <e p="AutoDestroy.cs" t="Include" />
                 <e p="AutoDisable.cs" t="Include" />
+                <e p="DebugHelper.cs" t="Include" />
                 <e p="ExtensionMethods.cs" t="Include" />
                 <e p="LineFade.cs" t="Include" />
                 <e p="RandomSound.cs" t="Include" />

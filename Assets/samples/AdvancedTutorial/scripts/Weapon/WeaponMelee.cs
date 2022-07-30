@@ -1,15 +1,17 @@
+using System;
 using System.Collections.Generic;
 using Bolt.samples.AdvancedTutorial.scripts.Actions;
 using UnityEngine;
 using Bolt.Samples.AdvancedTutorial.scripts.Enemies;
 using Photon.Bolt;
 using Photon.Bolt.LagCompensation;
+using Random = UnityEngine.Random;
 
 namespace Bolt.AdvancedTutorial
 {
 	public class WeaponMelee : WeaponBase
 	{
-		private float attackSphereRadius = 1.5f;
+		private float attackSphereRadius = 1.3f;
 		[SerializeField]
 		private int takeDamageDelayFrames = 28;
 
@@ -31,10 +33,15 @@ namespace Bolt.AdvancedTutorial
 			IBobState state = entity.GetState<IBobState> ();
 			BobController controller = entity.GetComponent<BobController> ();
 
-			var spherePosition = entity.transform.position + entity.transform.forward * attackSphereRadius; 
+			var spherePosition = entity.transform.position + entity.transform.forward * attackSphereRadius;
 			var hitsUnder = BoltNetwork.OverlapSphereAll(spherePosition, attackSphereRadius, cmd.ServerFrame);
 			var hitsForward = BoltNetwork.OverlapSphereAll(spherePosition + entity.transform.up, attackSphereRadius, cmd.ServerFrame);
 			var hitsUpper = BoltNetwork.OverlapSphereAll(spherePosition + entity.transform.up * 2, attackSphereRadius, cmd.ServerFrame);
+
+			var color = new Color(Random.value, Random.value, Random.value, 0.1f);
+			// DebugHelper.DrawSphere(spherePosition, attackSphereRadius, color);
+			// DebugHelper.DrawSphere(spherePosition + entity.transform.up, attackSphereRadius, color);
+			// DebugHelper.DrawSphere(spherePosition + entity.transform.up * 2, attackSphereRadius, color);
 
 			var hitsMap = new Dictionary <BoltHitboxBody, BoltPhysicsHit>();
 			for (var i = 0; i < hitsUnder.count; ++i)

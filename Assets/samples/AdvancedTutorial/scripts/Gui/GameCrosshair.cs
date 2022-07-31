@@ -25,8 +25,8 @@ namespace Bolt.AdvancedTutorial
 
 		public override void ControlOfEntityGained(BoltEntity arg)
 		{
-			me = arg;
-			meState = arg.GetState<IPlayerState>();
+			// me = arg;
+			// meState = arg.GetState<IPlayerState>();
 		}
 
 		public override void ControlOfEntityLost(BoltEntity arg)

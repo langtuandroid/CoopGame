@@ -9,7 +9,7 @@ namespace Bolt.AdvancedTutorial
 	{
 		private float attackSphereRadius = 2f;
 
-		public override void OnOwner (PlayerCommand cmd, BoltEntity entity)
+		public override void OnOwner (Command cmd, BoltEntity entity)
 		{
 			if (entity.IsOwner) {
 				IPlayerState state = entity.GetState<IPlayerState> ();
@@ -29,7 +29,7 @@ namespace Bolt.AdvancedTutorial
 						// }
 
 						var takingDamageObject = hit.body.GetComponent<ObjectWithTakingDamage>();
-						takingDamageObject?.DealDamage(controller.activeWeapon.damagePerBullet);
+						takingDamageObject?.ApplyDamage(controller.activeWeapon.damagePerBullet);
 					}
 				}
 			}

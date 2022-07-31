@@ -31,6 +31,12 @@ namespace Bolt.AdvancedTutorial
 
 		public override void ControlOfEntityGained(BoltEntity entity)
 		{
+			if (entity.gameObject.GetComponent<BobController>() == null)
+			{
+				//ignore not player entities
+				return;
+			}
+			
 			// add audio listener to our character
 			entity.gameObject.AddComponent<AudioListener>();
 

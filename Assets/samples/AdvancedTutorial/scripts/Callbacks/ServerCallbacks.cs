@@ -36,7 +36,8 @@ namespace Bolt.AdvancedTutorial
 				lastEnemiesSpawnTime = Time.time;
 				for (var i = 0; i < 5; i++)
 				{
-					BoltNetwork.Instantiate(BoltPrefabs.RedCube, RandomSpawn(), Quaternion.identity);
+					var entity = BoltNetwork.Instantiate(BoltPrefabs.EnemyManGreatSword, RandomSpawn(), Quaternion.identity);
+					entity.TakeControl(new TestToken());
 				}
 			}
 		}

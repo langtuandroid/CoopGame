@@ -13,9 +13,10 @@ GameObject:
   - component: {fileID: 2191731514368653605}
   - component: {fileID: 1224286957521102523}
   - component: {fileID: 4226265757362061210}
-  - component: {fileID: 2494334113858593066}
+  - component: {fileID: 6391904716297993370}
+  - component: {fileID: 8977078318047038321}
   m_Layer: 0
-  m_Name: Man
+  m_Name: EnemyManGreatSword
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -89,8 +90,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _sceneGuid: 
-  _serializerGuid: 0755ee51-94b6-48b2-8046-13a3478e067e
-  _prefabId: 7
+  _serializerGuid: 89961a55-5fe0-46c8-b531-24ccefae2eef
+  _prefabId: 4
   _updateRate: 1
   _autoFreezeProxyFrames: 0
   _clientPredicted: 1
@@ -118,9 +119,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowSnapshotHistory: 0
-  _proximity: {fileID: 0}
+  _proximity: {fileID: 2648249862126606877}
   _hitboxes: []
---- !u!114 &2494334113858593066
+--- !u!114 &6391904716297993370
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -129,12 +130,31 @@ MonoBehaviour:
   m_GameObject: {fileID: 2736757121921172608}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1c21d5025f8146a29c77e7009cbc0a74, type: 3}
+  m_Script: {fileID: 11500000, guid: 4c42711ade324e9b91ede977975503c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  skinWidth: 0.08
+  gravityForce: -9.81
+  movingSpeed: 4
+  maxVelocity: 32
+  drag: {x: 1, y: 0, z: 1}
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 0
+--- !u!114 &8977078318047038321
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2736757121921172608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e0b4e8cc6074d5ca606a7103a061a7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _weapons:
-  - {fileID: 7253950188173872386}
-  _weaponSfxSource: {fileID: 0}
+  - {fileID: 498266974748794431}
 --- !u!1 &2942726968830323450
 GameObject:
   m_ObjectHideFlags: 0
@@ -184,7 +204,7 @@ MonoBehaviour:
   _center: {x: 0, y: 1, z: 0}
   _boxSize: {x: 1, y: 2, z: 1}
   _sphereRadius: 0.25
---- !u!114 &7253950188173872386
+--- !u!114 &498266974748794431
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -193,7 +213,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8008659934253040898}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f402864887d540e9a0de95e207de6f2d, type: 3}
+  m_Script: {fileID: 11500000, guid: 6a05b5c92f60467a915f7a5bbbfde120, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   shellPrefab: {fileID: 0}
@@ -221,7 +241,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0a64b44e5682e434eae5040dfb787d72, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.642
+      value: 0.136
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0a64b44e5682e434eae5040dfb787d72, type: 3}
       propertyPath: m_LocalPosition.y
@@ -336,7 +356,7 @@ PrefabInstance:
     - target: {fileID: 5866666021909216657, guid: edbc3fe0cf3f3bc47a3179d43560b786, type: 3}
       propertyPath: m_Controller
       value: 
-      objectReference: {fileID: 9100000, guid: c02420f27dfe34844a2e09b42eafffaf, type: 2}
+      objectReference: {fileID: 9100000, guid: a4fae1f7fdd03e944a5d210ec8e196b2, type: 2}
     - target: {fileID: 5866666021909216657, guid: edbc3fe0cf3f3bc47a3179d43560b786, type: 3}
       propertyPath: m_WarningMessage
       value: 

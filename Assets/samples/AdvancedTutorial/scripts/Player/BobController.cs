@@ -32,11 +32,7 @@ namespace Bolt.AdvancedTutorial
 		[SerializeField]
 		AudioSource _weaponSfxSource;
 
-		public WeaponBase activeWeapon
-		{
-			get { return _weapons[state.weapon]; }
-		}
-
+		public WeaponBase activeWeapon => _weapons[state.weapon];
 
 
 		void Awake()
@@ -131,7 +127,7 @@ namespace Bolt.AdvancedTutorial
 			GameUI.instance.crosshair.Spread += 0.1f;
 
 			// 
-			activeWeapon.Fx(entity);
+			// activeWeapon.Fx(entity);
 		}
 
 		public void ApplyDamage(byte damage)

@@ -7,7 +7,7 @@ using Random = UnityEngine.Random;
 
 namespace Bolt.AdvancedTutorial
 {
-	public class WeaponMelee : WeaponBase
+	public class WeaponEnemyMelee : WeaponBase
 	{
 		private float attackSphereRadius = 1.3f;
 		[SerializeField]
@@ -27,9 +27,6 @@ namespace Bolt.AdvancedTutorial
 			{
 				yield return new WaitForEndOfFrame();
 			}
-			
-			IBobState state = entity.GetState<IBobState> ();
-			BobController controller = entity.GetComponent<BobController> ();
 
 			var spherePosition = entity.transform.position + entity.transform.forward * attackSphereRadius;
 			var hitsUnder = BoltNetwork.OverlapSphereAll(spherePosition, attackSphereRadius, cmd.ServerFrame);
@@ -60,16 +57,9 @@ namespace Bolt.AdvancedTutorial
 
 			foreach (var hit in hitsMap.Values)
 			{
-				// var serializer = hit.body.GetComponent<PlayerController>();
-
-				// if ((serializer != null) && (serializer.state.team != state.team)) {
-				// 	serializer.ApplyDamage (controller.activeWeapon.damagePerBullet);
-				// 	break;
-				// }
-				
-				// if (hit.body.GetComponent<BobController>() == null) {
-				// 	break;
-				// }
+				if (hit.body.GetComponent<BobController>() == null) {
+					break;
+				}
 
 				var takingDamageObject = hit.body.GetComponent<ObjectWithTakingDamage>();
 				takingDamageObject?.ApplyDamage(damagePerBullet);

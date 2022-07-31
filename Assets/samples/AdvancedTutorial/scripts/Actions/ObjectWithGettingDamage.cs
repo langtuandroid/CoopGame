@@ -2,6 +2,6 @@
 {
     public interface ObjectWithTakingDamage
     {
-        void DealDamage(int damage);
+        void ApplyDamage(int damage);
     }
 }

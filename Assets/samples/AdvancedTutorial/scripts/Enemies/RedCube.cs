@@ -36,7 +36,7 @@ namespace Bolt.Samples.AdvancedTutorial.scripts.Enemies
                 var playerTransform = Player.allPlayers.First().entity.gameObject.transform;
                 entity.transform.position += (playerTransform.position - entity.transform.position)
                     .normalized * 0.04f;
-                entity.transform.LookAt(playerTransform);
+                entity.transform.LookAt(new Vector3(playerTransform.position.x, entity.transform.position.y, playerTransform.position.z));
             }
         }
 
@@ -51,7 +51,7 @@ namespace Bolt.Samples.AdvancedTutorial.scripts.Enemies
             renderer.material.SetColor("_Color", new Color(1f,  alpha, alpha));
         }
 
-        public void DealDamage(int damage)
+        public void ApplyDamage(int damage)
         {
             state.health -= damage;
 

@@ -116,6 +116,8 @@
               </e>
               <e p="CursorUtils.cs" t="Include" />
               <e p="Enemies" t="Include">
+                <e p="EnemyController.cs" t="Include" />
+                <e p="EnemyMotor.cs" t="Include" />
                 <e p="RedCube.cs" t="Include" />
               </e>
               <e p="Environment" t="Include">
@@ -155,6 +157,7 @@
               <e p="Weapon" t="Include">
                 <e p="WeaponBase.cs" t="Include" />
                 <e p="WeaponBazooka.cs" t="Include" />
+                <e p="WeaponEnemyMelee.cs" t="Include" />
                 <e p="WeaponMelee.cs" t="Include" />
                 <e p="WeaponRifle.cs" t="Include" />
               </e>

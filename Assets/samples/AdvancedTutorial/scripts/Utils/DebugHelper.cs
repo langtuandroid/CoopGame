@@ -37,7 +37,8 @@ namespace Bolt.AdvancedTutorial
 
         public void Update()
         {
-            foreach (var debugGizmo in drawingObjects)
+            var copyDict = new Dictionary<Object, float>(drawingObjects);
+            foreach (var debugGizmo in copyDict)
             {
                 if (debugGizmo.Value < Time.time)
                 {

@@ -37,7 +37,7 @@ namespace Bolt.AdvancedTutorial
 				for (var i = 0; i < 5; i++)
 				{
 					var entity = BoltNetwork.Instantiate(BoltPrefabs.EnemyManGreatSword, RandomSpawn(), Quaternion.identity);
-					entity.TakeControl(new TestToken());
+					// entity.TakeControl(new TestToken());
 				}
 			}
 		}

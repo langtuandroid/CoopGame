@@ -100,7 +100,7 @@ namespace Bolt.AdvancedTutorial
 			_state.position = transform.localPosition;
 		}
 
-		public State MoveTo(Vector3 movingDir)
+		public State MoveTo(Vector3 movingDir, Vector3 lookDir, float speedMult = 1f)
 		{
 			var moving = false;
 			movingDir.y = 0;
@@ -119,7 +119,7 @@ namespace Bolt.AdvancedTutorial
 
 			if (moving)
 			{
-				Move(movingDir * movingSpeed);
+				Move(speedMult * movingSpeed * movingDir);
 			}
 
 			// clamp velocity
@@ -138,8 +138,8 @@ namespace Bolt.AdvancedTutorial
 			Move(_state.velocity);
 
 			// set local rotation
-			var yaw = Vector3.SignedAngle(Vector3.forward, movingDir, Vector3.up);
-			transform.localRotation = Quaternion.Euler(0, 0, 0);
+			var yaw = Vector3.SignedAngle(Vector3.forward, lookDir, Vector3.up);
+			transform.localRotation = Quaternion.Euler(0, yaw, 0);
 
 			// detect tunneling
 			DetectTunneling();

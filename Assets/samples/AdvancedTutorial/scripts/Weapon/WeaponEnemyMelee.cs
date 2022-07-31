@@ -17,11 +17,11 @@ namespace Bolt.AdvancedTutorial
 		{
 			if (entity.IsOwner)
 			{
-				StartCoroutine(AttackDelayed(cmd, entity));
+				StartCoroutine(AttackDelayed(entity));
 			}
 		}
 
-		private IEnumerator<WaitForEndOfFrame> AttackDelayed(Command cmd, BoltEntity entity)
+		private IEnumerator<WaitForEndOfFrame> AttackDelayed(BoltEntity entity)
 		{
 			while (fireFrame + takeDamageDelayFrames > BoltNetwork.ServerFrame)
 			{
@@ -29,9 +29,9 @@ namespace Bolt.AdvancedTutorial
 			}
 
 			var spherePosition = entity.transform.position + entity.transform.forward * attackSphereRadius;
-			var hitsUnder = BoltNetwork.OverlapSphereAll(spherePosition, attackSphereRadius, cmd.ServerFrame);
-			var hitsForward = BoltNetwork.OverlapSphereAll(spherePosition + entity.transform.up, attackSphereRadius, cmd.ServerFrame);
-			var hitsUpper = BoltNetwork.OverlapSphereAll(spherePosition + entity.transform.up * 2, attackSphereRadius, cmd.ServerFrame);
+			var hitsUnder = BoltNetwork.OverlapSphereAll(spherePosition, attackSphereRadius, BoltNetwork.ServerFrame);
+			var hitsForward = BoltNetwork.OverlapSphereAll(spherePosition + entity.transform.up, attackSphereRadius, BoltNetwork.ServerFrame);
+			var hitsUpper = BoltNetwork.OverlapSphereAll(spherePosition + entity.transform.up * 2, attackSphereRadius, BoltNetwork.ServerFrame);
 
 			var color = new Color(Random.value, Random.value, Random.value, 0.1f);
 			// DebugHelper.DrawSphere(spherePosition, attackSphereRadius, color);

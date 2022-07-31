@@ -87,10 +87,10 @@ namespace Bolt.AdvancedTutorial
 			{
 				state.health = (byte)Mathf.Clamp(state.health + 1, 0, 100);
 			}
-		}
-
-		public override void SimulateController()
-		{
+		// }
+		//
+		// public override void SimulateController()
+		// {
 			var targetPosition = transform.position;
 			if (canMoveByController() && Player.allPlayers.Any())
 			{
@@ -107,47 +107,49 @@ namespace Bolt.AdvancedTutorial
 
 			input.weapon = weapon;
 
-			entity.QueueInput(input);
-		}
+			// entity.QueueInput(input);
+			
+			var result = _motor.MoveTo(input.movingDir, input.movingDir);
 
-		public override void ExecuteCommand(Command c, bool resetState)
-		{
-			if (state.Dead)
-			{
-				return;
-			}
+			// result.position = result.position;
+			// result.velocity = result.velocity;
+			// result.isGrounded = result.isGrounded;
 
-			EnemyCommand cmd = (EnemyCommand)c;
+			// if (cmd.IsFirstExecution)
+			// {
+				// animation
+				AnimateEnemy();
+				state.weapon = input.weapon;
 
-			if (resetState)
-			{
-				_motor.SetState(cmd.Result.position, cmd.Result.velocity, cmd.Result.isGrounded);
-			}
-			else
-			{
-				// move and save the resulting state
-				var result = _motor.MoveTo(cmd.Input.movingDir);
-
-				cmd.Result.position = result.position;
-				cmd.Result.velocity = result.velocity;
-				cmd.Result.isGrounded = result.isGrounded;
-
-				if (cmd.IsFirstExecution)
+				// deal with weapons
+				if (input.fire)
 				{
-					// animation
-					AnimateEnemy(cmd);
-					state.weapon = cmd.Input.weapon;
-
-					// deal with weapons
-					if (cmd.Input.fire)
-					{
-						FireWeapon(cmd);
-					}
+					FireWeapon();
 				}
-			}
+			// }
 		}
 
-		void AnimateEnemy(Command cmd)
+		// public override void ExecuteCommand(Command c, bool resetState)
+		// {
+		// 	if (state.Dead)
+		// 	{
+		// 		return;
+		// 	}
+		//
+		// 	EnemyCommand cmd = (EnemyCommand)c;
+		//
+		// 	if (resetState)
+		// 	{
+		// 		_motor.SetState(cmd.Result.position, cmd.Result.velocity, cmd.Result.isGrounded);
+		// 	}
+		// 	else
+		// 	{
+		// 		// move and save the resulting state
+		// 		
+		// 	}
+		// }
+
+		void AnimateEnemy()
 		{
 			state.MoveZ = 1;
 
@@ -155,7 +157,7 @@ namespace Bolt.AdvancedTutorial
 			state.IsGrounded = _motor.isGrounded;
 		}
 
-		void FireWeapon(Command cmd)
+		void FireWeapon()
 		{
 			if (state.IsGrounded && activeWeapon.fireFrame + activeWeapon.refireRate <= BoltNetwork.ServerFrame)
 			{
@@ -166,7 +168,7 @@ namespace Bolt.AdvancedTutorial
 				// if we are the owner and the active weapon is a hitscan weapon, do logic
 				if (entity.IsOwner)
 				{
-					activeWeapon.OnOwner(cmd, entity);
+					activeWeapon.OnOwner(null, entity);
 				}
 			}
 		}
@@ -201,13 +203,14 @@ namespace Bolt.AdvancedTutorial
 		{
 			isKnocking = true;
 
-			var knockingDuration = 0.15f;
-			var knockingProgress = 0f;
-			while (knockingProgress < knockingDuration)
+			var duration = 0.15f;
+			var progress = 0f;
+			var direction = (targetPosition - fromPosition).normalized;
+			while (progress < duration)
 			{
-				knockingProgress += BoltNetwork.FrameDeltaTime;
-				entity.transform.position = Vector3.Lerp(fromPosition, targetPosition,
-					knockingProgress / (float) knockingDuration);
+				progress += BoltNetwork.FrameDeltaTime;
+
+				_motor.MoveTo(direction, direction, 5f);
 				yield return WaitForFixed;
 			}
             

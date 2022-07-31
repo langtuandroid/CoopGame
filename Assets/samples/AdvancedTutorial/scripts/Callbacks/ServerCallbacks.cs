@@ -10,7 +10,7 @@ namespace Bolt.AdvancedTutorial
 	{
 		public static bool ListenServer = true;
 		private float lastEnemiesSpawnTime;
-		private long enemiesSpawnTimeDelay = 5;
+		private float enemiesSpawnTimeDelay = 0.1f;
 
 		void Awake()
 		{
@@ -31,14 +31,13 @@ namespace Bolt.AdvancedTutorial
 					p.Spawn();
 				}
 			}
-			if (Time.time -  lastEnemiesSpawnTime > enemiesSpawnTimeDelay)
+			if (Input.GetKey(KeyCode.T) && (Time.time -  lastEnemiesSpawnTime > enemiesSpawnTimeDelay))
 			{
 				lastEnemiesSpawnTime = Time.time;
-				for (var i = 0; i < 5; i++)
-				{
-					var entity = BoltNetwork.Instantiate(BoltPrefabs.EnemyManGreatSword, RandomSpawn(), Quaternion.identity);
-					// entity.TakeControl(new TestToken());
-				}
+				// for (var i = 0; i < 5; i++)
+				// {
+				BoltNetwork.Instantiate(BoltPrefabs.EnemyManGreatSword, RandomSpawn(), Quaternion.identity);
+				// }
 			}
 		}
 		

@@ -204,7 +204,7 @@ MonoBehaviour:
   fireSound: {fileID: 0}
   dryFireSound: {fileID: 0}
   reloadSound: {fileID: 0}
-  damagePerBullet: 25
+  damagePerBullet: 35
   refireRate: 35
   fireFrame: 0
   takeDamageDelayFrames: 25

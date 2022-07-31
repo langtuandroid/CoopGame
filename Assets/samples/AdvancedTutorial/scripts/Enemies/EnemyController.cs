@@ -52,6 +52,8 @@ namespace Bolt.AdvancedTutorial
 			state.SetTransforms(state.transform, transform);
 			state.SetAnimator(GetComponentInChildren<Animator>());
 
+			state.health = 100;
+
 			state.OnFire += OnFire;
 			state.AddCallback("weapon", WeaponChanged);
 
@@ -83,14 +85,16 @@ namespace Bolt.AdvancedTutorial
 
 		public override void SimulateOwner()
 		{
-			if ((BoltNetwork.Frame % 5) == 0 && (state.Dead == false))
+			if (state.Dead)
 			{
-				state.health = (byte)Mathf.Clamp(state.health + 1, 0, 100);
+				return;
 			}
-		// }
-		//
-		// public override void SimulateController()
-		// {
+
+			if ((BoltNetwork.Frame % 5) == 0)
+			{
+				state.health = (byte) Mathf.Clamp(state.health + 1, 0, 100);
+			}
+
 			var targetPosition = transform.position;
 			if (canMoveByController() && Player.allPlayers.Any())
 			{
@@ -98,56 +102,17 @@ namespace Bolt.AdvancedTutorial
 			}
 
 			var movingDir = (targetPosition - transform.position).normalized;
-			
-			IEnemyCommandInput input = EnemyCommand.Create();
-			
-			input.fire = fire;
 
-			input.movingDir = movingDir;
+			_motor.MoveTo(movingDir, movingDir);
 
-			input.weapon = weapon;
+			AnimateEnemy();
+			state.weapon = weapon;
 
-			// entity.QueueInput(input);
-			
-			var result = _motor.MoveTo(input.movingDir, input.movingDir);
-
-			// result.position = result.position;
-			// result.velocity = result.velocity;
-			// result.isGrounded = result.isGrounded;
-
-			// if (cmd.IsFirstExecution)
-			// {
-				// animation
-				AnimateEnemy();
-				state.weapon = input.weapon;
-
-				// deal with weapons
-				if (input.fire)
-				{
-					FireWeapon();
-				}
-			// }
+			if (fire)
+			{
+				FireWeapon();
+			}
 		}
-
-		// public override void ExecuteCommand(Command c, bool resetState)
-		// {
-		// 	if (state.Dead)
-		// 	{
-		// 		return;
-		// 	}
-		//
-		// 	EnemyCommand cmd = (EnemyCommand)c;
-		//
-		// 	if (resetState)
-		// 	{
-		// 		_motor.SetState(cmd.Result.position, cmd.Result.velocity, cmd.Result.isGrounded);
-		// 	}
-		// 	else
-		// 	{
-		// 		// move and save the resulting state
-		// 		
-		// 	}
-		// }
 
 		void AnimateEnemy()
 		{

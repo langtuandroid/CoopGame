@@ -44,14 +44,6 @@ namespace Bolt.AdvancedTutorial
 		void Update()
 		{
 			PollKeys(true);
-
-			if (entity.IsOwner && entity.HasControl && Input.GetKey(KeyCode.L))
-			{
-				for (int i = 0; i < 100; ++i)
-				{
-					BoltNetwork.Instantiate(BoltPrefabs.SceneCube, new Vector3(Random.value * 512, Random.value * 512, Random.value * 512), Quaternion.identity);
-				}
-			}
 		}
 
 		void PollKeys(bool mouse)

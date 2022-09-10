@@ -5,6 +5,107 @@
       <e p="Assembly-CSharp-Editor.csproj" t="IncludeRecursive" />
       <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
       <e p="Assets" t="Include">
+        <e p="Main" t="Include">
+          <e p="BoltInit.cs" t="Include" />
+          <e p="BoltInitSinglePlayer.cs" t="Include" />
+          <e p="Scripts" t="Include">
+            <e p="Actions" t="Include">
+              <e p="ObjectWithGettingDamage.cs" t="Include" />
+              <e p="ObjectWithGettingKnockBack.cs" t="Include" />
+              <e p="ObjectWithGettingStun.cs" t="Include" />
+            </e>
+            <e p="Callbacks" t="Include">
+              <e p="PlayerCallbacks.cs" t="Include" />
+              <e p="ServerCallbacks.cs" t="Include" />
+              <e p="TokenCallbacks.cs" t="Include" />
+            </e>
+            <e p="CursorUtils.cs" t="Include" />
+            <e p="enemies" t="Include">
+              <e p="EnemyController.cs" t="Include" />
+              <e p="RedCube.cs" t="Include" />
+            </e>
+            <e p="Gui" t="Include">
+              <e p="GameHealth.cs" t="Include" />
+              <e p="GameLog.cs" t="Include" />
+            </e>
+            <e p="player" t="Include">
+              <e p="BobController.cs" t="Include" />
+              <e p="Player.cs" t="Include" />
+              <e p="PlayerCamera.cs" t="Include" />
+              <e p="PlayerIK.cs" t="Include" />
+              <e p="PlayerMotor.cs" t="Include" />
+              <e p="PlayerNamePlate.cs" t="Include" />
+              <e p="PlayerSfx.cs" t="Include" />
+            </e>
+            <e p="Tokens" t="Include">
+              <e p="Token.cs" t="Include" />
+            </e>
+            <e p="Utils" t="Include">
+              <e p="AutoDestroy.cs" t="Include" />
+              <e p="AutoDisable.cs" t="Include" />
+              <e p="DebugHelper.cs" t="Include" />
+              <e p="ExtensionMethods.cs" t="Include" />
+              <e p="LineFade.cs" t="Include" />
+              <e p="RandomSound.cs" t="Include" />
+              <e p="UnityUtils.cs" t="Include" />
+              <e p="UvCoords.cs" t="Include" />
+            </e>
+            <e p="Weapon" t="Include">
+              <e p="WeaponBase.cs" t="Include" />
+              <e p="WeaponEnemyMelee.cs" t="Include" />
+              <e p="WeaponMelee.cs" t="Include" />
+            </e>
+          </e>
+          <e p="Shaders" t="Include">
+            <e p="AlphaBlend.shader" t="Include" />
+            <e p="VertexColored.shader" t="Include" />
+          </e>
+          <e p="thirdparty" t="Include">
+            <e p="Sample Assets" t="Include">
+              <e p="Effects" t="Include">
+                <e p="Particle Systems" t="Include">
+                  <e p="Scripts" t="Include">
+                    <e p="ExplosionFireAndDebris.cs" t="Include" />
+                    <e p="ExplosionPhysicsForce.cs" t="Include" />
+                    <e p="ParticleSystemMultiplier.cs" t="Include" />
+                  </e>
+                </e>
+              </e>
+              <e p="Utility" t="Include">
+                <e p="ParticleSystemDestroyer.cs" t="Include" />
+              </e>
+            </e>
+            <e p="Typogenic" t="Include">
+              <e p="Arial" t="Include">
+                <e p="Arial.fnt" t="Include" />
+              </e>
+              <e p="Changelog.txt" t="Include" />
+              <e p="Editor" t="Include">
+                <e p="TypogenicFontEditor.cs" t="Include" />
+                <e p="TypogenicFontWizard.cs" t="Include" />
+                <e p="TypogenicMaterialEditor.cs" t="Include" />
+                <e p="TypogenicTextEditor.cs" t="Include" />
+              </e>
+              <e p="README.txt" t="Include" />
+              <e p="Scripts" t="Include">
+                <e p="SerializedDictionary.cs" t="Include" />
+                <e p="TypogenicFont.cs" t="Include" />
+                <e p="TypogenicGlyphClickEvent.cs" t="Include" />
+                <e p="TypogenicText.cs" t="Include" />
+              </e>
+              <e p="Shaders" t="Include">
+                <e p="TypogenicLit.shader" t="Include" />
+                <e p="TypogenicLitShadowcaster.shader" t="Include" />
+                <e p="TypogenicLitTextured.shader" t="Include" />
+                <e p="TypogenicLitTexturedShadowcaster.shader" t="Include" />
+                <e p="TypogenicUnlit.shader" t="Include" />
+                <e p="TypogenicUnlitShadowcaster.shader" t="Include" />
+                <e p="TypogenicUnlitTextured.shader" t="Include" />
+                <e p="TypogenicUnlitTexturedShadowcaster.shader" t="Include" />
+              </e>
+            </e>
+          </e>
+        </e>
         <e p="Photon" t="Include">
           <e p="PhotonBolt" t="Include">
             <e p="assemblies" t="Include">
@@ -50,7 +151,6 @@
             </e>
             <e p="PhotonBolt.asmdef" t="Include" />
             <e p="README.txt" t="Include" />
-            <e p="release_history.txt" t="Include" />
             <e p="Scripts" t="Include">
               <e p="BoltConsoleWriter.cs" t="Include" />
               <e p="BoltDebugStart.cs" t="Include" />
@@ -100,109 +200,6 @@
               <e p="WebRpc.cs" t="Include" />
             </e>
           </e>
-        </e>
-        <e p="samples" t="Include">
-          <e p="AdvancedTutorial" t="Include">
-            <e p="Scripts" t="Include">
-              <e p="Actions" t="Include">
-                <e p="ObjectWithGettingDamage.cs" t="Include" />
-                <e p="ObjectWithGettingKnockBack.cs" t="Include" />
-                <e p="ObjectWithGettingStun.cs" t="Include" />
-              </e>
-              <e p="Callbacks" t="Include">
-                <e p="PlayerCallbacks.cs" t="Include" />
-                <e p="ServerCallbacks.cs" t="Include" />
-                <e p="TokenCallbacks.cs" t="Include" />
-              </e>
-              <e p="CursorUtils.cs" t="Include" />
-              <e p="Enemies" t="Include">
-                <e p="EnemyController.cs" t="Include" />
-                <e p="RedCube.cs" t="Include" />
-              </e>
-              <e p="Gui" t="Include">
-                <e p="GameHealth.cs" t="Include" />
-                <e p="GameLog.cs" t="Include" />
-              </e>
-              <e p="Player" t="Include">
-                <e p="BobController.cs" t="Include" />
-                <e p="Player.cs" t="Include" />
-                <e p="PlayerCamera.cs" t="Include" />
-                <e p="PlayerIK.cs" t="Include" />
-                <e p="PlayerMotor.cs" t="Include" />
-                <e p="PlayerNamePlate.cs" t="Include" />
-                <e p="PlayerSfx.cs" t="Include" />
-              </e>
-              <e p="Tokens" t="Include">
-                <e p="Token.cs" t="Include" />
-              </e>
-              <e p="Utils" t="Include">
-                <e p="AutoDestroy.cs" t="Include" />
-                <e p="AutoDisable.cs" t="Include" />
-                <e p="DebugHelper.cs" t="Include" />
-                <e p="ExtensionMethods.cs" t="Include" />
-                <e p="LineFade.cs" t="Include" />
-                <e p="RandomSound.cs" t="Include" />
-                <e p="UnityUtils.cs" t="Include" />
-                <e p="UvCoords.cs" t="Include" />
-              </e>
-              <e p="Weapon" t="Include">
-                <e p="WeaponBase.cs" t="Include" />
-                <e p="WeaponEnemyMelee.cs" t="Include" />
-                <e p="WeaponMelee.cs" t="Include" />
-              </e>
-            </e>
-            <e p="Shaders" t="Include">
-              <e p="AlphaBlend.shader" t="Include" />
-              <e p="VertexColored.shader" t="Include" />
-            </e>
-            <e p="thirdparty" t="Include">
-              <e p="Sample Assets" t="Include">
-                <e p="Effects" t="Include">
-                  <e p="Particle Systems" t="Include">
-                    <e p="Scripts" t="Include">
-                      <e p="ExplosionFireAndDebris.cs" t="Include" />
-                      <e p="ExplosionPhysicsForce.cs" t="Include" />
-                      <e p="ParticleSystemMultiplier.cs" t="Include" />
-                    </e>
-                  </e>
-                </e>
-                <e p="Utility" t="Include">
-                  <e p="ParticleSystemDestroyer.cs" t="Include" />
-                </e>
-              </e>
-              <e p="Typogenic" t="Include">
-                <e p="Arial" t="Include">
-                  <e p="Arial.fnt" t="Include" />
-                </e>
-                <e p="Changelog.txt" t="Include" />
-                <e p="Editor" t="Include">
-                  <e p="TypogenicFontEditor.cs" t="Include" />
-                  <e p="TypogenicFontWizard.cs" t="Include" />
-                  <e p="TypogenicMaterialEditor.cs" t="Include" />
-                  <e p="TypogenicTextEditor.cs" t="Include" />
-                </e>
-                <e p="README.txt" t="Include" />
-                <e p="Scripts" t="Include">
-                  <e p="SerializedDictionary.cs" t="Include" />
-                  <e p="TypogenicFont.cs" t="Include" />
-                  <e p="TypogenicGlyphClickEvent.cs" t="Include" />
-                  <e p="TypogenicText.cs" t="Include" />
-                </e>
-                <e p="Shaders" t="Include">
-                  <e p="TypogenicLit.shader" t="Include" />
-                  <e p="TypogenicLitShadowcaster.shader" t="Include" />
-                  <e p="TypogenicLitTextured.shader" t="Include" />
-                  <e p="TypogenicLitTexturedShadowcaster.shader" t="Include" />
-                  <e p="TypogenicUnlit.shader" t="Include" />
-                  <e p="TypogenicUnlitShadowcaster.shader" t="Include" />
-                  <e p="TypogenicUnlitTextured.shader" t="Include" />
-                  <e p="TypogenicUnlitTexturedShadowcaster.shader" t="Include" />
-                </e>
-              </e>
-            </e>
-          </e>
-          <e p="BoltInit.cs" t="Include" />
-          <e p="BoltInitSinglePlayer.cs" t="Include" />
         </e>
       </e>
       <e p="CoopGame.sln" t="IncludeFlat" />

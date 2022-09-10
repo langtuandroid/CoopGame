@@ -50,10 +50,10 @@ MonoBehaviour:
   debugStartPort: 54321
   debugBuildMode: 1
   debugStartMapName: Level1
-  debugPlayAsServer: 0
+  debugPlayAsServer: 1
   showDebugInfo: 0
   overrideTimeScale: 1
-  debugEditorMode: 0
+  debugEditorMode: 1
   consoleToggleKey: 9
   consoleVisibleByDefault: 0
   compilationWarnLevel: 4

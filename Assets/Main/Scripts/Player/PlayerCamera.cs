@@ -1,12 +1,10 @@
-using System.Numerics;
-using Bolt.Samples.AdvancedTutorial.scripts;
 using Photon.Bolt;
 using UnityEngine;
 using Plane = UnityEngine.Plane;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 
-namespace Bolt.AdvancedTutorial
+namespace Main.Scripts.Player
 {
 	public class PlayerCamera : BoltSingletonPrefab<PlayerCamera>
 	{

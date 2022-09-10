@@ -1,15 +1,15 @@
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using UE = UnityEngine;
+using Main.Scripts.Tokens;
 using Photon.Bolt;
+using UnityEngine;
+using UE = UnityEngine;
 
-namespace Bolt.AdvancedTutorial
+namespace Main.Scripts.Player
 {
 
-	public partial class Player : IDisposable
+	public partial class PlayerInfo : IDisposable
 	{
 		public const byte TEAM_RED = 1;
 		public const byte TEAM_BLUE = 2;
@@ -28,7 +28,7 @@ namespace Bolt.AdvancedTutorial
 			get { return connection == null; }
 		}
 
-		public Player()
+		public PlayerInfo()
 		{
 			players.Add(this);
 		}
@@ -102,31 +102,31 @@ namespace Bolt.AdvancedTutorial
 		}
 	}
 
-	partial class Player
+	partial class PlayerInfo
 	{
-		static List<Player> players = new List<Player>();
+		static List<PlayerInfo> players = new List<PlayerInfo>();
 
-		public static IEnumerable<Player> redPlayers
+		public static IEnumerable<PlayerInfo> redPlayers
 		{
 			get { return players.Where(x => x.entity && x.state.team == TEAM_RED); }
 		}
 
-		public static IEnumerable<Player> bluePlayers
+		public static IEnumerable<PlayerInfo> bluePlayers
 		{
 			get { return players.Where(x => x.entity && x.state.team == TEAM_BLUE); }
 		}
 
-		public static IEnumerable<Player> allPlayers
+		public static IEnumerable<PlayerInfo> allPlayers
 		{
 			get { return players; }
 		}
 
 		public static bool serverIsPlaying
 		{
-			get { return serverPlayer != null; }
+			get { return ServerPlayerInfo != null; }
 		}
 
-		public static Player serverPlayer
+		public static PlayerInfo ServerPlayerInfo
 		{
 			get;
 			private set;
@@ -134,7 +134,7 @@ namespace Bolt.AdvancedTutorial
 
 		public static void CreateServerPlayer()
 		{
-			serverPlayer = new Player();
+			ServerPlayerInfo = new PlayerInfo();
 		}
 
 		static Vector3 RandomSpawn()

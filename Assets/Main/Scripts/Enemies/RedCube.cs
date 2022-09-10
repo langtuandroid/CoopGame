@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Linq;
-using Bolt.samples.AdvancedTutorial.scripts.Actions;
+using Main.Scripts.Actions;
+using Main.Scripts.Player;
 using Photon.Bolt;
 using UnityEngine;
-using Player = Bolt.AdvancedTutorial.Player;
 
-namespace Bolt.Samples.AdvancedTutorial.scripts.Enemies
+namespace Main.Scripts.Enemies
 {
     public class RedCube : EntityBehaviour<IRedCube>,
         ObjectWithTakingDamage,
@@ -31,9 +30,9 @@ namespace Bolt.Samples.AdvancedTutorial.scripts.Enemies
 
         public override void SimulateOwner()
         {
-            if (canMoveByController() && Player.allPlayers.Any())
+            if (canMoveByController() && PlayerInfo.allPlayers.Any())
             {
-                var playerTransform = Player.allPlayers.First().entity.gameObject.transform;
+                var playerTransform = PlayerInfo.allPlayers.First().entity.gameObject.transform;
                 entity.transform.position += (playerTransform.position - entity.transform.position)
                     .normalized * 0.04f;
                 entity.transform.LookAt(new Vector3(playerTransform.position.x, entity.transform.position.y, playerTransform.position.z));

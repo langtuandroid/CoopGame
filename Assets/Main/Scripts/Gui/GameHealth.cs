@@ -1,8 +1,8 @@
-using UnityEngine;
-using System.Collections;
+using Main.Scripts.Player;
 using Photon.Bolt;
+using UnityEngine;
 
-namespace Bolt.AdvancedTutorial
+namespace Main.Scripts.Gui
 {
     public class GameHealth : GlobalEventListener
     {

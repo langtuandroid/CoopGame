@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Bolt.Samples.AdvancedTutorial.scripts
+namespace Main.Scripts
 {
     public static class CursorUtils
     {

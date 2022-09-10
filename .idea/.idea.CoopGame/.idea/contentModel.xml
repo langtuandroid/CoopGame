@@ -30,9 +30,9 @@
             </e>
             <e p="player" t="Include">
               <e p="BobController.cs" t="Include" />
-              <e p="Player.cs" t="Include" />
               <e p="PlayerCamera.cs" t="Include" />
               <e p="PlayerIK.cs" t="Include" />
+              <e p="PlayerInfo.cs" t="Include" />
               <e p="PlayerMotor.cs" t="Include" />
               <e p="PlayerNamePlate.cs" t="Include" />
               <e p="PlayerSfx.cs" t="Include" />

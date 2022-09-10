@@ -1,9 +1,10 @@
+using Main.Scripts.Utils;
 using Photon.Bolt;
 using Photon.Bolt.Utils;
 using UdpKit;
 using UnityEngine;
 
-namespace Bolt.AdvancedTutorial
+namespace Main.Scripts.Callbacks
 {
 	[BoltGlobalBehaviour(BoltNetworkModes.Server, "Level1")]
 	public class ServerCallbacks : GlobalEventListener
@@ -16,14 +17,14 @@ namespace Bolt.AdvancedTutorial
 		{
 			if (ListenServer)
 			{
-				Player.CreateServerPlayer();
-				Player.serverPlayer.name = "SERVER";
+				Player.PlayerInfo.CreateServerPlayer();
+				Player.PlayerInfo.ServerPlayerInfo.name = "SERVER";
 			}
 		}
 
 		void FixedUpdate()
 		{
-			foreach (Player p in Player.allPlayers)
+			foreach (Player.PlayerInfo p in Player.PlayerInfo.allPlayers)
 			{
 				// if we have an entity, it's dead but our spawn frame has passed
 				if (p.entity && p.state.Dead && p.state.respawnFrame <= BoltNetwork.ServerFrame)
@@ -88,7 +89,7 @@ namespace Bolt.AdvancedTutorial
 		{
 			BoltLog.Warn("Connected");
 
-			connection.UserData = new Player();
+			connection.UserData = new Player.PlayerInfo();
 			connection.GetPlayer().connection = connection;
 			connection.GetPlayer().name = "CLIENT:" + connection.RemoteEndPoint.Port;
 
@@ -102,15 +103,15 @@ namespace Bolt.AdvancedTutorial
 
 		public override void SceneLoadLocalDone(string scene, IProtocolToken token)
 		{
-			if (Player.serverIsPlaying)
+			if (Player.PlayerInfo.serverIsPlaying)
 			{
-				Player.serverPlayer.InstantiateEntity();
+				Player.PlayerInfo.ServerPlayerInfo.InstantiateEntity();
 			}
 		}
 
 		public override void SceneLoadLocalBegin(string scene, IProtocolToken token)
 		{
-			foreach (Player p in Player.allPlayers)
+			foreach (Player.PlayerInfo p in Player.PlayerInfo.allPlayers)
 			{
 				p.entity = null;
 			}

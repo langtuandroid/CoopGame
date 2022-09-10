@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Bolt.AdvancedTutorial
+namespace Main.Scripts.Utils
 {
 	[RequireComponent (typeof(MeshFilter))]
 	public class UvCoords : MonoBehaviour

@@ -1,9 +1,8 @@
-using UnityEngine;
-using System.Collections;
 using Photon.Bolt;
 using Photon.Bolt.Collections;
+using UnityEngine;
 
-namespace Bolt.AdvancedTutorial
+namespace Main.Scripts.Gui
 {
 
 	public class GameLog : GlobalEventListener

@@ -1,11 +1,12 @@
 using System.Collections.Generic;
-using Bolt.samples.AdvancedTutorial.scripts.Actions;
-using UnityEngine;
+using Main.Scripts.Actions;
+using Main.Scripts.Player;
 using Photon.Bolt;
 using Photon.Bolt.LagCompensation;
+using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace Bolt.AdvancedTutorial
+namespace Main.Scripts.Weapon
 {
 	public class WeaponEnemyMelee : WeaponBase
 	{

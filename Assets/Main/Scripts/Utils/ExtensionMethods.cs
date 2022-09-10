@@ -1,18 +1,16 @@
-using UnityEngine;
-using System.Collections;
 using Photon.Bolt;
 
-namespace Bolt.AdvancedTutorial
+namespace Main.Scripts.Utils
 {
 	public static class ExtensionMethods
 	{
-		public static Player GetPlayer (this BoltConnection connection)
+		public static Player.PlayerInfo GetPlayer (this BoltConnection connection)
 		{
 			if (connection == null) {
-				return Player.serverPlayer;
+				return Player.PlayerInfo.ServerPlayerInfo;
 			}
 
-			return (Player)connection.UserData;
+			return (Player.PlayerInfo)connection.UserData;
 		}
 	}
 }

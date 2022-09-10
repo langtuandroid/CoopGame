@@ -1,9 +1,6 @@
-using System;
-using System.Collections;
 using Photon.Bolt;
-using UnityEngine;
 
-namespace Bolt.AdvancedTutorial
+namespace Main.Scripts.Tokens
 {
 	/// <summary>
 	/// 

@@ -1,11 +1,12 @@
 using System;
-using Bolt.Samples.AdvancedTutorial.scripts;
-using UnityEngine;
+using Main.Scripts.Tokens;
+using Main.Scripts.Utils;
+using Main.Scripts.Weapon;
 using Photon.Bolt;
 using Photon.Bolt.Utils;
-using Random = UnityEngine.Random;
+using UnityEngine;
 
-namespace Bolt.AdvancedTutorial
+namespace Main.Scripts.Player
 {
 	public class BobController : EntityEventListener<IBobState>
 	{

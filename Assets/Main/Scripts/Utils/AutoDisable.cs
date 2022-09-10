@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Bolt.AdvancedTutorial
+namespace Main.Scripts.Utils
 {
 	public class AutoDisable : MonoBehaviour
 	{

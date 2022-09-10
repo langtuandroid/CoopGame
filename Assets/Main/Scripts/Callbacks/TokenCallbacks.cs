@@ -1,8 +1,7 @@
-using UnityEngine;
-using System.Collections;
+using Main.Scripts.Tokens;
 using Photon.Bolt;
 
-namespace Bolt.AdvancedTutorial {
+namespace Main.Scripts.Callbacks {
 
 	[BoltGlobalBehaviour]
 	public class TokenCallbacks : GlobalEventListener {

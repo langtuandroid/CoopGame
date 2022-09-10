@@ -1,12 +1,13 @@
 using System.Collections;
 using System.Linq;
-using Bolt.AdvancedTutorial;
-using Bolt.samples.AdvancedTutorial.scripts.Actions;
+using Main.Scripts.Actions;
+using Main.Scripts.Player;
+using Main.Scripts.Weapon;
 using Photon.Bolt;
 using UnityEngine;
 using UnityEngine.AI;
 
-namespace samples.AdvancedTutorial.scripts.Enemies
+namespace Main.Scripts.Enemies
 {
 	public class EnemyController : EntityEventListener<IEnemyState>,
 		ObjectWithTakingDamage,
@@ -62,10 +63,10 @@ namespace samples.AdvancedTutorial.scripts.Enemies
 				state.health = (byte) Mathf.Clamp(state.health + 1, 0, 100);
 			}
 
-			if (canMoveByController() && Player.allPlayers.Any())
+			if (canMoveByController() && PlayerInfo.allPlayers.Any())
 			{
 				navMeshAgent.isStopped = false;
-				navMeshAgent.destination = Player.allPlayers.First().entity.gameObject.transform.position;
+				navMeshAgent.destination = PlayerInfo.allPlayers.First().entity.gameObject.transform.position;
 			}
 			else
 			{

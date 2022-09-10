@@ -1,7 +1,7 @@
-using UnityEngine;
 using Photon.Bolt;
+using UnityEngine;
 
-namespace Bolt.AdvancedTutorial
+namespace Main.Scripts.Player
 {
 	public class PlayerSfx : EntityBehaviour<IPlayerState>
 	{

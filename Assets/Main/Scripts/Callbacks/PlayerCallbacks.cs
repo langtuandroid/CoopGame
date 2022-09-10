@@ -1,10 +1,9 @@
-using UnityEngine;
-using System.Collections;
-using System.Text;
+using Main.Scripts.Player;
 using Photon.Bolt;
 using Photon.Bolt.Utils;
+using UnityEngine;
 
-namespace Bolt.AdvancedTutorial
+namespace Main.Scripts.Callbacks
 {
 	[BoltGlobalBehaviour("Level1")]
 	public class PlayerCallbacks : GlobalEventListener

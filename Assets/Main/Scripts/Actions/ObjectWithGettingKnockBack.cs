@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Bolt.samples.AdvancedTutorial.scripts.Actions
+namespace Main.Scripts.Actions
 {
     public interface ObjectWithGettingKnockBack
     {

@@ -1,8 +1,7 @@
-using UnityEngine;
-using System.Collections;
 using Photon.Bolt;
+using UnityEngine;
 
-namespace Bolt.AdvancedTutorial
+namespace Main.Scripts.Weapon
 {
 	public class WeaponBase : MonoBehaviour
 	{

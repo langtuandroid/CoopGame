@@ -1,9 +1,9 @@
-using UnityEngine;
-using System.Collections;
 using System;
+using System.Collections;
 using Photon.Bolt;
+using UnityEngine;
 
-namespace Bolt.AdvancedTutorial
+namespace Main.Scripts.Utils
 {
 	public static class UnityUtils
 	{

@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Bolt.AdvancedTutorial
+namespace Main.Scripts.Utils
 {
     public class DebugHelper : MonoBehaviour
     {

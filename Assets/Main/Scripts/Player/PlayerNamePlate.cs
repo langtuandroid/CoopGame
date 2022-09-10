@@ -3,7 +3,7 @@ using Photon.Bolt;
 using Photon.Bolt.Utils;
 using UnityEngine;
 
-namespace Bolt.AdvancedTutorial
+namespace Main.Scripts.Player
 {
 	public class PlayerNamePlate : EntityBehaviour<IPlayerState>
 	{
@@ -21,10 +21,10 @@ namespace Bolt.AdvancedTutorial
 		void TeamChanged ()
 		{
 			switch (state.team) {
-			case Player.TEAM_RED:
+			case PlayerInfo.TEAM_RED:
 				text.GetComponent<Renderer> ().material.color = Color.red;
 				break;
-			case Player.TEAM_BLUE:
+			case PlayerInfo.TEAM_BLUE:
 				text.GetComponent<Renderer> ().material.color = Color.blue;
 				break;
 			}

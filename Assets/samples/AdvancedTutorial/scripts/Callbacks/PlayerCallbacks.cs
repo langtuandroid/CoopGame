@@ -12,8 +12,6 @@ namespace Bolt.AdvancedTutorial
 		public override void SceneLoadLocalBegin(string scene, IProtocolToken token)
 		{
 			BoltLog.Info("SceneLoadLocalBegin-Token: {0}", token);
-			// ui
-			GameUI.Instantiate();
 
 			// camera
 			PlayerCamera.Instantiate();

@@ -101,7 +101,6 @@ namespace Bolt.AdvancedTutorial
 			// state.Animator.SetLayerWeight(0, 1);
 			// state.Animator.SetLayerWeight(1, 1);
 
-			state.OnFire += OnFire;
 			state.AddCallback("weapon", WeaponChanged);
 
 			// setup weapon
@@ -117,17 +116,6 @@ namespace Bolt.AdvancedTutorial
 			}
 
 			_weapons[state.weapon].gameObject.SetActive(true);
-		}
-
-		void OnFire()
-		{
-			// play sfx
-			// _weaponSfxSource.PlayOneShot(activeWeapon.fireSound);
-
-			GameUI.instance.crosshair.Spread += 0.1f;
-
-			// 
-			// activeWeapon.Fx(entity);
 		}
 
 		public void ApplyDamage(byte damage)

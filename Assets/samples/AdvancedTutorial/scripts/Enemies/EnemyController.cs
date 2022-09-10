@@ -1,50 +1,34 @@
 using System.Collections;
 using System.Linq;
+using Bolt.AdvancedTutorial;
 using Bolt.samples.AdvancedTutorial.scripts.Actions;
-using UnityEngine;
 using Photon.Bolt;
-using Random = UnityEngine.Random;
+using UnityEngine;
+using UnityEngine.AI;
 
-namespace Bolt.AdvancedTutorial
+namespace samples.AdvancedTutorial.scripts.Enemies
 {
 	public class EnemyController : EntityEventListener<IEnemyState>,
 		ObjectWithTakingDamage,
 		ObjectWithGettingKnockBack,
 		ObjectWithGettingStun
 	{
-		bool fire;
+		private bool fire;
+		private bool isKnocking;
+		private bool isStunned;
+		private readonly WaitForFixedUpdate WaitForFixed = new WaitForFixedUpdate();
 
-		int weapon;
-
-		private volatile bool isKnocking;
-		private volatile bool isStunned;
-		static readonly WaitForFixedUpdate WaitForFixed = new WaitForFixedUpdate();
-
-		EnemyMotor _motor;
+		private NavMeshAgent navMeshAgent;
 
 		[SerializeField]
 		WeaponBase[] _weapons;
 
-		public WeaponBase activeWeapon
-		{
-			get { return _weapons[state.weapon]; }
-		}
+		private WeaponBase activeWeapon => _weapons[state.weapon];
+		private bool isDead => !enabled || state.Dead;
 
 		void Awake()
 		{
-			_motor = GetComponent<EnemyMotor>();
-		}
-
-		void Update()
-		{
-			
-			if (entity.IsOwner && entity.HasControl && Input.GetKey(KeyCode.L))
-			{
-				for (int i = 0; i < 100; ++i)
-				{
-					BoltNetwork.Instantiate(BoltPrefabs.SceneCube, new Vector3(Random.value * 512, Random.value * 512, Random.value * 512), Quaternion.identity);
-				}
-			}
+			navMeshAgent = GetComponent<NavMeshAgent>();
 		}
 
 		public override void Attached()
@@ -55,21 +39,6 @@ namespace Bolt.AdvancedTutorial
 			state.health = 100;
 
 			state.OnFire += OnFire;
-			state.AddCallback("weapon", WeaponChanged);
-
-			// setup weapon
-			WeaponChanged();
-		}
-
-		void WeaponChanged()
-		{
-			// setup weapon
-			for (int i = 0; i < _weapons.Length; ++i)
-			{
-				_weapons[i].gameObject.SetActive(false);
-			}
-
-			_weapons[state.weapon].gameObject.SetActive(true);
 		}
 
 		void OnFire()
@@ -77,15 +46,13 @@ namespace Bolt.AdvancedTutorial
 			// play sfx
 			// _weaponSfxSource.PlayOneShot(activeWeapon.fireSound);
 
-			GameUI.instance.crosshair.Spread += 0.1f;
-
 			// 
 			activeWeapon.Fx(entity);
 		}
 
 		public override void SimulateOwner()
 		{
-			if (state.Dead)
+			if (isDead)
 			{
 				return;
 			}
@@ -95,18 +62,19 @@ namespace Bolt.AdvancedTutorial
 				state.health = (byte) Mathf.Clamp(state.health + 1, 0, 100);
 			}
 
-			var targetPosition = transform.position;
 			if (canMoveByController() && Player.allPlayers.Any())
 			{
-				targetPosition = Player.allPlayers.First().entity.gameObject.transform.position;
+				navMeshAgent.isStopped = false;
+				navMeshAgent.destination = Player.allPlayers.First().entity.gameObject.transform.position;
+			}
+			else
+			{
+				navMeshAgent.isStopped = true;
+				navMeshAgent.ResetPath();
 			}
 
-			var movingDir = (targetPosition - transform.position).normalized;
-
-			_motor.MoveTo(movingDir, movingDir);
-
 			AnimateEnemy();
-			state.weapon = weapon;
+			state.weapon = 0;
 
 			if (fire)
 			{
@@ -114,15 +82,12 @@ namespace Bolt.AdvancedTutorial
 			}
 		}
 
-		void AnimateEnemy()
+		private void AnimateEnemy()
 		{
 			state.MoveZ = 1;
-
-			// JUMP
-			state.IsGrounded = _motor.isGrounded;
 		}
 
-		void FireWeapon()
+		private void FireWeapon()
 		{
 			if (state.IsGrounded && activeWeapon.fireFrame + activeWeapon.refireRate <= BoltNetwork.ServerFrame)
 			{
@@ -154,28 +119,30 @@ namespace Bolt.AdvancedTutorial
 
 			if (state.health == 0)
 			{
+				state.Dead = true;
+				StopAllCoroutines();
 				Destroy(gameObject);
 			}
 		}
-		
-		public void ApplyKnockBack(Vector3 direction, float force)
+
+		public void ApplyKnockBack(Vector3 direction)
 		{
-			var targetKnockBackPosition = entity.transform.position + direction.normalized * force;
-			StartCoroutine(KnockBackCoroutine(entity.transform.position, targetKnockBackPosition));
+			if (isDead) return;
+			StartCoroutine(KnockBackCoroutine(direction));
 		}
 
-		private IEnumerator KnockBackCoroutine(Vector3 fromPosition, Vector3 targetPosition)
+		private IEnumerator KnockBackCoroutine(Vector3 direction) 
 		{
 			isKnocking = true;
 
-			var duration = 0.15f;
+			var duration = 0.1f;
 			var progress = 0f;
-			var direction = (targetPosition - fromPosition).normalized;
 			while (progress < duration)
 			{
-				progress += BoltNetwork.FrameDeltaTime;
+				var deltaTime = BoltNetwork.FrameDeltaTime;
+				progress += deltaTime;
 
-				_motor.MoveTo(direction, direction, 5f);
+				navMeshAgent.Move((deltaTime / duration) * direction);
 				yield return WaitForFixed;
 			}
             
@@ -184,6 +151,7 @@ namespace Bolt.AdvancedTutorial
 
 		public void ApplyStun(float durationSec)
 		{
+			if (isDead) return;
 			StartCoroutine(StunCoroutine(durationSec));
 		}
 

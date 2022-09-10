@@ -117,12 +117,7 @@
               <e p="CursorUtils.cs" t="Include" />
               <e p="Enemies" t="Include">
                 <e p="EnemyController.cs" t="Include" />
-                <e p="EnemyMotor.cs" t="Include" />
                 <e p="RedCube.cs" t="Include" />
-              </e>
-              <e p="Environment" t="Include">
-                <e p="Building.cs" t="Include" />
-                <e p="Elevator.cs" t="Include" />
               </e>
               <e p="Gui" t="Include">
                 <e p="GameCrosshair.cs" t="Include" />

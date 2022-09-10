@@ -74,7 +74,7 @@ namespace Bolt.AdvancedTutorial
 				var takingDamageObject = hit.body.GetComponent<ObjectWithTakingDamage>();
 				takingDamageObject?.ApplyDamage(damagePerBullet);
 				var knockableObject = hit.body.GetComponent<ObjectWithGettingKnockBack>();
-				knockableObject?.ApplyKnockBack(entity.transform.forward, 1.5f);
+				knockableObject?.ApplyKnockBack(entity.transform.forward);
 				var stunnableObject = hit.body.GetComponent<ObjectWithGettingStun>();
 				stunnableObject?.ApplyStun(0.5f);
 			}

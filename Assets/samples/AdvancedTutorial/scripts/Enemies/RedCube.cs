@@ -66,9 +66,9 @@ namespace Bolt.Samples.AdvancedTutorial.scripts.Enemies
             }
         }
 
-        public void ApplyKnockBack(Vector3 direction, float force)
+        public void ApplyKnockBack(Vector3 direction)
         {
-            var targetKnockBackPosition = entity.transform.position + direction.normalized * force;
+            var targetKnockBackPosition = entity.transform.position + direction.normalized;
             StartCoroutine(KnockBackCoroutine(entity.transform.position, targetKnockBackPosition));
         }
 

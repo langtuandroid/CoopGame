@@ -55,6 +55,7 @@
       <Path>Bolt_DebugStart_Build</Path>
       <Path>Library</Path>
       <Path>Logs</Path>
+      <Path>MagicaVoxelSources</Path>
       <Path>Temp</Path>
       <Path>UserSettings</Path>
       <Path>obj</Path>

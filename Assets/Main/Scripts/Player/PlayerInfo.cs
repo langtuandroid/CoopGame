@@ -38,7 +38,7 @@ namespace Main.Scripts.Player
 			if (entity)
 			{
 				state.Dead = true;
-				state.respawnFrame = BoltNetwork.ServerFrame + (15 * BoltNetwork.FramesPerSecond);
+				// state.respawnFrame = BoltNetwork.ServerFrame + (15 * BoltNetwork.FramesPerSecond);
 			}
 		}
 

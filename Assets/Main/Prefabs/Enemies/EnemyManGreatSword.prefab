@@ -95,6 +95,8 @@ MonoBehaviour:
   _weapons:
   - {fileID: 498266974748794431}
   attackDistance: 3
+  knockBackForce: 1.3
+  knockBackDuration: 0.1
 --- !u!195 &131280764308137921
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -129,8 +131,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 097f9596aa884281ad4622bf0eca123e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  priorityDelta: 3
-  priorityStepDistance: 1
+  priorityDelta: 7
+  priorityStepDistance: 1.5
 --- !u!1 &2942726968830323450
 GameObject:
   m_ObjectHideFlags: 0

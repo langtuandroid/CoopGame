@@ -2432,73 +2432,9 @@
           }
         },
         {
-          "Name": "pitch",
-          "Enabled": true,
-          "Expanded": true,
-          "Comment": "",
-          "Priority": 1,
-          "PropertyType": {
-            "$type": "Photon.Bolt.Compiler.PropertyTypeFloat, bolt.compiler",
-            "Compression": {
-              "MinValue": -100,
-              "MaxValue": 100,
-              "Accuracy": 5.0,
-              "Pack": 0.2,
-              "Read": 5.0,
-              "Shift": 100.0,
-              "BitsRequired": 6
-            }
-          },
-          "AssetSettings": {
-            "$type": "Photon.Bolt.Compiler.PropertyStateSettings, bolt.compiler",
-            "SmoothingAlgorithm": 1,
-            "ExtrapolationErrorTolerance": 0.1,
-            "_ExtrapolationCorrectionFrames": 3,
-            "ExtrapolationMaxFrames": 9,
-            "MecanimDirection": 1
-          }
-        },
-        {
           "Name": "weapon",
           "Enabled": true,
           "Expanded": true,
-          "Comment": "",
-          "Priority": 1,
-          "PropertyType": {
-            "$type": "Photon.Bolt.Compiler.PropertyTypeInteger, bolt.compiler",
-            "MinValue": -1
-          },
-          "AssetSettings": {
-            "$type": "Photon.Bolt.Compiler.PropertyStateSettings, bolt.compiler",
-            "ExtrapolationErrorTolerance": 0.1,
-            "_ExtrapolationCorrectionFrames": 3,
-            "ExtrapolationMaxFrames": 9,
-            "MecanimDirection": 1
-          }
-        },
-        {
-          "Name": "kills",
-          "Enabled": true,
-          "Expanded": true,
-          "ReplicationMode": 1,
-          "Comment": "",
-          "Priority": 1,
-          "PropertyType": {
-            "$type": "Photon.Bolt.Compiler.PropertyTypeInteger, bolt.compiler",
-            "MinValue": -1
-          },
-          "AssetSettings": {
-            "$type": "Photon.Bolt.Compiler.PropertyStateSettings, bolt.compiler",
-            "ExtrapolationErrorTolerance": 0.1,
-            "_ExtrapolationCorrectionFrames": 3,
-            "ExtrapolationMaxFrames": 9,
-            "MecanimDirection": 1
-          }
-        },
-        {
-          "Name": "deaths",
-          "Enabled": true,
-          "ReplicationMode": 1,
           "Comment": "",
           "Priority": 1,
           "PropertyType": {
@@ -2528,24 +2464,6 @@
             "_ExtrapolationCorrectionFrames": 3,
             "ExtrapolationMaxFrames": 9,
             "MecanimMode": 1,
-            "MecanimDirection": 1
-          }
-        },
-        {
-          "Name": "respawnFrame",
-          "Enabled": true,
-          "ReplicationMode": 1,
-          "Comment": "",
-          "Priority": 1,
-          "PropertyType": {
-            "$type": "Photon.Bolt.Compiler.PropertyTypeInteger, bolt.compiler",
-            "MinValue": -1
-          },
-          "AssetSettings": {
-            "$type": "Photon.Bolt.Compiler.PropertyStateSettings, bolt.compiler",
-            "ExtrapolationErrorTolerance": 0.1,
-            "_ExtrapolationCorrectionFrames": 3,
-            "ExtrapolationMaxFrames": 9,
             "MecanimDirection": 1
           }
         },
@@ -2623,24 +2541,6 @@
             "MecanimMode": 1,
             "MecanimDirection": 1,
             "MecanimDamping": 0.05
-          }
-        },
-        {
-          "Name": "Aiming",
-          "Enabled": true,
-          "Expanded": true,
-          "Comment": "",
-          "Priority": 1,
-          "PropertyType": {
-            "$type": "Photon.Bolt.Compiler.PropertyTypeBool, bolt.compiler"
-          },
-          "AssetSettings": {
-            "$type": "Photon.Bolt.Compiler.PropertyStateSettings, bolt.compiler",
-            "ExtrapolationErrorTolerance": 0.1,
-            "_ExtrapolationCorrectionFrames": 3,
-            "ExtrapolationMaxFrames": 9,
-            "MecanimMode": 1,
-            "MecanimDirection": 1
           }
         },
         {

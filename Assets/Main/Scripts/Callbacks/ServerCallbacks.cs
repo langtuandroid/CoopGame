@@ -27,7 +27,8 @@ namespace Main.Scripts.Callbacks
 			foreach (Player.PlayerInfo p in Player.PlayerInfo.allPlayers)
 			{
 				// if we have an entity, it's dead but our spawn frame has passed
-				if (p.entity && p.state.Dead && p.state.respawnFrame <= BoltNetwork.ServerFrame)
+				// if (p.entity && p.state.Dead && p.state.respawnFrame <= BoltNetwork.ServerFrame)
+				if (p.entity && p.state.Dead)
 				{
 					p.Spawn();
 				}

@@ -200,9 +200,7 @@ namespace Main.Scripts.Player
 					AnimatePlayer(cmd);
 
 					// set state pitch
-					state.pitch = cmd.Input.pitch;
 					state.weapon = cmd.Input.weapon;
-					state.Aiming = cmd.Input.aiming;
 
 					// deal with weapons
 					if (cmd.Input.fire)

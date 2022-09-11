@@ -1,11 +1,12 @@
+using System;
 using System.Collections;
 using System.Linq;
 using Main.Scripts.Actions;
+using Main.Scripts.Navigation;
 using Main.Scripts.Player;
 using Main.Scripts.Weapon;
 using Photon.Bolt;
 using UnityEngine;
-using UnityEngine.AI;
 
 namespace Main.Scripts.Enemies
 {
@@ -19,25 +20,35 @@ namespace Main.Scripts.Enemies
 		private bool isStunned;
 		private readonly WaitForFixedUpdate WaitForFixed = new WaitForFixedUpdate();
 
-		private NavMeshAgent navMeshAgent;
+		private AvoidNavMeshAgent avoidNavMeshAgent;
 
 		[SerializeField]
-		WeaponBase[] _weapons;
+		private WeaponBase[] _weapons;
+
+		[SerializeField]
+		private float attackDistance = 3; //todo replace to activeWeapon parameter
+		[SerializeField]
+		private float knockBackForce = 1.3f;
+		[SerializeField]
+		private float knockBackDuration = 0.1f;
 
 		private WeaponBase activeWeapon => _weapons[state.weapon];
 		private bool isDead => !enabled || state.Dead;
 
 		void Awake()
 		{
-			navMeshAgent = GetComponent<NavMeshAgent>();
+			avoidNavMeshAgent = GetComponent<AvoidNavMeshAgent>();
 		}
 
 		public override void Attached()
 		{
+			avoidNavMeshAgent.enabled = entity.IsOwner;
+
 			state.SetTransforms(state.transform, transform);
 			state.SetAnimator(GetComponentInChildren<Animator>());
 
 			state.health = 100;
+			state.weapon = 0;
 
 			state.OnFire += OnFire;
 		}
@@ -65,17 +76,21 @@ namespace Main.Scripts.Enemies
 
 			if (canMoveByController() && PlayerInfo.allPlayers.Any())
 			{
-				navMeshAgent.isStopped = false;
-				navMeshAgent.destination = PlayerInfo.allPlayers.First().entity.gameObject.transform.position;
+				var targetPosition = PlayerInfo.allPlayers.First().entity.gameObject.transform.position;
+				if (Vector3.Distance(transform.position, targetPosition) > attackDistance)
+				{
+					updateDestination(targetPosition);
+				}
+				else
+				{
+					updateDestination(null);
+				}
+				transform.LookAt(targetPosition);
 			}
 			else
 			{
-				navMeshAgent.isStopped = true;
-				navMeshAgent.ResetPath();
+				updateDestination(null);
 			}
-
-			AnimateEnemy();
-			state.weapon = 0;
 
 			if (fire)
 			{
@@ -83,14 +98,15 @@ namespace Main.Scripts.Enemies
 			}
 		}
 
-		private void AnimateEnemy()
+		private void updateDestination(Vector3? destination)
 		{
-			state.MoveZ = 1;
+			avoidNavMeshAgent.SetDestination(destination);
+			state.isMoving = destination != null;
 		}
 
 		private void FireWeapon()
 		{
-			if (state.IsGrounded && activeWeapon.fireFrame + activeWeapon.refireRate <= BoltNetwork.ServerFrame)
+			if (activeWeapon.fireFrame + activeWeapon.refireRate <= BoltNetwork.ServerFrame)
 			{
 				activeWeapon.fireFrame = BoltNetwork.ServerFrame;
 
@@ -136,14 +152,13 @@ namespace Main.Scripts.Enemies
 		{
 			isKnocking = true;
 
-			var duration = 0.1f;
 			var progress = 0f;
-			while (progress < duration)
+			while (progress < knockBackDuration)
 			{
 				var deltaTime = BoltNetwork.FrameDeltaTime;
 				progress += deltaTime;
 
-				navMeshAgent.Move((deltaTime / duration) * direction);
+				avoidNavMeshAgent.Move(knockBackForce * (deltaTime / knockBackDuration) * direction);
 				yield return WaitForFixed;
 			}
             

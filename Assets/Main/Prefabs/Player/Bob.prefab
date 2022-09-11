@@ -238,7 +238,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weapons:
   - {fileID: 0}
-  _weaponSfxSource: {fileID: 0}
 --- !u!1 &940081592203512171
 GameObject:
   m_ObjectHideFlags: 0

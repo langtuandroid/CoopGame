@@ -28,6 +28,9 @@
               <e p="GameHealth.cs" t="Include" />
               <e p="GameLog.cs" t="Include" />
             </e>
+            <e p="Navigation" t="Include">
+              <e p="AvoidNavMeshAgent.cs" t="Include" />
+            </e>
             <e p="player" t="Include">
               <e p="BobController.cs" t="Include" />
               <e p="PlayerCamera.cs" t="Include" />

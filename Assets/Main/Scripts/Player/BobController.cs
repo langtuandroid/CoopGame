@@ -5,6 +5,7 @@ using Main.Scripts.Weapon;
 using Photon.Bolt;
 using Photon.Bolt.Utils;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace Main.Scripts.Player
 {
@@ -23,23 +24,22 @@ namespace Main.Scripts.Player
 		float yaw;
 		float pitch;
 
-		PlayerMotor _motor;
+		private PlayerMotor _motor;
+		private NavMeshAgent navMeshAgent;
 		private Camera camera;
 		private Vector3 cursorPosition;
 
 		[SerializeField]
-		WeaponBase[] _weapons;
+		private WeaponBase[] _weapons;
 
-		[SerializeField]
-		AudioSource _weaponSfxSource;
-
-		public WeaponBase activeWeapon => _weapons[state.weapon];
+		private WeaponBase activeWeapon => _weapons[state.weapon];
 
 
 		void Awake()
 		{
 			_motor = GetComponent<PlayerMotor>();
 			camera = Camera.main;
+			navMeshAgent = GetComponent<NavMeshAgent>();
 		}
 
 		void Update()
@@ -81,6 +81,8 @@ namespace Main.Scripts.Player
 			{
 				state.tokenTest = new TestToken() { Number = 1337 };
 			}
+			navMeshAgent.enabled = entity.IsOwner;
+			navMeshAgent.updateRotation = false;
 
 			state.AddCallback("tokenTest", () =>
 			{
@@ -214,6 +216,7 @@ namespace Main.Scripts.Player
 					cmd.Result.Token = new TestToken();
 				}
 			}
+			navMeshAgent.velocity = cmd.Result.velocity;
 		}
 
 		void AnimatePlayer(PlayerCommand cmd)

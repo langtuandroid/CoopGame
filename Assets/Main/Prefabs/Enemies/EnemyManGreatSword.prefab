@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4226265757362061210}
   - component: {fileID: 8977078318047038321}
   - component: {fileID: 131280764308137921}
-  - component: {fileID: 6106995646070629908}
+  - component: {fileID: 1978241583672152927}
   m_Layer: 0
   m_Name: EnemyManGreatSword
   m_TagString: Untagged
@@ -94,6 +94,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weapons:
   - {fileID: 498266974748794431}
+  attackDistance: 3
 --- !u!195 &131280764308137921
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -101,9 +102,9 @@ NavMeshAgent:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2736757121921172608}
-  m_Enabled: 1
+  m_Enabled: 0
   m_AgentTypeID: 0
-  m_Radius: 0.75
+  m_Radius: 1
   m_Speed: 6
   m_Acceleration: 100
   avoidancePriority: 50
@@ -116,20 +117,20 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
---- !u!136 &6106995646070629908
-CapsuleCollider:
+--- !u!114 &1978241583672152927
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2736757121921172608}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  m_Radius: 0.75
-  m_Height: 3
-  m_Direction: 1
-  m_Center: {x: 0, y: 1.5, z: 0}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 097f9596aa884281ad4622bf0eca123e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  priorityDelta: 3
+  priorityStepDistance: 1
 --- !u!1 &2942726968830323450
 GameObject:
   m_ObjectHideFlags: 0

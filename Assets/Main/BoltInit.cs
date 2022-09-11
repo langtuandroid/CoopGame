@@ -1,13 +1,13 @@
-using UnityEngine;
 using System;
-using UdpKit;
-using UnityEngine.SceneManagement;
-using UdpKit.Platform.Photon;
 using Photon.Bolt;
 using Photon.Bolt.Matchmaking;
 using Photon.Bolt.Utils;
+using UdpKit;
+using UdpKit.Platform.Photon;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
-namespace Bolt.Samples
+namespace Main
 {
 	public class BoltInit : GlobalEventListener
 	{

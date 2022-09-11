@@ -1,4 +1,5 @@
 using System;
+using Main.Scripts.Actions;
 using Main.Scripts.Tokens;
 using Main.Scripts.Utils;
 using Main.Scripts.Weapon;
@@ -9,7 +10,7 @@ using UnityEngine.AI;
 
 namespace Main.Scripts.Player
 {
-	public class BobController : EntityEventListener<IBobState>
+	public class BobController : EntityEventListener<IBobState>, ObjectWithTakingDamage
 	{
 		bool forward;
 		bool backward;
@@ -273,5 +274,21 @@ namespace Main.Scripts.Player
 			return activeWeapon.fireFrame + activeWeapon.refireRate > BoltNetwork.ServerFrame;
 		}
 
+		public void ApplyDamage(int damage)
+		{
+			state.health -= damage;
+
+			if (state.health > 100 || state.health < 0)
+			{
+				state.health = 0;
+			}
+
+			if (state.health == 0)
+			{
+				state.Dead = true;
+				StopAllCoroutines();
+				Destroy(gameObject);
+			}
+		}
 	}
 }

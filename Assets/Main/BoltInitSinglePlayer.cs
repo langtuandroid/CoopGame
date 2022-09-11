@@ -1,12 +1,10 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using Photon.Bolt;
 using Photon.Bolt.Matchmaking;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Bolt.Samples
+namespace Main
 {
 	public class BoltInitSinglePlayer : GlobalEventListener
 	{

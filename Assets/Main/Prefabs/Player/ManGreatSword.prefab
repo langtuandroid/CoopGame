@@ -119,7 +119,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowSnapshotHistory: 0
-  _proximity: {fileID: 0}
+  _proximity: {fileID: 2648249862126606877}
   _hitboxes: []
 --- !u!114 &2494334113858593066
 MonoBehaviour:

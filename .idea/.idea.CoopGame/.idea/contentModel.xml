@@ -58,6 +58,7 @@
               <e p="WeaponEnemyMelee.cs" t="Include" />
               <e p="WeaponMelee.cs" t="Include" />
             </e>
+            <e p="фыв.cs" t="Include" />
           </e>
           <e p="Shaders" t="Include">
             <e p="AlphaBlend.shader" t="Include" />

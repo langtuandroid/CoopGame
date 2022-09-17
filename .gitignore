@@ -27,6 +27,13 @@
 # Visual Studio cache directory
 .vs/
 
+# Rider cache directory
+*.iml
+*.ipr
+*.iws
+.idea/
+.DS_Store
+
 # Gradle cache directory
 .gradle/
 

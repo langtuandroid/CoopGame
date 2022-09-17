@@ -32,6 +32,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5985041399558997601}
   m_Father: {fileID: 0}
@@ -175,6 +176,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8663182565266769017}
   m_Father: {fileID: 8004075537626908674}
@@ -197,30 +199,6 @@ MonoBehaviour:
   _center: {x: 0, y: 1, z: 0}
   _boxSize: {x: 1, y: 2, z: 1}
   _sphereRadius: 0.25
---- !u!114 &498266974748794431
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8008659934253040898}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a05b5c92f60467a915f7a5bbbfde120, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shellPrefab: {fileID: 0}
-  impactPrefab: {fileID: 0}
-  trailPrefab: {fileID: 0}
-  muzzleFlash: {fileID: 0}
-  shellEjector: {fileID: 0}
-  fireSound: {fileID: 0}
-  dryFireSound: {fileID: 0}
-  reloadSound: {fileID: 0}
-  damagePerBullet: 25
-  refireRate: 35
-  fireFrame: 0
-  takeDamageDelayFrames: 25
 --- !u!1001 &7198177268915730515
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -287,6 +265,30 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 0a64b44e5682e434eae5040dfb787d72, type: 3}
   m_PrefabInstance: {fileID: 7198177268915730515}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &498266974748794431
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8008659934253040898}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a05b5c92f60467a915f7a5bbbfde120, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shellPrefab: {fileID: 0}
+  impactPrefab: {fileID: 0}
+  trailPrefab: {fileID: 0}
+  muzzleFlash: {fileID: 0}
+  shellEjector: {fileID: 0}
+  fireSound: {fileID: 0}
+  dryFireSound: {fileID: 0}
+  reloadSound: {fileID: 0}
+  damagePerBullet: 25
+  refireRate: 35
+  fireFrame: 0
+  takeDamageDelayFrames: 25
 --- !u!1001 &9201830240721576850
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -360,13 +362,13 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: edbc3fe0cf3f3bc47a3179d43560b786, type: 3}
---- !u!4 &8663182565266769017 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: edbc3fe0cf3f3bc47a3179d43560b786, type: 3}
-  m_PrefabInstance: {fileID: 9201830240721576850}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &7351804320486251610 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1852576806548013000, guid: edbc3fe0cf3f3bc47a3179d43560b786, type: 3}
+  m_PrefabInstance: {fileID: 9201830240721576850}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &8663182565266769017 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: edbc3fe0cf3f3bc47a3179d43560b786, type: 3}
   m_PrefabInstance: {fileID: 9201830240721576850}
   m_PrefabAsset: {fileID: 0}

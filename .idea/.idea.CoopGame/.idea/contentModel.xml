@@ -154,6 +154,7 @@
               <e p="bolt_packages.txt" t="Include" />
             </e>
             <e p="PhotonBolt.asmdef" t="Include" />
+            <e p="project.json" t="Include" />
             <e p="README.txt" t="Include" />
             <e p="Scripts" t="Include">
               <e p="BoltConsoleWriter.cs" t="Include" />
@@ -167,6 +168,7 @@
           <e p="PhotonLibs" t="Include">
             <e p="changes-library.txt" t="Include" />
             <e p="netstandard2.0" t="Include">
+              <e p="Photon3Unity3D.deps.json" t="Include" />
               <e p="Photon3Unity3D.xml" t="Include" />
             </e>
             <e p="Photon3Unity3D.xml" t="Include" />
@@ -214,6 +216,7 @@
       <e p="PhotonRealtime.csproj" t="IncludeRecursive" />
       <e p="Temp\Bin" t="ExcludeRecursive" />
     </e>
+    <e p="C:\Users\HomePC\.Rider2019.3\config\scratches" t="IncludeRecursive" />
     <e p="C:\Users\HomePC\.Rider2019.3\system\extResources" t="IncludeRecursive" />
     <e p="C:\Users\HomePC\.Rider2019.3\system\resharper-host\local\Transient\ReSharperHost\v193\SolutionCaches\_CoopGame.183331843.00" t="ExcludeRecursive" />
   </component>

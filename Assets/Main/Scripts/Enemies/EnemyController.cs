@@ -84,17 +84,13 @@ namespace Main.Scripts.Enemies
 				else
 				{
 					updateDestination(null);
+					transform.LookAt(targetPosition);
+					FireWeapon();
 				}
-				transform.LookAt(targetPosition);
 			}
 			else
 			{
 				updateDestination(null);
-			}
-
-			if (fire)
-			{
-				FireWeapon();
 			}
 		}
 
@@ -180,7 +176,7 @@ namespace Main.Scripts.Enemies
 		
 		private bool canMoveByController()
 		{
-			return !isKnocking && !isStunned;
+			return !isKnocking && !isStunned && !isAttacking();
 		}
 	}
 }

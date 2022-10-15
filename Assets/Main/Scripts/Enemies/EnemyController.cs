@@ -1,182 +1,174 @@
-using System;
 using System.Collections;
 using System.Linq;
+using System.Numerics;
+using Fusion;
 using Main.Scripts.Actions;
-using Main.Scripts.Navigation;
-using Main.Scripts.Player;
+using Main.Scripts.Component;
 using Main.Scripts.Weapon;
-using Photon.Bolt;
 using UnityEngine;
+using UnityEngine.AI;
+using Vector3 = UnityEngine.Vector3;
 
 namespace Main.Scripts.Enemies
 {
-	public class EnemyController : EntityEventListener<IEnemyState>,
-		ObjectWithTakingDamage,
-		ObjectWithGettingKnockBack,
-		ObjectWithGettingStun
-	{
-		private bool fire;
-		private bool isKnocking;
-		private bool isStunned;
-		private readonly WaitForFixedUpdate WaitForFixed = new WaitForFixedUpdate();
+    public class EnemyController : NetworkBehaviour,
+        ObjectWithTakingDamage,
+        ObjectWithGettingKnockBack,
+        ObjectWithGettingStun
+    {
+        private static readonly int IS_MOVING_ANIM = Animator.StringToHash("isMoving");
 
-		private AvoidNavMeshAgent avoidNavMeshAgent;
+        private AvoidNavMeshAgent avoidNavMeshAgent;
+        private Animator animator;
 
-		[SerializeField]
-		private WeaponBase[] _weapons;
+        [SerializeField]
+        private float attackDistance = 3; //todo replace to activeWeapon parameter
+        [SerializeField]
+        private float knockBackForce = 3f;
+        [SerializeField]
+        private float knockBackDuration = 0.1f;
 
-		[SerializeField]
-		private float attackDistance = 3; //todo replace to activeWeapon parameter
-		[SerializeField]
-		private float knockBackForce = 1.3f;
-		[SerializeField]
-		private float knockBackDuration = 0.1f;
+        [Networked]
+        private int health { get; set; }
 
-		private WeaponBase activeWeapon => _weapons[state.weapon];
-		private bool isDead => !enabled || state.Dead;
+        [Networked]
+        private bool isDead { get; set; }
 
-		void Awake()
-		{
-			avoidNavMeshAgent = GetComponent<AvoidNavMeshAgent>();
-		}
+        [Networked]
+        private Vector3 navigationTarget { get; set; }
 
-		public override void Attached()
-		{
-			avoidNavMeshAgent.enabled = entity.IsOwner;
+        [Networked]
+        private bool isMoving { get; set; }
 
-			state.SetTransforms(state.transform, transform);
-			state.SetAnimator(GetComponentInChildren<Animator>());
+        [Networked]
+        private TickTimer stunTimer { get; set; }
 
-			state.health = 100;
-			state.weapon = 0;
+        [Networked]
+        private TickTimer knockBackTimer { get; set; }
 
-			state.OnFire += OnFire;
-		}
+        [Networked]
+        private Vector3 knockBackDirection { get; set; }
 
-		void OnFire()
-		{
-			// play sfx
-			// _weaponSfxSource.PlayOneShot(activeWeapon.fireSound);
+        private bool isActivated => gameObject.activeInHierarchy && !isDead;
 
-			// 
-			activeWeapon.Fx(entity);
-		}
+        void Awake()
+        {
+            avoidNavMeshAgent = GetComponent<AvoidNavMeshAgent>();
+            animator = GetComponentInChildren<Animator>();
+        }
 
-		public override void SimulateOwner()
-		{
-			if (isDead)
-			{
-				return;
-			}
+        public override void Spawned()
+        {
+            health = 100;
+            isDead = false;
+        }
 
-			if ((BoltNetwork.Frame % 5) == 0)
-			{
-				state.health = (byte) Mathf.Clamp(state.health + 1, 0, 100);
-			}
+        public override void FixedUpdateNetwork()
+        {
+            if (!isActivated)
+            {
+                return;
+            }
 
-			if (canMoveByController() && PlayerInfo.allPlayers.Any())
-			{
-				var targetPosition = PlayerInfo.allPlayers.First().entity.gameObject.transform.position;
-				if (Vector3.Distance(transform.position, targetPosition) > attackDistance)
-				{
-					updateDestination(targetPosition);
-				}
-				else
-				{
-					updateDestination(null);
-					transform.LookAt(targetPosition);
-					FireWeapon();
-				}
-			}
-			else
-			{
-				updateDestination(null);
-			}
-		}
+            if (HasStateAuthority)
+            {
+                if (canMoveByController() && PlayerManager.GetFirstAlivePlayer() != null)
+                {
+                    var targetPosition = PlayerManager.GetFirstAlivePlayer().transform.position;
+                    var distanceToTarget = Vector3.Distance(transform.position, targetPosition);
 
-		private void updateDestination(Vector3? destination)
-		{
-			avoidNavMeshAgent.SetDestination(destination);
-			state.isMoving = destination != null;
-		}
+                    if (distanceToTarget > attackDistance)
+                    {
+                        updateDestination(targetPosition);
+                    }
+                    else
+                    {
+                        updateDestination(null);
+                        transform.LookAt(targetPosition);
+                        FireWeapon();
+                    }
+                }
+                else
+                {
+                    updateDestination(null);
+                }
+            }
 
-		private void FireWeapon()
-		{
-			if (activeWeapon.fireFrame + activeWeapon.refireRate <= BoltNetwork.ServerFrame)
-			{
-				activeWeapon.fireFrame = BoltNetwork.ServerFrame;
+            isMoving = canMoveByController() && navigationTarget != default;
 
-				state.Fire();
+            if (!knockBackTimer.ExpiredOrNotRunning(Runner))
+            {
+                avoidNavMeshAgent.Move(knockBackForce * (Runner.Simulation.DeltaTime / knockBackDuration) * knockBackDirection);
+            }
 
-				// if we are the owner and the active weapon is a hitscan weapon, do logic
-				if (entity.IsOwner)
-				{
-					activeWeapon.OnOwner(null, entity);
-				}
-			}
-		}
+            animator.SetBool(IS_MOVING_ANIM, isMoving);
+        }
 
-		private bool isAttacking()
-		{
-			return activeWeapon.fireFrame + activeWeapon.refireRate > BoltNetwork.ServerFrame;
-		}
-		
-		public void ApplyDamage(int damage)
-		{
-			state.health -= damage;
+        private void updateDestination(Vector3? destination)
+        {
+            navigationTarget = destination ?? default;
+            avoidNavMeshAgent.SetDestination(destination);
+        }
 
-			if (state.health > 100 || state.health < 0)
-			{
-				state.health = 0;
-			}
+        private void FireWeapon()
+        {
+            // if (activeWeapon.fireTime + activeWeapon.refireRate <= BoltNetwork.ServerFrame)
+            // {
+            // 	activeWeapon.fireTime = BoltNetwork.ServerFrame;
+            //
+            // 	state.Fire();
+            //
+            // 	// if we are the owner and the active weapon is a hitscan weapon, do logic
+            // 	if (entity.IsOwner)
+            // 	{
+            // 		activeWeapon.OnOwner();
+            // 	}
+            // }
+        }
 
-			if (state.health == 0)
-			{
-				state.Dead = true;
-				StopAllCoroutines();
-				Destroy(gameObject);
-			}
-		}
+        private bool isAttacking()
+        {
+            // return activeWeapon.fireTime + activeWeapon.refireRate > BoltNetwork.ServerFrame;
+            // return activeWeapon.fireTime + activeWeapon.refireRate > 0;
+            return false;
+        }
 
-		public void ApplyKnockBack(Vector3 direction)
-		{
-			if (isDead) return;
-			StartCoroutine(KnockBackCoroutine(direction));
-		}
+        public void ApplyDamage(int damage)
+        {
+            if (!isActivated) return;
 
-		private IEnumerator KnockBackCoroutine(Vector3 direction) 
-		{
-			isKnocking = true;
+            health -= damage;
 
-			var progress = 0f;
-			while (progress < knockBackDuration)
-			{
-				var deltaTime = BoltNetwork.FrameDeltaTime;
-				progress += deltaTime;
+            if (health > 100 || health < 0)
+            {
+                health = 0;
+            }
 
-				avoidNavMeshAgent.Move(knockBackForce * (deltaTime / knockBackDuration) * direction);
-				yield return WaitForFixed;
-			}
-            
-			isKnocking = false;
-		}
+            if (health == 0)
+            {
+                isDead = true;
+                Runner.Despawn(Object);
+            }
+        }
 
-		public void ApplyStun(float durationSec)
-		{
-			if (isDead) return;
-			StartCoroutine(StunCoroutine(durationSec));
-		}
+        public void ApplyKnockBack(Vector3 direction)
+        {
+            if (!isActivated) return;
+            knockBackTimer = TickTimer.CreateFromSeconds(Runner, knockBackDuration);
+            knockBackDirection = direction;
+        }
 
-		private IEnumerator StunCoroutine(float durationSec)
-		{
-			isStunned = true;
-			yield return new WaitForSeconds(durationSec);
-			isStunned = false;
-		}
-		
-		private bool canMoveByController()
-		{
-			return !isKnocking && !isStunned && !isAttacking();
-		}
-	}
+        public void ApplyStun(float durationSec)
+        {
+            if (!isActivated) return;
+            stunTimer = TickTimer.CreateFromSeconds(Runner, durationSec);
+        }
+
+        private bool canMoveByController()
+        {
+            return knockBackTimer.ExpiredOrNotRunning(Runner)
+                   && stunTimer.ExpiredOrNotRunning(Runner)
+                   && !isAttacking();
+        }
+    }
 }

@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Fusion;
-using FusionExamples.FusionHelpers;
+using Main.Scripts.FusionHelpers;
 using Main.Scripts.Player;
 using UnityEngine;
 using UnityEngine.SceneManagement;

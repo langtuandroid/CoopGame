@@ -9,8 +9,7 @@ using UnityEngine;
 namespace Main.Scripts.Player
 {
     public class PlayerController : NetworkBehaviour,
-        ObjectWithTakingDamage,
-        OnAttackCallback
+        ObjectWithTakingDamage
     {
         private static readonly int MOVE_X_ANIM = Animator.StringToHash("MoveX");
         private static readonly int MOVE_Z_ANIM = Animator.StringToHash("MoveZ");
@@ -43,7 +42,6 @@ namespace Main.Scripts.Player
         public bool isActivated => (gameObject.activeInHierarchy && (state == State.Active || state == State.Spawning));
         public bool isRespawningDone => state == State.Spawning && respawnTimer.Expired(Runner);
         public int playerID { get; private set; }
-        public SkillManager SkillManager => skillManager;
 
         private float respawnInSeconds = -1;
 
@@ -172,13 +170,13 @@ namespace Main.Scripts.Player
             return levelManager;
         }
 
-        public static void OnStateChanged(Changed<PlayerController> changed)
+        private static void OnStateChanged(Changed<PlayerController> changed)
         {
             if (changed.Behaviour)
                 changed.Behaviour.OnStateChanged();
         }
 
-        public void OnStateChanged()
+        private void OnStateChanged()
         {
             switch (state)
             {
@@ -230,7 +228,15 @@ namespace Main.Scripts.Player
         //     }
         // }
 
-        void AnimatePlayer()
+        public void ActivateSkill(SkillType skillType)
+        {
+            if (skillManager.ActivateSkill(skillType, Object.InputAuthority))
+            {
+                animator.SetTrigger(ATTACK_ANIM);
+            }
+        }
+
+        private void AnimatePlayer()
         {
             var moveX = 0f;
             var moveZ = 0f;
@@ -245,8 +251,6 @@ namespace Main.Scripts.Player
                 moveZ = (float) Math.Cos(animationAngle);
                 moveX = (float) Math.Sin(animationAngle);
             }
-
-            Debug.Log($"x={moveX} y={moveZ}");
 
             animator.SetFloat(MOVE_X_ANIM, moveX);
             animator.SetFloat(MOVE_Z_ANIM, moveZ);
@@ -268,11 +272,6 @@ namespace Main.Scripts.Player
                 health -= damage;
                 Debug.Log($"Player {playerID} took {damage} damage, health = {health}");
             }
-        }
-
-        public void OnAttack()
-        {
-            animator.SetTrigger(ATTACK_ANIM);
         }
 
         public enum State

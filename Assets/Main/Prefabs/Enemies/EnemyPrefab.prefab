@@ -16,6 +16,8 @@ GameObject:
   - component: {fileID: 3078040559483951986}
   - component: {fileID: 1324006215410747384}
   - component: {fileID: 8994940609841448472}
+  - component: {fileID: 7982089108220398672}
+  - component: {fileID: 782170017235198935}
   m_Layer: 8
   m_Name: EnemyPrefab
   m_TagString: Untagged
@@ -54,6 +56,7 @@ MonoBehaviour:
   WordOffset: 0
   WordCount: 0
   _interpolationDataSource: 0
+  skillManager: {fileID: 7982089108220398672}
   attackDistance: 3
   knockBackForce: 3
   knockBackDuration: 0.1
@@ -147,6 +150,8 @@ MonoBehaviour:
   - {fileID: 8977078318047038321}
   - {fileID: 203640101545034473}
   - {fileID: 1324006215410747384}
+  - {fileID: 7982089108220398672}
+  - {fileID: 782170017235198935}
   SimulationBehaviours: []
 --- !u!114 &1324006215410747384
 MonoBehaviour:
@@ -186,6 +191,48 @@ MonoBehaviour:
   Offset: {x: 0, y: 1, z: 0}
   Root: {fileID: 1324006215410747384}
   GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+--- !u!114 &7982089108220398672
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2736757121921172608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50cbec63037f48b08a06ef97e0a29ab5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  WordOffset: 0
+  WordCount: 0
+  _interpolationDataSource: 0
+  primarySkill: {fileID: 782170017235198935}
+--- !u!114 &782170017235198935
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2736757121921172608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f402864887d540e9a0de95e207de6f2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  WordOffset: 0
+  WordCount: 0
+  _interpolationDataSource: 0
+  attackDamage: 5
+  stunDurationSec: 0
+  originTransform: {fileID: 8004075537626908674}
+  attackDistance: 3
+  attackRadiusOffset: 1
+  attackAngle: 120
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 128
+  animationDurationSec: 1
+  attackDelaySec: 0.4
 --- !u!1001 &7198177268915730515
 PrefabInstance:
   m_ObjectHideFlags: 0

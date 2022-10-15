@@ -172,7 +172,7 @@ namespace Main.Scripts.Player
             {
                 if (input.IsDown(NetworkInputData.BUTTON_FIRE_PRIMARY))
                 {
-                    playerController.SkillManager.FireWeapon(SkillManager.WeaponType.PRIMARY);
+                    playerController.ActivateSkill(SkillType.PRIMARY);
                 }
 
                 if (input.IsDown(NetworkInputData.BUTTON_SPAWN_ENEMY))

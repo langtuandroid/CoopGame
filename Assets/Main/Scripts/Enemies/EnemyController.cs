@@ -17,10 +17,13 @@ namespace Main.Scripts.Enemies
         ObjectWithGettingStun
     {
         private static readonly int IS_MOVING_ANIM = Animator.StringToHash("isMoving");
+        private static readonly int ATTACK_ANIM = Animator.StringToHash("Attack");
 
         private AvoidNavMeshAgent avoidNavMeshAgent;
         private Animator animator;
 
+        [SerializeField]
+        private SkillManager skillManager;
         [SerializeField]
         private float attackDistance = 3; //todo replace to activeWeapon parameter
         [SerializeField]
@@ -30,22 +33,16 @@ namespace Main.Scripts.Enemies
 
         [Networked]
         private int health { get; set; }
-
         [Networked]
         private bool isDead { get; set; }
-
         [Networked]
         private Vector3 navigationTarget { get; set; }
-
         [Networked]
         private bool isMoving { get; set; }
-
         [Networked]
         private TickTimer stunTimer { get; set; }
-
         [Networked]
         private TickTimer knockBackTimer { get; set; }
-
         [Networked]
         private Vector3 knockBackDirection { get; set; }
 
@@ -112,25 +109,15 @@ namespace Main.Scripts.Enemies
 
         private void FireWeapon()
         {
-            // if (activeWeapon.fireTime + activeWeapon.refireRate <= BoltNetwork.ServerFrame)
-            // {
-            // 	activeWeapon.fireTime = BoltNetwork.ServerFrame;
-            //
-            // 	state.Fire();
-            //
-            // 	// if we are the owner and the active weapon is a hitscan weapon, do logic
-            // 	if (entity.IsOwner)
-            // 	{
-            // 		activeWeapon.OnOwner();
-            // 	}
-            // }
+            if (skillManager.ActivateSkill(SkillType.PRIMARY, Object.StateAuthority))
+            {
+                animator.SetTrigger(ATTACK_ANIM);
+            }
         }
 
-        private bool isAttacking()
+        private bool IsAttacking()
         {
-            // return activeWeapon.fireTime + activeWeapon.refireRate > BoltNetwork.ServerFrame;
-            // return activeWeapon.fireTime + activeWeapon.refireRate > 0;
-            return false;
+            return skillManager.IsSkillRunning(SkillType.PRIMARY);
         }
 
         public void ApplyDamage(int damage)
@@ -168,7 +155,7 @@ namespace Main.Scripts.Enemies
         {
             return knockBackTimer.ExpiredOrNotRunning(Runner)
                    && stunTimer.ExpiredOrNotRunning(Runner)
-                   && !isAttacking();
+                   && !IsAttacking();
         }
     }
 }

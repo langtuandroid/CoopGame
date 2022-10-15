@@ -28,8 +28,6 @@ namespace Main.Scripts.Weapon
         private float animationDurationSec = 1f;
         [SerializeField]
         private float attackDelaySec = 0.5f;
-        [SerializeField]
-        private GameObject onAttackCallbackObject;
 
 
         [Networked]
@@ -40,30 +38,27 @@ namespace Main.Scripts.Weapon
         private PlayerRef owner { get; set; }
 
 
-        private OnAttackCallback onAttackCallback;
-
-
-        public void Awake()
-        {
-            onAttackCallback = onAttackCallbackObject.GetComponent<OnAttackCallback>();
-        }
-
-        public override void Activate(PlayerRef owner)
+        public override bool Activate(PlayerRef owner)
         {
             if (attackTimer.ExpiredOrNotRunning(Runner))
             {
                 attackTimer = TickTimer.CreateFromSeconds(Runner, animationDurationSec);
                 isAttacked = false;
                 this.owner = owner;
-                onAttackCallback.OnAttack();
+                return true;
             }
+
+            return false;
+        }
+
+        public override bool IsRunning()
+        {
+            return !attackTimer.ExpiredOrNotRunning(Runner);
         }
 
         public override void FixedUpdateNetwork()
         {
-            if (!isAttacked
-                && !attackTimer.ExpiredOrNotRunning(Runner)
-                && attackDelaySec < animationDurationSec - attackTimer.RemainingTime(Runner))
+            if (!isAttacked && attackDelaySec < animationDurationSec - attackTimer.RemainingTime(Runner))
             {
                 isAttacked = true;
                 var hitObjects = new HashSet<GameObject>();

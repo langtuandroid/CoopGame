@@ -1,5 +1,5 @@
 using Fusion;
-using FusionExamples.FusionHelpers;
+using Main.Scripts.FusionHelpers;
 using Main.Scripts.Gui;
 using Main.Scripts.Player;
 using UnityEngine;

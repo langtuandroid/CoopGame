@@ -128,8 +128,7 @@ MonoBehaviour:
   WordOffset: 0
   WordCount: 0
   _interpolationDataSource: 0
-  primarySkillBase: {fileID: 113051478187426604}
-  _player: {fileID: 2494334113858593066}
+  primarySkill: {fileID: 113051478187426604}
 --- !u!95 &6064875345208294012
 Animator:
   serializedVersion: 4
@@ -232,8 +231,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   animationDurationSec: 1
-  attackDelaySec: 0.5
-  onAttackCallbackObject: {fileID: 2736757121921172608}
+  attackDelaySec: 0.4
 --- !u!114 &3522208089235794191
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -366,7 +364,6 @@ MonoBehaviour:
     m_Bits: 4294967295
   animationDurationSec: 1.267
   attackDelaySec: 0.93
-  onAttackCallbackObject: {fileID: 0}
 --- !u!1001 &9201830240721576850
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -5,7 +5,6 @@ using Main.Scripts.Actions;
 using Main.Scripts.Component;
 using Main.Scripts.Weapon;
 using UnityEngine;
-using UnityEngine.AI;
 
 namespace Main.Scripts.Player
 {
@@ -32,16 +31,12 @@ namespace Main.Scripts.Player
 
         [Networked(OnChanged = nameof(OnStateChanged))]
         public State state { get; set; }
-
         [Networked]
         private int health { get; set; }
-
         [Networked]
         private Vector2 moveDirection { get; set; }
-
         [Networked]
         private Vector2 aimDirection { get; set; }
-
         [Networked]
         private TickTimer respawnTimer { get; set; }
 
@@ -64,12 +59,6 @@ namespace Main.Scripts.Player
             playerID = Object.InputAuthority;
 
             PlayerManager.AddPlayer(this);
-            if (HasStateAuthority)
-            {
-                //todo manager
-                NavMesh.avoidancePredictionTime = 0.5f;
-                NavMesh.pathfindingIterationsPerFrame = 500;
-            }
         }
 
         public void InitNetworkState()

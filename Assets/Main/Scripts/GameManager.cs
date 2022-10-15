@@ -1,5 +1,6 @@
 using Fusion;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace Main.Scripts
 {
@@ -47,6 +48,8 @@ namespace Main.Scripts
 
                 if (Object.HasStateAuthority)
                 {
+                    NavMesh.avoidancePredictionTime = 0.5f;
+                    NavMesh.pathfindingIterationsPerFrame = 500;
                     LoadLevel(-1);
                 }
                 else if (playState != PlayState.LOBBY)

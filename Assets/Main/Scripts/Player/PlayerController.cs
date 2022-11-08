@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Component;
+using Main.Scripts.Gui;
 using Main.Scripts.Weapon;
 using UnityEngine;
 
@@ -24,6 +25,8 @@ namespace Main.Scripts.Player
         private SkillManager skillManager;
         [SerializeField]
         private int maxHealth = 100;
+        [SerializeField]
+        private HealthBar healthBar;
 
         [SerializeField]
         private float speed = 6f;
@@ -55,6 +58,7 @@ namespace Main.Scripts.Player
         {
             navMeshAgent.NavMeshAgentComponent.updateRotation = false;
             playerID = Object.InputAuthority;
+            healthBar.SetMaxHealth(maxHealth);
 
             PlayerManager.AddPlayer(this);
         }
@@ -63,6 +67,11 @@ namespace Main.Scripts.Player
         {
             state = State.New;
             health = maxHealth;
+        }
+
+        public override void Render()
+        {
+            healthBar.SetHealth(health);
         }
 
         public override void FixedUpdateNetwork()
@@ -123,6 +132,7 @@ namespace Main.Scripts.Player
                 respawnInSeconds = -1;
 
                 health = maxHealth;
+                healthBar.SetMaxHealth(maxHealth);
 
                 respawnTimer = TickTimer.CreateFromSeconds(Runner, 1);
 

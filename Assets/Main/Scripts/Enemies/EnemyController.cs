@@ -4,6 +4,7 @@ using System.Numerics;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Component;
+using Main.Scripts.Gui;
 using Main.Scripts.Weapon;
 using UnityEngine;
 using UnityEngine.AI;
@@ -25,11 +26,15 @@ namespace Main.Scripts.Enemies
         [SerializeField]
         private SkillManager skillManager;
         [SerializeField]
+        private int maxHealth = 100;
+        [SerializeField]
         private float attackDistance = 3; //todo replace to activeWeapon parameter
         [SerializeField]
         private float knockBackForce = 3f;
         [SerializeField]
         private float knockBackDuration = 0.1f;
+        [SerializeField]
+        private HealthBar healthBar;
 
         [Networked]
         private int health { get; set; }
@@ -56,8 +61,13 @@ namespace Main.Scripts.Enemies
 
         public override void Spawned()
         {
-            health = 100;
+            health = maxHealth;
+            healthBar.SetMaxHealth(maxHealth);
             isDead = false;
+        }
+        public override void Render()
+        {
+            healthBar.SetHealth(health);
         }
 
         public override void FixedUpdateNetwork()

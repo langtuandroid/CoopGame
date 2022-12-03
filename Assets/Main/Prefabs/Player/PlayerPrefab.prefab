@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8004075537626908674}
   - component: {fileID: 2494334113858593066}
-  - component: {fileID: 2480152823748697441}
   - component: {fileID: 626219843279604393}
   - component: {fileID: -5471419336138590985}
   - component: {fileID: 6064875345208294012}
@@ -18,7 +17,8 @@ GameObject:
   - component: {fileID: 2348856940491406096}
   - component: {fileID: 3261203144987785234}
   - component: {fileID: 113051478187426604}
-  - component: {fileID: 3522208089235794191}
+  - component: {fileID: 2079793177691810505}
+  - component: {fileID: 7039507539641256804}
   m_Layer: 7
   m_Name: PlayerPrefab
   m_TagString: Untagged
@@ -63,28 +63,6 @@ MonoBehaviour:
   healthBar: {fileID: 5077792976664443005}
   speed: 6
   _state: 0
---- !u!195 &2480152823748697441
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2736757121921172608}
-  m_Enabled: 1
-  m_AgentTypeID: 0
-  m_Radius: 1
-  m_Speed: 6
-  m_Acceleration: 8
-  avoidancePriority: 0
-  m_AngularSpeed: 120
-  m_StoppingDistance: 0
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 3
-  m_BaseOffset: 0
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
 --- !u!114 &626219843279604393
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -112,7 +90,7 @@ MonoBehaviour:
   - {fileID: 9057652909011457133}
   - {fileID: 2348856940491406096}
   - {fileID: 113051478187426604}
-  - {fileID: 3522208089235794191}
+  - {fileID: 7039507539641256804}
   - {fileID: 7253950188173872386}
   SimulationBehaviours: []
 --- !u!114 &-5471419336138590985
@@ -234,7 +212,25 @@ MonoBehaviour:
     m_Bits: 256
   animationDurationSec: 1
   attackDelaySec: 0.4
---- !u!114 &3522208089235794191
+--- !u!143 &2079793177691810505
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2736757121921172608}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Height: 3
+  m_Radius: 1
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 1.5, z: 0}
+--- !u!114 &7039507539641256804
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -243,7 +239,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2736757121921172608}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1ed86fe806a74e00bf47f143a47e56b7, type: 3}
+  m_Script: {fileID: 11500000, guid: afead7613a0b4b57a667bf605f21e770, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   WordOffset: 0
@@ -257,11 +253,18 @@ MonoBehaviour:
     MaxRate: 10
     PosBlendStart: 0.25
     PosBlendEnd: 1
-    PosMinCorrection: 0.2
+    PosMinCorrection: 0.025
     PosTeleportDistance: 2
     RotBlendStart: 0.1
     RotBlendEnd: 0.5
     RotTeleportRadians: 1.5
+  gravity: -20
+  acceleration: 100
+  braking: 100
+  maxSpeed: 6
+  rotationSpeed: 15
+  _IsGrounded: 0
+  _Velocity: {x: 0, y: 0, z: 0}
 --- !u!1001 &1098035244587019626
 PrefabInstance:
   m_ObjectHideFlags: 0

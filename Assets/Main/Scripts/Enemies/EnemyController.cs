@@ -1,6 +1,4 @@
-using System.Collections;
-using System.Linq;
-using System.Numerics;
+using ExitGames.Client.Photon.StructWrapping;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Component;
@@ -20,7 +18,7 @@ namespace Main.Scripts.Enemies
         private static readonly int IS_MOVING_ANIM = Animator.StringToHash("isMoving");
         private static readonly int ATTACK_ANIM = Animator.StringToHash("Attack");
 
-        private AvoidNavMeshAgent avoidNavMeshAgent;
+        private NetworkCharacterControllerImpl characterController;
         private Animator animator;
 
         [SerializeField]
@@ -30,7 +28,7 @@ namespace Main.Scripts.Enemies
         [SerializeField]
         private float attackDistance = 3; //todo replace to activeWeapon parameter
         [SerializeField]
-        private float knockBackForce = 3f;
+        private float knockBackForce = 5f;
         [SerializeField]
         private float knockBackDuration = 0.1f;
         [SerializeField]
@@ -51,11 +49,13 @@ namespace Main.Scripts.Enemies
         [Networked]
         private Vector3 knockBackDirection { get; set; }
 
+        private NavMeshPath navMeshPath;
+
         private bool isActivated => gameObject.activeInHierarchy && !isDead;
 
         void Awake()
         {
-            avoidNavMeshAgent = GetComponent<AvoidNavMeshAgent>();
+            characterController = GetComponent<NetworkCharacterControllerImpl>();
             animator = GetComponentInChildren<Animator>();
         }
 
@@ -64,6 +64,8 @@ namespace Main.Scripts.Enemies
             health = maxHealth;
             healthBar.SetMaxHealth(maxHealth);
             isDead = false;
+            
+            navMeshPath = new NavMeshPath();
         }
         public override void Render()
         {
@@ -101,11 +103,11 @@ namespace Main.Scripts.Enemies
                 }
             }
 
-            isMoving = canMoveByController() && navigationTarget != default;
+            isMoving = canMoveByController() && characterController.Velocity.magnitude < characterController.Controller.minMoveDistance;
 
             if (!knockBackTimer.ExpiredOrNotRunning(Runner))
             {
-                avoidNavMeshAgent.Move(knockBackForce * (Runner.Simulation.DeltaTime / knockBackDuration) * knockBackDirection);
+                characterController.Move(knockBackForce * (Runner.DeltaTime / knockBackDuration) * knockBackDirection);
             }
 
             animator.SetBool(IS_MOVING_ANIM, isMoving);
@@ -113,8 +115,14 @@ namespace Main.Scripts.Enemies
 
         private void updateDestination(Vector3? destination)
         {
-            navigationTarget = destination ?? default;
-            avoidNavMeshAgent.SetDestination(destination);
+            navigationTarget = destination ?? transform.position;
+            if (destination == null) return;
+
+            NavMesh.CalculatePath(transform.position, navigationTarget, NavMesh.AllAreas, navMeshPath);
+            var direction = (navMeshPath.corners.Length > 1 ? navMeshPath.corners[1] : navigationTarget) - transform.position;
+            direction = new Vector3(direction.x, 0, direction.z);
+            transform.LookAt(transform.position + direction);
+            characterController.Move(direction);
         }
 
         private void FireWeapon()

@@ -16,7 +16,7 @@ namespace Main.Scripts.Player
         private static readonly int MOVE_Z_ANIM = Animator.StringToHash("MoveZ");
         private static readonly int ATTACK_ANIM = Animator.StringToHash("Attack");
 
-        private NetworkNavMeshAgent navMeshAgent;
+        private NetworkCharacterControllerImpl characterController;
         private LevelManager levelManager;
         private Animator animator;
 
@@ -50,13 +50,12 @@ namespace Main.Scripts.Player
 
         void Awake()
         {
-            navMeshAgent = GetComponent<NetworkNavMeshAgent>();
+            characterController = GetComponent<NetworkCharacterControllerImpl>();
             animator = GetComponent<Animator>();
         }
 
         public override void Spawned()
         {
-            navMeshAgent.NavMeshAgentComponent.updateRotation = false;
             playerID = Object.InputAuthority;
             healthBar.SetMaxHealth(maxHealth);
 
@@ -106,7 +105,7 @@ namespace Main.Scripts.Player
                 return;
 
             transform.LookAt(transform.position + new Vector3(aimDirection.x, 0, aimDirection.y));
-            navMeshAgent.Move(speed * new Vector3(moveDirection.x, 0, moveDirection.y));
+            characterController.Move(speed * new Vector3(moveDirection.x, 0, moveDirection.y));
         }
 
         public void Respawn(float inSeconds)

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8471652300770399121}
   - component: {fileID: -9086698820803610131}
   m_Layer: 0
-  m_Name: GameManager
+  m_Name: RoomManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -42,9 +42,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 7548477662580305694}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1ae32cafa0a04a5b9adf42c1e8c127e0, type: 3}
+  m_Script: {fileID: 11500000, guid: 92ab4bb09a1793445a9c01af1db71721, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  WordOffset: 0
+  WordCount: 0
   _interpolationDataSource: 0
 --- !u!114 &-9086698820803610131
 MonoBehaviour:

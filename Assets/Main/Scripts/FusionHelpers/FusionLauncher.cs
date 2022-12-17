@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Fusion;
 using Fusion.Sockets;
+using Main.Scripts.Room;
 using UnityEngine;
 
 namespace Main.Scripts.FusionHelpers
@@ -146,7 +147,7 @@ namespace Main.Scripts.FusionHelpers
             string message = "";
             switch (shutdownReason)
             {
-                case GameManager.ShutdownReason_GameAlreadyRunning:
+                case RoomManager.ShutdownReason_GameAlreadyRunning:
                     message = "Game in this room already started!";
                     break;
                 case ShutdownReason.IncompatibleConfiguration:

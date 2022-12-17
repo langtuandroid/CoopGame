@@ -4,8 +4,10 @@ using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Component;
 using Main.Scripts.Gui;
+using Main.Scripts.Room;
 using Main.Scripts.Weapon;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Main.Scripts.Player
 {
@@ -17,9 +19,7 @@ namespace Main.Scripts.Player
         private static readonly int ATTACK_ANIM = Animator.StringToHash("Attack");
 
         private NetworkCharacterControllerImpl characterController;
-        private LevelManager levelManager;
         private Animator animator;
-
 
         [SerializeField]
         private SkillManager skillManager;
@@ -31,22 +31,18 @@ namespace Main.Scripts.Player
         [SerializeField]
         private float speed = 6f;
 
+        public UnityEvent<PlayerRef> OnPlayerDeadEvent;
+
         [Networked(OnChanged = nameof(OnStateChanged))]
-        public State state { get; set; }
+        public State state { get; private set; }
         [Networked]
         private int health { get; set; }
         [Networked]
         private Vector2 moveDirection { get; set; }
         [Networked]
         private Vector2 aimDirection { get; set; }
-        [Networked]
-        private TickTimer respawnTimer { get; set; }
 
         public bool isActivated => (gameObject.activeInHierarchy && (state == State.Active || state == State.Spawning));
-        public bool isRespawningDone => state == State.Spawning && respawnTimer.Expired(Runner);
-        public int playerID { get; private set; }
-
-        private float respawnInSeconds = -1;
 
         void Awake()
         {
@@ -56,16 +52,15 @@ namespace Main.Scripts.Player
 
         public override void Spawned()
         {
-            playerID = Object.InputAuthority;
+            health = maxHealth;
             healthBar.SetMaxHealth(maxHealth);
 
-            PlayerManager.AddPlayer(this);
+            state = State.Active;
         }
 
-        public void InitNetworkState()
+        public override void Despawned(NetworkRunner runner, bool hasState)
         {
-            state = State.New;
-            health = maxHealth;
+            OnPlayerDeadEvent.RemoveAllListeners();
         }
 
         public override void Render()
@@ -75,21 +70,6 @@ namespace Main.Scripts.Player
 
         public override void FixedUpdateNetwork()
         {
-            if (Object.HasStateAuthority)
-            {
-                if (respawnInSeconds >= 0)
-                {
-                    CheckRespawn();
-                }
-
-                if (isRespawningDone)
-                {
-                    ResetPlayer();
-                }
-            }
-
-            // CheckForPowerupPickup(); //todo pickup items
-
             AnimatePlayer();
         }
 
@@ -108,77 +88,6 @@ namespace Main.Scripts.Player
             characterController.Move(speed * new Vector3(moveDirection.x, 0, moveDirection.y));
         }
 
-        public void Respawn(float inSeconds)
-        {
-            respawnInSeconds = inSeconds;
-        }
-
-        private void ResetPlayer()
-        {
-            state = State.Active;
-        }
-
-        private void CheckRespawn()
-        {
-            if (respawnInSeconds > 0)
-            {
-                respawnInSeconds -= Runner.DeltaTime;
-            }
-
-            var spawnPoint = GetLevelManager().GetPlayerSpawnPoint(playerID);
-            if (respawnInSeconds <= 0)
-            {
-                respawnInSeconds = -1;
-
-                health = maxHealth;
-                healthBar.SetMaxHealth(maxHealth);
-
-                respawnTimer = TickTimer.CreateFromSeconds(Runner, 1);
-
-                transform.position = spawnPoint;
-
-                if (state != State.Active)
-                {
-                    state = State.Spawning;
-                }
-            }
-        }
-
-        public void Despawn()
-        {
-            if (state == State.Dead) return;
-
-            state = State.Despawned;
-        }
-
-        public async void TriggerDespawn()
-        {
-            Despawn();
-            PlayerManager.RemovePlayer(this);
-
-            await Task.Delay(300); // wait for effects
-
-            if (Object == null)
-            {
-                return;
-            }
-
-            if (Object.HasStateAuthority)
-            {
-                Runner.Despawn(Object);
-            }
-        }
-
-        private LevelManager GetLevelManager()
-        {
-            if (levelManager == null)
-            {
-                levelManager = FindObjectOfType<LevelManager>();
-            }
-
-            return levelManager;
-        }
-
         private static void OnStateChanged(Changed<PlayerController> changed)
         {
             if (changed.Behaviour)
@@ -189,53 +98,9 @@ namespace Main.Scripts.Player
         {
             switch (state)
             {
-                //todo 
-                // case State.Spawning:
-                // 	_teleportIn.StartTeleport();
-                // 	break;
-                // case State.Active:
-                // 	_damageVisuals.CleanUpDebris();
-                // 	_teleportIn.EndTeleport();
-                // 	break;
-                // case State.Dead:
-                // 	_deathExplosionInstance.transform.position = transform.position;
-                // 	_deathExplosionInstance.SetActive(false); // dirty fix to reactivate the death explosion if the particlesystem is still active
-                // 	_deathExplosionInstance.SetActive(true);
-                //
-                // 	_visualParent.gameObject.SetActive(false);
-                // 	_damageVisuals.OnDeath();
-                // 	break;
-                // case State.Despawned:
-                // 	_teleportOut.StartTeleport();
-                // 	break;
+                //todo
             }
         }
-
-        //todo pickup items
-        // public void Pickup(PowerupSpawner powerupSpawner)
-        // {
-        //     if (!powerupSpawner)
-        //         return;
-        //
-        //     PowerupElement powerup = powerupSpawner.Pickup();
-        //
-        //     if (powerup == null)
-        //         return;
-        //
-        //     if (powerup.powerupType == PowerupType.HEALTH)
-        //         life = MAX_HEALTH;
-        //     else
-        //         shooter.InstallWeapon(powerup);
-        // }
-        //
-        // private void CheckForPowerupPickup()
-        // {
-        //     // If we run into a powerup, pick it up
-        //     if (isActivated && Runner.GetPhysicsScene().OverlapSphere(transform.position, _pickupRadius, _overlaps, _pickupMask, QueryTriggerInteraction.Collide) > 0)
-        //     {
-        //         Pickup(_overlaps[0].GetComponent<PowerupSpawner>());
-        //     }
-        // }
 
         public void ActivateSkill(SkillType skillType)
         {
@@ -274,12 +139,11 @@ namespace Main.Scripts.Player
                 health = 0;
                 state = State.Dead;
 
-                GameManager.instance.OnPlayerDeath();
+                OnPlayerDeadEvent.Invoke(Object.InputAuthority);
             }
             else
             {
                 health -= damage;
-                Debug.Log($"Player {playerID} took {damage} damage, health = {health}");
             }
         }
 

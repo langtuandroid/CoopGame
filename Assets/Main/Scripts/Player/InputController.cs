@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using Fusion;
 using Fusion.Sockets;
+using Main.Scripts.Room;
 using Main.Scripts.Weapon;
 using UnityEngine;
 using Random = UnityEngine.Random;
-using Vector2 = UnityEngine.Vector2;
-using Vector3 = UnityEngine.Vector3;
 
 namespace Main.Scripts.Player
 {
@@ -21,11 +20,11 @@ namespace Main.Scripts.Player
         [SerializeField]
         private GameObject enemyPrefab;
 
-        public static bool fetchInput = true; //todo false on switch scene
+        public static bool fetchInput = true; //todo false on switch scene. избавиться от статик
         public bool ToggleReady { get; set; }
 
         private PlayerController playerController;
-        private NetworkInputData frameworkInput = new NetworkInputData();
+        private NetworkInputData frameworkInput;
         private Vector2 moveDelta;
         private Vector2 aimDelta;
         private bool primaryFire;
@@ -165,7 +164,7 @@ namespace Main.Scripts.Player
         /// </summary>
         public override void FixedUpdateNetwork()
         {
-            if (GameManager.playState == GameManager.PlayState.TRANSITION)
+            if (RoomManager.playState == RoomManager.PlayState.TRANSITION)
                 return;
 
             if (GetInput(out NetworkInputData input))

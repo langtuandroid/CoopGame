@@ -3,6 +3,7 @@ using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Component;
 using Main.Scripts.Gui;
+using Main.Scripts.Player;
 using Main.Scripts.Weapon;
 using UnityEngine;
 using UnityEngine.AI;
@@ -81,9 +82,10 @@ namespace Main.Scripts.Enemies
 
             if (HasStateAuthority)
             {
-                if (canMoveByController() && PlayerManager.GetFirstAlivePlayer() != null)
+                var targetPlayer = FindObjectOfType<PlayerController>();
+                if (canMoveByController() && targetPlayer != null)
                 {
-                    var targetPosition = PlayerManager.GetFirstAlivePlayer().transform.position;
+                    var targetPosition = targetPlayer.transform.position;
                     var distanceToTarget = Vector3.Distance(transform.position, targetPosition);
 
                     if (distanceToTarget > attackDistance)

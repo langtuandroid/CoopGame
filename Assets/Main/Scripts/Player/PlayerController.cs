@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Component;
+using Main.Scripts.Drop;
 using Main.Scripts.Gui;
 using Main.Scripts.Room;
 using Main.Scripts.Weapon;
@@ -12,7 +13,8 @@ using UnityEngine.Events;
 namespace Main.Scripts.Player
 {
     public class PlayerController : NetworkBehaviour,
-        ObjectWithTakingDamage
+        ObjectWithTakingDamage,
+        ObjectWithPickUp
     {
         private static readonly int MOVE_X_ANIM = Animator.StringToHash("MoveX");
         private static readonly int MOVE_Z_ANIM = Animator.StringToHash("MoveZ");
@@ -37,6 +39,8 @@ namespace Main.Scripts.Player
         public State state { get; private set; }
         [Networked]
         private int health { get; set; }
+        [Networked]
+        private int gold { get; set; }
         [Networked]
         private Vector2 moveDirection { get; set; }
         [Networked]
@@ -144,6 +148,17 @@ namespace Main.Scripts.Player
             else
             {
                 health -= damage;
+            }
+        }
+
+        public void OnPickUp(DropType dropType)
+        {
+            switch (dropType)
+            {
+                case DropType.Gold:
+                    gold += 1;
+                    Debug.Log($"Player {playerID} has {gold} gold");
+                    break;
             }
         }
 

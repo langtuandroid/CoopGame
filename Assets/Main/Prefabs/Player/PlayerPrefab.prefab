@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 7039507539641256804}
   m_Layer: 7
   m_Name: PlayerPrefab
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -148,6 +148,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   enemyPrefab: {fileID: 2736757121921172608, guid: fb6430ba47924404495b48284fc38986, type: 3}
+  mineGold: {fileID: 6309509993528129561, guid: 2988b96900ecba849878929955d66bf7, type: 3}
 --- !u!114 &2348856940491406096
 MonoBehaviour:
   m_ObjectHideFlags: 0

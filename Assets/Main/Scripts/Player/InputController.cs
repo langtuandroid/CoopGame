@@ -19,6 +19,8 @@ namespace Main.Scripts.Player
         private LayerMask mouseRayMask;
         [SerializeField]
         private GameObject enemyPrefab;
+        [SerializeField]
+        private GameObject mineGold;
 
         public static bool fetchInput = true; //todo false on switch scene. избавиться от статик
         public bool ToggleReady { get; set; }
@@ -30,6 +32,7 @@ namespace Main.Scripts.Player
         private bool primaryFire;
         private bool secondaryFire;
         private bool spawnEnemy;
+        private bool spawnMine;
 
         /// <summary>
         /// Hook up to the Fusion callbacks so we can handle the input polling
@@ -87,6 +90,12 @@ namespace Main.Scripts.Player
                     spawnEnemy = false;
                     frameworkInput.Buttons |= NetworkInputData.BUTTON_SPAWN_ENEMY;
                 }
+
+                if (spawnMine)
+                {
+                    spawnMine = false;
+                    frameworkInput.Buttons |= NetworkInputData.BUTTON_SPAWN_MINE;
+                }
             }
 
             // Hand over the data to Fusion
@@ -115,6 +124,11 @@ namespace Main.Scripts.Player
             if (Input.GetKey(KeyCode.T))
             {
                 spawnEnemy = true;
+            }
+
+            if (Input.GetKey(KeyCode.Y))
+            {
+                spawnMine = true;
             }
 
             moveDelta = Vector2.zero;
@@ -181,6 +195,11 @@ namespace Main.Scripts.Player
                         playerController.transform.position + new Vector3(Random.Range(-5, 5) * 5, 0, Random.Range(-5, 5) * 5));
                 }
 
+                if (input.IsDown(NetworkInputData.BUTTON_SPAWN_MINE))
+                {
+                    Runner.Spawn(mineGold, new Vector3(Random.Range(-5, 5), 0, Random.Range(-5, 5)));
+                }
+
                 playerController.SetDirections(input.moveDirection.normalized, input.aimDirection.normalized);
             }
 
@@ -217,6 +236,7 @@ namespace Main.Scripts.Player
         public const uint BUTTON_FIRE_PRIMARY = 1 << 0;
         public const uint BUTTON_FIRE_SECONDARY = 1 << 1;
         public const uint BUTTON_SPAWN_ENEMY = 1 << 2;
+        public const uint BUTTON_SPAWN_MINE = 1 << 3;
         public const uint READY = 1 << 6;
 
         public uint Buttons;

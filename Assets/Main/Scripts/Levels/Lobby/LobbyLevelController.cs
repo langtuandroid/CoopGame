@@ -14,7 +14,7 @@ namespace Main.Scripts.Levels.Lobby
         private ConnectionManager connectionManager;
         private RoomManager roomManager;
 
-        [Networked]
+        [Networked, Capacity(16)]
         private NetworkDictionary<PlayerRef, PlayerController> players => default;
         
         private PlayerCamera playerCamera;
@@ -42,6 +42,14 @@ namespace Main.Scripts.Levels.Lobby
             }
         }
 
+        public override void Render()
+        {
+            if (players.ContainsKey(Runner.LocalPlayer))
+            {
+                playerCamera.SetTarget(players.Get(Runner.LocalPlayer).transform);
+            }
+        }
+
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
             connectionManager.OnPlayerConnectEvent.RemoveListener(OnPlayerConnect);
@@ -61,11 +69,6 @@ namespace Main.Scripts.Levels.Lobby
                     
                     players.Add(playerRef, playerController);
                     playerController.OnPlayerDeadEvent.AddListener(OnPlayerDead);
-
-                    if (playerController.HasInputAuthority)
-                    {
-                        playerCamera.SetTarget(playerController);
-                    }
                 }
             );
         }

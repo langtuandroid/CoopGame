@@ -37,7 +37,7 @@ namespace Main.Scripts.Room
 
         [Networked]
         private PlayState networkedPlayState { get; set; }
-        [Networked]
+        [Networked, Capacity(16)]
         private NetworkLinkedList<PlayerRef> connectedPlayers => default;
 
         public void Awake()

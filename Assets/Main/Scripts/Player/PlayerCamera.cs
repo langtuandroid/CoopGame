@@ -81,9 +81,9 @@ namespace Main.Scripts.Player
             }
         }
 
-        public void SetTarget(PlayerController player)
+        public void SetTarget(Transform target)
         {
-            _target = player.transform;
+            _target = target;
             UpdateCamera(false);
         }
 

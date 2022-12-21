@@ -157,7 +157,6 @@ namespace Main.Scripts.Player
             {
                 case DropType.Gold:
                     gold += 1;
-                    Debug.Log($"Player {playerID} has {gold} gold");
                     break;
             }
         }

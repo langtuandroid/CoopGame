@@ -14,8 +14,8 @@ GameObject:
   - component: {fileID: 1059482846477619288}
   - component: {fileID: 3030836781925974092}
   - component: {fileID: 2389601956776214607}
-  - component: {fileID: 7151059640569280054}
   - component: {fileID: 4396972471727569428}
+  - component: {fileID: 2034125521401795960}
   m_Layer: 8
   m_Name: GoldMine
   m_TagString: Untagged
@@ -80,8 +80,8 @@ MonoBehaviour:
   WordOffset: 0
   WordCount: 0
   _interpolationDataSource: 0
-  BroadRadius: 2
-  Offset: {x: 0, y: 1.4, z: 0}
+  BroadRadius: 1.5
+  Offset: {x: 0, y: 0, z: 0}
   GizmosColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   Hitboxes:
   - {fileID: 1059482846477619288}
@@ -97,10 +97,10 @@ MonoBehaviour:
   m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Type: 1
-  SphereRadius: 0
+  Type: 2
+  SphereRadius: 1.5
   BoxExtents: {x: 1.4, y: 1.4, z: 1.4}
-  Offset: {x: 0, y: 1.4, z: 0}
+  Offset: {x: 0, y: 0, z: 0}
   Root: {fileID: 6485488260963921616}
   GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!114 &3030836781925974092
@@ -119,6 +119,7 @@ MonoBehaviour:
   WordCount: 0
   _interpolationDataSource: 0
   goldBar: {fileID: 2082032356302976076, guid: b2ab6774a13030942a7135c06fd51214, type: 3}
+  maxHealth: 100
 --- !u!114 &2389601956776214607
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -147,19 +148,6 @@ MonoBehaviour:
     RotBlendStart: 0.1
     RotBlendEnd: 0.5
     RotTeleportRadians: 1.5
---- !u!65 &7151059640569280054
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6309509993528129561}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 2.8, y: 2.8, z: 2.8}
-  m_Center: {x: 0, y: 1.4, z: 0}
 --- !u!208 &4396972471727569428
 NavMeshObstacle:
   m_ObjectHideFlags: 0
@@ -169,13 +157,26 @@ NavMeshObstacle:
   m_GameObject: {fileID: 6309509993528129561}
   m_Enabled: 1
   serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 1.4, y: 1.4, z: 1.4}
+  m_Shape: 0
+  m_Extents: {x: 1.5, y: 1, z: 1.5}
   m_MoveThreshold: 0.1
   m_Carve: 1
   m_CarveOnlyStationary: 1
-  m_Center: {x: 0, y: 1.4, z: 0}
+  m_Center: {x: 0, y: 0, z: 0}
   m_TimeToStationary: 0.5
+--- !u!135 &2034125521401795960
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6309509993528129561}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 1.5
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &4329421186776832512
 PrefabInstance:
   m_ObjectHideFlags: 0

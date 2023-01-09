@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3460238989962496937}
   - component: {fileID: 5137284982057504706}
-  - component: {fileID: 4229607944836636925}
   m_Layer: 0
   m_Name: Cocktus
   m_TagString: Untagged
@@ -45,24 +44,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1.55, y: 1.9, z: 0.6}
-  m_Center: {x: 0.025, y: 0.95, z: 0.05}
---- !u!208 &4229607944836636925
-NavMeshObstacle:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4273614417802531091}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 0.775, y: 0.95, z: 0.3}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: 0.025, y: 0.95, z: 0.05}
-  m_TimeToStationary: 0.5
+  m_Size: {x: 1.55, y: 2, z: 0.6}
+  m_Center: {x: 0.025, y: 0, z: 0.05}
 --- !u!1 &5098961310603340234
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,11 +1,8 @@
 using System;
-using System.Threading.Tasks;
 using Fusion;
 using Main.Scripts.Actions;
-using Main.Scripts.Component;
 using Main.Scripts.Drop;
 using Main.Scripts.Gui;
-using Main.Scripts.Room;
 using Main.Scripts.Weapon;
 using UnityEngine;
 using UnityEngine.Events;
@@ -20,7 +17,7 @@ namespace Main.Scripts.Player
         private static readonly int MOVE_Z_ANIM = Animator.StringToHash("MoveZ");
         private static readonly int ATTACK_ANIM = Animator.StringToHash("Attack");
 
-        private NetworkCharacterControllerImpl characterController;
+        private new Rigidbody rigidbody;
         private Animator animator;
 
         [SerializeField]
@@ -50,7 +47,7 @@ namespace Main.Scripts.Player
 
         void Awake()
         {
-            characterController = GetComponent<NetworkCharacterControllerImpl>();
+            rigidbody = GetComponent<Rigidbody>();
             animator = GetComponent<Animator>();
         }
 
@@ -89,7 +86,7 @@ namespace Main.Scripts.Player
                 return;
 
             transform.LookAt(transform.position + new Vector3(aimDirection.x, 0, aimDirection.y));
-            characterController.Move(speed * new Vector3(moveDirection.x, 0, moveDirection.y));
+            rigidbody.velocity = speed * new Vector3(moveDirection.x, 0, moveDirection.y);
         }
 
         private static void OnStateChanged(Changed<PlayerController> changed)

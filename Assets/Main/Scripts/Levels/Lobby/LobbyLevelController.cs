@@ -1,5 +1,7 @@
 using System;
 using Fusion;
+using JetBrains.Annotations;
+using Main.Scripts.Enemies;
 using Main.Scripts.Player;
 using Main.Scripts.Room;
 using UnityEngine;
@@ -10,20 +12,19 @@ namespace Main.Scripts.Levels.Lobby
     {
         [SerializeField]
         private PlayerController playerPrefab;
+        [SerializeField]
+        private PlayersHolder playersHolder;
 
         private ConnectionManager connectionManager;
         private RoomManager roomManager;
 
-        [Networked, Capacity(16)]
-        private NetworkDictionary<PlayerRef, PlayerController> players => default;
-        
         private PlayerCamera playerCamera;
 
         public void Awake()
         {
             connectionManager = FindObjectOfType<ConnectionManager>();
             roomManager = FindObjectOfType<RoomManager>();
-            playerCamera = FindObjectOfType<PlayerCamera>(true);
+            playerCamera = PlayerCamera.Instance;
         }
 
         public override void Spawned()
@@ -33,7 +34,7 @@ namespace Main.Scripts.Levels.Lobby
                 var connectedPlayers = roomManager.GetConnectedPlayers();
                 foreach (var playerRef in connectedPlayers)
                 {
-                    if (!players.ContainsKey(playerRef))
+                    if (!playersHolder.players.ContainsKey(playerRef))
                     {
                         OnPlayerConnect(Runner, playerRef);
                     }
@@ -44,9 +45,9 @@ namespace Main.Scripts.Levels.Lobby
 
         public override void Render()
         {
-            if (players.ContainsKey(Runner.LocalPlayer))
+            if (playersHolder.players.ContainsKey(Runner.LocalPlayer))
             {
-                playerCamera.SetTarget(players.Get(Runner.LocalPlayer).transform);
+                playerCamera.SetTarget(playersHolder.players.Get(Runner.LocalPlayer).transform);
             }
         }
 
@@ -60,14 +61,14 @@ namespace Main.Scripts.Levels.Lobby
             //todo добавить спавн поинты
             Runner.Spawn(
                 prefab: playerPrefab,
-                position: Vector3.up,
+                position: Vector3.zero,
                 rotation: Quaternion.identity,
                 inputAuthority: playerRef,
                 onBeforeSpawned: (networkRunner, playerObject) =>
                 {
                     var playerController = playerObject.GetComponent<PlayerController>();
                     
-                    players.Add(playerRef, playerController);
+                    playersHolder.players.Add(playerRef, playerController);
                     playerController.OnPlayerDeadEvent.AddListener(OnPlayerDead);
                 }
             );

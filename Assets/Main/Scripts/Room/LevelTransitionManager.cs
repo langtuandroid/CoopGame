@@ -79,6 +79,8 @@ namespace Main.Scripts.Room
             {
                 yield return SceneManager.LoadSceneAsync(newScene, LoadSceneMode.Additive);
                 loadedScene = SceneManager.GetSceneByBuildIndex(newScene);
+                SceneManager.SetActiveScene(loadedScene);
+                
                 Debug.Log($"Loaded scene {newScene}: {loadedScene}");
                 sceneObjects = FindNetworkObjects(loadedScene, disable: false);
             }

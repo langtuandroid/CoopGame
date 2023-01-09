@@ -19,21 +19,24 @@ namespace Main.Scripts.Enemies
         private static readonly int IS_MOVING_ANIM = Animator.StringToHash("isMoving");
         private static readonly int ATTACK_ANIM = Animator.StringToHash("Attack");
 
-        private NetworkCharacterControllerImpl characterController;
+        private new Rigidbody rigidbody;
         private Animator animator;
+        private EnemiesHelper enemiesHelper;
+
+        private float knockBackForce = 30f; //todo get from ApplyKnockBack
+        private float knockBackDuration = 0.1f; //todo можно высчитать из knockBackForce и rigidbody.drag
+        private float moveAcceleration = 50f;
 
         [SerializeField]
         private SkillManager skillManager;
         [SerializeField]
+        private HealthBar healthBar;
+        [SerializeField]
         private int maxHealth = 100;
         [SerializeField]
+        private float speed = 5;
+        [SerializeField]
         private float attackDistance = 3; //todo replace to activeWeapon parameter
-        [SerializeField]
-        private float knockBackForce = 5f;
-        [SerializeField]
-        private float knockBackDuration = 0.1f;
-        [SerializeField]
-        private HealthBar healthBar;
 
         [Networked]
         private int health { get; set; }
@@ -56,8 +59,9 @@ namespace Main.Scripts.Enemies
 
         void Awake()
         {
-            characterController = GetComponent<NetworkCharacterControllerImpl>();
+            rigidbody = GetComponent<Rigidbody>();
             animator = GetComponentInChildren<Animator>();
+            enemiesHelper = FindObjectOfType<EnemiesHelper>();
         }
 
         public override void Spawned()
@@ -80,12 +84,12 @@ namespace Main.Scripts.Enemies
                 return;
             }
 
-            if (HasStateAuthority)
+            if (HasStateAuthority && canMoveByController())
             {
-                var targetPlayer = FindObjectOfType<PlayerController>();
-                if (canMoveByController() && targetPlayer != null)
+                var target = enemiesHelper.findPlayerTarget(transform.position);
+                if (target != null)
                 {
-                    var targetPosition = targetPlayer.transform.position;
+                    var targetPosition = target.Value;
                     var distanceToTarget = Vector3.Distance(transform.position, targetPosition);
 
                     if (distanceToTarget > attackDistance)
@@ -105,12 +109,7 @@ namespace Main.Scripts.Enemies
                 }
             }
 
-            isMoving = canMoveByController() && characterController.Velocity.magnitude < characterController.Controller.minMoveDistance;
-
-            if (!knockBackTimer.ExpiredOrNotRunning(Runner))
-            {
-                characterController.Move(knockBackForce * (Runner.DeltaTime / knockBackDuration) * knockBackDirection);
-            }
+            isMoving = canMoveByController() && rigidbody.velocity.magnitude > 0.01f;
 
             animator.SetBool(IS_MOVING_ANIM, isMoving);
         }
@@ -118,13 +117,22 @@ namespace Main.Scripts.Enemies
         private void updateDestination(Vector3? destination)
         {
             navigationTarget = destination ?? transform.position;
-            if (destination == null) return;
+            if (destination == null)
+            {
+                rigidbody.velocity = Vector3.zero;
+                return;
+            }
 
             NavMesh.CalculatePath(transform.position, navigationTarget, NavMesh.AllAreas, navMeshPath);
             var direction = (navMeshPath.corners.Length > 1 ? navMeshPath.corners[1] : navigationTarget) - transform.position;
             direction = new Vector3(direction.x, 0, direction.z);
             transform.LookAt(transform.position + direction);
-            characterController.Move(direction);
+            var currentVelocity = rigidbody.velocity.magnitude;
+            if (currentVelocity < speed)
+            {
+                var deltaVelocity = speed * direction.normalized - rigidbody.velocity;
+                rigidbody.velocity += Mathf.Min(moveAcceleration * Runner.DeltaTime, deltaVelocity.magnitude) * deltaVelocity.normalized;
+            }
         }
 
         private void FireWeapon()
@@ -163,6 +171,7 @@ namespace Main.Scripts.Enemies
             if (!isActivated) return;
             knockBackTimer = TickTimer.CreateFromSeconds(Runner, knockBackDuration);
             knockBackDirection = direction;
+            rigidbody.AddForce(knockBackForce * knockBackDirection, ForceMode.Impulse);
         }
 
         public void ApplyStun(float durationSec)

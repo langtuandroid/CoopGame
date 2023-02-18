@@ -7,7 +7,7 @@ using Vector3 = UnityEngine.Vector3;
 
 namespace Main.Scripts.Player
 {
-    public class PlayerCamera : Singleton<PlayerCamera>
+    public class PlayerCamera : MonoBehaviour
     {
         // damp velocity of camera
         Vector3 _velocity;
@@ -22,9 +22,6 @@ namespace Main.Scripts.Player
 
         [SerializeField]
         Transform cam;
-
-        [SerializeField]
-        float aimingDistance = 1f;
 
         [SerializeField]
         float runningSmoothTime = 0.95f;
@@ -43,9 +40,7 @@ namespace Main.Scripts.Player
 
         void Awake()
         {
-            DontDestroyOnLoad(gameObject);
             camComponent = cam.GetComponent<Camera>();
-            ;
         }
 
         void LateUpdate()

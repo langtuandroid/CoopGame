@@ -1,0 +1,53 @@
+using System;
+using System.Linq;
+using Fusion;
+
+namespace Main.Scripts.UI.Windows
+{
+    public class WindowsController : NetworkBehaviour
+    {
+        private WindowsHolder windowsHolder;
+
+        [Networked(OnChanged = nameof(OnCurrentWindowChanged))]
+        public WindowType CurrentWindow { get; private set; }
+
+        public override void Spawned()
+        {
+            windowsHolder = FindObjectOfType<WindowsHolder>();
+            CurrentWindow = WindowType.NONE;
+        }
+
+        private static void OnCurrentWindowChanged(Changed<WindowsController> changed)
+        {
+            if (changed.Behaviour)
+            {
+                changed.Behaviour.OnCurrentWindowChanged();
+            }
+        }
+
+        public void SetCurrentWindowType(WindowType windowType)
+        {
+            CurrentWindow = windowType;
+        }
+
+        private void OnCurrentWindowChanged()
+        {
+            if (!Object.HasInputAuthority)
+            {
+                return;
+            }
+
+            if (CurrentWindow == WindowType.NONE)
+            {
+                foreach (var windowType in Enum.GetValues(typeof(WindowType)).Cast<WindowType>())
+                {
+                    windowsHolder.GetWindow(windowType)?.Hide();
+                }
+            }
+            else
+            {
+                windowsHolder.GetWindow(CurrentWindow).Show();
+            }
+        }
+    }
+}

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Fusion;
 using Fusion.Sockets;
 using Main.Scripts.Room;
+using Main.Scripts.UI;
+using Main.Scripts.UI.Windows;
 using Main.Scripts.Weapon;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -21,9 +23,13 @@ namespace Main.Scripts.Player
         private GameObject enemyPrefab;
         [SerializeField]
         private GameObject mineGold;
+        
+        private WindowsController windowsController;
 
+        [Networked]
+        private NetworkButtons ButtonsPrevious { get; set; }
+        
         public static bool fetchInput = true; //todo false on switch scene. избавиться от статик
-        public bool ToggleReady { get; set; }
 
         private PlayerController playerController;
         private NetworkInputData frameworkInput;
@@ -33,6 +39,8 @@ namespace Main.Scripts.Player
         private bool secondaryFire;
         private bool spawnEnemy;
         private bool spawnMine;
+        private bool toggleReady;
+        private bool openSkillTree;
 
         /// <summary>
         /// Hook up to the Fusion callbacks so we can handle the input polling
@@ -40,6 +48,7 @@ namespace Main.Scripts.Player
         public override void Spawned()
         {
             playerController = GetComponent<PlayerController>();
+            windowsController = GetComponent<WindowsController>();
             // Technically, it does not really matter which InputController fills the input structure, since the actual data will only be sent to the one that does have authority,
             // but in the name of clarity, let's make sure we give input control to the gameobject that also has Input authority.
             if (Object.HasInputAuthority)
@@ -67,40 +76,27 @@ namespace Main.Scripts.Player
 
                 frameworkInput.moveDirection = moveDelta.normalized;
 
-                if (primaryFire)
-                {
-                    primaryFire = false;
-                    frameworkInput.Buttons |= NetworkInputData.BUTTON_FIRE_PRIMARY;
-                }
+                frameworkInput.Buttons.Set(NetworkInputData.BUTTON_FIRE_PRIMARY, primaryFire);
+                primaryFire = false;
+                
+                frameworkInput.Buttons.Set(NetworkInputData.BUTTON_FIRE_SECONDARY, secondaryFire);
+                secondaryFire = false;
 
-                if (secondaryFire)
-                {
-                    secondaryFire = false;
-                    frameworkInput.Buttons |= NetworkInputData.BUTTON_FIRE_SECONDARY;
-                }
+                frameworkInput.Buttons.Set(NetworkInputData.BUTTON_READY, toggleReady);
+                toggleReady = false;
 
-                if (ToggleReady)
-                {
-                    ToggleReady = false;
-                    frameworkInput.Buttons |= NetworkInputData.READY;
-                }
+                frameworkInput.Buttons.Set(NetworkInputData.BUTTON_OPEN_SKILL_TREE, openSkillTree);
+                openSkillTree = false;
 
-                if (spawnEnemy)
-                {
-                    spawnEnemy = false;
-                    frameworkInput.Buttons |= NetworkInputData.BUTTON_SPAWN_ENEMY;
-                }
+                frameworkInput.Buttons.Set(NetworkInputData.BUTTON_SPAWN_ENEMY, spawnEnemy);
+                spawnEnemy = false;
 
-                if (spawnMine)
-                {
-                    spawnMine = false;
-                    frameworkInput.Buttons |= NetworkInputData.BUTTON_SPAWN_MINE;
-                }
+                frameworkInput.Buttons.Set(NetworkInputData.BUTTON_SPAWN_MINE, spawnMine);
+                spawnMine = false;
             }
 
             // Hand over the data to Fusion
             input.Set(frameworkInput);
-            frameworkInput.Buttons = 0;
         }
 
         public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
@@ -109,7 +105,8 @@ namespace Main.Scripts.Player
 
         private void Update()
         {
-            ToggleReady = ToggleReady || Input.GetKeyDown(KeyCode.R);
+            toggleReady = toggleReady || Input.GetKey(KeyCode.R);
+            openSkillTree = openSkillTree || Input.GetKey(KeyCode.K);
 
             if (Input.GetMouseButton(0))
             {
@@ -181,21 +178,37 @@ namespace Main.Scripts.Player
             if (RoomManager.playState == RoomManager.PlayState.TRANSITION)
                 return;
 
-            if (GetInput(out NetworkInputData input))
+            if (GetInput<NetworkInputData>(out var input))
             {
-                if (input.IsDown(NetworkInputData.BUTTON_FIRE_PRIMARY))
+                var pressedButtons = input.Buttons.GetPressed(ButtonsPrevious);
+                var releasedButtons = input.Buttons.GetReleased(ButtonsPrevious);
+                ButtonsPrevious = input.Buttons;
+                
+                if (pressedButtons.IsSet(NetworkInputData.BUTTON_OPEN_SKILL_TREE))
                 {
-                    playerController.ActivateSkill(SkillType.PRIMARY);
+                    windowsController.SetCurrentWindowType(
+                        windowsController.CurrentWindow != WindowType.SKILL_TREE ? WindowType.SKILL_TREE : WindowType.NONE
+                    );
                 }
 
-                if (input.IsDown(NetworkInputData.BUTTON_SPAWN_ENEMY))
+                if (windowsController.CurrentWindow != WindowType.NONE)
+                {
+                    return;
+                }
+                
+                if (input.Buttons.IsSet(NetworkInputData.BUTTON_FIRE_PRIMARY))
+                {
+                    playerController.ActivateSkill(ActiveSkillType.PRIMARY);
+                }
+
+                if (pressedButtons.IsSet(NetworkInputData.BUTTON_SPAWN_ENEMY))
                 {
                     Runner.Spawn(
                         enemyPrefab,
                         playerController.transform.position + new Vector3(Random.Range(-5, 5) * 5, 0, Random.Range(-5, 5) * 5));
                 }
 
-                if (input.IsDown(NetworkInputData.BUTTON_SPAWN_MINE))
+                if (pressedButtons.IsSet(NetworkInputData.BUTTON_SPAWN_MINE))
                 {
                     Runner.Spawn(mineGold, new Vector3(Random.Range(-5, 5), 0, Random.Range(-5, 5)));
                 }
@@ -233,24 +246,15 @@ namespace Main.Scripts.Player
     /// </summary>
     public struct NetworkInputData : INetworkInput
     {
-        public const uint BUTTON_FIRE_PRIMARY = 1 << 0;
-        public const uint BUTTON_FIRE_SECONDARY = 1 << 1;
-        public const uint BUTTON_SPAWN_ENEMY = 1 << 2;
-        public const uint BUTTON_SPAWN_MINE = 1 << 3;
-        public const uint READY = 1 << 6;
+        public const int BUTTON_FIRE_PRIMARY = 0;
+        public const int BUTTON_FIRE_SECONDARY = 1;
+        public const int BUTTON_SPAWN_ENEMY = 2;
+        public const int BUTTON_SPAWN_MINE = 3;
+        public const int BUTTON_READY = 4;
+        public const int BUTTON_OPEN_SKILL_TREE = 5;
 
-        public uint Buttons;
+        public NetworkButtons Buttons;
         public Vector2 aimDirection;
         public Vector2 moveDirection;
-
-        public bool IsUp(uint button)
-        {
-            return IsDown(button) == false;
-        }
-
-        public bool IsDown(uint button)
-        {
-            return (Buttons & button) == button;
-        }
     }
 }

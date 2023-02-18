@@ -153,7 +153,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &34126710
 MonoBehaviour:
@@ -174,7 +174,7 @@ MonoBehaviour:
   OnPlayerDisconnectEvent:
     m_PersistentCalls:
       m_Calls: []
---- !u!1001 &469282981
+--- !u!1001 &64029327
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -187,7 +187,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: d01e571d2d231d343b9958470948da3c, type: 3}
       propertyPath: m_RootOrder
-      value: 0
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: d01e571d2d231d343b9958470948da3c, type: 3}
       propertyPath: m_LocalPosition.x
@@ -276,5 +276,5 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

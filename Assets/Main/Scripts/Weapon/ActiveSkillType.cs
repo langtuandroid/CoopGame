@@ -1,6 +1,6 @@
 namespace Main.Scripts.Weapon
 {
-    public enum SkillType
+    public enum ActiveSkillType
     {
         PRIMARY
     }

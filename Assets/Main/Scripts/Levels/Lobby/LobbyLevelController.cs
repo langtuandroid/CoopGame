@@ -1,9 +1,9 @@
 using System;
+using System.Linq;
 using Fusion;
-using JetBrains.Annotations;
-using Main.Scripts.Enemies;
 using Main.Scripts.Player;
 using Main.Scripts.Room;
+using Main.Scripts.Skills;
 using UnityEngine;
 
 namespace Main.Scripts.Levels.Lobby
@@ -24,7 +24,7 @@ namespace Main.Scripts.Levels.Lobby
         {
             connectionManager = FindObjectOfType<ConnectionManager>();
             roomManager = FindObjectOfType<RoomManager>();
-            playerCamera = PlayerCamera.Instance;
+            playerCamera = FindObjectOfType<PlayerCamera>();
         }
 
         public override void Spawned()
@@ -70,6 +70,14 @@ namespace Main.Scripts.Levels.Lobby
                     
                     playersHolder.players.Add(playerRef, playerController);
                     playerController.OnPlayerDeadEvent.AddListener(OnPlayerDead);
+
+                    //todo load player data from storage
+                    playerController.PlayerData.AvailableSkillPoints = 10;
+                    playerController.PlayerData.MaxSkillPoints = 10;
+                    foreach (var skill in Enum.GetValues(typeof(SkillType)).Cast<SkillType>())
+                    {
+                        playerController.PlayerData.SkillLevels.Set(skill, 0);
+                    }
                 }
             );
         }

@@ -4,12 +4,12 @@ using UnityEngine;
 
 namespace Main.Scripts.Weapon
 {
-    public class SkillManager : NetworkBehaviour
+    public class ActiveSkillManager : NetworkBehaviour
     {
         [SerializeField]
-        private SkillBase primarySkill;
+        private ActiveSkillBase primarySkill;
 
-        public bool ActivateSkill(SkillType skillType, PlayerRef owner)
+        public bool ActivateSkill(ActiveSkillType skillType, PlayerRef owner)
         {
             if (!IsSkillActivatingAllowed(skillType))
                 return false;
@@ -19,21 +19,21 @@ namespace Main.Scripts.Weapon
             return skill.Activate(owner);
         }
 
-        public bool IsSkillRunning(SkillType skillType)
+        public bool IsSkillRunning(ActiveSkillType skillType)
         {
             return getSkillByType(skillType).IsRunning();
         }
 
-        private bool IsSkillActivatingAllowed(SkillType skillType)
+        private bool IsSkillActivatingAllowed(ActiveSkillType skillType)
         {
             return !primarySkill.IsRunning();
         }
 
-        private SkillBase getSkillByType(SkillType skillType)
+        private ActiveSkillBase getSkillByType(ActiveSkillType skillType)
         {
             switch (skillType)
             {
-                case SkillType.PRIMARY:
+                case ActiveSkillType.PRIMARY:
                     return primarySkill;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(skillType), skillType, null);

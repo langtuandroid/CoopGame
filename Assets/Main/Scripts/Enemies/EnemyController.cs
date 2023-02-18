@@ -28,7 +28,7 @@ namespace Main.Scripts.Enemies
         private float moveAcceleration = 50f;
 
         [SerializeField]
-        private SkillManager skillManager;
+        private ActiveSkillManager activeSkillManager;
         [SerializeField]
         private HealthBar healthBar;
         [SerializeField]
@@ -137,7 +137,7 @@ namespace Main.Scripts.Enemies
 
         private void FireWeapon()
         {
-            if (skillManager.ActivateSkill(SkillType.PRIMARY, Object.StateAuthority))
+            if (activeSkillManager.ActivateSkill(ActiveSkillType.PRIMARY, Object.StateAuthority))
             {
                 animator.SetTrigger(ATTACK_ANIM);
             }
@@ -145,7 +145,7 @@ namespace Main.Scripts.Enemies
 
         private bool IsAttacking()
         {
-            return skillManager.IsSkillRunning(SkillType.PRIMARY);
+            return activeSkillManager.IsSkillRunning(ActiveSkillType.PRIMARY);
         }
 
         public void ApplyDamage(int damage)

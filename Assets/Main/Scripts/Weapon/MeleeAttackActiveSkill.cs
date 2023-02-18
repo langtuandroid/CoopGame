@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Main.Scripts.Weapon
 {
-    public class MeleeAttackSkill : SkillBase
+    public class MeleeAttackActiveSkill : ActiveSkillBase
     {
         private const float ANGLE_STEP = 20f;
         private const float DISTANCE_STEP_MULTIPLIER = 3f;

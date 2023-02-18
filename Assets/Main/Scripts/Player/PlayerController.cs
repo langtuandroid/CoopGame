@@ -21,7 +21,9 @@ namespace Main.Scripts.Player
         private Animator animator;
 
         [SerializeField]
-        private SkillManager skillManager;
+        private PlayerData playerData;
+        [SerializeField]
+        private ActiveSkillManager activeSkillManager;
         [SerializeField]
         private int maxHealth = 100;
         [SerializeField]
@@ -29,8 +31,6 @@ namespace Main.Scripts.Player
 
         [SerializeField]
         private float speed = 6f;
-
-        public UnityEvent<PlayerRef> OnPlayerDeadEvent;
 
         [Networked(OnChanged = nameof(OnStateChanged))]
         public State state { get; private set; }
@@ -42,6 +42,10 @@ namespace Main.Scripts.Player
         private Vector2 moveDirection { get; set; }
         [Networked]
         private Vector2 aimDirection { get; set; }
+
+        public UnityEvent<PlayerRef> OnPlayerDeadEvent;
+
+        public PlayerData PlayerData => playerData;
 
         public bool isActivated => (gameObject.activeInHierarchy && (state == State.Active || state == State.Spawning));
 
@@ -103,9 +107,9 @@ namespace Main.Scripts.Player
             }
         }
 
-        public void ActivateSkill(SkillType skillType)
+        public void ActivateSkill(ActiveSkillType activeSkillType)
         {
-            if (skillManager.ActivateSkill(skillType, Object.InputAuthority))
+            if (activeSkillManager.ActivateSkill(activeSkillType, Object.InputAuthority))
             {
                 animator.SetTrigger(ATTACK_ANIM);
             }

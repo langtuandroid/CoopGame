@@ -8,6 +8,8 @@ namespace Main.Scripts.Room
 
     public class ConnectionManager : MonoBehaviour
     {
+        private static ConnectionManager? instance;
+        
         [SerializeField]
         private RoomManager roomManagerPrefab = default!;
 
@@ -21,6 +23,13 @@ namespace Main.Scripts.Room
 
         private void Awake()
         {
+            if (instance != null)
+            {
+                Destroy(this);
+                return;
+            }
+
+            instance = this;
             DontDestroyOnLoad(this);
         }
 

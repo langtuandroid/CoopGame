@@ -11,6 +11,8 @@ namespace Main.Scripts.Room
     public class LevelTransitionManager : NetworkSceneManagerBase
     {
         private const int MIN_TIME_FOR_LOADING_SHOWING = 1;
+
+        private static LevelTransitionManager? instance;
         
         [SerializeField]
         private int mainMenuScene;
@@ -28,6 +30,13 @@ namespace Main.Scripts.Room
 
         private void Awake()
         {
+            if (instance != null)
+            {
+                Destroy(this);
+                return;
+            }
+
+            instance = this;
             DontDestroyOnLoad(this);
             loadedScene = SceneManager.GetActiveScene();
         }

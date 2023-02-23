@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Main.Scripts.FusionHelpers
 {
@@ -40,6 +41,7 @@ namespace Main.Scripts.FusionHelpers
 					_poolsByInstance[newt] = pool;
 				}
 
+				SceneManager.MoveGameObjectToScene(newt.gameObject, SceneManager.GetActiveScene());
 				newt.gameObject.SetActive(true);
 				return newt;
 			}

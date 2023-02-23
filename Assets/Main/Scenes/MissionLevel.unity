@@ -1022,7 +1022,7 @@ MonoBehaviour:
   WordOffset: 0
   WordCount: 0
   _interpolationDataSource: 0
-  _players:
+  _Players:
     _items: []
 --- !u!114 &504426376
 MonoBehaviour:
@@ -1712,6 +1712,18 @@ PrefabInstance:
     - target: {fileID: 1097823279733727707, guid: e3ff8d424da4e3647a44c35a869d600d, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1210245427486407906, guid: e3ff8d424da4e3647a44c35a869d600d, type: 3}
+      propertyPath: Flags
+      value: 2561
+      objectReference: {fileID: 0}
+    - target: {fileID: 1210245427486407906, guid: e3ff8d424da4e3647a44c35a869d600d, type: 3}
+      propertyPath: NetworkGuid.RawGuidValue.Array.data[0]
+      value: -7760170531857217550
+      objectReference: {fileID: 0}
+    - target: {fileID: 1210245427486407906, guid: e3ff8d424da4e3647a44c35a869d600d, type: 3}
+      propertyPath: NetworkGuid.RawGuidValue.Array.data[1]
+      value: 6104716367452485049
       objectReference: {fileID: 0}
     - target: {fileID: 1870897750303213583, guid: e3ff8d424da4e3647a44c35a869d600d, type: 3}
       propertyPath: Flags

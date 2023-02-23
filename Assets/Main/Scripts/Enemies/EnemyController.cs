@@ -1,15 +1,10 @@
-using System;
-using ExitGames.Client.Photon.StructWrapping;
 using Fusion;
 using Main.Scripts.Actions;
-using Main.Scripts.Component;
 using Main.Scripts.Gui;
-using Main.Scripts.Player;
 using Main.Scripts.Utils;
 using Main.Scripts.Weapon;
 using UnityEngine;
 using UnityEngine.AI;
-using Vector3 = UnityEngine.Vector3;
 
 namespace Main.Scripts.Enemies
 {
@@ -57,7 +52,7 @@ namespace Main.Scripts.Enemies
         [Networked]
         private Vector3 knockBackDirection { get; set; }
 
-        private NavMeshPath navMeshPath = new();
+        private NavMeshPath navMeshPath = default!;
 
         private bool isActivated => gameObject.activeInHierarchy && !isDead;
 
@@ -65,6 +60,7 @@ namespace Main.Scripts.Enemies
         {
             rigidbody = GetComponent<Rigidbody>();
             animator = GetComponentInChildren<Animator>();
+            navMeshPath = new NavMeshPath();
         }
 
         public override void Spawned()
@@ -74,6 +70,7 @@ namespace Main.Scripts.Enemies
             isDead = false;
             enemiesHelper = FindObjectOfType<EnemiesHelper>().ThrowWhenNull();
         }
+
         public override void Render()
         {
             healthBar.SetHealth(health);

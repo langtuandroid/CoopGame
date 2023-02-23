@@ -8,8 +8,6 @@ namespace Main.Scripts.Room
 
     public class ConnectionManager : MonoBehaviour
     {
-        private static ConnectionManager? instance;
-        
         [SerializeField]
         private RoomManager roomManagerPrefab = default!;
 
@@ -20,18 +18,6 @@ namespace Main.Scripts.Room
 
         public UnityEvent<NetworkRunner, PlayerRef> OnPlayerConnectEvent = default!;
         public UnityEvent<NetworkRunner, PlayerRef> OnPlayerDisconnectEvent = default!;
-
-        private void Awake()
-        {
-            if (instance != null)
-            {
-                Destroy(this);
-                return;
-            }
-
-            instance = this;
-            DontDestroyOnLoad(this);
-        }
 
         private void Start()
         {

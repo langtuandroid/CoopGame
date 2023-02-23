@@ -12,8 +12,6 @@ namespace Main.Scripts.Room
     {
         private const int MIN_TIME_FOR_LOADING_SHOWING = 1;
 
-        private static LevelTransitionManager? instance;
-        
         [SerializeField]
         private int mainMenuScene;
         [SerializeField]
@@ -23,28 +21,15 @@ namespace Main.Scripts.Room
         [SerializeField]
         private int[] levels;
 
-        private Scene loadedScene;
+        private Scene activeScene => SceneManager.GetActiveScene();
         private float lastLoadingShowedTime;
 
         public FusionLauncher launcher { get; set; }
 
-        private void Awake()
-        {
-            if (instance != null)
-            {
-                Destroy(this);
-                return;
-            }
-
-            instance = this;
-            DontDestroyOnLoad(this);
-            loadedScene = SceneManager.GetActiveScene();
-        }
-
         protected override void Shutdown(NetworkRunner runner)
         {
             base.Shutdown(runner);
-            if (loadedScene != default)
+            if (activeScene != default)
             {
                 StartCoroutine(LoadMainMenu());
             }
@@ -56,13 +41,12 @@ namespace Main.Scripts.Room
             yield return ShowLoadingScene();
             
             Debug.Log("Unload loaded scene");
-            yield return SceneManager.UnloadSceneAsync(loadedScene);
+            yield return SceneManager.UnloadSceneAsync(activeScene);
             Debug.Log("Load main menu scene");
             yield return SceneManager.LoadSceneAsync(mainMenuScene, LoadSceneMode.Additive);
-            
+            SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex(mainMenuScene));
+
             yield return HideLoadingScene();
-            
-            loadedScene = SceneManager.GetActiveScene();
         }
 
         public void LoadLevel(int nextLevelIndex)
@@ -101,17 +85,16 @@ namespace Main.Scripts.Room
 
             yield return ShowLoadingScene();
 
-            if (loadedScene != default)
+            if (activeScene != default)
             {
-                Debug.Log($"Unloading Scene {loadedScene.buildIndex}");
-                yield return SceneManager.UnloadSceneAsync(loadedScene);
+                Debug.Log($"Unloading Scene {activeScene.buildIndex}");
+                yield return SceneManager.UnloadSceneAsync(activeScene);
             }
 
-            loadedScene = default;
             Debug.Log($"Loading scene {newScene}");
 
             yield return SceneManager.LoadSceneAsync(newScene, LoadSceneMode.Additive);
-            loadedScene = SceneManager.GetSceneByBuildIndex(newScene);
+            var loadedScene = SceneManager.GetSceneByBuildIndex(newScene);
             SceneManager.SetActiveScene(loadedScene);
                 
             Debug.Log($"Loaded scene {newScene}: {loadedScene}");
@@ -139,7 +122,7 @@ namespace Main.Scripts.Room
         {
             if (Runner.IsServer)
             {
-                RoomManager.playState = loadedScene.buildIndex == lobby ? RoomManager.PlayState.LOBBY : RoomManager.PlayState.LEVEL;
+                RoomManager.playState = activeScene.buildIndex == lobby ? RoomManager.PlayState.LOBBY : RoomManager.PlayState.LEVEL;
             }
 
             InputController.fetchInput = true;

@@ -8,8 +8,6 @@ namespace Main.Scripts.Player
 {
     public class PlayerCamera : MonoBehaviour
     {
-        private static PlayerCamera? instance;
-        
         // damp velocity of camera
         Vector3 _velocity;
 
@@ -41,14 +39,6 @@ namespace Main.Scripts.Player
 
         void Awake()
         {
-            if (instance != null)
-            {
-                Destroy(this);
-                return;
-            }
-            
-            instance = this;
-            DontDestroyOnLoad(this);
             camComponent = cam.GetComponent<Camera>();
         }
 

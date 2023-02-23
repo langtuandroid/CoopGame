@@ -7,12 +7,12 @@ namespace Main.Scripts.UI.MainMenu
     [RequireComponent(typeof(MainMenuView))]
     public class MainMenuPresenter : MonoBehaviour
     {
-        [SerializeField]
         private ConnectionManager connectionManager = default!;
         private MainMenuView view = default!;
 
         private void Awake()
         {
+            connectionManager = FindObjectOfType<ConnectionManager>();
             view = GetComponent<MainMenuView>();
             view.OnRoomNameChanged = OnRoomNameChanged;
             view.OnPlayerNameChanged = OnPlayerNameChanged;

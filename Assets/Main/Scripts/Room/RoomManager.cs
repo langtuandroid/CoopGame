@@ -89,7 +89,7 @@ namespace Main.Scripts.Room
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
             connectionManager.OnPlayerConnectEvent.RemoveListener(OnPlayerConnect);
-            connectionManager.OnPlayerConnectEvent.RemoveListener(OnPlayerDisconnect);
+            connectionManager.OnPlayerDisconnectEvent.RemoveListener(OnPlayerDisconnect);
         }
 
         private void OnPlayerConnect(NetworkRunner runner, PlayerRef playerRef)

@@ -29,7 +29,7 @@ namespace Main.Scripts.Tasks
             {
                 playersInPlace.Add(enteredPlayer.Object.InputAuthority, true);
                 var hasAnyAlivePlayerInPlace = false;
-                foreach (var (playerRef, playerController) in playersHolder.players)
+                foreach (var (playerRef, playerController) in playersHolder.Players)
                 {
                     if (playerController.state != PlayerController.State.Dead)
                     {

@@ -1,12 +1,8 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Fusion;
 using Main.Scripts.Levels.Results;
 using Main.Scripts.Player;
-using Main.Scripts.Player.Experience;
 using Main.Scripts.Room;
-using Main.Scripts.Skills;
 using Main.Scripts.Tasks;
 using UnityEngine;
 
@@ -15,24 +11,21 @@ namespace Main.Scripts.Levels.Missions
     public class MissionLevelController : NetworkBehaviour
     {
         [SerializeField]
-        private PlayerController playerPrefab;
+        private PlayerController playerPrefab = default!;
         [SerializeField]
-        private PlayersHolder playersHolder;
+        private PlayersHolder playersHolder = default!;
         [SerializeField]
-        private PlaceTargetTask placeTargetTask;
+        private PlaceTargetTask placeTargetTask = default!;
 
-        private RoomManager roomManager;
+        private RoomManager roomManager = default!;
 
-        private PlayerCamera playerCamera;
-
-        public void Awake()
-        {
-            roomManager = FindObjectOfType<RoomManager>();
-            playerCamera = FindObjectOfType<PlayerCamera>();
-        }
+        private PlayerCamera playerCamera = default!;
 
         public override void Spawned()
         {
+            roomManager = FindObjectOfType<RoomManager>();
+            playerCamera = FindObjectOfType<PlayerCamera>();
+            
             if (HasStateAuthority)
             {
                 var connectedPlayers = roomManager.GetConnectedPlayers();
@@ -47,9 +40,9 @@ namespace Main.Scripts.Levels.Missions
 
         public override void Render()
         {
-            if (playersHolder.players.ContainsKey(Runner.LocalPlayer))
+            if (playersHolder.Players.ContainsKey(Runner.LocalPlayer))
             {
-                playerCamera.SetTarget(playersHolder.players.Get(Runner.LocalPlayer).transform);
+                playerCamera.SetTarget(playersHolder.Players.Get(Runner.LocalPlayer).transform);
             }
         }
 
@@ -65,7 +58,7 @@ namespace Main.Scripts.Levels.Missions
                 {
                     var playerController = playerObject.GetComponent<PlayerController>();
 
-                    playersHolder.players.Add(playerRef, playerController);
+                    playersHolder.Players.Add(playerRef, playerController);
                     playerController.OnPlayerDeadEvent.AddListener(OnPlayerDead);
                 }
             );
@@ -73,7 +66,7 @@ namespace Main.Scripts.Levels.Missions
 
         private void OnPlayerDead(PlayerRef deadPlayerRef)
         {
-            foreach (var (_, playerController) in playersHolder.players)
+            foreach (var (_, playerController) in playersHolder.Players)
             {
                 if (playerController.state != PlayerController.State.Dead)
                 {
@@ -87,7 +80,7 @@ namespace Main.Scripts.Levels.Missions
         private void OnMissionFailed()
         {
             var levelResults = new Dictionary<PlayerRef, LevelResultsData>();
-            foreach (var (playerRef, _) in playersHolder.players)
+            foreach (var (playerRef, _) in playersHolder.Players)
             {
                 levelResults.Add(playerRef, new LevelResultsData
                 {
@@ -102,7 +95,7 @@ namespace Main.Scripts.Levels.Missions
         private void OnPlaceTargetTaskCompleted()
         {
             var levelResults = new Dictionary<PlayerRef, LevelResultsData>();
-            foreach (var (playerRef, _) in playersHolder.players)
+            foreach (var (playerRef, _) in playersHolder.Players)
             {
                 levelResults.Add(playerRef, new LevelResultsData
                 {

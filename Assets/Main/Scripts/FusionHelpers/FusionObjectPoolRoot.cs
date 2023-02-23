@@ -26,7 +26,7 @@ namespace Main.Scripts.FusionHelpers
 			return pool;
 		}
 
-		public NetworkObject AcquireInstance(NetworkRunner runner, NetworkPrefabInfo info)
+		public NetworkObject? AcquireInstance(NetworkRunner runner, NetworkPrefabInfo info)
 		{
 			NetworkObject prefab;
 			if (NetworkProjectConfig.Global.PrefabTable.TryGetPrefab(info.Prefab, out prefab))

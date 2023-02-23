@@ -9,6 +9,8 @@ using UnityEngine.Events;
 
 namespace Main.Scripts.Player
 {
+    [RequireComponent(typeof(Rigidbody))]
+    [RequireComponent(typeof(Animator))]
     public class PlayerController : NetworkBehaviour,
         ObjectWithTakingDamage,
         ObjectWithPickUp
@@ -17,15 +19,15 @@ namespace Main.Scripts.Player
         private static readonly int MOVE_Z_ANIM = Animator.StringToHash("MoveZ");
         private static readonly int ATTACK_ANIM = Animator.StringToHash("Attack");
 
-        private new Rigidbody rigidbody;
-        private Animator animator;
+        private new Rigidbody rigidbody = default!;
+        private Animator animator = default!;
 
         [SerializeField]
-        private ActiveSkillManager activeSkillManager;
+        private ActiveSkillManager activeSkillManager = default!;
         [SerializeField]
         private int maxHealth = 100;
         [SerializeField]
-        private HealthBar healthBar;
+        private HealthBar healthBar = default!;
 
         [SerializeField]
         private float speed = 6f;
@@ -41,10 +43,10 @@ namespace Main.Scripts.Player
         [Networked]
         private Vector2 aimDirection { get; set; }
 
-        public UnityEvent<PlayerRef> OnPlayerDeadEvent;
-        public UnityEvent<PlayerRef, State> OnPlayerStateChangedEvent;
+        public UnityEvent<PlayerRef> OnPlayerDeadEvent = default!;
+        public UnityEvent<PlayerRef, State> OnPlayerStateChangedEvent = default!;
 
-        public bool isActivated => (gameObject.activeInHierarchy && (state == State.Active || state == State.Spawning));
+        private bool isActivated => (gameObject.activeInHierarchy && (state == State.Active || state == State.Spawning));
 
         void Awake()
         {

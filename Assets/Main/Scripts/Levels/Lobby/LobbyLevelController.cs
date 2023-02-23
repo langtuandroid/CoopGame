@@ -39,7 +39,7 @@ namespace Main.Scripts.Levels.Lobby
                 var connectedPlayers = roomManager.GetConnectedPlayers();
                 foreach (var playerRef in connectedPlayers)
                 {
-                    if (!playersHolder.players.ContainsKey(playerRef))
+                    if (!playersHolder.Players.ContainsKey(playerRef))
                     {
                         OnPlayerConnect(Runner, playerRef);
                     }
@@ -52,9 +52,9 @@ namespace Main.Scripts.Levels.Lobby
 
         public override void Render()
         {
-            if (playersHolder.players.ContainsKey(Runner.LocalPlayer))
+            if (playersHolder.Players.ContainsKey(Runner.LocalPlayer))
             {
-                playerCamera.SetTarget(playersHolder.players.Get(Runner.LocalPlayer).transform);
+                playerCamera.SetTarget(playersHolder.Players.Get(Runner.LocalPlayer).transform);
             }
         }
 
@@ -75,7 +75,7 @@ namespace Main.Scripts.Levels.Lobby
                 {
                     var playerController = playerObject.GetComponent<PlayerController>();
 
-                    playersHolder.players.Add(playerRef, playerController);
+                    playersHolder.Players.Add(playerRef, playerController);
                     playerController.OnPlayerDeadEvent.AddListener(OnPlayerDead);
                     playerController.OnPlayerStateChangedEvent.AddListener(OnPlayerStateChanged);
                 }
@@ -104,7 +104,7 @@ namespace Main.Scripts.Levels.Lobby
         {
             if (roomManager.GetLevelResults(playerRef) != null)
             {
-                playersHolder.players.Get(playerRef).GetComponent<WindowsController>().SetCurrentWindowType(WindowType.LEVEL_RESULTS);
+                playersHolder.Players.Get(playerRef).GetComponent<WindowsController>().SetCurrentWindowType(WindowType.LEVEL_RESULTS);
             }
         }
     }

@@ -1,4 +1,3 @@
-using FusionExamples.Utility;
 using Main.Scripts.Utils;
 using UnityEngine;
 using Plane = UnityEngine.Plane;

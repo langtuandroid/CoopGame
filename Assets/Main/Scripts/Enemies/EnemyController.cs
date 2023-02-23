@@ -1,9 +1,11 @@
+using System;
 using ExitGames.Client.Photon.StructWrapping;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Component;
 using Main.Scripts.Gui;
 using Main.Scripts.Player;
+using Main.Scripts.Utils;
 using Main.Scripts.Weapon;
 using UnityEngine;
 using UnityEngine.AI;
@@ -11,6 +13,8 @@ using Vector3 = UnityEngine.Vector3;
 
 namespace Main.Scripts.Enemies
 {
+    [RequireComponent(typeof(Rigidbody))]
+    [RequireComponent(typeof(Animator))]
     public class EnemyController : NetworkBehaviour,
         ObjectWithTakingDamage,
         ObjectWithGettingKnockBack,
@@ -19,18 +23,18 @@ namespace Main.Scripts.Enemies
         private static readonly int IS_MOVING_ANIM = Animator.StringToHash("isMoving");
         private static readonly int ATTACK_ANIM = Animator.StringToHash("Attack");
 
-        private new Rigidbody rigidbody;
-        private Animator animator;
-        private EnemiesHelper enemiesHelper;
+        private new Rigidbody rigidbody = default!;
+        private Animator animator = default!;
+        private EnemiesHelper enemiesHelper = default!;
 
         private float knockBackForce = 30f; //todo get from ApplyKnockBack
         private float knockBackDuration = 0.1f; //todo можно высчитать из knockBackForce и rigidbody.drag
         private float moveAcceleration = 50f;
 
         [SerializeField]
-        private ActiveSkillManager activeSkillManager;
+        private ActiveSkillManager activeSkillManager = default!;
         [SerializeField]
-        private HealthBar healthBar;
+        private HealthBar healthBar = default!;
         [SerializeField]
         private int maxHealth = 100;
         [SerializeField]
@@ -53,7 +57,7 @@ namespace Main.Scripts.Enemies
         [Networked]
         private Vector3 knockBackDirection { get; set; }
 
-        private NavMeshPath navMeshPath;
+        private NavMeshPath navMeshPath = new();
 
         private bool isActivated => gameObject.activeInHierarchy && !isDead;
 
@@ -61,7 +65,6 @@ namespace Main.Scripts.Enemies
         {
             rigidbody = GetComponent<Rigidbody>();
             animator = GetComponentInChildren<Animator>();
-            enemiesHelper = FindObjectOfType<EnemiesHelper>();
         }
 
         public override void Spawned()
@@ -69,8 +72,7 @@ namespace Main.Scripts.Enemies
             health = maxHealth;
             healthBar.SetMaxHealth(maxHealth);
             isDead = false;
-            
-            navMeshPath = new NavMeshPath();
+            enemiesHelper = FindObjectOfType<EnemiesHelper>().ThrowWhenNull();
         }
         public override void Render()
         {

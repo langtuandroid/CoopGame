@@ -9,12 +9,12 @@ namespace Main.Scripts.Player
 {
     public struct PlayerData : INetworkStruct
     {
-        public int Level;
-        public int Experience;
-        public int MaxSkillPoints;
-        public int AvailableSkillPoints;
+        public uint Level;
+        public uint Experience;
+        public uint MaxSkillPoints;
+        public uint UsedSkillPoints;
         [Networked, Capacity(16)]
-        public NetworkDictionary<SkillType, int> SkillLevels => default;
+        public NetworkDictionary<SkillType, uint> SkillLevels => default;
 
         public static PlayerData GetInitialPlayerData()
         {
@@ -22,7 +22,7 @@ namespace Main.Scripts.Player
             playerData.Level = 1;
             playerData.Experience = 0;
             playerData.MaxSkillPoints = ExperienceHelper.GetMaxSkillPointsByLevel(playerData.Level);
-            playerData.AvailableSkillPoints = playerData.MaxSkillPoints;
+            playerData.UsedSkillPoints = 0;
             foreach (var skill in Enum.GetValues(typeof(SkillType)).Cast<SkillType>())
             {
                 playerData.SkillLevels.Set(skill, 0);
@@ -34,14 +34,14 @@ namespace Main.Scripts.Player
         public static PlayerData parseJSON(JObject jObject)
         {
             var playerData = new PlayerData();
-            playerData.Level = jObject.Value<int>(LEVEL_KEY);
-            playerData.Experience = jObject.Value<int>(EXPERIENCE_KEY);
-            playerData.MaxSkillPoints = jObject.Value<int>(MAX_SKILL_POINTS_KEY);
-            playerData.AvailableSkillPoints = jObject.Value<int>(AVAILABLE_SKILL_POINTS_KEY);
+            playerData.Level = jObject.Value<uint>(LEVEL_KEY);
+            playerData.Experience = jObject.Value<uint>(EXPERIENCE_KEY);
+            playerData.MaxSkillPoints = jObject.Value<uint>(MAX_SKILL_POINTS_KEY);
+            playerData.UsedSkillPoints = jObject.Value<uint>(USED_SKILL_POINTS_KEY);
             var jSkillLevels = jObject.Value<JObject>(SKILL_LEVELS_KEY);
             foreach (var skillType in Enum.GetValues(typeof(SkillType)).Cast<SkillType>())
             {
-                playerData.SkillLevels.Add(skillType, jSkillLevels.Value<int>(skillType.GetKey()));
+                playerData.SkillLevels.Add(skillType, jSkillLevels.Value<uint>(skillType.GetKey()));
             }
 
             return playerData;
@@ -53,7 +53,7 @@ namespace Main.Scripts.Player
             jObject.Add(LEVEL_KEY, Level);
             jObject.Add(EXPERIENCE_KEY, Experience);
             jObject.Add(MAX_SKILL_POINTS_KEY, MaxSkillPoints);
-            jObject.Add(AVAILABLE_SKILL_POINTS_KEY, AvailableSkillPoints);
+            jObject.Add(USED_SKILL_POINTS_KEY, UsedSkillPoints);
             var jSkillLevels = new JObject();
             foreach (var skillType in Enum.GetValues(typeof(SkillType)).Cast<SkillType>())
             {
@@ -64,10 +64,15 @@ namespace Main.Scripts.Player
             return jObject;
         }
 
+        public uint GetAvailableSkillPoints()
+        {
+            return MaxSkillPoints - UsedSkillPoints;
+        }
+
         private const string LEVEL_KEY = "level";
         private const string EXPERIENCE_KEY = "experience";
         private const string MAX_SKILL_POINTS_KEY = "max_skill_points";
-        private const string AVAILABLE_SKILL_POINTS_KEY = "available_skill_points";
+        private const string USED_SKILL_POINTS_KEY = "used_skill_points";
         private const string SKILL_LEVELS_KEY = "skill_levels";
     }
 }

@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Levels.Results;
 using Main.Scripts.Player;
+using Main.Scripts.Player.Experience;
 using Main.Scripts.Utils.Save;
 using UnityEngine;
 
@@ -160,8 +162,8 @@ namespace Main.Scripts.Room
             foreach (var (playerRef, levelResultsData) in levelResults)
             {
                 this.levelResults.Add(playerRef, levelResultsData);
+                ApplyPlayerRewards(playerRef, levelResultsData);
             }
-            //todo update and save playerData
 
             LoadLevel(-1);
         }
@@ -172,6 +174,22 @@ namespace Main.Scripts.Room
                 return;
 
             levelTransitionManager.LoadLevel(nextLevelIndex);
+        }
+
+        private void ApplyPlayerRewards(PlayerRef playerRef, LevelResultsData levelResultsData)
+        {
+            var playerData = GetPlayerData(playerRef);
+            var experienceForNextLevel = ExperienceHelper.GetExperienceForNextLevel(playerData.Level);
+            if (playerData.Experience + levelResultsData.Experience >= experienceForNextLevel)
+            {
+                playerData.Experience = playerData.Experience + levelResultsData.Experience - experienceForNextLevel;
+                playerData.Level = Math.Clamp(playerData.Level + 1, 1, ExperienceHelper.MAX_LEVEL);
+
+                playerData.MaxSkillPoints = ExperienceHelper.GetMaxSkillPointsByLevel(playerData.Level);
+            }
+
+            playerData.Experience += levelResultsData.Experience;
+            SetPlayerData(playerRef, playerData);
         }
 
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]

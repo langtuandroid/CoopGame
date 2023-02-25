@@ -31,7 +31,7 @@ namespace Main.Scripts.UI.Windows.SkillTree
             return element;
         }
 
-        public void Bind(SkillInfo skillInfo, int currentLevel)
+        public void Bind(SkillInfo skillInfo, uint currentLevel)
         {
             type = skillInfo.Type;
             titleLabel.text = skillInfo.Title;

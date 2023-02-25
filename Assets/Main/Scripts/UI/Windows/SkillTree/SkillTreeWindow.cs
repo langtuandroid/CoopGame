@@ -42,7 +42,7 @@ namespace Main.Scripts.UI.Windows.SkillTree
 
         public void Bind(PlayerData state, SkillInfoHolder skillInfoHolder)
         {
-            skillPointsCountLabel.text = $"{state.AvailableSkillPoints}/{state.MaxSkillPoints}";
+            skillPointsCountLabel.text = $"{state.GetAvailableSkillPoints()}/{state.MaxSkillPoints}";
             healthBoostSkill.Bind(
                 skillInfo: skillInfoHolder.GetSkillInfo(SkillType.HEALTH_BOOST_PASSIVE),
                 currentLevel: state.SkillLevels.Get(SkillType.HEALTH_BOOST_PASSIVE)

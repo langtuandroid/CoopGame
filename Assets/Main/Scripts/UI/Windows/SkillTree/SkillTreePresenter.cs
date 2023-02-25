@@ -59,7 +59,7 @@ namespace Main.Scripts.UI.Windows.SkillTree
             {
                 playerData.SkillLevels.Set(skillType, 0);
             }
-            playerData.AvailableSkillPoints = playerData.MaxSkillPoints;
+            playerData.UsedSkillPoints = 0;
             
             roomManager.SetPlayerData(playerRef, playerData);
             //todo subcribe to changing playerData
@@ -70,13 +70,13 @@ namespace Main.Scripts.UI.Windows.SkillTree
         private void RPC_IncreaseSkillLevel(PlayerRef playerRef, SkillType skillType)
         {
             var playerData = roomManager.GetPlayerData(playerRef);
-            if (playerData.AvailableSkillPoints > 0)
+            if (playerData.GetAvailableSkillPoints() > 0)
             {
                 var currentSkillLevel = playerData.SkillLevels.Get(skillType);
                 if (currentSkillLevel < skillInfoHolder.GetSkillInfo(skillType).MaxLevel)
                 {
                     playerData.SkillLevels.Set(skillType, currentSkillLevel + 1);
-                    playerData.AvailableSkillPoints--;
+                    playerData.UsedSkillPoints++;
                 }
             }
             
@@ -93,7 +93,7 @@ namespace Main.Scripts.UI.Windows.SkillTree
             if (currentSkillLevel > 0)
             {
                 playerData.SkillLevels.Set(skillType, currentSkillLevel - 1);
-                playerData.AvailableSkillPoints++;
+                playerData.UsedSkillPoints--;
             }
 
             roomManager.SetPlayerData(playerRef, playerData);

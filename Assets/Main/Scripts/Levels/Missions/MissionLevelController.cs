@@ -89,7 +89,11 @@ namespace Main.Scripts.Levels.Missions
             var levelResults = new Dictionary<PlayerRef, LevelResultsData>();
             foreach (var (playerRef, _) in playersHolder.players)
             {
-                levelResults.Add(playerRef, new LevelResultsData {IsSuccess = false});
+                levelResults.Add(playerRef, new LevelResultsData
+                {
+                    IsSuccess = false,
+                    Experience = 50
+                });
             }
 
             roomManager.OnLevelFinished(levelResults);
@@ -100,7 +104,11 @@ namespace Main.Scripts.Levels.Missions
             var levelResults = new Dictionary<PlayerRef, LevelResultsData>();
             foreach (var (playerRef, _) in playersHolder.players)
             {
-                levelResults.Add(playerRef, new LevelResultsData {IsSuccess = true});
+                levelResults.Add(playerRef, new LevelResultsData
+                {
+                    IsSuccess = true,
+                    Experience = 200
+                });
             }
 
             roomManager.OnLevelFinished(levelResults);

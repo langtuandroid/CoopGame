@@ -20,7 +20,6 @@ GameObject:
   - component: {fileID: 5529146898055386871}
   - component: {fileID: 2737533443050263691}
   - component: {fileID: 4736437783530052701}
-  - component: {fileID: 6905289692583865680}
   - component: {fileID: 2157199862293475197}
   m_Layer: 7
   m_Name: PlayerPrefab
@@ -60,13 +59,15 @@ MonoBehaviour:
   WordOffset: 0
   WordCount: 0
   _interpolationDataSource: 0
-  playerData: {fileID: 6905289692583865680}
   activeSkillManager: {fileID: -5471419336138590985}
   maxHealth: 100
   healthBar: {fileID: 5077792976664443005}
   speed: 6
   _state: 0
   OnPlayerDeadEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnPlayerStateChangedEvent:
     m_PersistentCalls:
       m_Calls: []
 --- !u!114 &626219843279604393
@@ -97,7 +98,6 @@ MonoBehaviour:
   - {fileID: 2348856940491406096}
   - {fileID: 113051478187426604}
   - {fileID: 2737533443050263691}
-  - {fileID: 6905289692583865680}
   - {fileID: 2157199862293475197}
   - {fileID: 7253950188173872386}
   SimulationBehaviours: []
@@ -278,25 +278,6 @@ SphereCollider:
   serializedVersion: 2
   m_Radius: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &6905289692583865680
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2736757121921172608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4b318c8fddef4daf8a8f5f863e2819f2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  WordOffset: 0
-  WordCount: 0
-  _interpolationDataSource: 0
-  _SkillLevels:
-    _items: []
-  _MaxSkillPoints: 0
-  _AvailableSkillPoints: 0
 --- !u!114 &2157199862293475197
 MonoBehaviour:
   m_ObjectHideFlags: 0

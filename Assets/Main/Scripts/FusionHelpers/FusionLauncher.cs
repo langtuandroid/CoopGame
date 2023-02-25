@@ -76,14 +76,7 @@ namespace Main.Scripts.FusionHelpers
 
         public void OnConnectedToServer(NetworkRunner runner)
         {
-            Debug.Log("Connected to server");
-            if (runner.GameMode == GameMode.Shared)
-            {
-                Debug.Log("Shared Mode - Spawning Player");
-                InstantiatePlayer(runner, runner.LocalPlayer);
-            }
-
-            SetConnectionStatus(ConnectionStatus.Connected, "");
+            Debug.Log("Client connected to server");
         }
 
         public void OnDisconnectedFromServer(NetworkRunner runner)
@@ -103,15 +96,18 @@ namespace Main.Scripts.FusionHelpers
             SetConnectionStatus(ConnectionStatus.Failed, reason.ToString());
         }
 
-        public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
+        public void OnPlayerJoined(NetworkRunner runner, PlayerRef playerRef)
         {
+            if (playerRef == runner.LocalPlayer)
+            {
+                SetConnectionStatus(ConnectionStatus.Connected, "");
+            }
+
             if (runner.IsServer)
             {
                 Debug.Log("Hosted Mode - Spawning Player");
-                InstantiatePlayer(runner, player);
+                InstantiatePlayer(runner, playerRef);
             }
-
-//			SetConnectionStatus(ConnectionStatus.Connected, "");
         }
 
         private void InstantiatePlayer(NetworkRunner runner, PlayerRef playerref)

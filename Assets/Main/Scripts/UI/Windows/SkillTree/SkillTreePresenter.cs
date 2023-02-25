@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using Fusion;
-using Main.Scripts.Player;
+using Main.Scripts.Room;
 using Main.Scripts.Skills;
 using UnityEngine;
 
@@ -9,7 +9,7 @@ namespace Main.Scripts.UI.Windows.SkillTree
 {
     public class SkillTreePresenter : NetworkBehaviour, WindowObject
     {
-        private PlayersHolder playersHolder;
+        private RoomManager roomManager;
         [SerializeField]
         public SkillInfoHolder skillInfoHolder;
         
@@ -17,7 +17,7 @@ namespace Main.Scripts.UI.Windows.SkillTree
 
         public override void Spawned()
         {
-            playersHolder = FindObjectOfType<PlayersHolder>();
+            roomManager = RoomManager.instance;
             skillTreeWindow = GetComponent<SkillTreeWindow>();
 
             skillTreeWindow.OnResetSkillPoints.AddListener(() =>
@@ -47,19 +47,21 @@ namespace Main.Scripts.UI.Windows.SkillTree
         
         private void UpdateSkillTree()
         {
-            skillTreeWindow.Bind(playersHolder.players.Get(Runner.LocalPlayer).PlayerData, skillInfoHolder);
+            skillTreeWindow.Bind(roomManager.GetPlayerData(Runner.LocalPlayer), skillInfoHolder);
         }
 
         [Rpc(sources: RpcSources.All, targets: RpcTargets.All)]
         private void RPC_ResetSkillPoints(PlayerRef playerRef)
         {
-            var playerData = playersHolder.players.Get(playerRef).PlayerData;
+            var playerData = roomManager.GetPlayerData(playerRef);
             playerData.SkillLevels.Clear();
             foreach (var skillType in Enum.GetValues(typeof(SkillType)).Cast<SkillType>())
             {
                 playerData.SkillLevels.Set(skillType, 0);
             }
             playerData.AvailableSkillPoints = playerData.MaxSkillPoints;
+            
+            roomManager.SetPlayerData(playerRef, playerData);
             //todo subcribe to changing playerData
             UpdateSkillTree();
         }
@@ -67,7 +69,7 @@ namespace Main.Scripts.UI.Windows.SkillTree
         [Rpc(RpcSources.All, RpcTargets.All)]
         private void RPC_IncreaseSkillLevel(PlayerRef playerRef, SkillType skillType)
         {
-            var playerData = playersHolder.players.Get(playerRef).PlayerData;
+            var playerData = roomManager.GetPlayerData(playerRef);
             if (playerData.AvailableSkillPoints > 0)
             {
                 var currentSkillLevel = playerData.SkillLevels.Get(skillType);
@@ -77,6 +79,8 @@ namespace Main.Scripts.UI.Windows.SkillTree
                     playerData.AvailableSkillPoints--;
                 }
             }
+            
+            roomManager.SetPlayerData(playerRef, playerData);
             //todo subcribe to changing playerData
             UpdateSkillTree();
         }
@@ -84,13 +88,15 @@ namespace Main.Scripts.UI.Windows.SkillTree
         [Rpc(RpcSources.All, RpcTargets.All)]
         private void RPC_DecreaseSkillLevel(PlayerRef playerRef, SkillType skillType)
         {
-            var playerData = playersHolder.players.Get(playerRef).PlayerData;
+            var playerData = roomManager.GetPlayerData(playerRef);
             var currentSkillLevel = playerData.SkillLevels.Get(skillType);
             if (currentSkillLevel > 0)
             {
                 playerData.SkillLevels.Set(skillType, currentSkillLevel - 1);
                 playerData.AvailableSkillPoints++;
             }
+
+            roomManager.SetPlayerData(playerRef, playerData);
             //todo subcribe to changing playerData
             UpdateSkillTree();
         }

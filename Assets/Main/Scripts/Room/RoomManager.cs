@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Levels.Results;
+using Main.Scripts.Player;
+using Main.Scripts.Utils.Save;
 using UnityEngine;
 
 namespace Main.Scripts.Room
@@ -41,6 +43,8 @@ namespace Main.Scripts.Room
         [Networked, Capacity(16)]
         private NetworkLinkedList<PlayerRef> connectedPlayers => default;
         [Networked, Capacity(16)]
+        private NetworkDictionary<PlayerRef, PlayerData> playersDataMap => default;
+        [Networked, Capacity(16)]
         private NetworkDictionary<PlayerRef, LevelResultsData> levelResults => default;
 
         public void Awake()
@@ -58,16 +62,21 @@ namespace Main.Scripts.Room
                 instance = this;
                 DontDestroyOnLoad(this);
 
+                if (playState != PlayState.LOBBY)
+                {
+                    Debug.Log("Rejecting Player, game is already running!");
+                    isGameAlreadyRunning = true;
+                    return;
+                }
+                
+                LoadPlayerData();
+                
                 if (Object.HasStateAuthority)
                 {
                     connectionManager.OnPlayerConnectEvent.AddListener(OnPlayerConnect);
                     connectionManager.OnPlayerDisconnectEvent.AddListener(OnPlayerDisconnect);
+
                     LoadLevel(-1);
-                }
-                else if (playState != PlayState.LOBBY)
-                {
-                    Debug.Log("Rejecting Player, game is already running!");
-                    isGameAlreadyRunning = true;
                 }
             }
         }
@@ -88,10 +97,26 @@ namespace Main.Scripts.Room
             connectedPlayers.Remove(playerRef);
         }
 
+        private void LoadPlayerData()
+        {
+            RPC_InitPlayerData(Runner.LocalPlayer, SaveLoadUtils.Load());
+        }
+
         public List<PlayerRef> GetConnectedPlayers()
         {
             //copy for safe outside use
             return new List<PlayerRef>(connectedPlayers);
+        }
+
+        public PlayerData GetPlayerData(PlayerRef playerRef)
+        {
+            return playersDataMap.Get(playerRef);
+        }
+
+        public void SetPlayerData(PlayerRef playerRef, PlayerData playerData)
+        {
+            playersDataMap.Set(playerRef, playerData);
+            RPC_SavePlayerData(playerRef);
         }
 
         public LevelResultsData? GetLevelResults(PlayerRef playerRef)
@@ -136,6 +161,7 @@ namespace Main.Scripts.Room
             {
                 this.levelResults.Add(playerRef, levelResultsData);
             }
+            //todo update and save playerData
 
             LoadLevel(-1);
         }
@@ -146,6 +172,18 @@ namespace Main.Scripts.Room
                 return;
 
             levelTransitionManager.LoadLevel(nextLevelIndex);
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        private void RPC_InitPlayerData(PlayerRef playerRef, PlayerData playerData)
+        {
+            playersDataMap.Set(playerRef, playerData);
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_SavePlayerData([RpcTarget] PlayerRef playerRef)
+        {
+            SaveLoadUtils.Save(GetPlayerData(playerRef));
         }
     }
 }

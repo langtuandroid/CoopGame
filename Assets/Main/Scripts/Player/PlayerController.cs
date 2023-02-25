@@ -21,8 +21,6 @@ namespace Main.Scripts.Player
         private Animator animator;
 
         [SerializeField]
-        private PlayerData playerData;
-        [SerializeField]
         private ActiveSkillManager activeSkillManager;
         [SerializeField]
         private int maxHealth = 100;
@@ -45,8 +43,6 @@ namespace Main.Scripts.Player
 
         public UnityEvent<PlayerRef> OnPlayerDeadEvent;
         public UnityEvent<PlayerRef, State> OnPlayerStateChangedEvent;
-
-        public PlayerData PlayerData => playerData;
 
         public bool isActivated => (gameObject.activeInHierarchy && (state == State.Active || state == State.Spawning));
 

@@ -67,16 +67,6 @@ namespace Main.Scripts.Levels.Missions
 
                     playersHolder.players.Add(playerRef, playerController);
                     playerController.OnPlayerDeadEvent.AddListener(OnPlayerDead);
-
-                    //todo load player data from storage
-                    playerController.PlayerData.Level = 1;
-                    playerController.PlayerData.Experience = 0;
-                    playerController.PlayerData.MaxSkillPoints = ExperienceHelper.GetMaxSkillPointsByLevel(playerController.PlayerData.Level);
-                    playerController.PlayerData.AvailableSkillPoints = playerController.PlayerData.MaxSkillPoints;
-                    foreach (var skill in Enum.GetValues(typeof(SkillType)).Cast<SkillType>())
-                    {
-                        playerController.PlayerData.SkillLevels.Set(skill, 0);
-                    }
                 }
             );
         }

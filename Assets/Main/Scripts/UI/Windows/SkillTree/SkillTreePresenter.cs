@@ -12,42 +12,38 @@ namespace Main.Scripts.UI.Windows.SkillTree
         private RoomManager roomManager;
         [SerializeField]
         public SkillInfoHolder skillInfoHolder;
-        
-        private SkillTreeWindow skillTreeWindow;
+
+        private SkillTreeView skillTreeView;
+
+        private void Awake()
+        {
+            roomManager = RoomManager.instance;
+            skillTreeView = GetComponent<SkillTreeView>();
+
+            skillTreeView.OnResetSkillPoints += () => { RPC_ResetSkillPoints(Runner.LocalPlayer); };
+            skillTreeView.OnIncreaseSkillLevel += (skillType) => { RPC_IncreaseSkillLevel(Runner.LocalPlayer, skillType); };
+            skillTreeView.OnDecreaseSkillLevel += (skillType) => { RPC_DecreaseSkillLevel(Runner.LocalPlayer, skillType); };
+        }
 
         public override void Spawned()
         {
-            roomManager = RoomManager.instance;
-            skillTreeWindow = GetComponent<SkillTreeWindow>();
-
-            skillTreeWindow.OnResetSkillPoints.AddListener(() =>
-            {
-                RPC_ResetSkillPoints(Runner.LocalPlayer);
-            });
-            skillTreeWindow.OnIncreaseSkillLevel.AddListener((skillType) =>
-            {
-                RPC_IncreaseSkillLevel(Runner.LocalPlayer, skillType);
-            });
-            skillTreeWindow.OnDecreaseSkillLevel.AddListener((skillType) =>
-            {
-                RPC_DecreaseSkillLevel(Runner.LocalPlayer, skillType);
-            });
+            
         }
 
         public void Show()
         {
-            skillTreeWindow.SetVisibility(true);
+            skillTreeView.SetVisibility(true);
             UpdateSkillTree();
         }
 
         public void Hide()
         {
-            skillTreeWindow.SetVisibility(false);
+            skillTreeView.SetVisibility(false);
         }
-        
+
         private void UpdateSkillTree()
         {
-            skillTreeWindow.Bind(roomManager.GetPlayerData(Runner.LocalPlayer), skillInfoHolder);
+            skillTreeView.Bind(roomManager.GetPlayerData(Runner.LocalPlayer), skillInfoHolder);
         }
 
         [Rpc(sources: RpcSources.All, targets: RpcTargets.All)]
@@ -59,8 +55,9 @@ namespace Main.Scripts.UI.Windows.SkillTree
             {
                 playerData.SkillLevels.Set(skillType, 0);
             }
+
             playerData.UsedSkillPoints = 0;
-            
+
             roomManager.SetPlayerData(playerRef, playerData);
             //todo subcribe to changing playerData
             UpdateSkillTree();
@@ -79,7 +76,7 @@ namespace Main.Scripts.UI.Windows.SkillTree
                     playerData.UsedSkillPoints++;
                 }
             }
-            
+
             roomManager.SetPlayerData(playerRef, playerData);
             //todo subcribe to changing playerData
             UpdateSkillTree();

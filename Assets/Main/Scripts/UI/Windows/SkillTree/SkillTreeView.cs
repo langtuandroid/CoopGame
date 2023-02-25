@@ -1,12 +1,12 @@
+using System;
 using Main.Scripts.Player;
 using Main.Scripts.Skills;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UIElements;
 
 namespace Main.Scripts.UI.Windows.SkillTree
 {
-    public class SkillTreeWindow : MonoBehaviour, SkillInfoFrame.InteractionCallback
+    public class SkillTreeView : MonoBehaviour, SkillInfoFrame.InteractionCallback
     {
         private UIDocument doc;
         private Button resetButton;
@@ -15,17 +15,17 @@ namespace Main.Scripts.UI.Windows.SkillTree
         private SkillInfoFrame damageBoostSkill;
         private SkillInfoFrame speedBoostSkill;
 
-        public UnityEvent OnResetSkillPoints;
-        public UnityEvent<SkillType> OnIncreaseSkillLevel;
-        public UnityEvent<SkillType> OnDecreaseSkillLevel;
+        public Action OnResetSkillPoints;
+        public Action<SkillType> OnIncreaseSkillLevel;
+        public Action<SkillType> OnDecreaseSkillLevel;
 
         private void Awake()
         {
-            doc = GetComponent <UIDocument>();
+            doc = GetComponent<UIDocument>();
             var root = doc.rootVisualElement;
             root.visible = false;
             resetButton = root.Q<Button>("SkillResetButton");
-            resetButton.clicked += OnResetSkillPoints.Invoke;
+            resetButton.clicked += () => { OnResetSkillPoints(); };
             skillPointsCountLabel = root.Q<Label>("SkillPointsCount");
             healthBoostSkill = SkillInfoFrame.from(root.Q<VisualElement>("SkillHPBoost"));
             healthBoostSkill.SetInteractionCallback(this);

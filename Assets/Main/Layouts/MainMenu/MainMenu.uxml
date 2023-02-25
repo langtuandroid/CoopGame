@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement style="margin-left: auto; margin-right: auto; margin-top: auto; margin-bottom: auto; width: 30%;">
+        <ui:TextField picking-mode="Ignore" value="filler text" text="Room name" name="RoomNameTextInput" style="margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; font-size: 16px; flex-direction: column; -unity-font-style: normal;" />
+        <ui:Button text="Server" display-tooltip-when-elided="true" name="CreateServerButton" />
+        <ui:Button text="Client" display-tooltip-when-elided="true" name="ConnectClientButton" />
+    </ui:VisualElement>
+</ui:UXML>

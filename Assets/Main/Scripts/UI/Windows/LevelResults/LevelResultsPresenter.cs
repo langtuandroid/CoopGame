@@ -6,18 +6,18 @@ namespace Main.Scripts.UI.Windows.LevelResults
 {
     public class LevelResultsPresenter : NetworkBehaviour, WindowObject
     {
-        private LevelResultsWindow levelResultsWindow;
+        private LevelResultsView levelResultsView;
         private RoomManager roomManager;
 
         private void Awake()
         {
-            levelResultsWindow = GetComponent<LevelResultsWindow>();
+            levelResultsView = GetComponent<LevelResultsView>();
             roomManager = FindObjectOfType<RoomManager>();
         }
 
         public void Show()
         {
-            levelResultsWindow.SetVisibility(true);
+            levelResultsView.SetVisibility(true);
             var levelResults = roomManager.GetLevelResults(Runner.LocalPlayer);
             if (levelResults == null)
             {
@@ -25,12 +25,12 @@ namespace Main.Scripts.UI.Windows.LevelResults
                 return;
             }
 
-            levelResultsWindow.Bind(levelResults.Value);
+            levelResultsView.Bind(levelResults.Value);
         }
 
         public void Hide()
         {
-            levelResultsWindow.SetVisibility(false);
+            levelResultsView.SetVisibility(false);
         }
     }
 }

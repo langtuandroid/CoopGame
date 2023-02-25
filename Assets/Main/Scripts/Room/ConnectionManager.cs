@@ -10,8 +10,8 @@ namespace Main.Scripts.Room
     {
         [SerializeField]
         private RoomManager roomManagerPrefab;
-        [SerializeField]
-        private string roomName = "RoomName";
+
+        public string RoomName { get; private set; } = "Room name";
 
         private FusionLauncher.ConnectionStatus connectionStatus = FusionLauncher.ConnectionStatus.Disconnected;
 
@@ -28,31 +28,19 @@ namespace Main.Scripts.Room
             OnConnectionStatusUpdate(null, FusionLauncher.ConnectionStatus.Disconnected, "");
         }
 
-        public void OnGUI()
+        public void SetRoomName(string roomName)
         {
-            //todo сделать нормальную менюшку
+            RoomName = roomName;
+        }
 
-            switch (connectionStatus)
-            {
-                case FusionLauncher.ConnectionStatus.Connected:
-                case FusionLauncher.ConnectionStatus.Connecting:
-                case FusionLauncher.ConnectionStatus.Loaded:
-                case FusionLauncher.ConnectionStatus.Loading:
-                    return;
-                case FusionLauncher.ConnectionStatus.Disconnected:
-                case FusionLauncher.ConnectionStatus.Failed:
-                    break;
-            }
+        public void CreateServer()
+        {
+            OnEnterRoom(GameMode.Host);
+        }
 
-            if (GUI.Button(new Rect(10, 10, Screen.width - 20, Screen.height / 2f - 20), "Server"))
-            {
-                OnEnterRoom(GameMode.Host);
-            }
-
-            if (GUI.Button(new Rect(10, Screen.height / 2f + 10, Screen.width - 20, Screen.height / 2 - 20), "Client"))
-            {
-                OnEnterRoom(GameMode.Client);
-            }
+        public void ConnectClient()
+        {
+            OnEnterRoom(GameMode.Client);
         }
 
         private void OnEnterRoom(GameMode gameMode)
@@ -68,7 +56,7 @@ namespace Main.Scripts.Room
 
             fusionLauncher.Launch(
                 mode: gameMode,
-                room: roomName,
+                room: RoomName,
                 sceneLoader: levelTransitionManager,
                 onConnect: OnConnectionStatusUpdate,
                 onSpawnWorld: OnSpawnWorld,

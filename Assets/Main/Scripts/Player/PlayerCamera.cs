@@ -40,6 +40,7 @@ namespace Main.Scripts.Player
 
         void Awake()
         {
+            DontDestroyOnLoad(this);
             camComponent = cam.GetComponent<Camera>();
         }
 

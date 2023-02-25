@@ -1,12 +1,10 @@
 using System;
-using System.Linq;
 using Fusion;
 using Main.Scripts.Player;
-using Main.Scripts.Player.Experience;
 using Main.Scripts.Room;
-using Main.Scripts.Skills;
 using Main.Scripts.Tasks;
 using Main.Scripts.UI.Windows;
+using Main.Scripts.Utils;
 using UnityEngine;
 
 namespace Main.Scripts.Levels.Lobby
@@ -14,23 +12,25 @@ namespace Main.Scripts.Levels.Lobby
     public class LobbyLevelController : NetworkBehaviour
     {
         [SerializeField]
-        private PlayerController playerPrefab;
+        private PlayerController playerPrefab = default!;
         [SerializeField]
-        private PlayersHolder playersHolder;
+        private PlayersHolder playersHolder = default!;
         [SerializeField]
-        private PlaceTargetTask readyToStartTask;
+        private PlaceTargetTask readyToStartTask = default!;
 
-        private ConnectionManager connectionManager;
-        private RoomManager roomManager;
-
-        private PlayerCamera playerCamera;
-
-        public void Awake()
-        {
-            connectionManager = FindObjectOfType<ConnectionManager>();
-            roomManager = FindObjectOfType<RoomManager>();
-            playerCamera = FindObjectOfType<PlayerCamera>();
-        }
+        private Lazy<ConnectionManager> connectionManagerLazy = new(
+            () => FindObjectOfType<ConnectionManager>().ThrowWhenNull()
+        );
+        private Lazy<RoomManager> roomManagerLazy = new(
+            () => FindObjectOfType<RoomManager>().ThrowWhenNull()
+        );
+        private Lazy<PlayerCamera> playerCameraLazy = new(
+            () => FindObjectOfType<PlayerCamera>().ThrowWhenNull()
+        );
+        
+        private ConnectionManager connectionManager => connectionManagerLazy.Value;
+        private RoomManager roomManager => roomManagerLazy.Value;
+        private PlayerCamera playerCamera => playerCameraLazy.Value;
 
         public override void Spawned()
         {

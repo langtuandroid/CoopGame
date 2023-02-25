@@ -42,7 +42,7 @@ namespace Main.Scripts.Player
             camComponent = cam.GetComponent<Camera>();
         }
 
-        void LateUpdate()
+        void Update()
         {
             UpdateCamera(true);
         }

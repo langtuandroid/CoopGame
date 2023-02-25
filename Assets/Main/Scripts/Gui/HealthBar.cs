@@ -24,7 +24,7 @@ namespace Main.Scripts.Gui
             healthText.text = healthSlider.value + " / " + healthSlider.maxValue;
         }
 
-        private void Update()
+        private void LateUpdate()
         {
             transform.LookAt(transform.position + Camera.main.transform.forward);
         }

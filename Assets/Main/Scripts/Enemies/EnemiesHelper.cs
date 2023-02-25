@@ -7,13 +7,13 @@ namespace Main.Scripts.Enemies
     {
         [SerializeField]
         private PlayersHolder playersHolder = default!;
-        
+
         public Vector3? findPlayerTarget(Vector3 fromPosition)
         {
-            var target = (Vector3?) null;
-            foreach (var playerEntry in playersHolder.Players)
+            var target = (Vector3?)null;
+            foreach (var playerRef in playersHolder.GetKeys())
             {
-                var playerPosition = playerEntry.Value.transform.position;
+                var playerPosition = playersHolder.Get(playerRef).transform.position;
                 if (target == null || Vector3.Distance(fromPosition, playerPosition) < Vector3.Distance(fromPosition, target.Value))
                 {
                     target = playerPosition;

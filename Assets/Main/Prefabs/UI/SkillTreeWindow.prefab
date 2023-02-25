@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7790829119793841371}
-  - component: {fileID: 4087426715510606481}
   - component: {fileID: 4964627983236053102}
   - component: {fileID: 6273620566420293605}
   - component: {fileID: 3531098669169698575}
@@ -36,22 +35,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4087426715510606481
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4436519607065083093}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c62dc75ac1d4e6a8b87a6ce13701d90, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  WordOffset: 0
-  WordCount: 0
-  _interpolationDataSource: 0
-  skillInfoHolder: {fileID: 5672276626563109025}
 --- !u!114 &4964627983236053102
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -61,18 +44,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 4436519607065083093}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2def84dee504403398d189c247b398b4, type: 3}
+  m_Script: {fileID: 11500000, guid: 370605cdcab444e2af4d7aaf158eaff0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  OnResetSkillPoints:
-    m_PersistentCalls:
-      m_Calls: []
-  OnIncreaseSkillLevel:
-    m_PersistentCalls:
-      m_Calls: []
-  OnDecreaseSkillLevel:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!114 &6273620566420293605
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -94,8 +68,7 @@ MonoBehaviour:
   NetworkGuid:
     RawGuidValue: 761d9121ff9bec548a6c707a5f4c425c
   NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: 4087426715510606481}
+  NetworkedBehaviours: []
   SimulationBehaviours: []
 --- !u!114 &3531098669169698575
 MonoBehaviour:
@@ -175,14 +148,3 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4006851772256804909, guid: 455858013757a1649bbcfed4eeac23b0, type: 3}
   m_PrefabInstance: {fileID: 3193213799695338611}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &5672276626563109025 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: -2096589996067857198, guid: 455858013757a1649bbcfed4eeac23b0, type: 3}
-  m_PrefabInstance: {fileID: 3193213799695338611}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cb4410bb4732455e9a4b9ff804afcbf2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

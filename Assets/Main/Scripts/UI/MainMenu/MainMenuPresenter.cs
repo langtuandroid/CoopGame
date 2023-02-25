@@ -1,4 +1,6 @@
+using Main.Scripts.Player.Data;
 using Main.Scripts.Room;
+using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -10,39 +12,42 @@ namespace Main.Scripts.UI.MainMenu
         private ConnectionManager connectionManager = default!;
         private MainMenuView view = default!;
 
+        private string roomName = default!;
+        private string userId = default!;
+
         private void Awake()
         {
-            connectionManager = FindObjectOfType<ConnectionManager>();
+            connectionManager = FindObjectOfType<ConnectionManager>().ThrowWhenNull();
             view = GetComponent<MainMenuView>();
             view.OnRoomNameChanged = OnRoomNameChanged;
-            view.OnPlayerNameChanged = OnPlayerNameChanged;
+            view.OnUserIdChanged = OnUserIdChanged;
             view.OnCreateServerClicked = OnCreateServerClicked;
             view.OnConnectClientClicked = OnConnectClientClicked;
         }
 
         private void Start()
         {
-            view.Bind(connectionManager.RoomName, connectionManager.PlayerName);
+            view.Bind(connectionManager.RoomName, connectionManager.CurrentUserId.Id.Value);
         }
 
         private void OnRoomNameChanged(ChangeEvent<string> evt)
         {
-            connectionManager.SetRoomName(evt.newValue);
+            roomName = evt.newValue;
         }
 
-        private void OnPlayerNameChanged(ChangeEvent<string> evt)
+        private void OnUserIdChanged(ChangeEvent<string> evt)
         {
-            connectionManager.SetPlayerName(evt.newValue);
+            userId = evt.newValue;
         }
 
         private void OnCreateServerClicked()
         {
-            connectionManager.CreateServer();
+            connectionManager.CreateServer(roomName, new UserId(userId));
         }
 
         private void OnConnectClientClicked()
         {
-            connectionManager.ConnectClient();
+            connectionManager.ConnectClient(roomName, new UserId(userId));
         }
     }
 }

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &8885487321657556870
+--- !u!1 &485258079518117664
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,46 +8,42 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 8885487321657556871}
-  - component: {fileID: 8885487321657556868}
+  - component: {fileID: 6974941126205520369}
+  - component: {fileID: 3614340015335602564}
   m_Layer: 0
-  m_Name: ConnectionManager
+  m_Name: SkillInfoHolder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &8885487321657556871
+--- !u!4 &6974941126205520369
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8885487321657556870}
+  m_GameObject: {fileID: 485258079518117664}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.1049883, y: 3.078554, z: -0.91335106}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8885487321657556868
+--- !u!114 &3614340015335602564
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8885487321657556870}
+  m_GameObject: {fileID: 485258079518117664}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e0b0552aa05d55945a295c9d26bba939, type: 3}
+  m_Script: {fileID: 11500000, guid: cb4410bb4732455e9a4b9ff804afcbf2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomManagerPrefab: {fileID: 8471652300770399121, guid: 69426d79d7b714b4392eaadb0ea1c273, type: 3}
-  OnPlayerConnectEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnPlayerDisconnectEvent:
-    m_PersistentCalls:
-      m_Calls: []
+  healthBoostInfo: {fileID: 11400000, guid: 630e77abd89e3aa4c9ea18b9b61a2225, type: 2}
+  damageBoostInfo: {fileID: 11400000, guid: b1eaa5b64760ca34c9398ca63331c732, type: 2}
+  speedBoostInfo: {fileID: 11400000, guid: 681f954bedd350949b7722a651b617c4, type: 2}

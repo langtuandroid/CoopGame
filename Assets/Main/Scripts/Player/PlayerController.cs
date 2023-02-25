@@ -44,7 +44,7 @@ namespace Main.Scripts.Player
         private Vector2 aimDirection { get; set; }
 
         public UnityEvent<PlayerRef> OnPlayerDeadEvent = default!;
-        public UnityEvent<PlayerRef, State> OnPlayerStateChangedEvent = default!;
+        public UnityEvent<PlayerRef, PlayerController, State> OnPlayerStateChangedEvent = default!;
 
         private bool isActivated => (gameObject.activeInHierarchy && (state == State.Active || state == State.Spawning));
 
@@ -59,7 +59,7 @@ namespace Main.Scripts.Player
             health = maxHealth;
             healthBar.SetMaxHealth(maxHealth);
 
-            state = State.Active;
+            state = State.Spawning;
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)
@@ -70,6 +70,11 @@ namespace Main.Scripts.Player
         public override void Render()
         {
             healthBar.SetHealth(health);
+        }
+
+        public void Active()
+        {
+            state = State.Active;
         }
 
         public override void FixedUpdateNetwork()
@@ -104,7 +109,8 @@ namespace Main.Scripts.Player
             {
                 //todo
             }
-            OnPlayerStateChangedEvent.Invoke(Object.InputAuthority, state);
+
+            OnPlayerStateChangedEvent.Invoke(Object.InputAuthority, this, state);
         }
 
         public void ActivateSkill(ActiveSkillType activeSkillType)
@@ -164,7 +170,7 @@ namespace Main.Scripts.Player
 
         public enum State
         {
-            New,
+            None,
             Despawned,
             Spawning,
             Active,

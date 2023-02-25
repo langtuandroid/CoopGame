@@ -1,7 +1,6 @@
 using System;
 using Fusion;
 using Main.Scripts.Player;
-using Main.Scripts.Room;
 using Main.Scripts.Tasks;
 using Main.Scripts.UI.Windows;
 using Main.Scripts.Utils;
@@ -9,7 +8,7 @@ using UnityEngine;
 
 namespace Main.Scripts.Levels.Lobby
 {
-    public class LobbyLevelController : NetworkBehaviour
+    public class LobbyLevelController : LevelControllerBase
     {
         [SerializeField]
         private PlayerController playerPrefab = default!;
@@ -18,52 +17,35 @@ namespace Main.Scripts.Levels.Lobby
         [SerializeField]
         private PlaceTargetTask readyToStartTask = default!;
 
-        private Lazy<ConnectionManager> connectionManagerLazy = new(
-            () => FindObjectOfType<ConnectionManager>().ThrowWhenNull()
-        );
-        private Lazy<RoomManager> roomManagerLazy = new(
-            () => FindObjectOfType<RoomManager>().ThrowWhenNull()
-        );
         private Lazy<PlayerCamera> playerCameraLazy = new(
             () => FindObjectOfType<PlayerCamera>().ThrowWhenNull()
         );
-        
-        private ConnectionManager connectionManager => connectionManagerLazy.Value;
-        private RoomManager roomManager => roomManagerLazy.Value;
         private PlayerCamera playerCamera => playerCameraLazy.Value;
 
         public override void Spawned()
         {
+            base.Spawned();
             if (HasStateAuthority)
             {
-                var connectedPlayers = roomManager.GetConnectedPlayers();
-                foreach (var playerRef in connectedPlayers)
-                {
-                    if (!playersHolder.Players.ContainsKey(playerRef))
-                    {
-                        OnPlayerConnect(Runner, playerRef);
-                    }
-                }
-
-                connectionManager.OnPlayerConnectEvent.AddListener(OnPlayerConnect);
                 readyToStartTask.OnTaskCompleted.AddListener(OnAllPlayersReady);
             }
         }
 
         public override void Render()
         {
-            if (playersHolder.Players.ContainsKey(Runner.LocalPlayer))
+            if (playersHolder.Contains(Runner.LocalPlayer))
             {
-                playerCamera.SetTarget(playersHolder.Players.Get(Runner.LocalPlayer).transform);
+                playerCamera.SetTarget(playersHolder.Get(Runner.LocalPlayer).transform);
             }
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
-            connectionManager.OnPlayerConnectEvent.RemoveListener(OnPlayerConnect);
+            base.Despawned(runner, hasState);
+            readyToStartTask.OnTaskCompleted.RemoveListener(OnAllPlayersReady);
         }
 
-        private void OnPlayerConnect(NetworkRunner runner, PlayerRef playerRef)
+        protected override void OnPlayerInitialized(PlayerRef playerRef)
         {
             //todo добавить спавн поинты
             Runner.Spawn(
@@ -75,7 +57,6 @@ namespace Main.Scripts.Levels.Lobby
                 {
                     var playerController = playerObject.GetComponent<PlayerController>();
 
-                    playersHolder.Players.Add(playerRef, playerController);
                     playerController.OnPlayerDeadEvent.AddListener(OnPlayerDead);
                     playerController.OnPlayerStateChangedEvent.AddListener(OnPlayerStateChanged);
                 }
@@ -87,11 +68,29 @@ namespace Main.Scripts.Levels.Lobby
             //todo
         }
 
-        private void OnPlayerStateChanged(PlayerRef playerRef, PlayerController.State playerState)
+        private void OnPlayerStateChanged(
+            PlayerRef playerRef,
+            PlayerController playerController,
+            PlayerController.State playerState
+        )
         {
-            if (playerState == PlayerController.State.Active)
+            switch (playerState)
             {
-                TryShowLevelResults(playerRef);
+                case PlayerController.State.None:
+                    break;
+                case PlayerController.State.Despawned:
+                    break;
+                case PlayerController.State.Spawning:
+                    playerController.Active();
+                    break;
+                case PlayerController.State.Active:
+                    playersHolder.Add(playerRef, playerController);
+                    TryShowLevelResults(playerRef);
+                    break;
+                case PlayerController.State.Dead:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(playerState), playerState, null);
             }
         }
 
@@ -102,9 +101,10 @@ namespace Main.Scripts.Levels.Lobby
 
         private void TryShowLevelResults(PlayerRef playerRef)
         {
-            if (roomManager.GetLevelResults(playerRef) != null)
+            if (roomManager.GetLevelResults(roomManager.GetUserId(playerRef)) != null)
             {
-                playersHolder.Players.Get(playerRef).GetComponent<WindowsController>().SetCurrentWindowType(WindowType.LEVEL_RESULTS);
+                //todo clear levelResults for userId
+                playersHolder.Get(playerRef).GetComponent<WindowsController>().SetCurrentWindowType(WindowType.LEVEL_RESULTS);
             }
         }
     }

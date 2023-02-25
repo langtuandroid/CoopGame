@@ -1,19 +1,20 @@
 using System;
 using System.Linq;
 using Fusion;
+using Main.Scripts.Utils;
 
 namespace Main.Scripts.UI.Windows
 {
     public class WindowsController : NetworkBehaviour
     {
-        private WindowsHolder windowsHolder;
+        private WindowsHolder windowsHolder = default!;
 
         [Networked(OnChanged = nameof(OnCurrentWindowChanged))]
         public WindowType CurrentWindow { get; private set; }
 
         public override void Spawned()
         {
-            windowsHolder = FindObjectOfType<WindowsHolder>();
+            windowsHolder = FindObjectOfType<WindowsHolder>().ThrowWhenNull();
             CurrentWindow = WindowType.NONE;
         }
 

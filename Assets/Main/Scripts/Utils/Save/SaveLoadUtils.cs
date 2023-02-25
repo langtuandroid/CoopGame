@@ -1,5 +1,5 @@
 using System.IO;
-using Main.Scripts.Player;
+using Main.Scripts.Player.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -27,7 +27,7 @@ namespace Main.Scripts.Utils.Save
             {
                 using var streamReader = File.OpenText(filePath);
                 using var jsonReader = new JsonTextReader(streamReader);
-                return PlayerData.parseJSON((JObject) JToken.ReadFrom(jsonReader));
+                return PlayerData.parseJSON((JObject)JToken.ReadFrom(jsonReader));
             }
 
             var initialPlayerData = PlayerData.GetInitialPlayerData();

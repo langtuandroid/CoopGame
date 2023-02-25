@@ -1,31 +1,28 @@
+using System;
 using Fusion;
 using Main.Scripts.Room;
-using UnityEngine;
+using Main.Scripts.Utils;
 
 namespace Main.Scripts.UI.Windows.LevelResults
 {
-    public class LevelResultsPresenter : NetworkBehaviour, WindowObject
+    public class LevelResultsPresenter : NetworkBehaviour, UIScreen
     {
-        private LevelResultsView levelResultsView;
-        private RoomManager roomManager;
+        private LevelResultsView levelResultsView = default!;
+        private Lazy<RoomManager> roomManagerLazy = new(() => FindObjectOfType<RoomManager>().ThrowWhenNull());
+        private RoomManager roomManager => roomManagerLazy.Value;
 
         private void Awake()
         {
             levelResultsView = GetComponent<LevelResultsView>();
-            roomManager = FindObjectOfType<RoomManager>();
         }
 
         public void Show()
         {
-            levelResultsView.SetVisibility(true);
-            var levelResults = roomManager.GetLevelResults(Runner.LocalPlayer);
-            if (levelResults == null)
-            {
-                Debug.LogError("levelResults is null");
-                return;
-            }
+            var userId = roomManager.GetUserId(Runner.LocalPlayer);
+            var levelResults = roomManager.GetLevelResults(userId).ThrowWhenNull();
 
             levelResultsView.Bind(levelResults.Value);
+            levelResultsView.SetVisibility(true);
         }
 
         public void Hide()

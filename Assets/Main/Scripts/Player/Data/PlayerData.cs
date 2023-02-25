@@ -5,7 +5,7 @@ using Main.Scripts.Player.Experience;
 using Main.Scripts.Skills;
 using Newtonsoft.Json.Linq;
 
-namespace Main.Scripts.Player
+namespace Main.Scripts.Player.Data
 {
     public struct PlayerData : INetworkStruct
     {

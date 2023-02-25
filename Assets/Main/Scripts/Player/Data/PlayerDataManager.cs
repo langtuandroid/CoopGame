@@ -1,0 +1,83 @@
+using System;
+using System.Linq;
+using Fusion;
+using Main.Scripts.Room;
+using Main.Scripts.Skills;
+using Main.Scripts.Utils;
+using Main.Scripts.Utils.Save;
+using UnityEngine.Events;
+
+namespace Main.Scripts.Player.Data
+{
+    public class PlayerDataManager : NetworkBehaviour
+    {
+        private SkillInfoHolder skillInfoHolder = default!;
+
+        private UserId localUserId;
+        public PlayerData LocalPlayerData { get; private set; }
+        public UnityEvent<UserId, PlayerData> OnPlayerDataChangedEvent = default!;
+
+        public override void Spawned()
+        {
+            DontDestroyOnLoad(this);
+            localUserId = FindObjectOfType<ConnectionManager>().ThrowWhenNull().CurrentUserId;
+            skillInfoHolder = FindObjectOfType<SkillInfoHolder>().ThrowWhenNull();
+            LocalPlayerData = SaveLoadUtils.Load(localUserId.Id.Value);
+        }
+
+        public void ResetSkillPoints()
+        {
+            var playerData = LocalPlayerData;
+            playerData.SkillLevels.Clear();
+            foreach (var skillType in Enum.GetValues(typeof(SkillType)).Cast<SkillType>())
+            {
+                playerData.SkillLevels.Set(skillType, 0);
+            }
+
+            playerData.UsedSkillPoints = 0;
+            UpdatePlayerData(playerData);
+        }
+
+        public void IncreaseSkillLevel(SkillType skillType)
+        {
+            var playerData = LocalPlayerData;
+            if (playerData.GetAvailableSkillPoints() > 0)
+            {
+                var currentSkillLevel = playerData.SkillLevels.Get(skillType);
+                if (currentSkillLevel < skillInfoHolder.GetSkillInfo(skillType).MaxLevel)
+                {
+                    playerData.SkillLevels.Set(skillType, currentSkillLevel + 1);
+                    playerData.UsedSkillPoints++;
+                }
+            }
+
+            UpdatePlayerData(playerData);
+        }
+
+        public void DecreaseSkillLevel(SkillType skillType)
+        {
+            var playerData = LocalPlayerData;
+            var currentSkillLevel = playerData.SkillLevels.Get(skillType);
+            if (currentSkillLevel > 0)
+            {
+                playerData.SkillLevels.Set(skillType, currentSkillLevel - 1);
+                playerData.UsedSkillPoints--;
+            }
+
+            UpdatePlayerData(playerData);
+        }
+
+        private void UpdatePlayerData(PlayerData playerData)
+        {
+            LocalPlayerData = playerData;
+            SaveLoadUtils.Save(localUserId.Id.Value, playerData);
+            RPC_OnPlayerDataChanged(localUserId, LocalPlayerData);
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        private void RPC_OnPlayerDataChanged(UserId userId, PlayerData playerData)
+        {
+            OnPlayerDataChangedEvent.Invoke(userId, playerData);
+        }
+    }
+}

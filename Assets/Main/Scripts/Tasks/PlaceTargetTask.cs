@@ -8,9 +8,9 @@ namespace Main.Scripts.Tasks
     public class PlaceTargetTask : NetworkBehaviour
     {
         [SerializeField]
-        private PlayersHolder playersHolder;
+        private PlayersHolder playersHolder = default!;
 
-        public UnityEvent OnTaskCompleted;
+        public UnityEvent OnTaskCompleted = default!;
 
         [Networked, Capacity(16)]
         private NetworkDictionary<PlayerRef, bool> playersInPlace => default;
@@ -29,8 +29,9 @@ namespace Main.Scripts.Tasks
             {
                 playersInPlace.Add(enteredPlayer.Object.InputAuthority, true);
                 var hasAnyAlivePlayerInPlace = false;
-                foreach (var (playerRef, playerController) in playersHolder.Players)
+                foreach (var playerRef in playersHolder.GetKeys())
                 {
+                    var playerController = playersHolder.Get(playerRef);
                     if (playerController.state != PlayerController.State.Dead)
                     {
                         if (!playersInPlace.ContainsKey(playerRef))

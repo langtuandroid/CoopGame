@@ -16,7 +16,7 @@ namespace Main.Scripts.FusionHelpers
         private Action<NetworkRunner, ConnectionStatus, string> _connectionCallback;
         private ConnectionStatus _status;
         private FusionObjectPoolRoot _pool;
-        private Action<NetworkRunner> _spawnWorldCallback;
+        private Action<NetworkRunner>? _spawnWorldCallback;
         private Action<NetworkRunner, PlayerRef> _spawnPlayerCallback;
         private Action<NetworkRunner, PlayerRef> _despawnPlayerCallback;
 

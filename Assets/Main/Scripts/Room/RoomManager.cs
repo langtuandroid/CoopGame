@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Levels.Results;
-using Main.Scripts.Player;
+using Main.Scripts.Player.Data;
 using Main.Scripts.Player.Experience;
 using Main.Scripts.Utils;
-using Main.Scripts.Utils.Save;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Main.Scripts.Room
 {
@@ -38,24 +38,28 @@ namespace Main.Scripts.Room
 
         private ConnectionManager connectionManager = default!;
         private LevelTransitionManager levelTransitionManager = default!;
+        private PlayerDataManager playerDataManager = default!;
 
         private bool isGameAlreadyRunning;
 
         [Networked]
         private PlayState networkedPlayState { get; set; }
         [Networked, Capacity(16)]
-        private NetworkLinkedList<PlayerRef> connectedPlayers => default;
+        private NetworkDictionary<UserId, PlayerRef> playerRefsMap => default;
         [Networked, Capacity(16)]
-        private NetworkDictionary<PlayerRef, string> playerNames => default;
+        private NetworkDictionary<PlayerRef, UserId> userIdsMap => default;
         [Networked, Capacity(16)]
-        private NetworkDictionary<PlayerRef, PlayerData> playersDataMap => default;
+        private NetworkDictionary<UserId, PlayerData> playersDataMap => default;
         [Networked, Capacity(16)]
-        private NetworkDictionary<PlayerRef, LevelResultsData> levelResults => default;
+        private NetworkDictionary<UserId, LevelResultsData> levelResults => default;
+
+        public UnityEvent<PlayerRef> OnPlayerInitializedEvent = default!;
 
         public void Awake()
         {
             connectionManager = FindObjectOfType<ConnectionManager>(true).ThrowWhenNull();
             levelTransitionManager = FindObjectOfType<LevelTransitionManager>(true).ThrowWhenNull();
+            playerDataManager = FindObjectOfType<PlayerDataManager>().ThrowWhenNull();
         }
 
         public override void Spawned()
@@ -74,7 +78,7 @@ namespace Main.Scripts.Room
                     return;
                 }
 
-                LoadPlayerData();
+                InitPlayerData();
 
                 if (Object.HasStateAuthority)
                 {
@@ -94,43 +98,52 @@ namespace Main.Scripts.Room
 
         private void OnPlayerConnect(NetworkRunner runner, PlayerRef playerRef)
         {
-            connectedPlayers.Add(playerRef);
+            //todo sync in level controller
         }
 
         private void OnPlayerDisconnect(NetworkRunner runner, PlayerRef playerRef)
         {
-            connectedPlayers.Remove(playerRef);
+            //todo sync in level controller
         }
 
-        private void LoadPlayerData()
+        private void InitPlayerData()
         {
             RPC_InitPlayerData(
                 playerRef: Runner.LocalPlayer,
-                playerName: connectionManager.PlayerName,
-                playerData: SaveLoadUtils.Load(connectionManager.PlayerName)
+                userId: connectionManager.CurrentUserId,
+                playerData: playerDataManager.LocalPlayerData
             );
         }
 
-        public List<PlayerRef> GetConnectedPlayers()
+        public IEnumerable<PlayerRef> GetConnectedPlayers()
         {
             //copy for safe outside use
-            return new List<PlayerRef>(connectedPlayers);
+            return Runner.ActivePlayers;
         }
 
-        public PlayerData GetPlayerData(PlayerRef playerRef)
+        public bool IsPlayerInitialized(PlayerRef playerRef)
         {
-            return playersDataMap.Get(playerRef);
+            return userIdsMap.ContainsKey(playerRef);
         }
 
-        public void SetPlayerData(PlayerRef playerRef, PlayerData playerData)
+        public UserId GetUserId(PlayerRef playerRef)
         {
-            playersDataMap.Set(playerRef, playerData);
-            RPC_SavePlayerData(playerRef);
+            return userIdsMap.Get(playerRef);
         }
 
-        public LevelResultsData? GetLevelResults(PlayerRef playerRef)
+        public PlayerData GetPlayerData(UserId userId)
         {
-            if (levelResults.TryGet(playerRef, out var levelResultsData))
+            return playersDataMap.Get(userId);
+        }
+
+        public void SetPlayerData(UserId userId, PlayerData playerData)
+        {
+            playersDataMap.Set(userId, playerData);
+        }
+
+        public LevelResultsData? GetLevelResults(UserId userId)
+        {
+            if (levelResults.TryGet(userId, out var levelResultsData))
             {
                 return levelResultsData;
             }
@@ -163,13 +176,13 @@ namespace Main.Scripts.Room
             LoadLevel(0);
         }
 
-        public void OnLevelFinished(Dictionary<PlayerRef, LevelResultsData> levelResults)
+        public void OnLevelFinished(Dictionary<UserId, LevelResultsData> levelResults)
         {
             this.levelResults.Clear();
-            foreach (var (playerRef, levelResultsData) in levelResults)
+            foreach (var (userId, levelResultsData) in levelResults)
             {
-                this.levelResults.Add(playerRef, levelResultsData);
-                ApplyPlayerRewards(playerRef, levelResultsData);
+                this.levelResults.Add(userId, levelResultsData);
+                ApplyPlayerRewards(userId, levelResultsData);
             }
 
             LoadLevel(-1);
@@ -183,9 +196,9 @@ namespace Main.Scripts.Room
             levelTransitionManager.LoadLevel(nextLevelIndex);
         }
 
-        private void ApplyPlayerRewards(PlayerRef playerRef, LevelResultsData levelResultsData)
+        private void ApplyPlayerRewards(UserId userId, LevelResultsData levelResultsData)
         {
-            var playerData = GetPlayerData(playerRef);
+            var playerData = GetPlayerData(userId);
             var experienceForNextLevel = ExperienceHelper.GetExperienceForNextLevel(playerData.Level);
             if (playerData.Experience + levelResultsData.Experience >= experienceForNextLevel)
             {
@@ -196,20 +209,17 @@ namespace Main.Scripts.Room
             }
 
             playerData.Experience += levelResultsData.Experience;
-            SetPlayerData(playerRef, playerData);
+            SetPlayerData(userId, playerData);
         }
 
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-        private void RPC_InitPlayerData(PlayerRef playerRef, string playerName, PlayerData playerData)
+        private void RPC_InitPlayerData(PlayerRef playerRef, UserId userId, PlayerData playerData)
         {
-            playerNames.Set(playerRef, playerName);
-            playersDataMap.Set(playerRef, playerData);
-        }
+            playerRefsMap.Set(userId, playerRef);
+            userIdsMap.Set(playerRef, userId);
+            playersDataMap.Set(userId, playerData);
 
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_SavePlayerData([RpcTarget] PlayerRef playerRef)
-        {
-            SaveLoadUtils.Save(connectionManager.PlayerName, GetPlayerData(playerRef));
+            OnPlayerInitializedEvent.Invoke(playerRef);
         }
     }
 }

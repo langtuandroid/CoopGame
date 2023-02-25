@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 34126709}
   - component: {fileID: 34126710}
   m_Layer: 0
-  m_Name: Menu
+  m_Name: ConnectionManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -168,6 +168,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   roomManagerPrefab: {fileID: 8471652300770399121, guid: 69426d79d7b714b4392eaadb0ea1c273, type: 3}
+  roomName: RoomName
   OnPlayerConnectEvent:
     m_PersistentCalls:
       m_Calls: []
@@ -262,7 +263,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowHierarchyWindowOverlay: 1
   lobby: 1
-  levels: 
+  levels: 02000000
 --- !u!4 &761950626
 Transform:
   m_ObjectHideFlags: 0

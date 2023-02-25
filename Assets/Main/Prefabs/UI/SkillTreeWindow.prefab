@@ -111,7 +111,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_PanelSettings: {fileID: 11400000, guid: ff5d13696078d1a419dd813d0bcdedd1, type: 2}
   m_ParentUI: {fileID: 0}
-  sourceAsset: {fileID: 9197481963319205126, guid: a609c657cfc0b8f4b8d2acae336fc7b2, type: 3}
+  sourceAsset: {fileID: 9197481963319205126, guid: 6580aa67cbb7a724fa16b373f730f48d, type: 3}
   m_SortingOrder: 0
 --- !u!1001 &3193213799695338611
 PrefabInstance:

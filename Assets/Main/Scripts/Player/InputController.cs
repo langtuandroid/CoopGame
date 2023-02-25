@@ -41,6 +41,7 @@ namespace Main.Scripts.Player
         private bool spawnMine;
         private bool toggleReady;
         private bool openSkillTree;
+        private bool openMenu;
 
         /// <summary>
         /// Hook up to the Fusion callbacks so we can handle the input polling
@@ -93,6 +94,9 @@ namespace Main.Scripts.Player
 
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_SPAWN_MINE, spawnMine);
                 spawnMine = false;
+                
+                frameworkInput.Buttons.Set(NetworkInputData.BUTTON_OPEN_MENU, openMenu);
+                openMenu = false;
             }
 
             // Hand over the data to Fusion
@@ -126,6 +130,11 @@ namespace Main.Scripts.Player
             if (Input.GetKey(KeyCode.Y))
             {
                 spawnMine = true;
+            }
+
+            if (Input.GetKey(KeyCode.Escape))
+            {
+                openMenu = true;
             }
 
             moveDelta = Vector2.zero;
@@ -183,16 +192,32 @@ namespace Main.Scripts.Player
                 var pressedButtons = input.Buttons.GetPressed(ButtonsPrevious);
                 var releasedButtons = input.Buttons.GetReleased(ButtonsPrevious);
                 ButtonsPrevious = input.Buttons;
-                
+
+                var windowToShow = WindowType.NONE;
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_OPEN_SKILL_TREE))
                 {
-                    windowsController.SetCurrentWindowType(
-                        windowsController.CurrentWindow != WindowType.SKILL_TREE ? WindowType.SKILL_TREE : WindowType.NONE
-                    );
+                    windowToShow = WindowType.SKILL_TREE;
                 }
+
+                if (pressedButtons.IsSet((NetworkInputData.BUTTON_OPEN_MENU)))
+                {
+                    windowToShow = WindowType.MENU;
+                }
+
+                if (windowsController.CurrentWindow != WindowType.NONE && windowToShow == WindowType.MENU)
+                {
+                    windowsController.SetCurrentWindowType(WindowType.NONE);
+                } else if (windowsController.CurrentWindow == WindowType.NONE && windowToShow != WindowType.NONE)
+                {
+                    windowsController.SetCurrentWindowType(windowToShow);
+                }
+
 
                 if (windowsController.CurrentWindow != WindowType.NONE)
                 {
+                    //todo сделать поадекватнее
+                    playerController.SetDirections(Vector2.zero, input.aimDirection.normalized);
+                    playerController.Move();
                     return;
                 }
                 
@@ -252,6 +277,7 @@ namespace Main.Scripts.Player
         public const int BUTTON_SPAWN_MINE = 3;
         public const int BUTTON_READY = 4;
         public const int BUTTON_OPEN_SKILL_TREE = 5;
+        public const int BUTTON_OPEN_MENU = 6;
 
         public NetworkButtons Buttons;
         public Vector2 aimDirection;

@@ -44,6 +44,7 @@ namespace Main.Scripts.Player
         private Vector2 aimDirection { get; set; }
 
         public UnityEvent<PlayerRef> OnPlayerDeadEvent;
+        public UnityEvent<PlayerRef, State> OnPlayerStateChangedEvent;
 
         public PlayerData PlayerData => playerData;
 
@@ -105,6 +106,7 @@ namespace Main.Scripts.Player
             {
                 //todo
             }
+            OnPlayerStateChangedEvent.Invoke(Object.InputAuthority, state);
         }
 
         public void ActivateSkill(ActiveSkillType activeSkillType)

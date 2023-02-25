@@ -1,33 +1,32 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Fusion;
+using Main.Scripts.Levels.Results;
 using Main.Scripts.Player;
 using Main.Scripts.Player.Experience;
 using Main.Scripts.Room;
 using Main.Scripts.Skills;
 using Main.Scripts.Tasks;
-using Main.Scripts.UI.Windows;
 using UnityEngine;
 
-namespace Main.Scripts.Levels.Lobby
+namespace Main.Scripts.Levels.Missions
 {
-    public class LobbyLevelController : NetworkBehaviour
+    public class MissionLevelController : NetworkBehaviour
     {
         [SerializeField]
         private PlayerController playerPrefab;
         [SerializeField]
         private PlayersHolder playersHolder;
         [SerializeField]
-        private PlaceTargetTask readyToStartTask;
+        private PlaceTargetTask placeTargetTask;
 
-        private ConnectionManager connectionManager;
         private RoomManager roomManager;
 
         private PlayerCamera playerCamera;
 
         public void Awake()
         {
-            connectionManager = FindObjectOfType<ConnectionManager>();
             roomManager = FindObjectOfType<RoomManager>();
             playerCamera = FindObjectOfType<PlayerCamera>();
         }
@@ -39,14 +38,10 @@ namespace Main.Scripts.Levels.Lobby
                 var connectedPlayers = roomManager.GetConnectedPlayers();
                 foreach (var playerRef in connectedPlayers)
                 {
-                    if (!playersHolder.players.ContainsKey(playerRef))
-                    {
-                        OnPlayerConnect(Runner, playerRef);
-                    }
+                    SpawnPlayer(Runner, playerRef);
                 }
 
-                connectionManager.OnPlayerConnectEvent.AddListener(OnPlayerConnect);
-                readyToStartTask.OnTaskCompleted.AddListener(OnAllPlayersReady);
+                placeTargetTask.OnTaskCompleted.AddListener(OnPlaceTargetTaskCompleted);
             }
         }
 
@@ -58,12 +53,7 @@ namespace Main.Scripts.Levels.Lobby
             }
         }
 
-        public override void Despawned(NetworkRunner runner, bool hasState)
-        {
-            connectionManager.OnPlayerConnectEvent.RemoveListener(OnPlayerConnect);
-        }
-
-        private void OnPlayerConnect(NetworkRunner runner, PlayerRef playerRef)
+        private void SpawnPlayer(NetworkRunner runner, PlayerRef playerRef)
         {
             //todo добавить спавн поинты
             Runner.Spawn(
@@ -77,7 +67,6 @@ namespace Main.Scripts.Levels.Lobby
 
                     playersHolder.players.Add(playerRef, playerController);
                     playerController.OnPlayerDeadEvent.AddListener(OnPlayerDead);
-                    playerController.OnPlayerStateChangedEvent.AddListener(OnPlayerStateChanged);
 
                     //todo load player data from storage
                     playerController.PlayerData.Level = 1;
@@ -92,30 +81,39 @@ namespace Main.Scripts.Levels.Lobby
             );
         }
 
-        private void OnPlayerDead(PlayerRef playerRef)
+        private void OnPlayerDead(PlayerRef deadPlayerRef)
         {
-            //todo
-        }
-
-        private void OnPlayerStateChanged(PlayerRef playerRef, PlayerController.State playerState)
-        {
-            if (playerState == PlayerController.State.Active)
+            foreach (var (_, playerController) in playersHolder.players)
             {
-                TryShowLevelResults(playerRef);
+                if (playerController.state != PlayerController.State.Dead)
+                {
+                    return;
+                }
             }
+
+            OnMissionFailed();
         }
 
-        private void OnAllPlayersReady()
+        private void OnMissionFailed()
         {
-            roomManager.OnAllPlayersReady();
-        }
-
-        private void TryShowLevelResults(PlayerRef playerRef)
-        {
-            if (roomManager.GetLevelResults(playerRef) != null)
+            var levelResults = new Dictionary<PlayerRef, LevelResultsData>();
+            foreach (var (playerRef, _) in playersHolder.players)
             {
-                playersHolder.players.Get(playerRef).GetComponent<WindowsController>().SetCurrentWindowType(WindowType.LEVEL_RESULTS);
+                levelResults.Add(playerRef, new LevelResultsData {IsSuccess = false});
             }
+
+            roomManager.OnLevelFinished(levelResults);
+        }
+
+        private void OnPlaceTargetTaskCompleted()
+        {
+            var levelResults = new Dictionary<PlayerRef, LevelResultsData>();
+            foreach (var (playerRef, _) in playersHolder.players)
+            {
+                levelResults.Add(playerRef, new LevelResultsData {IsSuccess = true});
+            }
+
+            roomManager.OnLevelFinished(levelResults);
         }
     }
 }

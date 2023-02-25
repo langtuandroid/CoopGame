@@ -52,7 +52,8 @@ namespace Main.Scripts.Player
         {
             if (_target)
             {
-                Cursor.lockState = CursorLockMode.Confined;
+                // Cursor.lockState = CursorLockMode.Confined;
+                Cursor.lockState = CursorLockMode.None;
 
                 var plane = new Plane(_target.up, _target.position);
 

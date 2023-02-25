@@ -10,6 +10,8 @@ namespace Main.Scripts.Room
     {
         [SerializeField]
         private RoomManager roomManagerPrefab;
+        [SerializeField]
+        private string roomName = "RoomName";
 
         private FusionLauncher.ConnectionStatus connectionStatus = FusionLauncher.ConnectionStatus.Disconnected;
 
@@ -66,7 +68,7 @@ namespace Main.Scripts.Room
 
             fusionLauncher.Launch(
                 mode: gameMode,
-                room: "roomName",
+                room: roomName,
                 sceneLoader: levelTransitionManager,
                 onConnect: OnConnectionStatusUpdate,
                 onSpawnWorld: OnSpawnWorld,
@@ -105,12 +107,7 @@ namespace Main.Scripts.Room
                 prefab: roomManagerPrefab,
                 position: Vector3.zero,
                 rotation: Quaternion.identity,
-                inputAuthority: null,
-                onBeforeSpawned: (networkRunner, roomManager) =>
-                {
-                    //don't destroy roomManager on scene transition too
-                    roomManager.transform.parent = transform;
-                }
+                inputAuthority: null
             );
         }
 

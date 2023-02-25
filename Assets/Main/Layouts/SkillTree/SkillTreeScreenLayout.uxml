@@ -1,0 +1,19 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Template name="SkillElementLayout" src="project://database/Assets/Main/Layouts/SkillTree/SkillElementLayout.uxml?fileID=9197481963319205126&amp;guid=8eeed2ff65c396944bc5b9be75d79e3e&amp;type=3#SkillElementLayout" />
+    <ui:VisualElement style="width: 100%; height: 100%; align-items: center; justify-content: center;">
+        <ui:VisualElement name="Root" style="background-color: rgba(15, 62, 82, 0.6); border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; min-width: 280px; min-height: 300px;">
+            <ui:Label text="Skill tree" display-tooltip-when-elided="true" name="Title" style="font-size: 20px; -unity-text-align: upper-center; margin-top: 6px; color: rgb(255, 255, 255);" />
+            <ui:VisualElement name="SkillPointsBlock" style="flex-direction: row; margin-left: 12px; margin-top: 8px; align-items: center; margin-right: 12px;">
+                <ui:Label text="Skill points:" display-tooltip-when-elided="true" name="SkillPointsTitle" style="-unity-text-align: middle-left; font-size: 14px; color: rgb(255, 255, 255);" />
+                <ui:Label text="5" display-tooltip-when-elided="true" name="SkillPointsCount" style="-unity-text-align: middle-left; font-size: 14px; color: rgb(255, 255, 255);" />
+                <ui:VisualElement name="Space" style="height: 0; flex-basis: 100%;" />
+                <ui:Button text="Reset" display-tooltip-when-elided="true" name="SkillResetButton" style="margin-right: 0; margin-left: 0; margin-top: 0; margin-bottom: 0; padding-top: 4px; padding-bottom: 4px; padding-right: 10px; padding-left: 10px; height: 26px; color: rgb(255, 255, 255); background-color: rgb(0, 0, 0);" />
+            </ui:VisualElement>
+            <ui:VisualElement name="SkillList" style="flex-wrap: wrap; flex-direction: column; padding-left: 12px; padding-right: 12px; padding-top: 12px; padding-bottom: 12px;">
+                <ui:Instance template="SkillElementLayout" name="SkillHPBoost" />
+                <ui:Instance template="SkillElementLayout" name="SkillDamageBoost" />
+                <ui:Instance template="SkillElementLayout" name="SkillSpeedBoost" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -37,16 +37,14 @@ namespace Main.Scripts.UI.Windows
                 return;
             }
 
-            if (CurrentWindow == WindowType.NONE)
+            foreach (var windowType in Enum.GetValues(typeof(WindowType)).Cast<WindowType>())
             {
-                foreach (var windowType in Enum.GetValues(typeof(WindowType)).Cast<WindowType>())
-                {
-                    windowsHolder.GetWindow(windowType)?.Hide();
-                }
+                windowsHolder.GetWindow(windowType)?.Hide();
             }
-            else
+
+            if (CurrentWindow != WindowType.NONE)
             {
-                windowsHolder.GetWindow(CurrentWindow).Show();
+                windowsHolder.GetWindow(CurrentWindow)?.Show();
             }
         }
     }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Fusion;
+using Main.Scripts.Levels.Results;
 using UnityEngine;
 
 namespace Main.Scripts.Room
@@ -39,6 +40,8 @@ namespace Main.Scripts.Room
         private PlayState networkedPlayState { get; set; }
         [Networked, Capacity(16)]
         private NetworkLinkedList<PlayerRef> connectedPlayers => default;
+        [Networked, Capacity(16)]
+        private NetworkDictionary<PlayerRef, LevelResultsData> levelResults => default;
 
         public void Awake()
         {
@@ -53,6 +56,7 @@ namespace Main.Scripts.Room
             else
             {
                 instance = this;
+                DontDestroyOnLoad(this);
 
                 if (Object.HasStateAuthority)
                 {
@@ -90,6 +94,16 @@ namespace Main.Scripts.Room
             return new List<PlayerRef>(connectedPlayers);
         }
 
+        public LevelResultsData? GetLevelResults(PlayerRef playerRef)
+        {
+            if (levelResults.TryGet(playerRef, out var levelResultsData))
+            {
+                return levelResultsData;
+            }
+
+            return null;
+        }
+
         public void ShutdownRoomConnection(ShutdownReason shutdownReason)
         {
             if (!Runner.IsShutdown)
@@ -104,10 +118,26 @@ namespace Main.Scripts.Room
         private void Update()
         {
             //todo реализовать возможность переподключения
-            if (isGameAlreadyRunning || Input.GetKeyDown(KeyCode.Escape))
+            if (isGameAlreadyRunning || Input.GetKeyDown(KeyCode.Backspace))
             {
                 ShutdownRoomConnection(isGameAlreadyRunning ? ShutdownReason_GameAlreadyRunning : ShutdownReason.Ok);
             }
+        }
+
+        public void OnAllPlayersReady()
+        {
+            LoadLevel(0);
+        }
+
+        public void OnLevelFinished(Dictionary<PlayerRef, LevelResultsData> levelResults)
+        {
+            this.levelResults.Clear();
+            foreach (var (playerRef, levelResultsData) in levelResults)
+            {
+                this.levelResults.Add(playerRef, levelResultsData);
+            }
+
+            LoadLevel(-1);
         }
 
         private void LoadLevel(int nextLevelIndex)

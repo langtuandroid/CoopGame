@@ -155,7 +155,7 @@ MonoBehaviour:
   mouseRayMask:
     serializedVersion: 2
     m_Bits: 64
-  enemyPrefab: {fileID: 2736757121921172608, guid: fb6430ba47924404495b48284fc38986, type: 3}
+  enemyPrefab: {fileID: 8977078318047038321, guid: fb6430ba47924404495b48284fc38986, type: 3}
   mineGold: {fileID: 6309509993528129561, guid: 2988b96900ecba849878929955d66bf7, type: 3}
 --- !u!114 &2348856940491406096
 MonoBehaviour:

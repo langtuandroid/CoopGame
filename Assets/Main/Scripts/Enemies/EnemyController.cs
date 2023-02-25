@@ -59,20 +59,24 @@ namespace Main.Scripts.Enemies
         void Awake()
         {
             rigidbody = GetComponent<Rigidbody>();
-            animator = GetComponentInChildren<Animator>();
+            animator = GetComponent<Animator>();
             navMeshPath = new NavMeshPath();
         }
 
         public override void Spawned()
         {
-            health = maxHealth;
-            healthBar.SetMaxHealth(maxHealth);
-            isDead = false;
             enemiesHelper = FindObjectOfType<EnemiesHelper>().ThrowWhenNull();
+        }
+
+        public void ResetState()
+        {
+            health = maxHealth;
+            isDead = false;
         }
 
         public override void Render()
         {
+            healthBar.SetMaxHealth(maxHealth);
             healthBar.SetHealth(health);
         }
 
@@ -80,6 +84,7 @@ namespace Main.Scripts.Enemies
         {
             if (!isActivated)
             {
+                Debug.LogError("not activate");
                 return;
             }
 
@@ -138,6 +143,7 @@ namespace Main.Scripts.Enemies
         {
             if (activeSkillManager.ActivateSkill(ActiveSkillType.PRIMARY, Object.StateAuthority))
             {
+                Debug.LogError("Fire weapon");
                 animator.SetTrigger(ATTACK_ANIM);
             }
         }

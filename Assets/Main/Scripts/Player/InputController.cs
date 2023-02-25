@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Fusion;
 using Fusion.Sockets;
+using Main.Scripts.Enemies;
 using Main.Scripts.Room;
 using Main.Scripts.UI;
 using Main.Scripts.UI.Windows;
@@ -20,18 +21,18 @@ namespace Main.Scripts.Player
         [SerializeField]
         private LayerMask mouseRayMask;
         [SerializeField]
-        private GameObject enemyPrefab;
+        private EnemyController enemyPrefab = default!;
         [SerializeField]
-        private GameObject mineGold;
+        private GameObject mineGold = default!;
         
-        private WindowsController windowsController;
+        private WindowsController windowsController = default!;
 
         [Networked]
         private NetworkButtons ButtonsPrevious { get; set; }
         
         public static bool fetchInput = true; //todo false on switch scene. избавиться от статик
 
-        private PlayerController playerController;
+        private PlayerController playerController = default!;
         private NetworkInputData frameworkInput;
         private Vector2 moveDelta;
         private Vector2 aimDelta;
@@ -43,13 +44,17 @@ namespace Main.Scripts.Player
         private bool openSkillTree;
         private bool openMenu;
 
+        private void Awake()
+        {
+            playerController = GetComponent<PlayerController>();
+            windowsController = GetComponent<WindowsController>();
+        }
+
         /// <summary>
         /// Hook up to the Fusion callbacks so we can handle the input polling
         /// </summary>
         public override void Spawned()
         {
-            playerController = GetComponent<PlayerController>();
-            windowsController = GetComponent<WindowsController>();
             // Technically, it does not really matter which InputController fills the input structure, since the actual data will only be sent to the one that does have authority,
             // but in the name of clarity, let's make sure we give input control to the gameobject that also has Input authority.
             if (Object.HasInputAuthority)
@@ -229,8 +234,10 @@ namespace Main.Scripts.Player
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_SPAWN_ENEMY))
                 {
                     Runner.Spawn(
-                        enemyPrefab,
-                        playerController.transform.position + new Vector3(Random.Range(-5, 5) * 5, 0, Random.Range(-5, 5) * 5));
+                        prefab: enemyPrefab,
+                        position: playerController.transform.position + new Vector3(Random.Range(-5, 5) * 5, 0, Random.Range(-5, 5) * 5),
+                        onBeforeSpawned: (runner, networkObject) => { networkObject.GetComponent<EnemyController>().ResetState(); }
+                    );
                 }
 
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_SPAWN_MINE))

@@ -4,6 +4,7 @@ using Fusion;
 using Main.Scripts.Levels.Results;
 using Main.Scripts.Player;
 using Main.Scripts.Player.Experience;
+using Main.Scripts.Utils;
 using Main.Scripts.Utils.Save;
 using UnityEngine;
 
@@ -18,9 +19,9 @@ namespace Main.Scripts.Room
             TRANSITION
         }
 
-        public const ShutdownReason ShutdownReason_GameAlreadyRunning = (ShutdownReason) 100;
+        public const ShutdownReason ShutdownReason_GameAlreadyRunning = (ShutdownReason)100;
 
-        public static RoomManager instance { get; private set; }
+        public static RoomManager? instance { get; private set; }
 
         //todo remove static
         public static PlayState playState
@@ -35,8 +36,8 @@ namespace Main.Scripts.Room
             }
         }
 
-        private ConnectionManager connectionManager;
-        private LevelTransitionManager levelTransitionManager;
+        private ConnectionManager connectionManager = default!;
+        private LevelTransitionManager levelTransitionManager = default!;
 
         private bool isGameAlreadyRunning;
 
@@ -45,14 +46,16 @@ namespace Main.Scripts.Room
         [Networked, Capacity(16)]
         private NetworkLinkedList<PlayerRef> connectedPlayers => default;
         [Networked, Capacity(16)]
+        private NetworkDictionary<PlayerRef, string> playerNames => default;
+        [Networked, Capacity(16)]
         private NetworkDictionary<PlayerRef, PlayerData> playersDataMap => default;
         [Networked, Capacity(16)]
         private NetworkDictionary<PlayerRef, LevelResultsData> levelResults => default;
 
         public void Awake()
         {
-            connectionManager = FindObjectOfType<ConnectionManager>(true);
-            levelTransitionManager = FindObjectOfType<LevelTransitionManager>(true);
+            connectionManager = FindObjectOfType<ConnectionManager>(true).ThrowWhenNull();
+            levelTransitionManager = FindObjectOfType<LevelTransitionManager>(true).ThrowWhenNull();
         }
 
         public override void Spawned()
@@ -70,9 +73,9 @@ namespace Main.Scripts.Room
                     isGameAlreadyRunning = true;
                     return;
                 }
-                
+
                 LoadPlayerData();
-                
+
                 if (Object.HasStateAuthority)
                 {
                     connectionManager.OnPlayerConnectEvent.AddListener(OnPlayerConnect);
@@ -101,7 +104,11 @@ namespace Main.Scripts.Room
 
         private void LoadPlayerData()
         {
-            RPC_InitPlayerData(Runner.LocalPlayer, SaveLoadUtils.Load());
+            RPC_InitPlayerData(
+                playerRef: Runner.LocalPlayer,
+                playerName: connectionManager.PlayerName,
+                playerData: SaveLoadUtils.Load(connectionManager.PlayerName)
+            );
         }
 
         public List<PlayerRef> GetConnectedPlayers()
@@ -131,7 +138,7 @@ namespace Main.Scripts.Room
             return null;
         }
 
-        public void ShutdownRoomConnection(ShutdownReason shutdownReason)
+        private void ShutdownRoomConnection(ShutdownReason shutdownReason)
         {
             if (!Runner.IsShutdown)
             {
@@ -193,15 +200,16 @@ namespace Main.Scripts.Room
         }
 
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-        private void RPC_InitPlayerData(PlayerRef playerRef, PlayerData playerData)
+        private void RPC_InitPlayerData(PlayerRef playerRef, string playerName, PlayerData playerData)
         {
+            playerNames.Set(playerRef, playerName);
             playersDataMap.Set(playerRef, playerData);
         }
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         private void RPC_SavePlayerData([RpcTarget] PlayerRef playerRef)
         {
-            SaveLoadUtils.Save(GetPlayerData(playerRef));
+            SaveLoadUtils.Save(connectionManager.PlayerName, GetPlayerData(playerRef));
         }
     }
 }

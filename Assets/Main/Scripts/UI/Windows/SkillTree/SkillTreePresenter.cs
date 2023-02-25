@@ -3,21 +3,23 @@ using System.Linq;
 using Fusion;
 using Main.Scripts.Room;
 using Main.Scripts.Skills;
+using Main.Scripts.Utils;
 using UnityEngine;
 
 namespace Main.Scripts.UI.Windows.SkillTree
 {
+    [RequireComponent(typeof(SkillTreeView))]
     public class SkillTreePresenter : NetworkBehaviour, WindowObject
     {
-        private RoomManager roomManager;
         [SerializeField]
-        public SkillInfoHolder skillInfoHolder;
-
-        private SkillTreeView skillTreeView;
+        public SkillInfoHolder skillInfoHolder = default!;
+        
+        private Lazy<RoomManager> roomManagerLazy = new(() => FindObjectOfType<RoomManager>().ThrowWhenNull());
+        private RoomManager roomManager => roomManagerLazy.Value;
+        private SkillTreeView skillTreeView = default!;
 
         private void Awake()
         {
-            roomManager = RoomManager.instance;
             skillTreeView = GetComponent<SkillTreeView>();
 
             skillTreeView.OnResetSkillPoints += () => { RPC_ResetSkillPoints(Runner.LocalPlayer); };

@@ -9,14 +9,15 @@ namespace Main.Scripts.Room
     public class ConnectionManager : MonoBehaviour
     {
         [SerializeField]
-        private RoomManager roomManagerPrefab;
+        private RoomManager roomManagerPrefab = default!;
 
-        public string RoomName { get; private set; } = "Room name";
+        public string RoomName { get; private set; } = "Room";
+        public string PlayerName { get; private set; } = "Player";
 
         private FusionLauncher.ConnectionStatus connectionStatus = FusionLauncher.ConnectionStatus.Disconnected;
 
-        public UnityEvent<NetworkRunner, PlayerRef> OnPlayerConnectEvent;
-        public UnityEvent<NetworkRunner, PlayerRef> OnPlayerDisconnectEvent;
+        public UnityEvent<NetworkRunner, PlayerRef> OnPlayerConnectEvent = default!;
+        public UnityEvent<NetworkRunner, PlayerRef> OnPlayerDisconnectEvent = default!;
 
         private void Awake()
         {
@@ -31,6 +32,11 @@ namespace Main.Scripts.Room
         public void SetRoomName(string roomName)
         {
             RoomName = roomName;
+        }
+
+        public void SetPlayerName(string playerName)
+        {
+            PlayerName = playerName;
         }
 
         public void CreateServer()
@@ -66,7 +72,7 @@ namespace Main.Scripts.Room
         }
 
         private void OnConnectionStatusUpdate(
-            NetworkRunner runner,
+            NetworkRunner? runner,
             FusionLauncher.ConnectionStatus status,
             string reason
         )

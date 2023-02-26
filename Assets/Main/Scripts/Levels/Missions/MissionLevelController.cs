@@ -58,7 +58,6 @@ namespace Main.Scripts.Levels.Missions
                 {
                     var playerController = playerObject.GetComponent<PlayerController>();
 
-                    playerController.OnPlayerDeadEvent.AddListener(OnPlayerDead);
                     playerController.OnPlayerStateChangedEvent.AddListener(OnPlayerStateChanged);
                 }
             );
@@ -83,18 +82,21 @@ namespace Main.Scripts.Levels.Missions
                     playersHolder.Add(playerRef, playerController);
                     break;
                 case PlayerController.State.Dead:
+                    OnPlayerDead(playerRef, playerController);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(playerState), playerState, null);
             }
         }
 
-        private void OnPlayerDead(PlayerRef deadPlayerRef)
+        private void OnPlayerDead(PlayerRef deadPlayerRef, PlayerController playerController)
         {
+            playerController.OnPlayerStateChangedEvent.RemoveListener(OnPlayerStateChanged);
+            //todo
             foreach (var playerRef in playersHolder.GetKeys())
             {
-                var playerController = playersHolder.Get(playerRef);
-                if (playerController.state != PlayerController.State.Dead)
+                var player = playersHolder.Get(playerRef);
+                if (player.state != PlayerController.State.Dead)
                 {
                     return;
                 }

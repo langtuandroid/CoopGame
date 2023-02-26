@@ -57,15 +57,15 @@ namespace Main.Scripts.Levels.Lobby
                 {
                     var playerController = playerObject.GetComponent<PlayerController>();
 
-                    playerController.OnPlayerDeadEvent.AddListener(OnPlayerDead);
                     playerController.OnPlayerStateChangedEvent.AddListener(OnPlayerStateChanged);
                 }
             );
         }
 
-        private void OnPlayerDead(PlayerRef playerRef)
+        private void OnPlayerDead(PlayerRef playerRef, PlayerController playerController)
         {
             //todo
+            playerController.OnPlayerStateChangedEvent.RemoveListener(OnPlayerStateChanged);
         }
 
         private void OnPlayerStateChanged(
@@ -88,6 +88,7 @@ namespace Main.Scripts.Levels.Lobby
                     TryShowLevelResults(playerRef);
                     break;
                 case PlayerController.State.Dead:
+                    OnPlayerDead(playerRef, playerController);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(playerState), playerState, null);

@@ -43,7 +43,6 @@ namespace Main.Scripts.Player
         [Networked]
         private Vector2 aimDirection { get; set; }
 
-        public UnityEvent<PlayerRef> OnPlayerDeadEvent = default!;
         public UnityEvent<PlayerRef, PlayerController, State> OnPlayerStateChangedEvent = default!;
 
         private bool isActivated => (gameObject.activeInHierarchy && (state == State.Active || state == State.Spawning));
@@ -60,11 +59,6 @@ namespace Main.Scripts.Player
             healthBar.SetMaxHealth(maxHealth);
 
             state = State.Spawning;
-        }
-
-        public override void Despawned(NetworkRunner runner, bool hasState)
-        {
-            OnPlayerDeadEvent.RemoveAllListeners();
         }
 
         public override void Render()
@@ -149,8 +143,6 @@ namespace Main.Scripts.Player
             {
                 health = 0;
                 state = State.Dead;
-
-                OnPlayerDeadEvent.Invoke(Object.InputAuthority);
             }
             else
             {

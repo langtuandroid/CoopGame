@@ -10,19 +10,19 @@ namespace Main.Scripts.Utils.Save
     {
         private const string FILE_PATH = "/Saves/{0}_save.json";
 
-        public static void Save(string playerName, PlayerData playerData)
+        public static void Save(string userId, PlayerData playerData)
         {
             var jObject = playerData.toJSON();
-            var filePath = GetFilePath(playerName);
+            var filePath = GetFilePath(userId);
             Directory.CreateDirectory(Path.GetDirectoryName(filePath).ThrowWhenNull());
             using var streamWriter = File.CreateText(filePath);
             using var jsonWriter = new JsonTextWriter(streamWriter);
             jObject.WriteTo(jsonWriter);
         }
 
-        public static PlayerData Load(string playerName)
+        public static PlayerData Load(string userId)
         {
-            var filePath = GetFilePath(playerName);
+            var filePath = GetFilePath(userId);
             if (File.Exists(filePath))
             {
                 using var streamReader = File.OpenText(filePath);
@@ -31,7 +31,7 @@ namespace Main.Scripts.Utils.Save
             }
 
             var initialPlayerData = PlayerData.GetInitialPlayerData();
-            Save(playerName, initialPlayerData);
+            Save(userId, initialPlayerData);
             return initialPlayerData;
         }
 

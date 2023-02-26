@@ -84,7 +84,6 @@ namespace Main.Scripts.Enemies
         {
             if (!isActivated)
             {
-                Debug.LogError("not activate");
                 return;
             }
 
@@ -143,7 +142,6 @@ namespace Main.Scripts.Enemies
         {
             if (activeSkillManager.ActivateSkill(ActiveSkillType.PRIMARY, Object.StateAuthority))
             {
-                Debug.LogError("Fire weapon");
                 animator.SetTrigger(ATTACK_ANIM);
             }
         }

@@ -53,12 +53,17 @@ namespace Main.Scripts.Player
             animator = GetComponent<Animator>();
         }
 
-        public override void Spawned()
+        public void Reset()
         {
             health = maxHealth;
             healthBar.SetMaxHealth(maxHealth);
 
             state = State.Spawning;
+        }
+
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            OnPlayerStateChangedEvent.RemoveAllListeners();
         }
 
         public override void Render()

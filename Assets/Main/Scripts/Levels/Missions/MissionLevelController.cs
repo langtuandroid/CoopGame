@@ -21,6 +21,9 @@ namespace Main.Scripts.Levels.Missions
 
         private PlayerCamera playerCamera = default!;
 
+        [Networked, Capacity(16)]
+        private NetworkDictionary<UserId, bool> playersProgress => default;
+
         public override void Spawned()
         {
             base.Spawned();
@@ -57,10 +60,21 @@ namespace Main.Scripts.Levels.Missions
                 onBeforeSpawned: (networkRunner, playerObject) =>
                 {
                     var playerController = playerObject.GetComponent<PlayerController>();
+                    playerController.Reset();
 
                     playerController.OnPlayerStateChangedEvent.AddListener(OnPlayerStateChanged);
                 }
             );
+        }
+
+        protected override void OnPlayerDisconnected(PlayerRef playerRef)
+        {
+            if (playersHolder.Contains(playerRef))
+            {
+                var playerController = playersHolder.Get(playerRef);
+                Runner.Despawn(playerController.Object);
+                playersHolder.Remove(playerRef);
+            }
         }
 
         private void OnPlayerStateChanged(
@@ -112,8 +126,7 @@ namespace Main.Scripts.Levels.Missions
             {
                 levelResults.Add(roomManager.GetUserId(playerRef), new LevelResultsData
                 {
-                    IsSuccess = false,
-                    Experience = 50
+                    IsSuccess = false
                 });
             }
 
@@ -127,8 +140,7 @@ namespace Main.Scripts.Levels.Missions
             {
                 levelResults.Add(roomManager.GetUserId(playerRef), new LevelResultsData
                 {
-                    IsSuccess = true,
-                    Experience = 200
+                    IsSuccess = true
                 });
             }
 

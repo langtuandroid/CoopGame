@@ -4,6 +4,7 @@ using Fusion;
 using Main.Scripts.Player.Experience;
 using Main.Scripts.Skills;
 using Newtonsoft.Json.Linq;
+using Main.Scripts.Utils;
 
 namespace Main.Scripts.Player.Data
 {
@@ -67,6 +68,20 @@ namespace Main.Scripts.Player.Data
         public uint GetAvailableSkillPoints()
         {
             return MaxSkillPoints - UsedSkillPoints;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is PlayerData playerData && Equals(playerData);
+        }
+
+        public bool Equals(PlayerData other)
+        {
+            return Level.Equals(other.Level)
+                   && Experience.Equals(other.Experience)
+                   && MaxSkillPoints.Equals(other.MaxSkillPoints)
+                   && UsedSkillPoints.Equals(other.UsedSkillPoints)
+                   && SkillLevels.Equals<SkillType, uint>(other.SkillLevels);
         }
 
         private const string LEVEL_KEY = "level";

@@ -17,14 +17,12 @@ namespace Main.Scripts.Levels.Lobby
         [SerializeField]
         private PlaceTargetTask readyToStartTask = default!;
 
-        private Lazy<PlayerCamera> playerCameraLazy = new(
-            () => FindObjectOfType<PlayerCamera>().ThrowWhenNull()
-        );
-        private PlayerCamera playerCamera => playerCameraLazy.Value;
+        private PlayerCamera playerCamera = default!;
 
         public override void Spawned()
         {
             base.Spawned();
+            playerCamera = FindObjectOfType<PlayerCamera>().ThrowWhenNull();
             if (HasStateAuthority)
             {
                 readyToStartTask.OnTaskCompleted.AddListener(OnAllPlayersReady);
@@ -56,10 +54,21 @@ namespace Main.Scripts.Levels.Lobby
                 onBeforeSpawned: (networkRunner, playerObject) =>
                 {
                     var playerController = playerObject.GetComponent<PlayerController>();
+                    playerController.Reset();
 
                     playerController.OnPlayerStateChangedEvent.AddListener(OnPlayerStateChanged);
                 }
             );
+        }
+
+        protected override void OnPlayerDisconnected(PlayerRef playerRef)
+        {
+            if (playersHolder.Contains(playerRef))
+            {
+                var playerController = playersHolder.Get(playerRef);
+                Runner.Despawn(playerController.Object);
+                playersHolder.Remove(playerRef);
+            }
         }
 
         private void OnPlayerDead(PlayerRef playerRef, PlayerController playerController)
@@ -100,11 +109,12 @@ namespace Main.Scripts.Levels.Lobby
             roomManager.OnAllPlayersReady();
         }
 
-        private void TryShowLevelResults(PlayerRef playerRef)
+        private void TryShowLevelResults([RpcTarget] PlayerRef playerRef)
         {
-            if (roomManager.GetLevelResults(roomManager.GetUserId(playerRef)) != null)
+            var userId = roomManager.GetUserId(playerRef);
+            if (roomManager.GetLevelResults(userId) != null)
             {
-                //todo clear levelResults for userId
+                roomManager.OnLevelResultsShown(userId);
                 playersHolder.Get(playerRef).GetComponent<WindowsController>().SetCurrentWindowType(WindowType.LEVEL_RESULTS);
             }
         }

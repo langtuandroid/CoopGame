@@ -1,4 +1,4 @@
-using Main.Scripts.Levels.Results;
+using Main.Scripts.Player.Data;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -6,8 +6,8 @@ namespace Main.Scripts.UI.Windows.LevelResults
 {
     public class LevelResultsView : MonoBehaviour
     {
-        private UIDocument doc;
-        private Label levelResultsText;
+        private UIDocument doc = default!;
+        private Label levelResultsText = default!;
 
         private void Awake()
         {
@@ -22,10 +22,10 @@ namespace Main.Scripts.UI.Windows.LevelResults
             doc.rootVisualElement.visible = isVisible;
         }
 
-        public void Bind(LevelResultsData levelResultsData)
+        public void Bind(AwardsData awardsData)
         {
-            levelResultsText.text = levelResultsData.IsSuccess ? "Win" : "Lose";
-            levelResultsText.style.color = new StyleColor(levelResultsData.IsSuccess ? new Color(0, 255, 0) : new Color(255, 0, 0));
+            levelResultsText.text = awardsData.IsSuccess ? "Win" : "Lose";
+            levelResultsText.style.color = new StyleColor(awardsData.IsSuccess ? new Color(0, 255, 0) : new Color(255, 0, 0));
         }
     }
 }

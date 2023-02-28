@@ -189,9 +189,6 @@ namespace Main.Scripts.Player
         /// </summary>
         public override void FixedUpdateNetwork()
         {
-            if (RoomManager.playState == RoomManager.PlayState.TRANSITION)
-                return;
-
             if (GetInput<NetworkInputData>(out var input))
             {
                 var pressedButtons = input.Buttons.GetPressed(ButtonsPrevious);

@@ -1,6 +1,6 @@
 using System;
 using Fusion;
-using Main.Scripts.Room;
+using Main.Scripts.Player.Data;
 using Main.Scripts.Utils;
 
 namespace Main.Scripts.UI.Windows.LevelResults
@@ -8,8 +8,8 @@ namespace Main.Scripts.UI.Windows.LevelResults
     public class LevelResultsPresenter : NetworkBehaviour, UIScreen
     {
         private LevelResultsView levelResultsView = default!;
-        private Lazy<RoomManager> roomManagerLazy = new(() => FindObjectOfType<RoomManager>().ThrowWhenNull());
-        private RoomManager roomManager => roomManagerLazy.Value;
+        private Lazy<PlayerDataManager> playerDataManagerLazy = new(() => FindObjectOfType<PlayerDataManager>().ThrowWhenNull());
+        private PlayerDataManager playerDataManager => playerDataManagerLazy.Value;
 
         private void Awake()
         {
@@ -18,10 +18,10 @@ namespace Main.Scripts.UI.Windows.LevelResults
 
         public void Show()
         {
-            var userId = roomManager.GetUserId(Runner.LocalPlayer);
-            var levelResults = roomManager.GetLevelResults(userId).ThrowWhenNull();
+            var awardsData = playerDataManager.LocalAwardsData;
+            awardsData.ThrowWhenNull();
 
-            levelResultsView.Bind(levelResults.Value);
+            levelResultsView.Bind(awardsData.Value);
             levelResultsView.SetVisibility(true);
         }
 

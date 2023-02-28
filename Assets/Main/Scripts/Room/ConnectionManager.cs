@@ -2,6 +2,7 @@ using System;
 using Fusion;
 using Main.Scripts.FusionHelpers;
 using Main.Scripts.Player.Data;
+using Main.Scripts.Room.Scene;
 using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.Events;

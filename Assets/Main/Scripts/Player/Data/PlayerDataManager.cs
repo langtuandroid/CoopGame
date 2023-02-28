@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using Fusion;
+using Main.Scripts.Levels.Results;
+using Main.Scripts.Player.Experience;
 using Main.Scripts.Room;
 using Main.Scripts.Skills;
 using Main.Scripts.Utils;
@@ -15,6 +17,8 @@ namespace Main.Scripts.Player.Data
 
         private UserId localUserId;
         public PlayerData LocalPlayerData { get; private set; }
+        public AwardsData? LocalAwardsData { get; private set; }
+        
         public UnityEvent<UserId, PlayerData> OnPlayerDataChangedEvent = default!;
 
         public override void Spawned()
@@ -65,6 +69,34 @@ namespace Main.Scripts.Player.Data
             }
 
             UpdatePlayerData(playerData);
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        public void RPC_ApplyPlayerRewards([RpcTarget] PlayerRef playerRef, LevelResultsData levelResultsData)
+        {
+            var awardsData = GetAwardsData(levelResultsData);
+            LocalAwardsData = awardsData;
+            var playerData = LocalPlayerData;
+
+            var experienceForNextLevel = ExperienceHelper.GetExperienceForNextLevel(playerData.Level);
+            if (playerData.Experience + awardsData.Experience >= experienceForNextLevel)
+            {
+                playerData.Experience = playerData.Experience + awardsData.Experience - experienceForNextLevel;
+                playerData.Level = Math.Clamp(playerData.Level + 1, 1, ExperienceHelper.MAX_LEVEL);
+
+                playerData.MaxSkillPoints = ExperienceHelper.GetMaxSkillPointsByLevel(playerData.Level);
+            }
+
+            playerData.Experience += awardsData.Experience;
+            UpdatePlayerData(playerData);
+        }
+
+        private AwardsData GetAwardsData(LevelResultsData levelResultsData)
+        {
+            var awardsData = new AwardsData();
+            awardsData.IsSuccess = levelResultsData.IsSuccess;
+            awardsData.Experience = levelResultsData.IsSuccess ? 200u : 50u;
+            return awardsData;
         }
 
         private void UpdatePlayerData(PlayerData playerData)

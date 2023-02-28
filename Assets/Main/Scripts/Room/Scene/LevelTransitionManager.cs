@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.FusionHelpers;
 using Main.Scripts.Player;
+using Main.Scripts.Room.Level;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
-namespace Main.Scripts.Room
+namespace Main.Scripts.Room.Scene
 {
     public class LevelTransitionManager : NetworkSceneManagerBase
     {
@@ -19,10 +21,12 @@ namespace Main.Scripts.Room
         [SerializeField]
         private int lobby;
         [SerializeField]
-        private int[] levels;
+        private int[] levels = default!;
 
-        private Scene activeScene => SceneManager.GetActiveScene();
+        private UnityEngine.SceneManagement.Scene activeScene => SceneManager.GetActiveScene();
         private float lastLoadingShowedTime;
+
+        public UnityEvent<SceneState> OnSceneStateChangedEvent = default!;
 
         public FusionLauncher launcher { get; set; }
 
@@ -69,9 +73,8 @@ namespace Main.Scripts.Room
 
             if (Runner.IsServer)
             {
-                RoomManager.playState = RoomManager.PlayState.TRANSITION;
+                OnSceneStateChangedEvent.Invoke(SceneState.TRANSITION);
             }
-
 
             if (prevScene > 0)
             {
@@ -122,7 +125,7 @@ namespace Main.Scripts.Room
         {
             if (Runner.IsServer)
             {
-                RoomManager.playState = activeScene.buildIndex == lobby ? RoomManager.PlayState.LOBBY : RoomManager.PlayState.LEVEL;
+                OnSceneStateChangedEvent.Invoke(activeScene.buildIndex == lobby ? SceneState.LOBBY : SceneState.LEVEL);
             }
 
             InputController.fetchInput = true;

@@ -26,6 +26,7 @@ namespace Main.Scripts.Levels
                 }
 
                 roomManager.OnPlayerInitializedEvent.AddListener(OnPlayerInitialized);
+                roomManager.OnPlayerDisconnectedEvent.AddListener(OnPlayerDisconnected);
             }
         }
 
@@ -38,5 +39,7 @@ namespace Main.Scripts.Levels
         }
 
         protected abstract void OnPlayerInitialized(PlayerRef playerRef);
+
+        protected abstract void OnPlayerDisconnected(PlayerRef playerRef);
     }
 }

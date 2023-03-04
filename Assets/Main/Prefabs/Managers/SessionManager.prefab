@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8885487321657556871}
-  - component: {fileID: 8885487321657556868}
+  - component: {fileID: 6252847013339126203}
   m_Layer: 0
-  m_Name: ConnectionManager
+  m_Name: SessionManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -32,7 +32,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8885487321657556868
+--- !u!114 &6252847013339126203
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,15 +41,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 8885487321657556870}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e0b0552aa05d55945a295c9d26bba939, type: 3}
+  m_Script: {fileID: 11500000, guid: 6c162a39ebdb4fc98aa196c3198b2585, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   roomManagerPrefab: {fileID: 8471652300770399121, guid: 69426d79d7b714b4392eaadb0ea1c273, type: 3}
-  skillInfoHolderPrefab: {fileID: 485258079518117664, guid: 1200016406e802946b1c2efc5f5a035a, type: 3}
-  playerDataManagerPrefab: {fileID: 9057455356390527549, guid: f8c45052e9fe75941bf5d45207960607, type: 3}
-  OnPlayerConnectEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnPlayerDisconnectEvent:
+  playerDataManagerPrefab: {fileID: -7596953344290447756, guid: f8c45052e9fe75941bf5d45207960607, type: 3}
+  OnConnectionStatusChanged:
     m_PersistentCalls:
       m_Calls: []

@@ -154,7 +154,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 600576d4988f4049a1435186687c8d47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  connectionManager: {fileID: 0}
+  sessionManagerPrefab: {fileID: 6252847013339126203, guid: 28fc3ad5db500bf419527b2314890c9c, type: 3}
 --- !u!114 &1533694248
 MonoBehaviour:
   m_ObjectHideFlags: 0

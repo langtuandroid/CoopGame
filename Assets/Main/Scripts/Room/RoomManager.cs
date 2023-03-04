@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using Fusion;
+using Main.Scripts.Connection;
 using Main.Scripts.Levels.Results;
 using Main.Scripts.Player.Data;
 using Main.Scripts.Room.Level;
-using Main.Scripts.Room.Scene;
+using Main.Scripts.Room.Transition;
 using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.Events;
@@ -12,11 +13,9 @@ namespace Main.Scripts.Room
 {
     public class RoomManager : NetworkBehaviour
     {
-        
-
         public const ShutdownReason ShutdownReason_GameAlreadyRunning = (ShutdownReason)100;
 
-        private ConnectionManager connectionManager = default!;
+        private SessionManager sessionManager = default!;
         private LevelTransitionManager levelTransitionManager = default!;
         private PlayerDataManager playerDataManager = default!;
 
@@ -38,24 +37,25 @@ namespace Main.Scripts.Room
 
         public void Awake()
         {
-            connectionManager = FindObjectOfType<ConnectionManager>(true).ThrowWhenNull();
+            sessionManager = FindObjectOfType<SessionManager>(true).ThrowWhenNull();
             levelTransitionManager = FindObjectOfType<LevelTransitionManager>(true).ThrowWhenNull();
             playerDataManager = FindObjectOfType<PlayerDataManager>().ThrowWhenNull();
         }
 
         public override void Spawned()
         {
+            Debug.Log("RoomManager is spawned");
             DontDestroyOnLoad(this);
+
+            levelTransitionManager.OnSceneStateChangedEvent.AddListener(OnSceneStateChanged);
+            sessionManager.OnPlayerConnectedEvent.AddListener(OnPlayerConnected);
+            sessionManager.OnPlayerDisconnectedEvent.AddListener(OnPlayerDisconnected);
+            playerDataManager.OnPlayerDataChangedEvent.AddListener(OnPlayerDataChanged);
 
             InitPlayerData();
 
             if (Object.HasStateAuthority)
             {
-                levelTransitionManager.OnSceneStateChangedEvent.AddListener(OnSceneStateChanged);
-                connectionManager.OnPlayerConnectEvent.AddListener(OnPlayerConnect);
-                connectionManager.OnPlayerDisconnectEvent.AddListener(OnPlayerDisconnect);
-                playerDataManager.OnPlayerDataChangedEvent.AddListener(OnPlayerDataChanged);
-
                 LoadLevel(-1);
             }
         }
@@ -63,18 +63,20 @@ namespace Main.Scripts.Room
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
             levelTransitionManager.OnSceneStateChangedEvent.RemoveListener(OnSceneStateChanged);
-            connectionManager.OnPlayerConnectEvent.RemoveListener(OnPlayerConnect);
-            connectionManager.OnPlayerDisconnectEvent.RemoveListener(OnPlayerDisconnect);
+            sessionManager.OnPlayerConnectedEvent.RemoveListener(OnPlayerConnected);
+            sessionManager.OnPlayerDisconnectedEvent.RemoveListener(OnPlayerDisconnected);
             playerDataManager.OnPlayerDataChangedEvent.RemoveListener(OnPlayerDataChanged);
         }
 
-        private void OnPlayerConnect(NetworkRunner runner, PlayerRef playerRef)
+        private void OnPlayerConnected(PlayerRef playerRef)
         {
             //todo sync in level controller
         }
 
-        private void OnPlayerDisconnect(NetworkRunner runner, PlayerRef playerRef)
+        private void OnPlayerDisconnected(PlayerRef playerRef)
         {
+            if (!HasStateAuthority) return;
+
             OnPlayerDisconnectedEvent.Invoke(playerRef);
             if (userIdsMap.ContainsKey(playerRef))
             {
@@ -92,15 +94,9 @@ namespace Main.Scripts.Room
         {
             RPC_InitPlayerData(
                 playerRef: Runner.LocalPlayer,
-                userId: connectionManager.CurrentUserId,
+                userId: playerDataManager.LocalUserId,
                 playerData: playerDataManager.LocalPlayerData
             );
-        }
-
-        public IEnumerable<PlayerRef> GetConnectedPlayers()
-        {
-            //copy for safe outside use
-            return Runner.ActivePlayers;
         }
 
         public bool IsPlayerInitialized(PlayerRef playerRef)
@@ -192,8 +188,7 @@ namespace Main.Scripts.Room
 
         private void LoadLevel(int nextLevelIndex)
         {
-            if (!Object.HasStateAuthority)
-                return;
+            if (!HasStateAuthority) return;
 
             levelTransitionManager.LoadLevel(nextLevelIndex);
         }

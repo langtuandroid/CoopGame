@@ -1,5 +1,7 @@
+using Fusion;
+using Main.Scripts.Connection;
 using Main.Scripts.Player.Data;
-using Main.Scripts.Room;
+using Main.Scripts.Room.Transition;
 using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -9,15 +11,18 @@ namespace Main.Scripts.UI.MainMenu
     [RequireComponent(typeof(MainMenuView))]
     public class MainMenuPresenter : MonoBehaviour
     {
-        private ConnectionManager connectionManager = default!;
+        [SerializeField]
+        private SessionManager sessionManagerPrefab = default!;
+        private SessionManager? sessionManager;
+        private LevelTransitionManager levelTransitionManager = default!;
         private MainMenuView view = default!;
 
-        private string roomName = default!;
-        private string userId = default!;
+        private string roomName = "Room";
+        private string userId = "Player";
 
         private void Awake()
         {
-            connectionManager = FindObjectOfType<ConnectionManager>().ThrowWhenNull();
+            levelTransitionManager = FindObjectOfType<LevelTransitionManager>().ThrowWhenNull();
             view = GetComponent<MainMenuView>();
             view.OnRoomNameChanged = OnRoomNameChanged;
             view.OnUserIdChanged = OnUserIdChanged;
@@ -27,7 +32,7 @@ namespace Main.Scripts.UI.MainMenu
 
         private void Start()
         {
-            view.Bind(connectionManager.RoomName, connectionManager.CurrentUserId.Id.Value);
+            view.Bind(roomName, userId);
         }
 
         private void OnRoomNameChanged(ChangeEvent<string> evt)
@@ -42,12 +47,27 @@ namespace Main.Scripts.UI.MainMenu
 
         private void OnCreateServerClicked()
         {
-            connectionManager.CreateServer(roomName, new UserId(userId));
+            OnEnterRoom(GameMode.Host);
         }
 
         private void OnConnectClientClicked()
         {
-            connectionManager.ConnectClient(roomName, new UserId(userId));
+            OnEnterRoom(GameMode.Client);
+        }
+
+        private void OnEnterRoom(GameMode gameMode)
+        {
+            if (sessionManager == null)
+            {
+                sessionManager = Instantiate(sessionManagerPrefab);
+            }
+
+            sessionManager.LaunchSession(
+                mode: gameMode,
+                room: roomName,
+                userId: new UserId(userId),
+                sceneManager: levelTransitionManager
+            );
         }
     }
 }

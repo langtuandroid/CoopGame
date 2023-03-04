@@ -212,7 +212,6 @@ MonoBehaviour:
   stunDurationSec: 0.5
   originTransform: {fileID: 8004075537626908674}
   attackDistance: 3
-  attackRadiusOffset: 1
   attackAngle: 120
   layerMask:
     serializedVersion: 2
@@ -254,10 +253,10 @@ MonoBehaviour:
   InterpolationTarget: {fileID: 8663182565266769017}
   InterpolateErrorCorrection: 1
   InterpolatedErrorCorrectionSettings:
-    MinRate: 20
-    MaxRate: 30
+    MinRate: 5
+    MaxRate: 10
     PosBlendStart: 0.1
-    PosBlendEnd: 0.5
+    PosBlendEnd: 1
     PosMinCorrection: 0.05
     PosTeleportDistance: 2
     RotBlendStart: 0.1
@@ -590,7 +589,6 @@ MonoBehaviour:
   stunDurationSec: 0.5
   originTransform: {fileID: 0}
   attackDistance: 5
-  attackRadiusOffset: 1
   attackAngle: 90
   layerMask:
     serializedVersion: 2

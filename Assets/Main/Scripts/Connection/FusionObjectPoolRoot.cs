@@ -1,15 +1,11 @@
 using System.Collections.Generic;
 using Fusion;
+using Main.Scripts.FusionHelpers;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Main.Scripts.FusionHelpers
+namespace Main.Scripts.Connection
 {
-	/// <summary>
-	/// Example of a Fusion Object Pool.
-	/// The pool keeps a list of available instances by prefab and also a list of which pool each instance belongs to.
-	/// </summary>
-
 	public class FusionObjectPoolRoot : MonoBehaviour, INetworkObjectPool
 	{
 		private Dictionary<object, FusionObjectPool> _poolsByPrefab = new Dictionary<object, FusionObjectPool>();

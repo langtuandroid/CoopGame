@@ -1,12 +1,13 @@
 using System;
 using System.Linq;
 using Fusion;
+using Main.Scripts.Connection;
 using Main.Scripts.Levels.Results;
 using Main.Scripts.Player.Experience;
-using Main.Scripts.Room;
 using Main.Scripts.Skills;
 using Main.Scripts.Utils;
 using Main.Scripts.Utils.Save;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace Main.Scripts.Player.Data
@@ -15,18 +16,19 @@ namespace Main.Scripts.Player.Data
     {
         private SkillInfoHolder skillInfoHolder = default!;
 
-        private UserId localUserId;
+        public UserId LocalUserId { get; private set; }
         public PlayerData LocalPlayerData { get; private set; }
         public AwardsData? LocalAwardsData { get; private set; }
-        
+
         public UnityEvent<UserId, PlayerData> OnPlayerDataChangedEvent = default!;
 
         public override void Spawned()
         {
+            Debug.Log("PlayerDataManager is spawned");
             DontDestroyOnLoad(this);
-            localUserId = FindObjectOfType<ConnectionManager>().ThrowWhenNull().CurrentUserId;
+            LocalUserId = FindObjectOfType<SessionManager>().ThrowWhenNull().LocalUserId;
             skillInfoHolder = FindObjectOfType<SkillInfoHolder>().ThrowWhenNull();
-            LocalPlayerData = SaveLoadUtils.Load(localUserId.Id.Value);
+            LocalPlayerData = SaveLoadUtils.Load(LocalUserId.Id.Value);
         }
 
         public void ResetSkillPoints()
@@ -71,7 +73,7 @@ namespace Main.Scripts.Player.Data
             UpdatePlayerData(playerData);
         }
 
-        [Rpc(RpcSources.All, RpcTargets.All)]
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         public void RPC_ApplyPlayerRewards([RpcTarget] PlayerRef playerRef, LevelResultsData levelResultsData)
         {
             var awardsData = GetAwardsData(levelResultsData);
@@ -102,8 +104,8 @@ namespace Main.Scripts.Player.Data
         private void UpdatePlayerData(PlayerData playerData)
         {
             LocalPlayerData = playerData;
-            SaveLoadUtils.Save(localUserId.Id.Value, playerData);
-            RPC_OnPlayerDataChanged(localUserId, LocalPlayerData);
+            SaveLoadUtils.Save(LocalUserId.Id.Value, playerData);
+            RPC_OnPlayerDataChanged(LocalUserId, LocalPlayerData);
         }
 
         [Rpc(RpcSources.All, RpcTargets.All)]

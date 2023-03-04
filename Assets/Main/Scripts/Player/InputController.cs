@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using Fusion;
 using Fusion.Sockets;
 using Main.Scripts.Enemies;
-using Main.Scripts.Room;
-using Main.Scripts.UI;
 using Main.Scripts.UI.Windows;
 using Main.Scripts.Weapon;
 using UnityEngine;

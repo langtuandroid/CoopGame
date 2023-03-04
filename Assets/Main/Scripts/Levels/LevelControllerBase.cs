@@ -7,16 +7,14 @@ namespace Main.Scripts.Levels
 {
     public abstract class LevelControllerBase : NetworkBehaviour
     {
-        private Lazy<RoomManager> roomManagerLazy = new(
-            () => FindObjectOfType<RoomManager>().ThrowWhenNull()
-        );
-        protected RoomManager roomManager => roomManagerLazy.Value;
+        protected RoomManager roomManager = default!;
 
         public override void Spawned()
         {
+            roomManager = FindObjectOfType<RoomManager>().ThrowWhenNull();
             if (HasStateAuthority)
             {
-                var connectedPlayers = roomManager.GetConnectedPlayers();
+                var connectedPlayers = Runner.ActivePlayers;
                 foreach (var playerRef in connectedPlayers)
                 {
                     if (roomManager.IsPlayerInitialized(playerRef))

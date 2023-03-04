@@ -15,11 +15,9 @@ namespace Main.Scripts.Weapon
         [SerializeField]
         private float stunDurationSec = 1f;
         [SerializeField]
-        private Transform originTransform;
+        private Transform originTransform = default!;
         [SerializeField]
-        private float attackDistance = 3f;
-        [SerializeField]
-        private float attackRadiusOffset = 1f;
+        private float attackDistance = 4f;
         [SerializeField]
         private float attackAngle = 90f;
         [SerializeField]
@@ -75,12 +73,13 @@ namespace Main.Scripts.Weapon
                     var rotateAngle = -attackAngle / 2f + i * attackAngle / raycastsCount;
                     var raycastDirection = Quaternion.AngleAxis(rotateAngle, Vector3.up) * directionForward;
                     Runner.LagCompensation.RaycastAll(
-                        origin: origin + raycastDirection * attackRadiusOffset,
+                        origin: origin,
                         direction: raycastDirection,
                         length: attackDistance,
                         player: owner,
                         hits: hits,
-                        layerMask: layerMask
+                        layerMask: layerMask,
+                        options: HitOptions.IgnoreInputAuthority & HitOptions.SubtickAccuracy
                     );
                     foreach (var hit in hits)
                     {

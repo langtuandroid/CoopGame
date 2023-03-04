@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Levels.Results;

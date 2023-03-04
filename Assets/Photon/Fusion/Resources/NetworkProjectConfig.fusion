@@ -42,7 +42,7 @@
     "Simulation": {
         "InputDataWordCount": 0,
         "TickRate": 60,
-        "MaxPrediction": 60,
+        "MaxPrediction": 20,
         "DefaultPlayers": 10,
         "ReplicationMode": 0,
         "ObjectInterest": false,

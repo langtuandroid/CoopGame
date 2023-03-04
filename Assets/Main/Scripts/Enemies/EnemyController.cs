@@ -19,6 +19,7 @@ namespace Main.Scripts.Enemies
         private static readonly int ATTACK_ANIM = Animator.StringToHash("Attack");
 
         private new Rigidbody rigidbody = default!;
+        private NetworkRigidbody networkRigidbody = default!;
         private Animator animator = default!;
         private EnemiesHelper enemiesHelper = default!;
 
@@ -59,6 +60,7 @@ namespace Main.Scripts.Enemies
         void Awake()
         {
             rigidbody = GetComponent<Rigidbody>();
+            networkRigidbody = GetComponent<NetworkRigidbody>();
             animator = GetComponent<Animator>();
             navMeshPath = new NavMeshPath();
         }

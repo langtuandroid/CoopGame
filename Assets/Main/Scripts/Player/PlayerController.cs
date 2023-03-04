@@ -20,6 +20,7 @@ namespace Main.Scripts.Player
         private static readonly int ATTACK_ANIM = Animator.StringToHash("Attack");
 
         private new Rigidbody rigidbody = default!;
+        private NetworkRigidbody networkRigidbody = default!;
         private Animator animator = default!;
 
         [SerializeField]
@@ -50,7 +51,16 @@ namespace Main.Scripts.Player
         void Awake()
         {
             rigidbody = GetComponent<Rigidbody>();
+            networkRigidbody = GetComponent<NetworkRigidbody>();
             animator = GetComponent<Animator>();
+        }
+
+        public override void Spawned()
+        {
+            if (!IsProxy)
+            {
+                networkRigidbody.InterpolationDataSource = InterpolationDataSources.NoInterpolation;
+            }
         }
 
         public void Reset()

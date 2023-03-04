@@ -4,6 +4,7 @@ using Fusion;
 using Fusion.Sockets;
 using Main.Scripts.Enemies;
 using Main.Scripts.UI.Windows;
+using Main.Scripts.Utils;
 using Main.Scripts.Weapon;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -23,12 +24,12 @@ namespace Main.Scripts.Player
         [SerializeField]
         private GameObject mineGold = default!;
         
-        private WindowsController windowsController = default!;
+        private UIScreenManager? uiScreenManager;
 
         [Networked]
         private NetworkButtons ButtonsPrevious { get; set; }
         
-        public static bool fetchInput = true; //todo false on switch scene. избавиться от статик
+        public bool fetchInput = true;
 
         private PlayerController playerController = default!;
         private NetworkInputData frameworkInput;
@@ -38,14 +39,10 @@ namespace Main.Scripts.Player
         private bool secondaryFire;
         private bool spawnEnemy;
         private bool spawnMine;
-        private bool toggleReady;
-        private bool openSkillTree;
-        private bool openMenu;
 
         private void Awake()
         {
             playerController = GetComponent<PlayerController>();
-            windowsController = GetComponent<WindowsController>();
         }
 
         /// <summary>
@@ -58,10 +55,26 @@ namespace Main.Scripts.Player
             if (Object.HasInputAuthority)
             {
                 Runner.AddCallbacks(this);
+                uiScreenManager = FindObjectOfType<UIScreenManager>();
+                uiScreenManager.OnCurrentScreenChangedEvent.AddListener(OnCurrentWindowChanged);
             }
 
             Debug.Log("Spawned [" + this + "] IsClient=" + Runner.IsClient + " IsServer=" + Runner.IsServer +
                       " HasInputAuth=" + Object.HasInputAuthority + " HasStateAuth=" + Object.HasStateAuthority);
+        }
+
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            if (HasInputAuthority)
+            {
+                uiScreenManager.ThrowWhenNull();
+                uiScreenManager.OnCurrentScreenChangedEvent.RemoveListener(OnCurrentWindowChanged);
+            }
+        }
+
+        private void OnCurrentWindowChanged(ScreenType screenType)
+        {
+            fetchInput = screenType == ScreenType.NONE;
         }
 
         /// <summary>
@@ -72,34 +85,16 @@ namespace Main.Scripts.Player
         public void OnInput(NetworkRunner runner, NetworkInput input)
         {
             if (playerController != null && playerController.Object != null &&
-                playerController.state == PlayerController.State.Active && fetchInput)
+                playerController.state == PlayerController.State.Active)
             {
                 // Fill networked input struct with input data
 
                 frameworkInput.aimDirection = aimDelta.normalized;
-
                 frameworkInput.moveDirection = moveDelta.normalized;
-
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_FIRE_PRIMARY, primaryFire);
-                primaryFire = false;
-                
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_FIRE_SECONDARY, secondaryFire);
-                secondaryFire = false;
-
-                frameworkInput.Buttons.Set(NetworkInputData.BUTTON_READY, toggleReady);
-                toggleReady = false;
-
-                frameworkInput.Buttons.Set(NetworkInputData.BUTTON_OPEN_SKILL_TREE, openSkillTree);
-                openSkillTree = false;
-
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_SPAWN_ENEMY, spawnEnemy);
-                spawnEnemy = false;
-
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_SPAWN_MINE, spawnMine);
-                spawnMine = false;
-                
-                frameworkInput.Buttons.Set(NetworkInputData.BUTTON_OPEN_MENU, openMenu);
-                openMenu = false;
             }
 
             // Hand over the data to Fusion
@@ -112,33 +107,25 @@ namespace Main.Scripts.Player
 
         private void Update()
         {
-            toggleReady = toggleReady || Input.GetKey(KeyCode.R);
-            openSkillTree = openSkillTree || Input.GetKey(KeyCode.K);
-
-            if (Input.GetMouseButton(0))
+            if (!fetchInput)
             {
-                primaryFire = true;
-            }
+                primaryFire = false;
+                secondaryFire = false;
+                spawnEnemy = false;
+                spawnMine = false;
+                moveDelta = Vector2.zero;
+                aimDelta = Vector2.zero;
 
-            if (Input.GetMouseButton(1))
-            {
-                secondaryFire = true;
+                return;
             }
+            
+            primaryFire = Input.GetMouseButton(0);
 
-            if (Input.GetKey(KeyCode.T))
-            {
-                spawnEnemy = true;
-            }
+            secondaryFire = Input.GetMouseButton(1);
 
-            if (Input.GetKey(KeyCode.Y))
-            {
-                spawnMine = true;
-            }
+            spawnEnemy = Input.GetKey(KeyCode.T);
 
-            if (Input.GetKey(KeyCode.Escape))
-            {
-                openMenu = true;
-            }
+            spawnMine = Input.GetKey(KeyCode.Y);
 
             moveDelta = Vector2.zero;
 
@@ -193,34 +180,6 @@ namespace Main.Scripts.Player
                 var releasedButtons = input.Buttons.GetReleased(ButtonsPrevious);
                 ButtonsPrevious = input.Buttons;
 
-                var windowToShow = WindowType.NONE;
-                if (pressedButtons.IsSet(NetworkInputData.BUTTON_OPEN_SKILL_TREE))
-                {
-                    windowToShow = WindowType.SKILL_TREE;
-                }
-
-                if (pressedButtons.IsSet((NetworkInputData.BUTTON_OPEN_MENU)))
-                {
-                    windowToShow = WindowType.MENU;
-                }
-
-                if (windowsController.CurrentWindow != WindowType.NONE && windowToShow == WindowType.MENU)
-                {
-                    windowsController.SetCurrentWindowType(WindowType.NONE);
-                } else if (windowsController.CurrentWindow == WindowType.NONE && windowToShow != WindowType.NONE)
-                {
-                    windowsController.SetCurrentWindowType(windowToShow);
-                }
-
-
-                if (windowsController.CurrentWindow != WindowType.NONE)
-                {
-                    //todo сделать поадекватнее
-                    playerController.SetDirections(Vector2.zero, input.aimDirection.normalized);
-                    playerController.Move();
-                    return;
-                }
-                
                 if (input.Buttons.IsSet(NetworkInputData.BUTTON_FIRE_PRIMARY))
                 {
                     playerController.ActivateSkill(ActiveSkillType.PRIMARY);
@@ -277,9 +236,6 @@ namespace Main.Scripts.Player
         public const int BUTTON_FIRE_SECONDARY = 1;
         public const int BUTTON_SPAWN_ENEMY = 2;
         public const int BUTTON_SPAWN_MINE = 3;
-        public const int BUTTON_READY = 4;
-        public const int BUTTON_OPEN_SKILL_TREE = 5;
-        public const int BUTTON_OPEN_MENU = 6;
 
         public NetworkButtons Buttons;
         public Vector2 aimDirection;

@@ -1,6 +1,6 @@
 namespace Main.Scripts.UI.Windows
 {
-    public enum WindowType
+    public enum ScreenType
     {
         NONE,
         MENU,

@@ -10,6 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8885487321657556871}
   - component: {fileID: 6252847013339126203}
+  - component: {fileID: 9034108561183502280}
+  - component: {fileID: 7174758788030674920}
   m_Layer: 0
   m_Name: SessionManager
   m_TagString: Untagged
@@ -46,6 +48,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   roomManagerPrefab: {fileID: 8471652300770399121, guid: 69426d79d7b714b4392eaadb0ea1c273, type: 3}
   playerDataManagerPrefab: {fileID: -7596953344290447756, guid: f8c45052e9fe75941bf5d45207960607, type: 3}
-  OnConnectionStatusChanged:
+  OnConnectionStatusChangedEvent:
     m_PersistentCalls:
       m_Calls: []
+  OnPlayerConnectedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnPlayerDisconnectedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &9034108561183502280
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8885487321657556870}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1199893898, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &7174758788030674920
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8885487321657556870}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 002d8eab47b3430faecf9db0b5e0fb84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

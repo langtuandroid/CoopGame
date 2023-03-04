@@ -17,8 +17,8 @@ namespace Main.Scripts.Connection
         [SerializeField]
         private PlayerDataManager playerDataManagerPrefab = default!;
 
-        private NetworkRunner? runner;
-        private FusionObjectPoolRoot? pool;
+        private NetworkRunner runner = default!;
+        private FusionObjectPoolRoot pool = default!;
 
         public UserId LocalUserId { get; private set; }
         public ConnectionStatus CurrentConnectionStatus { get; private set; }
@@ -27,6 +27,12 @@ namespace Main.Scripts.Connection
         public UnityEvent<ConnectionStatus> OnConnectionStatusChangedEvent = default!;
         public UnityEvent<PlayerRef> OnPlayerConnectedEvent = default!;
         public UnityEvent<PlayerRef> OnPlayerDisconnectedEvent = default!;
+
+        private void Awake()
+        {
+            runner = GetComponent<NetworkRunner>();
+            pool = GetComponent<FusionObjectPoolRoot>();
+        }
 
         public async void LaunchSession(
             GameMode mode,
@@ -39,18 +45,8 @@ namespace Main.Scripts.Connection
 
             SetConnectionStatus(ConnectionStatus.Connecting);
 
-            if (runner == null)
-            {
-                runner = gameObject.AddComponent<NetworkRunner>();
-            }
-
             runner.name = name;
             runner.ProvideInput = mode != GameMode.Server;
-
-            if (pool == null)
-            {
-                pool = gameObject.AddComponent<FusionObjectPoolRoot>();
-            }
 
             LocalUserId = userId;
 
@@ -126,10 +122,7 @@ namespace Main.Scripts.Connection
                 pool.ClearPools();
             }
 
-            if (runner != null)
-            {
-                Destroy(runner.gameObject);
-            }
+            Destroy(gameObject);
         }
 
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef playerRef)

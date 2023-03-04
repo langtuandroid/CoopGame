@@ -193,7 +193,7 @@ namespace Main.Scripts.Room
             levelTransitionManager.LoadLevel(nextLevelIndex);
         }
 
-        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        [Rpc(RpcSources.All, RpcTargets.All)]
         private void RPC_InitPlayerData(PlayerRef playerRef, UserId userId, PlayerData playerData)
         {
             if (playersDataMap.ContainsKey(userId))

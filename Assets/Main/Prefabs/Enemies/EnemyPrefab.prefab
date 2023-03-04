@@ -164,7 +164,6 @@ MonoBehaviour:
   stunDurationSec: 0
   originTransform: {fileID: 8004075537626908674}
   attackDistance: 3
-  attackRadiusOffset: 1
   attackAngle: 120
   layerMask:
     serializedVersion: 2
@@ -266,7 +265,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2468859769782359026
 Transform:
   m_ObjectHideFlags: 0

@@ -62,11 +62,6 @@ namespace Main.Scripts.Room.Transition
                 OnSceneStateChangedEvent.Invoke(SceneState.TRANSITION);
             }
 
-            if (prevScene > 0)
-            {
-                InputController.fetchInput = false;
-            }
-
             yield return null;
             Debug.Log($"Start loading scene {newScene} in single peer mode");
 
@@ -110,7 +105,6 @@ namespace Main.Scripts.Room.Transition
                 OnSceneStateChangedEvent.Invoke(activeScene.buildIndex == lobby ? SceneState.LOBBY : SceneState.LEVEL);
             }
 
-            InputController.fetchInput = true;
             Debug.Log($"Switched Scene from {prevScene} to {newScene}");
         }
 

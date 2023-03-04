@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 780ce681017f4cf7886b43ec8cb4b550, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  skillTreeWindow: {fileID: 721497216137049988}
+  skillTreeScreen: {fileID: 721497216137049988}
   levelResultsPresenter: {fileID: 3232343401305011847}
 --- !u!1001 &5455401259096969901
 PrefabInstance:

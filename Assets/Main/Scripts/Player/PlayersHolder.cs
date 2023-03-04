@@ -2,15 +2,18 @@ using System;
 using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Utils;
+using UnityEngine.Events;
 
 namespace Main.Scripts.Player
 {
     public class PlayersHolder : NetworkBehaviour
     {
-        [Networked, Capacity(16)]
+        [Networked(OnChanged = nameof(OnPlayerObjectsChanged)), Capacity(16)]
         private NetworkDictionary<PlayerRef, NetworkObject> playerObjects => default;
 
         private Dictionary<PlayerRef, PlayerController> cashedPlayerControllers = new();
+
+        public UnityEvent OnChangedEvent = default!;
 
         public void Add(PlayerRef playerRef, PlayerController playerController)
         {
@@ -54,6 +57,14 @@ namespace Main.Scripts.Player
             }
 
             return list;
+        }
+
+        public static void OnPlayerObjectsChanged(Changed<PlayersHolder> changed)
+        {
+            if (changed.Behaviour)
+            {
+                changed.Behaviour.OnChangedEvent.Invoke();
+            }
         }
     }
 }

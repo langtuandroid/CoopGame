@@ -18,15 +18,18 @@ namespace Main.Scripts.Levels.Lobby
         private PlaceTargetTask readyToStartTask = default!;
 
         private PlayerCamera playerCamera = default!;
+        private UIScreenManager uiScreenManager = default!;
 
         public override void Spawned()
         {
             base.Spawned();
             playerCamera = FindObjectOfType<PlayerCamera>().ThrowWhenNull();
+            uiScreenManager = FindObjectOfType<UIScreenManager>().ThrowWhenNull();
             if (HasStateAuthority)
             {
                 readyToStartTask.OnTaskCompleted.AddListener(OnAllPlayersReady);
             }
+            playersHolder.OnChangedEvent.AddListener(OnPlayersHolderChanged);
         }
 
         public override void Render()
@@ -94,7 +97,6 @@ namespace Main.Scripts.Levels.Lobby
                     break;
                 case PlayerController.State.Active:
                     playersHolder.Add(playerRef, playerController);
-                    TryShowLevelResults(playerRef);
                     break;
                 case PlayerController.State.Dead:
                     OnPlayerDead(playerRef, playerController);
@@ -109,13 +111,18 @@ namespace Main.Scripts.Levels.Lobby
             roomManager.OnAllPlayersReady();
         }
 
-        private void TryShowLevelResults([RpcTarget] PlayerRef playerRef)
+        private void OnPlayersHolderChanged()
+        {
+            TryShowLevelResults(Runner.LocalPlayer);
+        }
+
+        private void TryShowLevelResults(PlayerRef playerRef)
         {
             var userId = roomManager.GetUserId(playerRef);
             if (roomManager.GetLevelResults(userId) != null)
             {
                 roomManager.OnLevelResultsShown(userId);
-                playersHolder.Get(playerRef).GetComponent<WindowsController>().SetCurrentWindowType(WindowType.LEVEL_RESULTS);
+                uiScreenManager.SetScreenType(ScreenType.LEVEL_RESULTS);
             }
         }
     }

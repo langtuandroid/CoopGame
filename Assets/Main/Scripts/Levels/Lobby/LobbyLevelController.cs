@@ -29,6 +29,7 @@ namespace Main.Scripts.Levels.Lobby
             {
                 readyToStartTask.OnTaskCompleted.AddListener(OnAllPlayersReady);
             }
+
             playersHolder.OnChangedEvent.AddListener(OnPlayersHolderChanged);
         }
 

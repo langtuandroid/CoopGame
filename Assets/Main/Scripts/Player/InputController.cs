@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Fusion;
 using Fusion.Sockets;
 using Main.Scripts.Enemies;
+using Main.Scripts.Player.Interaction;
 using Main.Scripts.UI.Windows;
 using Main.Scripts.Utils;
 using Main.Scripts.Weapon;
@@ -32,6 +33,8 @@ namespace Main.Scripts.Player
         public bool fetchInput = true;
 
         private PlayerController playerController = default!;
+        private InteractionController interactionController = default!;
+        
         private NetworkInputData frameworkInput;
         private Vector2 moveDelta;
         private Vector2 aimDelta;
@@ -39,10 +42,12 @@ namespace Main.Scripts.Player
         private bool secondaryFire;
         private bool spawnEnemy;
         private bool spawnMine;
+        private bool interact;
 
         private void Awake()
         {
             playerController = GetComponent<PlayerController>();
+            interactionController = GetComponent<InteractionController>();
         }
 
         /// <summary>
@@ -95,6 +100,7 @@ namespace Main.Scripts.Player
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_FIRE_SECONDARY, secondaryFire);
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_SPAWN_ENEMY, spawnEnemy);
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_SPAWN_MINE, spawnMine);
+                frameworkInput.Buttons.Set(NetworkInputData.BUTTON_INTERACT, interact);
             }
 
             // Hand over the data to Fusion
@@ -113,6 +119,7 @@ namespace Main.Scripts.Player
                 secondaryFire = false;
                 spawnEnemy = false;
                 spawnMine = false;
+                interact = false;
                 moveDelta = Vector2.zero;
                 aimDelta = Vector2.zero;
 
@@ -126,6 +133,8 @@ namespace Main.Scripts.Player
             spawnEnemy = Input.GetKey(KeyCode.T);
 
             spawnMine = Input.GetKey(KeyCode.Y);
+
+            interact = Input.GetKey(KeyCode.F);
 
             moveDelta = Vector2.zero;
 
@@ -185,6 +194,11 @@ namespace Main.Scripts.Player
                     playerController.ActivateSkill(ActiveSkillType.PRIMARY);
                 }
 
+                if (pressedButtons.IsSet(NetworkInputData.BUTTON_INTERACT))
+                {
+                    interactionController.TryInteract();
+                }
+
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_SPAWN_ENEMY))
                 {
                     Runner.Spawn(
@@ -236,6 +250,7 @@ namespace Main.Scripts.Player
         public const int BUTTON_FIRE_SECONDARY = 1;
         public const int BUTTON_SPAWN_ENEMY = 2;
         public const int BUTTON_SPAWN_MINE = 3;
+        public const int BUTTON_INTERACT = 4;
 
         public NetworkButtons Buttons;
         public Vector2 aimDirection;

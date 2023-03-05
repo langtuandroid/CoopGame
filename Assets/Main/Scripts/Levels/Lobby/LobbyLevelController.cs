@@ -75,12 +75,6 @@ namespace Main.Scripts.Levels.Lobby
             }
         }
 
-        private void OnPlayerDead(PlayerRef playerRef, PlayerController playerController)
-        {
-            //todo
-            playerController.OnPlayerStateChangedEvent.RemoveListener(OnPlayerStateChanged);
-        }
-
         private void OnPlayerStateChanged(
             PlayerRef playerRef,
             PlayerController playerController,
@@ -97,7 +91,10 @@ namespace Main.Scripts.Levels.Lobby
                     playerController.Active();
                     break;
                 case PlayerController.State.Active:
-                    playersHolder.Add(playerRef, playerController);
+                    if (!playersHolder.Contains(playerRef))
+                    {
+                        playersHolder.Add(playerRef, playerController);
+                    }
                     break;
                 case PlayerController.State.Dead:
                     OnPlayerDead(playerRef, playerController);
@@ -105,6 +102,11 @@ namespace Main.Scripts.Levels.Lobby
                 default:
                     throw new ArgumentOutOfRangeException(nameof(playerState), playerState, null);
             }
+        }
+        
+        private void OnPlayerDead(PlayerRef playerRef, PlayerController playerController)
+        {
+            playerController.Reset();
         }
 
         private void OnReadyTargetStatusChanged(bool isChecked)

@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="Container" style="flex-direction: row; margin-right: auto; margin-top: auto; margin-bottom: auto; margin-left: auto;">
+        <ui:Label text="F:" display-tooltip-when-elided="true" name="KeyName" style="padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; font-size: 16px; color: rgb(255, 255, 255);" />
+        <ui:Label text="Воскресить" display-tooltip-when-elided="true" name="Description" style="font-size: 16px; margin-left: 4px; margin-right: 0; margin-top: 0; margin-bottom: 0; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; color: rgb(255, 255, 255);" />
+    </ui:VisualElement>
+</ui:UXML>

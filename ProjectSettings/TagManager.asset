@@ -14,7 +14,7 @@ TagManager:
   - CursorRaycastCollision
   - Player
   - Enemy
-  - 
+  - Interactable
   - 
   - 
   - 

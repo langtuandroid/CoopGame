@@ -57,11 +57,6 @@ namespace Main.Scripts.Tasks
             var hasAllAlivePlayersInPlace = false;
             foreach (var playerRef in playersHolder.GetKeys())
             {
-                if (!playersHolder.Contains(playerRef))
-                {
-                    continue;
-                }
-
                 var playerController = playersHolder.Get(playerRef);
                 if (playerController.state != PlayerController.State.Dead)
                 {

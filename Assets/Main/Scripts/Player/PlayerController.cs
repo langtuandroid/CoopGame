@@ -1,11 +1,14 @@
 using System;
 using Fusion;
 using Main.Scripts.Actions;
+using Main.Scripts.Actions.Interaction;
 using Main.Scripts.Drop;
 using Main.Scripts.Gui;
+using Main.Scripts.UI.Gui;
 using Main.Scripts.Weapon;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UIElements;
 
 namespace Main.Scripts.Player
 {
@@ -13,7 +16,8 @@ namespace Main.Scripts.Player
     [RequireComponent(typeof(Animator))]
     public class PlayerController : NetworkBehaviour,
         ObjectWithTakingDamage,
-        ObjectWithPickUp
+        ObjectWithPickUp,
+        Interactable
     {
         private static readonly int MOVE_X_ANIM = Animator.StringToHash("MoveX");
         private static readonly int MOVE_Z_ANIM = Animator.StringToHash("MoveZ");
@@ -21,15 +25,18 @@ namespace Main.Scripts.Player
 
         private new Rigidbody rigidbody = default!;
         private NetworkRigidbody networkRigidbody = default!;
+        private new Collider collider = default!;
         private Animator animator = default!;
 
         [SerializeField]
         private ActiveSkillManager activeSkillManager = default!;
         [SerializeField]
+        private UIDocument interactionInfoDoc = default!;
+
+        [SerializeField]
         private int maxHealth = 100;
         [SerializeField]
         private HealthBar healthBar = default!;
-
         [SerializeField]
         private float speed = 6f;
 
@@ -44,6 +51,8 @@ namespace Main.Scripts.Player
         [Networked]
         private Vector2 aimDirection { get; set; }
 
+        private InteractionInfoView interactionInfoView = default!;
+
         public UnityEvent<PlayerRef, PlayerController, State> OnPlayerStateChangedEvent = default!;
 
         private bool isActivated => (gameObject.activeInHierarchy && (state == State.Active || state == State.Spawning));
@@ -52,6 +61,7 @@ namespace Main.Scripts.Player
         {
             rigidbody = GetComponent<Rigidbody>();
             networkRigidbody = GetComponent<NetworkRigidbody>();
+            collider = GetComponent<Collider>();
             animator = GetComponent<Animator>();
         }
 
@@ -61,6 +71,8 @@ namespace Main.Scripts.Player
             {
                 networkRigidbody.InterpolationDataSource = InterpolationDataSources.NoInterpolation;
             }
+
+            interactionInfoView = new InteractionInfoView(interactionInfoDoc, "F", "Resurrect");
         }
 
         public void Reset()
@@ -114,12 +126,48 @@ namespace Main.Scripts.Player
 
         private void OnStateChanged()
         {
-            switch (state)
+            if (state == State.Dead)
             {
-                //todo
+                collider.enabled = false;
+                rigidbody.velocity = Vector3.zero;
+            }
+            else
+            {
+                collider.enabled = true;
             }
 
             OnPlayerStateChangedEvent.Invoke(Object.InputAuthority, this, state);
+        }
+
+        public bool IsInteractionEnabled(PlayerRef playerRef)
+        {
+            if (Object.InputAuthority == playerRef)
+            {
+                return false;
+            }
+
+            return state == State.Dead;
+        }
+
+        public void SetInteractionInfoVisibility(PlayerRef player, bool isVisible)
+        {
+            interactionInfoView.SetVisibility(isVisible);
+        }
+
+        public bool Interact(PlayerRef playerRef)
+        {
+            if (Object.InputAuthority == playerRef)
+            {
+                throw new Exception("Invalid state interact");
+            }
+
+            if (state != State.Dead)
+            {
+                return false;
+            }
+
+            Reset();
+            return true;
         }
 
         public void ActivateSkill(ActiveSkillType activeSkillType)
@@ -142,8 +190,8 @@ namespace Main.Scripts.Player
                     Vector3.up);
                 var animationAngle = Mathf.Deg2Rad * (moveAngle - lookAngle);
 
-                moveZ = (float) Math.Cos(animationAngle);
-                moveX = (float) Math.Sin(animationAngle);
+                moveZ = (float)Math.Cos(animationAngle);
+                moveX = (float)Math.Sin(animationAngle);
             }
 
             animator.SetFloat(MOVE_X_ANIM, moveX);

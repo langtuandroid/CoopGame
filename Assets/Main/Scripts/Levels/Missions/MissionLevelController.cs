@@ -22,7 +22,7 @@ namespace Main.Scripts.Levels.Missions
         private PlayerCamera playerCamera = default!;
 
         [Networked, Capacity(16)]
-        private NetworkDictionary<UserId, bool> playersProgress => default;
+        private NetworkDictionary<UserId, bool> playersProgress => default; //todo поддержать сохранение прогресса текущей миссии для игроков
 
         public override void Spawned()
         {
@@ -93,7 +93,10 @@ namespace Main.Scripts.Levels.Missions
                     playerController.Active();
                     break;
                 case PlayerController.State.Active:
-                    playersHolder.Add(playerRef, playerController);
+                    if (!playersHolder.Contains(playerRef))
+                    {
+                        playersHolder.Add(playerRef, playerController);
+                    }
                     break;
                 case PlayerController.State.Dead:
                     OnPlayerDead(playerRef, playerController);
@@ -105,8 +108,6 @@ namespace Main.Scripts.Levels.Missions
 
         private void OnPlayerDead(PlayerRef deadPlayerRef, PlayerController playerController)
         {
-            playerController.OnPlayerStateChangedEvent.RemoveListener(OnPlayerStateChanged);
-            //todo
             foreach (var playerRef in playersHolder.GetKeys())
             {
                 var player = playersHolder.Get(playerRef);
@@ -122,7 +123,7 @@ namespace Main.Scripts.Levels.Missions
         private void OnMissionFailed()
         {
             var levelResults = new Dictionary<UserId, LevelResultsData>();
-            foreach (var playerRef in playersHolder.GetKeys())
+            foreach (var playerRef in playersHolder.GetKeys(false))
             {
                 levelResults.Add(roomManager.GetUserId(playerRef), new LevelResultsData
                 {
@@ -140,7 +141,7 @@ namespace Main.Scripts.Levels.Missions
                 placeTargetTask.OnTaskCheckChangedEvent.RemoveListener(OnFinishTaskStatus);
 
                 var levelResults = new Dictionary<UserId, LevelResultsData>();
-                foreach (var playerRef in playersHolder.GetKeys())
+                foreach (var playerRef in playersHolder.GetKeys(false))
                 {
                     levelResults.Add(roomManager.GetUserId(playerRef), new LevelResultsData
                     {

@@ -48,12 +48,15 @@ namespace Main.Scripts.Player
             cashedPlayerControllers.Remove(playerRef);
         }
 
-        public IEnumerable<PlayerRef> GetKeys()
+        public IEnumerable<PlayerRef> GetKeys(bool isValueContains = true)
         {
             var list = new List<PlayerRef>();
             foreach (var (playerRef, _) in playerObjects)
             {
-                list.Add(playerRef);
+                if (!isValueContains || Contains(playerRef))
+                {
+                    list.Add(playerRef);
+                }
             }
 
             return list;

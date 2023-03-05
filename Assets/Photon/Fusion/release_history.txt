@@ -1,3 +1,188 @@
+# 1.1.5
+
+## F2
+
+### Build 643 (Dec 01, 2022)
+
+**Bug Fixes**
+
+- Fixed: Issue in the resolution of lag-compensated sphere overlaps that could cause hits to be missed, introduced on build 1.1.5 F 624 and also present on build 640
+
+## F
+
+### Build 640 (Nov 30, 2022)
+
+**What's New**
+
+- StartGameResult.ErrorMessage
+- `NetworkArray<T>.GetRef(int)` - an extension method that returns a reference to a selected element. Limited to `unmanaged` types, throws `NotSupportedException` if the type is not trivially copyable (e.g. floats with non-zero accuracy, types using methods with `NetworkSerializeMethod` attribute for serialization)
+
+**Changes**
+
+- Photon Realtime SDK to v4.1.6.20
+- Expose MatchmakingMode via StartGameArgs
+
+**Bug Fixes**
+
+- Fixed: Missing Session Update on Player Enter/Left
+- Fixed: Update Session Properties on Host Migration
+- Fixed: ILWeaver now allows for `= default` initialization syntax for `[Networked]` properties of struct type
+- Fixed: ILWeaver depending on unpredictable order in which assemblies are post-processed
+- Fixed: Lag-compensated sphere overlaps against box-shaped hitboxes and box overlaps against sphere-shared hitboxes now correctly return the hit point and normal
+- Fixed: Inspecting `NetworkObject` altering values of fields holding initial values. Define `FUSION_DISABLE_NBEDITOR_PRESERVE_BACKING_FIELDS` to restore the old behaviour
+- Fixed: Unity stripping `ReadWriteUtilsForWeaver` methods used for interpolation when High code stripping level is selected
+- Fixed: Nested objects state memory not being released in some cases
+
+# 1.1.4
+
+## F
+
+### Build 609 (Nov 01, 2022)
+
+**Breaking Changes**
+
+- Restored `INetworkObjectPool.ReleaseInstance` being called when nested `NetworkObject` is despawned/destroyed explicitly (removed in 1.1.3 Nightly 586). The default pool implementation calls `UnityEngine.Object.Destroy` in such case. Custom pool implementation should check `NetworkObject.IsSpawnedPrefabRoot`/`NetworkObject.IsSpawnedPrefabNestedObject` properties to adjust its behaviour if despawning/destroying nested objects is used
+
+**What's New**
+
+- New `NetworkTransform` interpolation algorithm for Shared Mode, addressing known issues and limitations with the legacy one, which can still be used if configured like so in the NT behaviour
+
+**Bug Fixes**
+
+- Fixed: Issue with aoi after player leave sand rejoins on same slot
+
+# 1.1.3
+
+## F
+
+### Build 599 (Oct 18, 2022)
+
+- Releasing 1.1.3 Stable
+
+## Nightly
+
+### Build 597 (Oct 18, 2022)
+
+**Bug Fixes**
+
+- Fixed: Change Session Flags to same value breaks updates
+
+### Build 596 (Oct 14, 2022)
+
+**Bug Fixes**
+
+- Fixed: "Failed to get user type word count" weaver error when referencing types from other weaved asmdefs
+
+### Build 594 (Oct 12, 2022)
+
+**Changes**
+
+- Cloud Resend and Disconnect Timeout Settings
+
+### Build 593 (Oct 11, 2022)
+
+**Bug Fixes**
+
+- Fixed: Invalid cached NetAddress
+
+### Build 591 (Oct 07, 2022)
+
+**Changes**
+
+- Reuse NetworkID from Resume NO on Host Migration
+- NetworkObject.CopyStateFrom now also copy State from nested NetworkObjects
+
+**Bug Fixes**
+
+- Fixed: Memory Access Violation when releasing Envelopes
+
+### Build 590 (Oct 06, 2022)
+
+**Changes**
+
+- Implicit cast of PlayerRef to bool is now marked as obsolete, will be removed in next stable release
+
+**Bug Fixes**
+
+- Fixed: An issue where mixing reliable and unreliable RPCs could prevent RPCs from being handled at all for a client with poor network conditions
+
+### Build 589 (Oct 05, 2022)
+
+**What's New**
+
+- NetworkId/NetworkBId documentation snippets
+
+**Bug Fixes**
+
+- Fixed: `OrderBefore` and `OrderAfter` attributes being removed when High Managed Stripping Level is selected
+
+### Build 588 (Oct 04, 2022)
+
+**Changes**
+
+- Added `Serializable` attribute to `NetworkId`
+- PhotonCloud PlayerTTL set to 15sec
+
+**Bug Fixes**
+
+- Fixed: Unable to Update Session Properties
+
+### Build 586 (Sep 29, 2022)
+
+**Bug Fixes**
+
+- Fixed: SetPlayerObject after Host Migration
+- Fixed: Nested `NetworkObjects` in prefabs not being attached to in Shared mode
+- Fixed: Nested `NetworkObjects` not being detached when `NetworkRunner.Despawn` and custom `INetworkObjectPool` are used
+
+### Build 585 (Sep 28, 2022)
+
+**What's New**
+
+- NanoSockets for tvOS
+- `NetworkPosition` behaviour, streamlined version of `NetworkTransform` without interpolation logic or rotation synchronization
+
+**Changes**
+
+- Added null Runner check on `NetworkRigidbody2D.Rigidbody` Initializer
+
+### Build 584 (Sep 27, 2022)
+
+**Changes**
+
+- Null check on Rigidbody Initializer
+- Increased Join Message timeout to 15secs
+
+### Build 583 (Sep 24, 2022)
+
+**Bug Fixes**
+
+- Fixed: `NullReferenceException` when initializing a network object with a nested and disabled 2D or 3D `NetworkRigidbody`
+- Fixed: IndexOutOfBounds when removing NO from Interest List
+- Fixed: NO Destroy Assert Check
+
+### Build 582 (Sep 22, 2022)
+
+**What's New**
+
+- Lag Compensation `HitboxRoot` behaviours now have configuration flags exposed
+
+**Changes**
+
+- Force SessionInfo Update after joining Session
+
+**Bug Fixes**
+
+- Fixed: Mem Alloc when checking STUN Message
+
+### Build 581 (Sep 21, 2022)
+
+**What's New**
+
+- Fusion.Log.LogLevel
+- StartGameArgs.IsOpen
+- StartGameArgs.IsVisible
+
 # 1.1.2
 
 ## F

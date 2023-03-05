@@ -27,7 +27,7 @@ namespace Main.Scripts.Levels.Lobby
             uiScreenManager = FindObjectOfType<UIScreenManager>().ThrowWhenNull();
             if (HasStateAuthority)
             {
-                readyToStartTask.OnTaskCompleted.AddListener(OnAllPlayersReady);
+                readyToStartTask.OnTaskCheckChangedEvent.AddListener(OnReadyTargetStatusChanged);
             }
 
             playersHolder.OnChangedEvent.AddListener(OnPlayersHolderChanged);
@@ -44,7 +44,7 @@ namespace Main.Scripts.Levels.Lobby
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
             base.Despawned(runner, hasState);
-            readyToStartTask.OnTaskCompleted.RemoveListener(OnAllPlayersReady);
+            readyToStartTask.OnTaskCheckChangedEvent.RemoveListener(OnReadyTargetStatusChanged);
         }
 
         protected override void OnPlayerInitialized(PlayerRef playerRef)
@@ -107,9 +107,13 @@ namespace Main.Scripts.Levels.Lobby
             }
         }
 
-        private void OnAllPlayersReady()
+        private void OnReadyTargetStatusChanged(bool isChecked)
         {
-            roomManager.OnAllPlayersReady();
+            if (isChecked)
+            {
+                readyToStartTask.OnTaskCheckChangedEvent.RemoveListener(OnReadyTargetStatusChanged);
+                roomManager.OnAllPlayersReady();
+            }
         }
 
         private void OnPlayersHolderChanged()

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Player;
 using UnityEngine;
@@ -9,62 +10,81 @@ namespace Main.Scripts.Tasks
     {
         [SerializeField]
         private PlayersHolder playersHolder = default!;
-
-        public UnityEvent OnTaskCompleted = default!;
+        [SerializeField]
+        private LayerMask layerMask;
 
         [Networked, Capacity(16)]
         private NetworkDictionary<PlayerRef, bool> playersInPlace => default;
-
         [Networked]
-        private bool isCompleted { get; set; }
+        private bool isTargetChecked { get; set; }
 
-        public void OnTriggerEnter(Collider other)
+        public UnityEvent<bool> OnTaskCheckChangedEvent = default!;
+
+        private List<LagCompensatedHit> hits = new();
+        private Vector3 placeExtents;
+
+        public override void Spawned()
         {
-            if (isCompleted)
+            placeExtents = transform.localScale / 2;
+        }
+
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            OnTaskCheckChangedEvent.RemoveAllListeners();
+        }
+
+        public override void FixedUpdateNetwork()
+        {
+            Runner.LagCompensation.OverlapBox(
+                center: transform.position,
+                extents: placeExtents,
+                orientation: transform.rotation,
+                player: Object.StateAuthority,
+                hits: hits,
+                layerMask: layerMask
+            );
+
+            playersInPlace.Clear();
+            foreach (var hit in hits)
             {
-                return;
+                var playerController = hit.GameObject.GetComponent<PlayerController>();
+                if (playerController != null)
+                {
+                    playersInPlace.Add(playerController.Object.InputAuthority, true);
+                }
             }
 
-            if (other.gameObject.TryGetComponent<PlayerController>(out var enteredPlayer))
+            var hasAllAlivePlayersInPlace = false;
+            foreach (var playerRef in playersHolder.GetKeys())
             {
-                playersInPlace.Add(enteredPlayer.Object.InputAuthority, true);
-                var hasAnyAlivePlayerInPlace = false;
-                foreach (var playerRef in playersHolder.GetKeys())
+                if (!playersHolder.Contains(playerRef))
                 {
-                    var playerController = playersHolder.Get(playerRef);
-                    if (playerController.state != PlayerController.State.Dead)
-                    {
-                        if (!playersInPlace.ContainsKey(playerRef))
-                        {
-                            return;
-                        }
+                    continue;
+                }
 
-                        if (playersInPlace.ContainsKey(playerRef))
-                        {
-                            hasAnyAlivePlayerInPlace = true;
-                        }
+                var playerController = playersHolder.Get(playerRef);
+                if (playerController.state != PlayerController.State.Dead)
+                {
+                    if (!playersInPlace.ContainsKey(playerRef))
+                    {
+                        return;
+                    }
+
+                    if (playersInPlace.ContainsKey(playerRef))
+                    {
+                        hasAllAlivePlayersInPlace = true;
                     }
                 }
-
-                if (hasAnyAlivePlayerInPlace)
-                {
-                    CompleteTask();
-                }
             }
+
+            UpdateTaskStatus(hasAllAlivePlayersInPlace);
         }
 
-        public void OnTriggerExit(Collider other)
+        private void UpdateTaskStatus(bool isCompleted)
         {
-            if (other.gameObject.TryGetComponent<PlayerController>(out var enteredPlayer))
-            {
-                playersInPlace.Remove(enteredPlayer.Object.InputAuthority);
-            }
-        }
-
-        private void CompleteTask()
-        {
-            isCompleted = true;
-            OnTaskCompleted.Invoke();
+            if (isTargetChecked == isCompleted) return;
+            isTargetChecked = isCompleted;
+            OnTaskCheckChangedEvent.Invoke(isTargetChecked);
         }
     }
 }

@@ -31,14 +31,14 @@ namespace Main.Scripts.Levels.Missions
 
             if (HasStateAuthority)
             {
-                placeTargetTask.OnTaskCompleted.AddListener(OnPlaceTargetTaskCompleted);
+                placeTargetTask.OnTaskCheckChangedEvent.AddListener(OnFinishTaskStatus);
             }
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
             base.Despawned(runner, hasState);
-            placeTargetTask.OnTaskCompleted.RemoveListener(OnPlaceTargetTaskCompleted);
+            placeTargetTask.OnTaskCheckChangedEvent.RemoveListener(OnFinishTaskStatus);
         }
 
         public override void Render()
@@ -133,18 +133,23 @@ namespace Main.Scripts.Levels.Missions
             roomManager.OnLevelFinished(levelResults);
         }
 
-        private void OnPlaceTargetTaskCompleted()
+        private void OnFinishTaskStatus(bool isChecked)
         {
-            var levelResults = new Dictionary<UserId, LevelResultsData>();
-            foreach (var playerRef in playersHolder.GetKeys())
+            if (isChecked)
             {
-                levelResults.Add(roomManager.GetUserId(playerRef), new LevelResultsData
-                {
-                    IsSuccess = true
-                });
-            }
+                placeTargetTask.OnTaskCheckChangedEvent.RemoveListener(OnFinishTaskStatus);
 
-            roomManager.OnLevelFinished(levelResults);
+                var levelResults = new Dictionary<UserId, LevelResultsData>();
+                foreach (var playerRef in playersHolder.GetKeys())
+                {
+                    levelResults.Add(roomManager.GetUserId(playerRef), new LevelResultsData
+                    {
+                        IsSuccess = true
+                    });
+                }
+
+                roomManager.OnLevelFinished(levelResults);
+            }
         }
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 namespace Main.Scripts.UI.MainMenu
 {
     [RequireComponent(typeof(UIDocument))]
-    public class MainMenuView : MonoBehaviour
+    public class MainMenuWindow : MonoBehaviour
     {
         private UIDocument doc = default!;
         private TextField roomNameTextInput = default!;
@@ -13,10 +13,10 @@ namespace Main.Scripts.UI.MainMenu
         private Button createServerButton = default!;
         private Button connectClientButton = default!;
 
-        public EventCallback<ChangeEvent<string>> OnRoomNameChanged = default!;
-        public EventCallback<ChangeEvent<string>> OnUserIdChanged = default!;
-        public Action OnCreateServerClicked = default!;
-        public Action OnConnectClientClicked = default!;
+        public EventCallback<ChangeEvent<string>>? OnRoomNameChanged;
+        public EventCallback<ChangeEvent<string>>? OnUserIdChanged;
+        public Action? OnCreateServerClicked;
+        public Action? OnConnectClientClicked;
 
         private void Awake()
         {
@@ -27,10 +27,15 @@ namespace Main.Scripts.UI.MainMenu
             createServerButton = root.Q<Button>("CreateServerButton");
             connectClientButton = root.Q<Button>("ConnectClientButton");
 
-            roomNameTextInput.RegisterValueChangedCallback(OnRoomNameChanged);
-            UserIdTextInput.RegisterValueChangedCallback(OnUserIdChanged);
-            createServerButton.clicked += () => { OnCreateServerClicked(); };
-            connectClientButton.clicked += () => { OnConnectClientClicked(); };
+            roomNameTextInput.RegisterValueChangedCallback(changeEvent => { OnRoomNameChanged?.Invoke(changeEvent); });
+            UserIdTextInput.RegisterValueChangedCallback(changeEvent => { OnUserIdChanged?.Invoke(changeEvent); });
+            createServerButton.clicked += () => { OnCreateServerClicked?.Invoke(); };
+            connectClientButton.clicked += () => { OnConnectClientClicked?.Invoke(); };
+        }
+
+        public void SetVisibility(bool isVisible)
+        {
+            doc.rootVisualElement.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         public void Bind(string roomName, string playerName)

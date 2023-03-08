@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement style="margin-left: auto; margin-right: auto; margin-top: auto; margin-bottom: auto; background-color: rgba(0, 0, 0, 255); width: 200px; border-top-left-radius: 8px; border-bottom-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px;">
+        <ui:Label text="Connecting.." display-tooltip-when-elided="true" name="ConnectionStatusLabel" style="margin-left: auto; margin-right: auto; margin-top: 16px; margin-bottom: 16px; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; color: rgba(255, 255, 255, 255);" />
+        <ui:Button text="OK" display-tooltip-when-elided="true" name="ReturnButton" style="margin-left: 16px; margin-right: 16px; margin-top: 0; margin-bottom: 16px; padding-left: 8px; padding-right: 8px; padding-top: 8px; padding-bottom: 8px; display: none;" />
+    </ui:VisualElement>
+</ui:UXML>

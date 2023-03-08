@@ -102,7 +102,7 @@ namespace Main.Scripts.Connection
             SetConnectionStatus(ConnectionStatus.Disconnected, message);
         }
 
-        private void Release()
+        public void Release()
         {
             OnConnectionStatusChangedEvent.RemoveAllListeners();
             OnPlayerConnectedEvent.RemoveAllListeners();
@@ -162,11 +162,6 @@ namespace Main.Scripts.Connection
 
             CurrentConnectionStatus = status;
             OnConnectionStatusChangedEvent.Invoke(status);
-
-            if (CurrentConnectionStatus is ConnectionStatus.Disconnected or ConnectionStatus.Failed)
-            {
-                Release();
-            }
         }
 
         /*

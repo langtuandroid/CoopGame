@@ -205,7 +205,10 @@ namespace Main.Scripts.Player
             if (damage >= health)
             {
                 health = 0;
-                state = State.Dead;
+                if (HasStateAuthority)
+                {
+                    state = State.Dead;
+                }
             }
             else
             {

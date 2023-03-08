@@ -2,20 +2,24 @@ using Fusion;
 using Main.Scripts.Connection;
 using Main.Scripts.Player.Data;
 using Main.Scripts.Room.Transition;
+using Main.Scripts.UI.MainMenu.Status;
 using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Main.Scripts.UI.MainMenu
 {
-    [RequireComponent(typeof(MainMenuView))]
-    public class MainMenuPresenter : MonoBehaviour
+    public class MainMenuController : MonoBehaviour
     {
         [SerializeField]
         private SessionManager sessionManagerPrefab = default!;
+        [SerializeField]
+        private MainMenuWindow mainMenuWindow = default!;
+        [SerializeField]
+        private ConnectionStatusWindow connectionStatusWindow = default!;
+
         private SessionManager? sessionManager;
         private LevelTransitionManager levelTransitionManager = default!;
-        private MainMenuView view = default!;
 
         private string roomName = "Room";
         private string userId = "Player";
@@ -23,16 +27,27 @@ namespace Main.Scripts.UI.MainMenu
         private void Awake()
         {
             levelTransitionManager = FindObjectOfType<LevelTransitionManager>().ThrowWhenNull();
-            view = GetComponent<MainMenuView>();
-            view.OnRoomNameChanged = OnRoomNameChanged;
-            view.OnUserIdChanged = OnUserIdChanged;
-            view.OnCreateServerClicked = OnCreateServerClicked;
-            view.OnConnectClientClicked = OnConnectClientClicked;
+            sessionManager = FindObjectOfType<SessionManager>();
         }
 
         private void Start()
         {
-            view.Bind(roomName, userId);
+            mainMenuWindow.OnRoomNameChanged = OnRoomNameChanged;
+            mainMenuWindow.OnUserIdChanged = OnUserIdChanged;
+            mainMenuWindow.OnCreateServerClicked = OnCreateServerClicked;
+            mainMenuWindow.OnConnectClientClicked = OnConnectClientClicked;
+
+            connectionStatusWindow.SetVisibility(false);
+            connectionStatusWindow.OnReturnButtonClicked = OnReturnButtonClicked;
+
+            mainMenuWindow.Bind(roomName, userId);
+
+            if (sessionManager != null)
+            {
+                OnConnectionStatusChanged(sessionManager.CurrentConnectionStatus);
+                sessionManager.Release();
+                sessionManager = null;
+            }
         }
 
         private void OnRoomNameChanged(ChangeEvent<string> evt)
@@ -60,6 +75,7 @@ namespace Main.Scripts.UI.MainMenu
             if (sessionManager == null)
             {
                 sessionManager = Instantiate(sessionManagerPrefab);
+                sessionManager.OnConnectionStatusChangedEvent.AddListener(OnConnectionStatusChanged);
             }
 
             sessionManager.LaunchSession(
@@ -68,6 +84,19 @@ namespace Main.Scripts.UI.MainMenu
                 userId: new UserId(userId),
                 sceneManager: levelTransitionManager
             );
+        }
+
+        private void OnConnectionStatusChanged(ConnectionStatus status)
+        {
+            mainMenuWindow.SetVisibility(false);
+            connectionStatusWindow.SetVisibility(true);
+            connectionStatusWindow.SetStatus(status);
+        }
+
+        private void OnReturnButtonClicked()
+        {
+            connectionStatusWindow.SetVisibility(false);
+            mainMenuWindow.SetVisibility(true);
         }
     }
 }

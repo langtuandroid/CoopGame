@@ -3,18 +3,18 @@ using Fusion;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Main.Scripts.FusionHelpers
+namespace Main.Scripts.Connection
 {
 	/// <summary>
 	/// Pool of all free instances of a single type of NetworkObject's
 	/// </summary>
 	public class FusionObjectPool
 	{
-		private List<NetworkObject> _free = new List<NetworkObject>();
+		private List<NetworkObject> _free = new();
 
-		public NetworkObject GetFromPool(Vector3 p, Quaternion q, Transform parent = null)
+		public NetworkObject? GetFromPool(Vector3 p, Quaternion q, Transform? parent = null)
 		{
-			NetworkObject newt = null;
+			NetworkObject? newt = null;
 
 			while (_free.Count > 0 && newt==null)
 			{

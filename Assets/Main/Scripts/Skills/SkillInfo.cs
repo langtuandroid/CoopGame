@@ -8,9 +8,9 @@ namespace Main.Scripts.Skills
         [SerializeField]
         private SkillType type;
         [SerializeField]
-        private string title;
+        private string title = default!;
         [SerializeField]
-        private string description;
+        private string description = default!;
         [SerializeField]
         private int maxLevel;
         

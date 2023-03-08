@@ -6,14 +6,15 @@ namespace Main.Scripts.Utils
 {
     public class DebugHelper : MonoBehaviour
     {
-        private static DebugHelper instance;
+        private static DebugHelper? instance;
 
         [SerializeField]
-        private Material transparentMaterial;
-        private Dictionary<Object, float> drawingObjects = new Dictionary<Object, float>();
+        private Material transparentMaterial = default!;
+        private Dictionary<Object, float> drawingObjects = new();
         
         public static void DrawSphere(Vector3 position, float radius, Color color, float destroyDelay = 3f)
         {
+            instance.ThrowWhenNull();
             var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             sphere.transform.position = position;
             sphere.transform.localScale *= radius * 2f;
@@ -45,6 +46,11 @@ namespace Main.Scripts.Utils
                     drawingObjects.Remove(debugGizmo.Key);
                 }
             }
+        }
+
+        private void OnDestroy()
+        {
+            instance = null;
         }
     }
 }

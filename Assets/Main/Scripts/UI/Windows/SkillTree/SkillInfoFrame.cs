@@ -5,14 +5,14 @@ namespace Main.Scripts.UI.Windows.SkillTree
 {
     public class SkillInfoFrame
     {
-        private Label titleLabel;
-        private Label descriptionLabel;
-        private Label skillLevelLabel;
-        private Button increaseLevelButton;
-        private Button decreaseLevelButton;
+        private Label titleLabel = null!;
+        private Label descriptionLabel = null!;
+        private Label skillLevelLabel = null!;
+        private Button increaseLevelButton = null!;
+        private Button decreaseLevelButton = null!;
 
         private SkillType type;
-        private InteractionCallback callback;
+        private InteractionCallback callback = null!;
 
         private SkillInfoFrame() { }
 

@@ -7,7 +7,7 @@ namespace Main.Scripts.Weapon
     public class ActiveSkillManager : NetworkBehaviour
     {
         [SerializeField]
-        private ActiveSkillBase primarySkill;
+        private ActiveSkillBase primarySkill = default!;
 
         public bool ActivateSkill(ActiveSkillType skillType, PlayerRef owner)
         {

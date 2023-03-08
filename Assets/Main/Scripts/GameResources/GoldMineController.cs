@@ -9,7 +9,7 @@ namespace Main.Scripts.GameResources
         ObjectWithTakingDamage
     {
         [SerializeField]
-        private GameObject goldBar;
+        private GameObject goldBar = default!;
         [SerializeField] 
         private int maxHealth = 100;
         

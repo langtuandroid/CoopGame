@@ -12,7 +12,7 @@ namespace Main.Scripts.Player
         Vector3 _velocity;
 
         // camera target
-        Transform _target;
+        Transform? _target;
 
         // current camera distance
         private float distance = 20f;
@@ -20,22 +20,19 @@ namespace Main.Scripts.Player
         private float cameraStretch = 0.1f;
 
         [SerializeField]
-        Transform cam;
+        Transform cam = default!;
 
         [SerializeField]
         float runningSmoothTime = 0.95f;
 
         [SerializeField]
-        Transform dummyRig;
+        Transform dummyRig = default!;
 
         [SerializeField]
-        Transform dummyTarget;
+        Transform dummyTarget = default!;
 
-        private Camera camComponent;
+        private Camera camComponent = default!;
         private Vector3 cursorPosition;
-
-
-        public System.Func<int> getHealth;
 
         void Awake()
         {
@@ -49,7 +46,7 @@ namespace Main.Scripts.Player
 
         void UpdateCamera(bool allowSmoothing)
         {
-            if (_target)
+            if (_target != null)
             {
                 // Cursor.lockState = CursorLockMode.Confined;
                 Cursor.lockState = CursorLockMode.None;

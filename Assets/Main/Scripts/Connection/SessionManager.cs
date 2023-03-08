@@ -23,7 +23,6 @@ namespace Main.Scripts.Connection
         public UserId LocalUserId { get; private set; }
         public ConnectionStatus CurrentConnectionStatus { get; private set; }
 
-        [FormerlySerializedAs("OnConnectionStatusChanged")]
         public UnityEvent<ConnectionStatus> OnConnectionStatusChangedEvent = default!;
         public UnityEvent<PlayerRef> OnPlayerConnectedEvent = default!;
         public UnityEvent<PlayerRef> OnPlayerDisconnectedEvent = default!;

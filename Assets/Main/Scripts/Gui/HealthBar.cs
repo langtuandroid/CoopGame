@@ -6,10 +6,10 @@ namespace Main.Scripts.Gui
 {
     public class HealthBar : MonoBehaviour
     {
-        [FormerlySerializedAs("slider")] [SerializeField]
-        private Slider healthSlider;
-        [FormerlySerializedAs("text")] [SerializeField]
-        private Text healthText;
+        [SerializeField]
+        private Slider healthSlider = default!;
+        [SerializeField]
+        private Text healthText= default!;
 
         public void SetMaxHealth(int health)
         {

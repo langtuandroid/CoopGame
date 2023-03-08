@@ -5,6 +5,7 @@ using Main.Scripts.Player.Experience;
 using Main.Scripts.Skills;
 using Newtonsoft.Json.Linq;
 using Main.Scripts.Utils;
+using UnityEngine;
 
 namespace Main.Scripts.Player.Data
 {
@@ -39,7 +40,7 @@ namespace Main.Scripts.Player.Data
             playerData.Experience = jObject.Value<uint>(EXPERIENCE_KEY);
             playerData.MaxSkillPoints = jObject.Value<uint>(MAX_SKILL_POINTS_KEY);
             playerData.UsedSkillPoints = jObject.Value<uint>(USED_SKILL_POINTS_KEY);
-            var jSkillLevels = jObject.Value<JObject>(SKILL_LEVELS_KEY);
+            var jSkillLevels = jObject.Value<JObject>(SKILL_LEVELS_KEY).ThrowWhenNull();
             foreach (var skillType in Enum.GetValues(typeof(SkillType)).Cast<SkillType>())
             {
                 playerData.SkillLevels.Add(skillType, jSkillLevels.Value<uint>(skillType.GetKey()));
@@ -73,6 +74,15 @@ namespace Main.Scripts.Player.Data
         public override bool Equals(object obj)
         {
             return obj is PlayerData playerData && Equals(playerData);
+        }
+
+        public override int GetHashCode()
+        {
+            return Level.GetHashCode()
+                   ^ Experience.GetHashCode()
+                   ^ MaxSkillPoints.GetHashCode()
+                   ^ UsedSkillPoints.GetHashCode()
+                   ^ SkillLevels.GetHashCode();
         }
 
         public bool Equals(PlayerData other)

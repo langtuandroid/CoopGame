@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Fusion;
-using Main.Scripts.FusionHelpers;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -11,7 +10,7 @@ namespace Main.Scripts.Connection
 		private Dictionary<object, FusionObjectPool> _poolsByPrefab = new Dictionary<object, FusionObjectPool>();
 		private Dictionary<NetworkObject, FusionObjectPool> _poolsByInstance = new Dictionary<NetworkObject, FusionObjectPool>();
 
-		public FusionObjectPool GetPool<T>(T prefab) where T : NetworkObject
+		private FusionObjectPool GetPool<T>(T prefab) where T : NetworkObject
 		{
 			FusionObjectPool pool;
 			if (!_poolsByPrefab.TryGetValue(prefab, out pool))
@@ -28,8 +27,8 @@ namespace Main.Scripts.Connection
 			NetworkObject prefab;
 			if (NetworkProjectConfig.Global.PrefabTable.TryGetPrefab(info.Prefab, out prefab))
 			{
-				FusionObjectPool pool = GetPool(prefab);
-				NetworkObject newt = pool.GetFromPool(Vector3.zero, Quaternion.identity);
+				var pool = GetPool(prefab);
+				var newt = pool.GetFromPool(Vector3.zero, Quaternion.identity);
 
 				if (newt == null)
 				{

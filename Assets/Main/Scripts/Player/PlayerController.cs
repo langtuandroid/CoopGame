@@ -63,6 +63,7 @@ namespace Main.Scripts.Player
             networkRigidbody = GetComponent<NetworkRigidbody>();
             collider = GetComponent<Collider>();
             animator = GetComponent<Animator>();
+            activeSkillManager.OnActiveSkillStateChangedEvent.AddListener(OnActiveSkillStateChanged);
         }
 
         public override void Spawned()
@@ -170,11 +171,62 @@ namespace Main.Scripts.Player
             return true;
         }
 
-        public void ActivateSkill(ActiveSkillType activeSkillType)
+        public void ActivateSkill(ActiveSkillType type)
         {
-            if (activeSkillManager.ActivateSkill(activeSkillType, Object.InputAuthority))
+            switch (activeSkillManager.CurrentSkillState)
             {
-                animator.SetTrigger(ATTACK_ANIM);
+                case ActiveSkillState.NotAttacking:
+                    activeSkillManager.ActivateSkill(type);
+                    break;
+                case ActiveSkillState.WaitingForPoint:
+                case ActiveSkillState.WaitingForTarget:
+                    activeSkillManager.CancelCurrentSKill();
+                    break;
+            }
+        }
+
+        public void OnPrimaryButtonClicked()
+        {
+            switch (activeSkillManager.CurrentSkillState)
+            {
+                case ActiveSkillState.WaitingForPoint:
+                case ActiveSkillState.WaitingForTarget:
+                    activeSkillManager.ExecuteCurrentSkill();
+                    break;
+                case ActiveSkillState.NotAttacking:
+                    ActivateSkill(ActiveSkillType.Primary);
+                    break;
+                case ActiveSkillState.Attacking:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public void ApplyMapTargetPosition(Vector2 position)
+        {
+            activeSkillManager.ApplyTargetMapPosition(position);
+        }
+
+        private void OnActiveSkillStateChanged(ActiveSkillType type, ActiveSkillState state)
+        {
+            switch (state)
+            {
+                case ActiveSkillState.NotAttacking:
+                    break;
+                case ActiveSkillState.Attacking:
+                    animator.SetTrigger(ATTACK_ANIM);
+                    break;
+                case ActiveSkillState.WaitingForPoint:
+                    break;
+                case ActiveSkillState.WaitingForTarget:
+                    break;
+                case ActiveSkillState.Finished:
+                    break;
+                case ActiveSkillState.Canceled:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(state), state, null);
             }
         }
 

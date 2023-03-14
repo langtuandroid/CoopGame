@@ -142,7 +142,7 @@ namespace Main.Scripts.Enemies
 
         private void FireWeapon()
         {
-            if (activeSkillManager.ActivateSkill(ActiveSkillType.PRIMARY, Object.StateAuthority))
+            if (activeSkillManager.ActivateSkill(ActiveSkillType.Primary))
             {
                 animator.SetTrigger(ATTACK_ANIM);
             }
@@ -150,7 +150,7 @@ namespace Main.Scripts.Enemies
 
         private bool IsAttacking()
         {
-            return activeSkillManager.IsSkillRunning(ActiveSkillType.PRIMARY);
+            return activeSkillManager.CurrentSkillState == ActiveSkillState.Attacking;
         }
 
         public void ApplyDamage(int damage)

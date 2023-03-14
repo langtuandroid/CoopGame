@@ -38,8 +38,10 @@ namespace Main.Scripts.Player
         private NetworkInputData frameworkInput;
         private Vector2 moveDelta;
         private Vector2 aimDelta;
+        private Vector2 mouseOnMapPosition;
         private bool primaryFire;
         private bool secondaryFire;
+        private bool firstSkillPressed;
         private bool spawnEnemy;
         private bool spawnMine;
         private bool interact;
@@ -96,11 +98,13 @@ namespace Main.Scripts.Player
 
                 frameworkInput.aimDirection = aimDelta.normalized;
                 frameworkInput.moveDirection = moveDelta.normalized;
+                frameworkInput.mousePosition = mouseOnMapPosition;
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_FIRE_PRIMARY, primaryFire);
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_FIRE_SECONDARY, secondaryFire);
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_SPAWN_ENEMY, spawnEnemy);
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_SPAWN_MINE, spawnMine);
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_INTERACT, interact);
+                frameworkInput.Buttons.Set(NetworkInputData.BUTTON_CAST_SKILL_1, firstSkillPressed);
             }
 
             // Hand over the data to Fusion
@@ -117,6 +121,7 @@ namespace Main.Scripts.Player
             {
                 primaryFire = false;
                 secondaryFire = false;
+                firstSkillPressed = false;
                 spawnEnemy = false;
                 spawnMine = false;
                 interact = false;
@@ -129,6 +134,8 @@ namespace Main.Scripts.Player
             primaryFire = Input.GetMouseButton(0);
 
             secondaryFire = Input.GetMouseButton(1);
+
+            firstSkillPressed = Input.GetKey(KeyCode.Alpha1);
 
             spawnEnemy = Input.GetKey(KeyCode.T);
 
@@ -175,6 +182,7 @@ namespace Main.Scripts.Player
 
             Vector3 aimDirection = mouseCollisionPoint - playerController.transform.position;
             aimDelta = new Vector2(aimDirection.x, aimDirection.z);
+            mouseOnMapPosition = new Vector2(mouseCollisionPoint.x, mouseCollisionPoint.z);
         }
 
         /// <summary>
@@ -189,9 +197,16 @@ namespace Main.Scripts.Player
                 var releasedButtons = input.Buttons.GetReleased(ButtonsPrevious);
                 ButtonsPrevious = input.Buttons;
 
-                if (input.Buttons.IsSet(NetworkInputData.BUTTON_FIRE_PRIMARY))
+                playerController.ApplyMapTargetPosition(input.mousePosition);
+
+                if (pressedButtons.IsSet(NetworkInputData.BUTTON_FIRE_PRIMARY))
                 {
-                    playerController.ActivateSkill(ActiveSkillType.PRIMARY);
+                    playerController.OnPrimaryButtonClicked();
+                }
+
+                if (pressedButtons.IsSet(NetworkInputData.BUTTON_CAST_SKILL_1))
+                {
+                    playerController.ActivateSkill(ActiveSkillType.Skill1);
                 }
 
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_INTERACT))
@@ -251,9 +266,11 @@ namespace Main.Scripts.Player
         public const int BUTTON_SPAWN_ENEMY = 2;
         public const int BUTTON_SPAWN_MINE = 3;
         public const int BUTTON_INTERACT = 4;
+        public const int BUTTON_CAST_SKILL_1 = 5;
 
         public NetworkButtons Buttons;
         public Vector2 aimDirection;
         public Vector2 moveDirection;
+        public Vector2 mousePosition;
     }
 }

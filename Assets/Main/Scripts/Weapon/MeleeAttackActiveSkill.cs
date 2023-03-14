@@ -43,15 +43,11 @@ namespace Main.Scripts.Weapon
                 attackTimer = TickTimer.CreateFromSeconds(Runner, animationDurationSec);
                 isAttacked = false;
                 this.owner = owner;
+                OnSkillExecutedEvent.Invoke(this);
                 return true;
             }
 
             return false;
-        }
-
-        public override bool IsRunning()
-        {
-            return !attackTimer.ExpiredOrNotRunning(Runner);
         }
 
         public override void FixedUpdateNetwork()
@@ -96,6 +92,12 @@ namespace Main.Scripts.Weapon
                     var stunnableObject = hitObject.GetComponent<ObjectWithGettingStun>();
                     stunnableObject?.ApplyStun(stunDurationSec);
                 }
+            }
+            
+            if (attackTimer.Expired(Runner))
+            {
+                OnSkillFinishedEvent.Invoke(this);
+                attackTimer = default;
             }
         }
     }

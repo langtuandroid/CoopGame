@@ -3,7 +3,6 @@ using Fusion;
 using Main.Scripts.Connection;
 using Main.Scripts.Levels.Results;
 using Main.Scripts.Player.Data;
-using Main.Scripts.Room.Level;
 using Main.Scripts.Room.Transition;
 using Main.Scripts.Utils;
 using UnityEngine;
@@ -14,6 +13,8 @@ namespace Main.Scripts.Room
     public class RoomManager : NetworkBehaviour
     {
         public const ShutdownReason ShutdownReason_GameAlreadyRunning = (ShutdownReason)100;
+        
+        public static RoomManager? Instance { get; private set; }
 
         private SessionManager sessionManager = default!;
         private LevelTransitionManager levelTransitionManager = default!;
@@ -37,15 +38,23 @@ namespace Main.Scripts.Room
 
         public void Awake()
         {
-            sessionManager = FindObjectOfType<SessionManager>(true).ThrowWhenNull();
-            levelTransitionManager = FindObjectOfType<LevelTransitionManager>(true).ThrowWhenNull();
-            playerDataManager = FindObjectOfType<PlayerDataManager>().ThrowWhenNull();
+            Assert.Check(Instance == null);
+            Instance = this;
+        }
+
+        private void OnDestroy()
+        {
+            Instance = null;
         }
 
         public override void Spawned()
         {
             Debug.Log("RoomManager is spawned");
             DontDestroyOnLoad(this);
+            
+            sessionManager = SessionManager.Instance.ThrowWhenNull();
+            levelTransitionManager = LevelTransitionManager.Instance.ThrowWhenNull();
+            playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
 
             levelTransitionManager.OnSceneStateChangedEvent.AddListener(OnSceneStateChanged);
             sessionManager.OnPlayerConnectedEvent.AddListener(OnPlayerConnected);
@@ -193,7 +202,7 @@ namespace Main.Scripts.Room
             levelTransitionManager.LoadLevel(nextLevelIndex);
         }
 
-        [Rpc(RpcSources.All, RpcTargets.All)]
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
         private void RPC_InitPlayerData(PlayerRef playerRef, UserId userId, PlayerData playerData)
         {
             if (playersDataMap.ContainsKey(userId))
@@ -204,6 +213,10 @@ namespace Main.Scripts.Room
                     Runner.Disconnect(playerRef);
                     return;
                 }
+            } else if (levelTransitionManager.CurrentSceneState is SceneState.LEVEL)
+            {
+                Runner.Disconnect(playerRef);
+                return;
             }
 
             playerRefsMap.Set(userId, playerRef);

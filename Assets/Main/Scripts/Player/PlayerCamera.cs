@@ -1,13 +1,13 @@
+using Fusion;
 using Main.Scripts.Utils;
 using UnityEngine;
-using Plane = UnityEngine.Plane;
-using Quaternion = UnityEngine.Quaternion;
-using Vector3 = UnityEngine.Vector3;
 
 namespace Main.Scripts.Player
 {
     public class PlayerCamera : MonoBehaviour
     {
+        public static PlayerCamera? Instance { get; private set; } 
+        
         // damp velocity of camera
         Vector3 _velocity;
 
@@ -36,7 +36,14 @@ namespace Main.Scripts.Player
 
         void Awake()
         {
+            Assert.Check(Instance == null);
+            Instance = this;
             camComponent = cam.GetComponent<Camera>();
+        }
+
+        private void OnDestroy()
+        {
+            Instance = null;
         }
 
         void Update()

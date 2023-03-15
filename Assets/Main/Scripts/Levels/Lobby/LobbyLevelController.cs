@@ -23,8 +23,8 @@ namespace Main.Scripts.Levels.Lobby
         public override void Spawned()
         {
             base.Spawned();
-            playerCamera = FindObjectOfType<PlayerCamera>().ThrowWhenNull();
-            uiScreenManager = FindObjectOfType<UIScreenManager>().ThrowWhenNull();
+            playerCamera = PlayerCamera.Instance.ThrowWhenNull();
+            uiScreenManager = UIScreenManager.Instance.ThrowWhenNull();
             if (HasStateAuthority)
             {
                 readyToStartTask.OnTaskCheckChangedEvent.AddListener(OnReadyTargetStatusChanged);
@@ -125,6 +125,11 @@ namespace Main.Scripts.Levels.Lobby
 
         private void TryShowLevelResults(PlayerRef playerRef)
         {
+            if (!roomManager.IsPlayerInitialized(playerRef))
+            {
+                return;
+            }
+            
             var userId = roomManager.GetUserId(playerRef);
             if (roomManager.GetLevelResults(userId) != null)
             {

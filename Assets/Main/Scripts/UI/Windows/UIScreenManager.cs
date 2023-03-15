@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Fusion;
 using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.Events;
@@ -8,6 +9,8 @@ namespace Main.Scripts.UI.Windows
 {
     public class UIScreenManager : MonoBehaviour
     {
+        public static UIScreenManager? Instance { get; private set; }
+        
         private UIScreensHolder uiScreensHolder = default!;
 
         public ScreenType CurrentScreenType { get; private set; }
@@ -15,13 +18,21 @@ namespace Main.Scripts.UI.Windows
 
         private void Awake()
         {
-            uiScreensHolder = FindObjectOfType<UIScreensHolder>().ThrowWhenNull();
+            Assert.Check(Instance == null);
+            Instance = this;
+            
             CurrentScreenType = ScreenType.NONE;
+        }
+
+        private void Start()
+        {
+            uiScreensHolder = UIScreensHolder.Instance.ThrowWhenNull();
         }
 
         private void OnDestroy()
         {
             OnCurrentScreenChangedEvent.RemoveAllListeners();
+            Instance = null;
         }
 
         private void Update()

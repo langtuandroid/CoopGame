@@ -24,14 +24,11 @@ namespace Main.Scripts.UI.MainMenu
         private string roomName = "Room";
         private string userId = "Player";
 
-        private void Awake()
-        {
-            levelTransitionManager = FindObjectOfType<LevelTransitionManager>().ThrowWhenNull();
-            sessionManager = FindObjectOfType<SessionManager>();
-        }
-
         private void Start()
         {
+            levelTransitionManager = LevelTransitionManager.Instance.ThrowWhenNull();
+            sessionManager = SessionManager.Instance;
+
             mainMenuWindow.OnRoomNameChanged = OnRoomNameChanged;
             mainMenuWindow.OnUserIdChanged = OnUserIdChanged;
             mainMenuWindow.OnCreateServerClicked = OnCreateServerClicked;

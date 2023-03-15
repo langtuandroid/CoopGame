@@ -14,6 +14,8 @@ namespace Main.Scripts.Player.Data
 {
     public class PlayerDataManager : NetworkBehaviour
     {
+        public static PlayerDataManager? Instance { get; private set; }
+        
         private SkillInfoHolder skillInfoHolder = default!;
 
         public UserId LocalUserId { get; private set; }
@@ -22,12 +24,23 @@ namespace Main.Scripts.Player.Data
 
         public UnityEvent<UserId, PlayerData> OnPlayerDataChangedEvent = default!;
 
+        private void Awake()
+        {
+            Assert.Check(Instance == null);
+            Instance = this;
+        }
+
+        private void OnDestroy()
+        {
+            Instance = null;
+        }
+
         public override void Spawned()
         {
             Debug.Log("PlayerDataManager is spawned");
             DontDestroyOnLoad(this);
-            LocalUserId = FindObjectOfType<SessionManager>().ThrowWhenNull().LocalUserId;
-            skillInfoHolder = FindObjectOfType<SkillInfoHolder>().ThrowWhenNull();
+            LocalUserId = SessionManager.Instance.ThrowWhenNull().LocalUserId;
+            skillInfoHolder = SkillInfoHolder.Instance.ThrowWhenNull();
             LocalPlayerData = SaveLoadUtils.Load(LocalUserId.Id.Value);
         }
 

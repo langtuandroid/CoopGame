@@ -6,12 +6,13 @@ using Main.Scripts.Player.Data;
 using Main.Scripts.Room;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
 
 namespace Main.Scripts.Connection
 {
     public class SessionManager : MonoBehaviour, INetworkRunnerCallbacks
     {
+        public static SessionManager? Instance { get; private set; }
+        
         [SerializeField]
         private RoomManager roomManagerPrefab = default!;
         [SerializeField]
@@ -29,8 +30,16 @@ namespace Main.Scripts.Connection
 
         private void Awake()
         {
+            Assert.Check(Instance == null);
+            Instance = this;
+            
             runner = GetComponent<NetworkRunner>();
             pool = GetComponent<FusionObjectPoolRoot>();
+        }
+
+        private void OnDestroy()
+        {
+            Instance = null;
         }
 
         public async void LaunchSession(

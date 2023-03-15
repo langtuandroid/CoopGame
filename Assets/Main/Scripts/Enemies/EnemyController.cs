@@ -67,7 +67,7 @@ namespace Main.Scripts.Enemies
 
         public override void Spawned()
         {
-            enemiesHelper = FindObjectOfType<EnemiesHelper>().ThrowWhenNull();
+            enemiesHelper = EnemiesHelper.Instance.ThrowWhenNull();
         }
 
         public void ResetState()

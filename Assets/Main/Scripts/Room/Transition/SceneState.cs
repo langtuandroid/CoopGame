@@ -1,4 +1,4 @@
-namespace Main.Scripts.Room.Level
+namespace Main.Scripts.Room.Transition
 {
     public enum SceneState
     {

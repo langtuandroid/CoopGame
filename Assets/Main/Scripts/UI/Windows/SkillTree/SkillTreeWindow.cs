@@ -15,7 +15,7 @@ namespace Main.Scripts.UI.Windows.SkillTree
         {
             skillTreeViewContainer = new SkillTreeViewContainer(
                 doc: GetComponent<UIDocument>(),
-                skillInfoHolder: FindObjectOfType<SkillInfoHolder>().ThrowWhenNull()
+                skillInfoHolder: SkillInfoHolder.Instance.ThrowWhenNull()
             );
         }
 
@@ -24,7 +24,7 @@ namespace Main.Scripts.UI.Windows.SkillTree
             if (presenter == null)
             {
                 presenter = new SkillTreePresenterImpl(
-                    playerDataManager: FindObjectOfType<PlayerDataManager>().ThrowWhenNull(),
+                    playerDataManager: PlayerDataManager.Instance.ThrowWhenNull(),
                     view: this
                 );
 

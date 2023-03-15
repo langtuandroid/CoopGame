@@ -2,8 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Connection;
-using Main.Scripts.Player;
-using Main.Scripts.Room.Level;
 using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.Events;
@@ -14,6 +12,8 @@ namespace Main.Scripts.Room.Transition
     public class LevelTransitionManager : NetworkSceneManagerBase
     {
         private const int MIN_TIME_FOR_LOADING_SHOWING = 1;
+        
+        public static LevelTransitionManager? Instance { get; private set; }
 
         [SerializeField]
         private int mainMenuScene;
@@ -28,14 +28,26 @@ namespace Main.Scripts.Room.Transition
         private Scene activeScene => SceneManager.GetActiveScene();
         private float lastLoadingShowedTime;
 
+        public SceneState CurrentSceneState { get; private set; }
         public UnityEvent<SceneState> OnSceneStateChangedEvent = default!;
+
+        private void Awake()
+        {
+            Assert.Check(Instance == null);
+            Instance = this;
+        }
+
+        private void OnDestroy()
+        {
+            Instance = null;
+        }
 
         protected override void Initialize(NetworkRunner runner)
         {
             base.Initialize(runner);
             Debug.Log("Initialize");
 
-            sessionManager = FindObjectOfType<SessionManager>().ThrowWhenNull();
+            sessionManager = SessionManager.Instance.ThrowWhenNull();
             sessionManager.OnConnectionStatusChangedEvent.AddListener(OnConnectionStatusChanged);
         }
 
@@ -59,7 +71,7 @@ namespace Main.Scripts.Room.Transition
 
             if (Runner.IsServer)
             {
-                OnSceneStateChangedEvent.Invoke(SceneState.TRANSITION);
+                UpdateSceneState(SceneState.TRANSITION);
             }
 
             yield return null;
@@ -87,11 +99,6 @@ namespace Main.Scripts.Room.Transition
             // Delay one frame
             yield return null;
 
-            // Activate the next level
-            // _currentLevel = FindObjectOfType<LevelBehaviour>(); //todo active level
-            // if (_currentLevel != null)
-            //     _currentLevel.Activate();
-
             Debug.Log($"Switched Scene from {prevScene} to {newScene} - loaded {sceneObjects.Count} scene objects");
             finished(sceneObjects);
 
@@ -102,7 +109,7 @@ namespace Main.Scripts.Room.Transition
         {
             if (Runner.IsServer)
             {
-                OnSceneStateChangedEvent.Invoke(activeScene.buildIndex == lobby ? SceneState.LOBBY : SceneState.LEVEL);
+                UpdateSceneState(activeScene.buildIndex == lobby ? SceneState.LOBBY : SceneState.LEVEL);
             }
 
             Debug.Log($"Switched Scene from {prevScene} to {newScene}");
@@ -152,6 +159,12 @@ namespace Main.Scripts.Room.Transition
             }
 
             yield return SceneManager.UnloadSceneAsync(loadingScene);
+        }
+
+        private void UpdateSceneState(SceneState sceneState)
+        {
+            CurrentSceneState = sceneState;
+            OnSceneStateChangedEvent.Invoke(sceneState);
         }
     }
 }

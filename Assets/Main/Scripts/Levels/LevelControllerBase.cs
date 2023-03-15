@@ -11,7 +11,7 @@ namespace Main.Scripts.Levels
 
         public override void Spawned()
         {
-            roomManager = FindObjectOfType<RoomManager>().ThrowWhenNull();
+            roomManager = RoomManager.Instance.ThrowWhenNull();
             if (HasStateAuthority)
             {
                 var connectedPlayers = Runner.ActivePlayers;

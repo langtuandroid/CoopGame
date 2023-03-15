@@ -1,3 +1,4 @@
+using Fusion;
 using Main.Scripts.Player;
 using UnityEngine;
 
@@ -5,8 +6,21 @@ namespace Main.Scripts.Enemies
 {
     public class EnemiesHelper : MonoBehaviour
     {
+        public static EnemiesHelper? Instance { get; private set; }
+        
         [SerializeField]
         private PlayersHolder playersHolder = default!;
+
+        private void Awake()
+        {
+            Assert.Check(Instance == null);
+            Instance = this;
+        }
+
+        private void OnDestroy()
+        {
+            Instance = null;
+        }
 
         public Vector3? findPlayerTarget(Vector3 fromPosition)
         {

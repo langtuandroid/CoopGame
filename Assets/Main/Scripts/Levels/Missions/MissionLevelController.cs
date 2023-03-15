@@ -27,7 +27,7 @@ namespace Main.Scripts.Levels.Missions
         public override void Spawned()
         {
             base.Spawned();
-            playerCamera = FindObjectOfType<PlayerCamera>().ThrowWhenNull();
+            playerCamera = PlayerCamera.Instance.ThrowWhenNull();
 
             if (HasStateAuthority)
             {

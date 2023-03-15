@@ -1,4 +1,3 @@
-using System;
 using Fusion;
 using Main.Scripts.Player.Data;
 using Main.Scripts.Utils;
@@ -8,12 +7,16 @@ namespace Main.Scripts.UI.Windows.LevelResults
     public class LevelResultsPresenter : NetworkBehaviour, UIScreen
     {
         private LevelResultsView levelResultsView = default!;
-        private Lazy<PlayerDataManager> playerDataManagerLazy = new(() => FindObjectOfType<PlayerDataManager>().ThrowWhenNull());
-        private PlayerDataManager playerDataManager => playerDataManagerLazy.Value;
+        private PlayerDataManager playerDataManager = default!;
 
         private void Awake()
         {
             levelResultsView = GetComponent<LevelResultsView>();
+        }
+
+        public override void Spawned()
+        {
+            playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
         }
 
         public void Show()

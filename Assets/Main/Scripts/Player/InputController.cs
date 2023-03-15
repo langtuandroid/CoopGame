@@ -62,7 +62,7 @@ namespace Main.Scripts.Player
             if (Object.HasInputAuthority)
             {
                 Runner.AddCallbacks(this);
-                uiScreenManager = FindObjectOfType<UIScreenManager>();
+                uiScreenManager = UIScreenManager.Instance.ThrowWhenNull();
                 uiScreenManager.OnCurrentScreenChangedEvent.AddListener(OnCurrentWindowChanged);
             }
 

@@ -1,5 +1,6 @@
 using System;
 using Main.Scripts.Player.Data;
+using Main.Scripts.Player.Experience;
 using Main.Scripts.Skills;
 using UnityEngine.UIElements;
 
@@ -8,6 +9,8 @@ namespace Main.Scripts.UI.Windows.SkillTree
     public class SkillTreeViewContainer : SkillTreeContract.SkillTreeView, SkillInfoFrame.InteractionCallback
     {
         private UIDocument doc;
+        private Label playerLevelCountLabel;
+        private Label xpCountLabel;
         private Label skillPointsCountLabel;
         private SkillInfoFrame healthBoostSkill;
         private SkillInfoFrame damageBoostSkill;
@@ -25,6 +28,8 @@ namespace Main.Scripts.UI.Windows.SkillTree
             this.skillInfoHolder = skillInfoHolder;
             var root = doc.rootVisualElement;
             root.visible = false;
+            playerLevelCountLabel = root.Q<Label>("PlayerLevelCount");
+            xpCountLabel = root.Q<Label>("XpCount");
             var resetButton = root.Q<Button>("SkillResetButton");
             resetButton.clicked += () => { OnResetSkillPoints?.Invoke(); };
             skillPointsCountLabel = root.Q<Label>("SkillPointsCount");
@@ -43,6 +48,9 @@ namespace Main.Scripts.UI.Windows.SkillTree
 
         public void Bind(PlayerData playerData)
         {
+            playerLevelCountLabel.text = $"{playerData.Level}";
+            var experienceForNextLevel = ExperienceHelper.GetExperienceForNextLevel(playerData.Level);
+            xpCountLabel.text = $"{playerData.Experience}/{experienceForNextLevel}";
             skillPointsCountLabel.text = $"{playerData.GetAvailableSkillPoints()}/{playerData.MaxSkillPoints}";
             healthBoostSkill.Bind(
                 skillInfo: skillInfoHolder.GetSkillInfo(SkillType.HEALTH_BOOST_PASSIVE),

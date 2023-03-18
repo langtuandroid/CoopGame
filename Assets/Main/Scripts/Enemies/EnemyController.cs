@@ -1,8 +1,8 @@
 using Fusion;
 using Main.Scripts.Actions;
+using Main.Scripts.ActiveSkills;
 using Main.Scripts.Gui;
 using Main.Scripts.Utils;
-using Main.Scripts.Weapon;
 using UnityEngine;
 using UnityEngine.AI;
 

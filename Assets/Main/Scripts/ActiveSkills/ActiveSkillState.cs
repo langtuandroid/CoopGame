@@ -1,4 +1,4 @@
-﻿namespace Main.Scripts.Weapon
+﻿namespace Main.Scripts.ActiveSkills
 {
     public enum ActiveSkillState
     {

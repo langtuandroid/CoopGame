@@ -2,10 +2,10 @@ using System;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Interaction;
+using Main.Scripts.ActiveSkills;
 using Main.Scripts.Drop;
 using Main.Scripts.Gui;
 using Main.Scripts.UI.Gui;
-using Main.Scripts.Weapon;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UIElements;
@@ -17,7 +17,8 @@ namespace Main.Scripts.Player
     public class PlayerController : NetworkBehaviour,
         ObjectWithTakingDamage,
         ObjectWithPickUp,
-        Interactable
+        Interactable,
+        Movable
     {
         private static readonly int MOVE_X_ANIM = Animator.StringToHash("MoveX");
         private static readonly int MOVE_Z_ANIM = Animator.StringToHash("MoveZ");
@@ -110,13 +111,27 @@ namespace Main.Scripts.Player
             this.aimDirection = aimDirection;
         }
 
-        public void Move()
+        public Vector3 GetMovingDirection()
+        {
+            return new Vector3(moveDirection.x, 0, moveDirection.y);
+        }
+
+        public void Move(Vector3 velocity)
+        {
+            rigidbody.velocity = velocity;
+        }
+
+        public void ApplyDirections()
         {
             if (!isActivated)
                 return;
 
             transform.LookAt(transform.position + new Vector3(aimDirection.x, 0, aimDirection.y));
-            rigidbody.velocity = speed * new Vector3(moveDirection.x, 0, moveDirection.y);
+            
+            if (!activeSkillManager.IsCurrentSkillOverrideMove())
+            {
+                Move(speed * new Vector3(moveDirection.x, 0, moveDirection.y));
+            }
         }
 
         private static void OnStateChanged(Changed<PlayerController> changed)
@@ -180,7 +195,7 @@ namespace Main.Scripts.Player
                     break;
                 case ActiveSkillState.WaitingForPoint:
                 case ActiveSkillState.WaitingForTarget:
-                    activeSkillManager.CancelCurrentSKill();
+                    activeSkillManager.CancelCurrentSkill();
                     break;
             }
         }
@@ -196,10 +211,6 @@ namespace Main.Scripts.Player
                 case ActiveSkillState.NotAttacking:
                     ActivateSkill(ActiveSkillType.Primary);
                     break;
-                case ActiveSkillState.Attacking:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
             }
         }
 

@@ -22,6 +22,7 @@ GameObject:
   - component: {fileID: 2737533443050263691}
   - component: {fileID: 4736437783530052701}
   - component: {fileID: 254030382776569161}
+  - component: {fileID: 3178930080744932648}
   m_Layer: 7
   m_Name: PlayerPrefab
   m_TagString: Player
@@ -65,7 +66,6 @@ MonoBehaviour:
   healthBar: {fileID: 5077792976664443005}
   speed: 6
   _state: 0
-  _targetMapPosition: {x: 0, y: 0}
   OnPlayerStateChangedEvent:
     m_PersistentCalls:
       m_Calls: []
@@ -99,7 +99,7 @@ MonoBehaviour:
   - {fileID: -1649425730490502279}
   - {fileID: 2737533443050263691}
   - {fileID: 254030382776569161}
-  - {fileID: 7253950188173872386}
+  - {fileID: 3178930080744932648}
   SimulationBehaviours: []
 --- !u!114 &-5471419336138590985
 MonoBehaviour:
@@ -114,8 +114,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  primarySkill: {fileID: 113051478187426604}
-  skill_1: {fileID: -1649425730490502279}
+  primarySkill: {fileID: 3178930080744932648}
+  secondarySkill: {fileID: -1649425730490502279}
+  dashSkill: {fileID: 113051478187426604}
+  _CurrentSkillState: 0
+  OnActiveSkillStateChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!95 &6064875345208294012
 Animator:
   serializedVersion: 4
@@ -205,19 +210,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  OnSkillFinishEvent:
+  OnSkillExecutedEvent:
     m_PersistentCalls:
       m_Calls: []
-  attackDamage: 30
-  stunDurationSec: 0.5
-  originTransform: {fileID: 8004075537626908674}
-  attackDistance: 3
-  attackAngle: 120
-  layerMask:
-    serializedVersion: 2
-    m_Bits: 256
-  animationDurationSec: 1
-  attackDelaySec: 0.4
+  OnSkillFinishedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  distance: 4
+  speed: 20
+  dashMovableTargetObject: {fileID: 8004075537626908674}
 --- !u!114 &-1649425730490502279
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -231,10 +232,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  OnSkillFinishEvent:
+  OnSkillExecutedEvent:
     m_PersistentCalls:
       m_Calls: []
-  OnTargetSkillFinishEvent:
+  OnSkillFinishedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnWaitingForPointEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSkillCanceledEvent:
     m_PersistentCalls:
       m_Calls: []
   mineGold: {fileID: 6309509993528129561, guid: 2988b96900ecba849878929955d66bf7, type: 3}
@@ -312,6 +319,35 @@ MonoBehaviour:
   layerMask:
     serializedVersion: 2
     m_Bits: 640
+--- !u!114 &3178930080744932648
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2736757121921172608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0c259395140402f8bf2285109b98131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 0
+  OnSkillExecutedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSkillFinishedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  attackDamage: 30
+  stunDurationSec: 0.5
+  originTransform: {fileID: 8004075537626908674}
+  attackDistance: 3
+  attackAngle: 120
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 256
+  animationDurationSec: 1
+  attackDelaySec: 0.4
 --- !u!1 &3417156228830845648
 GameObject:
   m_ObjectHideFlags: 0
@@ -678,37 +714,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0a64b44e5682e434eae5040dfb787d72, type: 3}
---- !u!1 &8008659934253040898 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 0a64b44e5682e434eae5040dfb787d72, type: 3}
-  m_PrefabInstance: {fileID: 7198177268915730515}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &7253950188173872386
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8008659934253040898}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f402864887d540e9a0de95e207de6f2d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  OnSkillFinishEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  attackDamage: 30
-  stunDurationSec: 0.5
-  originTransform: {fileID: 0}
-  attackDistance: 5
-  attackAngle: 90
-  layerMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  animationDurationSec: 1.267
-  attackDelaySec: 0.93
 --- !u!1001 &9201830240721576850
 PrefabInstance:
   m_ObjectHideFlags: 0

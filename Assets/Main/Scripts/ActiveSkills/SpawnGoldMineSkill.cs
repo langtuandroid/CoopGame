@@ -2,7 +2,7 @@
 using Main.Scripts.Utils;
 using UnityEngine;
 
-namespace Main.Scripts.Weapon
+namespace Main.Scripts.ActiveSkills
 {
     public class SpawnGoldMineSkill : ActivePointSkillBase
     {
@@ -31,6 +31,11 @@ namespace Main.Scripts.Weapon
             OnWaitingForPointEvent.Invoke(this);
             isActivated = true;
             return true;
+        }
+
+        public override bool IsOverrideMove()
+        {
+            return false;
         }
 
         public override void ApplyTargetPosition(Vector2 position)

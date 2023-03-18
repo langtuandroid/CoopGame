@@ -1,9 +1,10 @@
-namespace Main.Scripts.Weapon
+namespace Main.Scripts.ActiveSkills
 {
     public enum ActiveSkillType
     {
         None,
         Primary,
-        Skill1
+        SecondarySkill,
+        Dash
     }
 }

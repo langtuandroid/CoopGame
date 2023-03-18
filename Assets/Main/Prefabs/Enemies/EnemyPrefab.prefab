@@ -14,11 +14,11 @@ GameObject:
   - component: {fileID: 1324006215410747384}
   - component: {fileID: 8994940609841448472}
   - component: {fileID: 7982089108220398672}
-  - component: {fileID: 782170017235198935}
   - component: {fileID: 3473994687292452832}
   - component: {fileID: 6982114154254946840}
   - component: {fileID: 1870479772353028648}
   - component: {fileID: 8747675781320779502}
+  - component: {fileID: 7879817750835459690}
   m_Layer: 8
   m_Name: EnemyPrefab
   m_TagString: Untagged
@@ -55,8 +55,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e0b4e8cc6074d5ca606a7103a061a7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  WordOffset: 0
-  WordCount: 0
   _interpolationDataSource: 0
   activeSkillManager: {fileID: 7982089108220398672}
   healthBar: {fileID: 8069440124118303122}
@@ -88,8 +86,8 @@ MonoBehaviour:
   - {fileID: 8977078318047038321}
   - {fileID: 1324006215410747384}
   - {fileID: 7982089108220398672}
-  - {fileID: 782170017235198935}
   - {fileID: 1870479772353028648}
+  - {fileID: 7879817750835459690}
   SimulationBehaviours: []
 --- !u!114 &1324006215410747384
 MonoBehaviour:
@@ -103,9 +101,8 @@ MonoBehaviour:
   m_Script: {fileID: 1039544458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  WordOffset: 0
-  WordCount: 0
   _interpolationDataSource: 0
+  Config: 1
   BroadRadius: 1
   Offset: {x: 0, y: 0, z: 0}
   GizmosColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
@@ -141,35 +138,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a14aa7c64d27c54f832630758cebbb5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  WordOffset: 0
-  WordCount: 0
   _interpolationDataSource: 0
-  primarySkill: {fileID: 782170017235198935}
---- !u!114 &782170017235198935
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2736757121921172608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f402864887d540e9a0de95e207de6f2d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  WordOffset: 0
-  WordCount: 0
-  _interpolationDataSource: 0
-  attackDamage: 5
-  stunDurationSec: 0
-  originTransform: {fileID: 8004075537626908674}
-  attackDistance: 3
-  attackAngle: 120
-  layerMask:
-    serializedVersion: 2
-    m_Bits: 128
-  animationDurationSec: 1
-  attackDelaySec: 0.4
+  primarySkill: {fileID: 7879817750835459690}
+  secondarySkill: {fileID: 0}
+  dashSkill: {fileID: 0}
+  _CurrentSkillState: 0
+  OnActiveSkillStateChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!135 &3473994687292452832
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -211,8 +187,6 @@ MonoBehaviour:
   m_Script: {fileID: 1710889294, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  WordOffset: 0
-  WordCount: 0
   _interpolationDataSource: 2
   InterpolationSpace: 0
   InterpolationTarget: {fileID: 8663182565266769017}
@@ -227,6 +201,8 @@ MonoBehaviour:
     RotBlendStart: 0.1
     RotBlendEnd: 0.5
     RotTeleportRadians: 1.5
+  UseLegacySharedModeInterpolation: 0
+  TargetInterpolationDelay: 0.03
 --- !u!95 &8747675781320779502
 Animator:
   serializedVersion: 4
@@ -247,6 +223,35 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &7879817750835459690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2736757121921172608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0c259395140402f8bf2285109b98131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 0
+  OnSkillExecutedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSkillFinishedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  attackDamage: 5
+  stunDurationSec: 0.5
+  originTransform: {fileID: 8004075537626908674}
+  attackDistance: 3
+  attackAngle: 120
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 128
+  animationDurationSec: 1
+  attackDelaySec: 0.4
 --- !u!1 &5839203437913665313
 GameObject:
   m_ObjectHideFlags: 0

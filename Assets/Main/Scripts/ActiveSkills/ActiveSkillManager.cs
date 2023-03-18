@@ -4,14 +4,18 @@ using Fusion;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Main.Scripts.Weapon
+namespace Main.Scripts.ActiveSkills
 {
     public class ActiveSkillManager : NetworkBehaviour
     {
         [SerializeField]
         private ActiveSkillBase primarySkill = default!;
         [SerializeField]
-        private ActivePointSkillBase skill_1 = default!;
+        private ActiveSkillBase secondarySkill = default!;
+        [SerializeField]
+        private ActiveSkillBase dashSkill = default!;
+
+        [HideInInspector]
         [Networked] 
         public ActiveSkillState CurrentSkillState { get; private set; }
         [Networked]
@@ -19,6 +23,7 @@ namespace Main.Scripts.Weapon
         [Networked]
         private Vector2 targetMapPosition { get; set; }
 
+        [HideInInspector]
         public UnityEvent<ActiveSkillType, ActiveSkillState> OnActiveSkillStateChangedEvent = default!;
 
         public override void Spawned()
@@ -95,7 +100,7 @@ namespace Main.Scripts.Weapon
             pointSkill.Execute();
         }
 
-        public void CancelCurrentSKill()
+        public void CancelCurrentSkill()
         {
             var skill = getSkillByType(currentSkillType);
             if (skill == null
@@ -119,6 +124,11 @@ namespace Main.Scripts.Weapon
                 return;
             }
             pointSkill.ApplyTargetPosition(targetMapPosition);
+        }
+
+        public bool IsCurrentSkillOverrideMove()
+        {
+            return getSkillByType(currentSkillType)?.IsOverrideMove() ?? false;
         }
 
         private void UpdateSkillState(ActiveSkillState skillState)
@@ -154,15 +164,14 @@ namespace Main.Scripts.Weapon
 
         private ActiveSkillBase? getSkillByType(ActiveSkillType skillType)
         {
-            switch (skillType)
+            return skillType switch
             {
-                case ActiveSkillType.Primary:
-                    return primarySkill;
-                case ActiveSkillType.Skill1:
-                    return skill_1;
-                default:
-                    return null;
-            }
+                ActiveSkillType.Primary => primarySkill,
+                ActiveSkillType.SecondarySkill => secondarySkill,
+                ActiveSkillType.Dash => dashSkill,
+                ActiveSkillType.None => null,
+                _ => throw new ArgumentOutOfRangeException(nameof(skillType), skillType, null)
+            };
         }
     }
 }

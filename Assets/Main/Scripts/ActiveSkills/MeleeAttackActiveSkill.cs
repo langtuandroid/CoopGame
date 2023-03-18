@@ -3,7 +3,7 @@ using Fusion;
 using Main.Scripts.Actions;
 using UnityEngine;
 
-namespace Main.Scripts.Weapon
+namespace Main.Scripts.ActiveSkills
 {
     public class MeleeAttackActiveSkill : ActiveSkillBase
     {
@@ -47,6 +47,11 @@ namespace Main.Scripts.Weapon
                 return true;
             }
 
+            return false;
+        }
+
+        public override bool IsOverrideMove()
+        {
             return false;
         }
 

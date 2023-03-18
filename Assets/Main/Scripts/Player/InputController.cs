@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using Fusion;
 using Fusion.Sockets;
+using Main.Scripts.ActiveSkills;
 using Main.Scripts.Enemies;
 using Main.Scripts.Player.Interaction;
 using Main.Scripts.UI.Windows;
 using Main.Scripts.Utils;
-using Main.Scripts.Weapon;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -42,6 +42,7 @@ namespace Main.Scripts.Player
         private bool primaryFire;
         private bool secondaryFire;
         private bool firstSkillPressed;
+        private bool dashSkillPressed;
         private bool spawnEnemy;
         private bool spawnMine;
         private bool interact;
@@ -104,7 +105,8 @@ namespace Main.Scripts.Player
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_SPAWN_ENEMY, spawnEnemy);
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_SPAWN_MINE, spawnMine);
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_INTERACT, interact);
-                frameworkInput.Buttons.Set(NetworkInputData.BUTTON_CAST_SKILL_1, firstSkillPressed);
+                frameworkInput.Buttons.Set(NetworkInputData.BUTTON_CAST_FIRST_SKILL, firstSkillPressed);
+                frameworkInput.Buttons.Set(NetworkInputData.BUTTON_CAST_DASH_SKILL, dashSkillPressed);
             }
 
             // Hand over the data to Fusion
@@ -122,6 +124,7 @@ namespace Main.Scripts.Player
                 primaryFire = false;
                 secondaryFire = false;
                 firstSkillPressed = false;
+                dashSkillPressed = false;
                 spawnEnemy = false;
                 spawnMine = false;
                 interact = false;
@@ -136,6 +139,8 @@ namespace Main.Scripts.Player
             secondaryFire = Input.GetMouseButton(1);
 
             firstSkillPressed = Input.GetKey(KeyCode.Alpha1);
+
+            dashSkillPressed = Input.GetKey(KeyCode.LeftShift);
 
             spawnEnemy = Input.GetKey(KeyCode.T);
 
@@ -204,9 +209,14 @@ namespace Main.Scripts.Player
                     playerController.OnPrimaryButtonClicked();
                 }
 
-                if (pressedButtons.IsSet(NetworkInputData.BUTTON_CAST_SKILL_1))
+                if (pressedButtons.IsSet(NetworkInputData.BUTTON_CAST_FIRST_SKILL))
                 {
-                    playerController.ActivateSkill(ActiveSkillType.Skill1);
+                    playerController.ActivateSkill(ActiveSkillType.SecondarySkill);
+                }
+
+                if (pressedButtons.IsSet(NetworkInputData.BUTTON_CAST_DASH_SKILL))
+                {
+                    playerController.ActivateSkill(ActiveSkillType.Dash);
                 }
 
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_INTERACT))
@@ -231,7 +241,7 @@ namespace Main.Scripts.Player
                 playerController.SetDirections(input.moveDirection.normalized, input.aimDirection.normalized);
             }
 
-            playerController.Move();
+            playerController.ApplyDirections();
         }
 
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
@@ -266,7 +276,8 @@ namespace Main.Scripts.Player
         public const int BUTTON_SPAWN_ENEMY = 2;
         public const int BUTTON_SPAWN_MINE = 3;
         public const int BUTTON_INTERACT = 4;
-        public const int BUTTON_CAST_SKILL_1 = 5;
+        public const int BUTTON_CAST_FIRST_SKILL = 5;
+        public const int BUTTON_CAST_DASH_SKILL = 6;
 
         public NetworkButtons Buttons;
         public Vector2 aimDirection;

@@ -1,0 +1,39 @@
+.unity-text-element {
+    margin: 0;
+    padding: 0;
+}
+
+.unity-label {
+    margin: 0;
+    padding: 0;
+}
+
+
+.unity-base-field {
+    flex-direction: row;
+    margin: 0;
+    padding: 0;
+    height: 32;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.unity-base-field__label {
+    padding-left: 4;
+    padding-right: 4;
+    -unity-text-align: middle-left;
+}
+
+.unity-base-field__input {
+    padding: 0;
+    margin: 0;
+    padding-left: 4;
+    padding-right: 4;
+}
+
+.unity-button {
+    height: 32;
+    padding-left: 4;
+    padding-right: 4;
+    -unity-text-align: middle-center;
+}

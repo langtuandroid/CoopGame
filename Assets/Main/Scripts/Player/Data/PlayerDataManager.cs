@@ -101,8 +101,11 @@ namespace Main.Scripts.Player.Data
 
                 playerData.MaxSkillPoints = ExperienceHelper.GetMaxSkillPointsByLevel(playerData.Level);
             }
+            else
+            {
+                playerData.Experience += awardsData.Experience;
+            }
 
-            playerData.Experience += awardsData.Experience;
             UpdatePlayerData(playerData);
         }
 

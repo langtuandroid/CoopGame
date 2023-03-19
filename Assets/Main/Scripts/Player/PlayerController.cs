@@ -108,7 +108,7 @@ namespace Main.Scripts.Player
         public override void FixedUpdateNetwork()
         {
             AnimatePlayer();
-            passiveSkillsManager.ApplyModifiers(Runner.Tick.Raw, Runner.Config.Simulation.TickRate);
+            passiveSkillsManager.HandleEffects(Runner.Tick.Raw, Runner.Config.Simulation.TickRate);
         }
 
         public void SetDirections(Vector2 moveDirection, Vector2 aimDirection)

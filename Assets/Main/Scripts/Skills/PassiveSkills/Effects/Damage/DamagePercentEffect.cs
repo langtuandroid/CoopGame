@@ -1,10 +1,10 @@
 using Main.Scripts.Actions;
 using UnityEngine;
 
-namespace Main.Scripts.Skills.PassiveSkills.Modifiers
+namespace Main.Scripts.Skills.PassiveSkills.Effects.Damage
 {
-    [CreateAssetMenu(fileName = "DamagePercentModifier", menuName = "Scriptable/DamagePercentModifier")]
-    public class DamagePercentModifier : BaseModifier, DamageableModifier
+    [CreateAssetMenu(fileName = "DamagePercentEffect", menuName = "Scriptable/DamagePercentEffect")]
+    public class DamagePercentEffect : BaseEffect, DamageEffect
     {
         [SerializeField]
         [Min(0f)]

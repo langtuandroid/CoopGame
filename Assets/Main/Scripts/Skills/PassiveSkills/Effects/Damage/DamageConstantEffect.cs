@@ -1,10 +1,10 @@
 using Main.Scripts.Actions;
 using UnityEngine;
 
-namespace Main.Scripts.Skills.PassiveSkills.Modifiers
+namespace Main.Scripts.Skills.PassiveSkills.Effects.Damage
 {
-    [CreateAssetMenu(fileName = "DamageConstantModifier", menuName = "Scriptable/DamageConstantModifier")]
-    public class DamageConstantModifier : BaseModifier, DamageableModifier
+    [CreateAssetMenu(fileName = "DamageConstantEffect", menuName = "Scriptable/DamageConstantEffect")]
+    public class DamageConstantEffect : BaseEffect, DamageEffect
     {
         [SerializeField]
         private uint damage;

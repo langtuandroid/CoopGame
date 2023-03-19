@@ -364,6 +364,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   passiveSkills:
   - {fileID: 11400000, guid: b355d359aee0bb74ca3b5900c70e6021, type: 2}
+  targetObject: {fileID: 2736757121921172608}
 --- !u!1 &3417156228830845648
 GameObject:
   m_ObjectHideFlags: 0

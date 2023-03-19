@@ -10,6 +10,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5811189668274e24acf3d75bbcd5afbe, type: 3}
-  m_Name: DamagePercentModifier
+  m_Name: DamagePercentEffect
   m_EditorClassIdentifier: 
   maxHealthMultiplierDamage: 0

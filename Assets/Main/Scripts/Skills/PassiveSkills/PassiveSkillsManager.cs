@@ -1,6 +1,5 @@
 using System.Collections.Generic;
-using Main.Scripts.Actions;
-using Main.Scripts.Skills.PassiveSkills.Modifiers;
+using Main.Scripts.Skills.PassiveSkills.Effects.Handlers;
 using UnityEngine;
 
 namespace Main.Scripts.Skills.PassiveSkills
@@ -9,42 +8,35 @@ namespace Main.Scripts.Skills.PassiveSkills
     {
         [SerializeField]
         private List<PassiveSkill> passiveSkills = default!;
+        [SerializeField]
+        private GameObject targetObject = default!;
 
-        private Healable healableObject = default!;
-        private Damageable damageableObject = default!;
+        private List<EffectsHandler> effectsHandlers = new();
 
         private void Awake()
         {
-            healableObject = GetComponent<Healable>();
-            damageableObject = GetComponent<Damageable>();
-        }
+            effectsHandlers.Add(new HealEffectsHandler());
+            effectsHandlers.Add(new DamageEffectsHandler());
 
-        public void ApplyModifiers(int tick, int tickRate)
-        {
-            foreach (var passiveSkill in passiveSkills)
+            foreach (var effectsHandler in effectsHandlers)
             {
-                foreach (var passiveSkillModifier in passiveSkill.passiveSkillModifiers)
+                effectsHandler.TrySetTarget(targetObject);
+                foreach (var passiveSkill in passiveSkills)
                 {
-                    if (tick % (int)(tickRate / passiveSkillModifier.Frequency) != 0) continue;
-
-                    TryModifyHealable(passiveSkillModifier);
-                    TryModifyDamageable(passiveSkillModifier);
+                    foreach (var effect in passiveSkill.passiveSkillEffects)
+                    {
+                        effectsHandler.TryRegisterEffect(effect);
+                    }
                 }
             }
         }
 
-        private void TryModifyHealable(BaseModifier baseModifier)
+        public void HandleEffects(int tick, int tickRate)
         {
-            if (baseModifier is not HealModifier healModifier) return;
-
-            healModifier.ApplyHeal(healableObject);
-        }
-
-        private void TryModifyDamageable(BaseModifier baseModifier)
-        {
-            if (baseModifier is not DamageableModifier healModifier) return;
-
-            healModifier.ApplyDamage(damageableObject);
+            foreach (var effectsHandler in effectsHandlers)
+            {
+                effectsHandler.HandleEffects(tick, tickRate);
+            }
         }
     }
 }

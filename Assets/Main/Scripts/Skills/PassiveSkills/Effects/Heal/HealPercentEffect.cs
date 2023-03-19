@@ -1,10 +1,10 @@
 using Main.Scripts.Actions;
 using UnityEngine;
 
-namespace Main.Scripts.Skills.PassiveSkills.Modifiers
+namespace Main.Scripts.Skills.PassiveSkills.Effects.Heal
 {
-    [CreateAssetMenu(fileName = "HealPercentModifier", menuName = "Scriptable/HealPercentModifier")]
-    public class HealPercentModifier : BaseModifier, HealModifier
+    [CreateAssetMenu(fileName = "HealPercentEffect", menuName = "Scriptable/HealPercentEffect")]
+    public class HealPercentEffect : BaseEffect, HealEffect
     {
         [SerializeField]
         [Min(0f)]

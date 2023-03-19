@@ -1,7 +1,7 @@
 using Fusion;
 using UnityEngine.Events;
 
-namespace Main.Scripts.ActiveSkills
+namespace Main.Scripts.Skills.ActiveSkills
 {
     public abstract class ActiveSkillBase : NetworkBehaviour
     {

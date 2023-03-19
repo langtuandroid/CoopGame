@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Main.Scripts.Gui
@@ -11,14 +10,14 @@ namespace Main.Scripts.Gui
         [SerializeField]
         private Text healthText= default!;
 
-        public void SetMaxHealth(int health)
+        public void SetMaxHealth(uint health)
         {
             healthSlider.maxValue = health;
             healthSlider.value = health;
             healthText.text = healthSlider.value + " / " + healthSlider.maxValue;
         }
     
-        public void SetHealth(int health)
+        public void SetHealth(uint health)
         {
             healthSlider.value = health;
             healthText.text = healthSlider.value + " / " + healthSlider.maxValue;

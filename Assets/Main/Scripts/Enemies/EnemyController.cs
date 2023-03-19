@@ -1,17 +1,18 @@
 using Fusion;
 using Main.Scripts.Actions;
-using Main.Scripts.ActiveSkills;
 using Main.Scripts.Gui;
+using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Serialization;
 
 namespace Main.Scripts.Enemies
 {
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(Animator))]
     public class EnemyController : NetworkBehaviour,
-        ObjectWithTakingDamage,
+        Damageable,
         ObjectWithGettingKnockBack,
         ObjectWithGettingStun
     {
@@ -27,19 +28,20 @@ namespace Main.Scripts.Enemies
         private float knockBackDuration = 0.1f; //todo можно высчитать из knockBackForce и rigidbody.drag
         private float moveAcceleration = 50f;
 
+        [FormerlySerializedAs("activeSkillManager")]
         [SerializeField]
-        private ActiveSkillManager activeSkillManager = default!;
+        private ActiveSkillsManager activeSkillsManager = default!;
         [SerializeField]
         private HealthBar healthBar = default!;
         [SerializeField]
-        private int maxHealth = 100;
+        private uint maxHealth = 100;
         [SerializeField]
         private float speed = 5;
         [SerializeField]
         private float attackDistance = 3; //todo replace to activeWeapon parameter
 
         [Networked]
-        private int health { get; set; }
+        private uint health { get; set; }
         [Networked]
         private bool isDead { get; set; }
         [Networked]
@@ -142,7 +144,7 @@ namespace Main.Scripts.Enemies
 
         private void FireWeapon()
         {
-            if (activeSkillManager.ActivateSkill(ActiveSkillType.Primary))
+            if (activeSkillsManager.ActivateSkill(ActiveSkillType.Primary))
             {
                 animator.SetTrigger(ATTACK_ANIM);
             }
@@ -150,18 +152,30 @@ namespace Main.Scripts.Enemies
 
         private bool IsAttacking()
         {
-            return activeSkillManager.CurrentSkillState == ActiveSkillState.Attacking;
+            return activeSkillsManager.CurrentSkillState == ActiveSkillState.Attacking;
+        }
+        
+        public uint GetMaxHealth()
+        {
+            return maxHealth;
         }
 
-        public void ApplyDamage(int damage)
+        public uint GetCurrentHealth()
+        {
+            return health;
+        }
+
+        public void ApplyDamage(uint damage)
         {
             if (!isActivated) return;
 
-            health -= damage;
-
-            if (health > 100 || health < 0)
+            if (damage >= health)
             {
                 health = 0;
+            }
+            else
+            {
+                health -= damage;
             }
 
             if (health == 0)

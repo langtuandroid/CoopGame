@@ -2,12 +2,14 @@ using System;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Interaction;
-using Main.Scripts.ActiveSkills;
 using Main.Scripts.Drop;
 using Main.Scripts.Gui;
+using Main.Scripts.Skills.ActiveSkills;
+using Main.Scripts.Skills.PassiveSkills;
 using Main.Scripts.UI.Gui;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 using UnityEngine.UIElements;
 
 namespace Main.Scripts.Player
@@ -15,7 +17,8 @@ namespace Main.Scripts.Player
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(Animator))]
     public class PlayerController : NetworkBehaviour,
-        ObjectWithTakingDamage,
+        Damageable,
+        Healable,
         ObjectWithPickUp,
         Interactable,
         Movable
@@ -30,12 +33,14 @@ namespace Main.Scripts.Player
         private Animator animator = default!;
 
         [SerializeField]
-        private ActiveSkillManager activeSkillManager = default!;
+        private ActiveSkillsManager activeSkillsManager = default!;
+        [SerializeField]
+        private PassiveSkillsManager passiveSkillsManager = default!;
         [SerializeField]
         private UIDocument interactionInfoDoc = default!;
 
         [SerializeField]
-        private int maxHealth = 100;
+        private uint maxHealth = 100;
         [SerializeField]
         private HealthBar healthBar = default!;
         [SerializeField]
@@ -44,7 +49,7 @@ namespace Main.Scripts.Player
         [Networked(OnChanged = nameof(OnStateChanged))]
         public State state { get; private set; }
         [Networked]
-        private int health { get; set; }
+        private uint health { get; set; }
         [Networked]
         private int gold { get; set; }
         [Networked]
@@ -64,7 +69,7 @@ namespace Main.Scripts.Player
             networkRigidbody = GetComponent<NetworkRigidbody>();
             collider = GetComponent<Collider>();
             animator = GetComponent<Animator>();
-            activeSkillManager.OnActiveSkillStateChangedEvent.AddListener(OnActiveSkillStateChanged);
+            activeSkillsManager.OnActiveSkillStateChangedEvent.AddListener(OnActiveSkillStateChanged);
         }
 
         public override void Spawned()
@@ -103,6 +108,7 @@ namespace Main.Scripts.Player
         public override void FixedUpdateNetwork()
         {
             AnimatePlayer();
+            passiveSkillsManager.ApplyModifiers(Runner.Tick.Raw, Runner.Config.Simulation.TickRate);
         }
 
         public void SetDirections(Vector2 moveDirection, Vector2 aimDirection)
@@ -128,7 +134,7 @@ namespace Main.Scripts.Player
 
             transform.LookAt(transform.position + new Vector3(aimDirection.x, 0, aimDirection.y));
             
-            if (!activeSkillManager.IsCurrentSkillOverrideMove())
+            if (!activeSkillsManager.IsCurrentSkillOverrideMove())
             {
                 Move(speed * new Vector3(moveDirection.x, 0, moveDirection.y));
             }
@@ -188,25 +194,25 @@ namespace Main.Scripts.Player
 
         public void ActivateSkill(ActiveSkillType type)
         {
-            switch (activeSkillManager.CurrentSkillState)
+            switch (activeSkillsManager.CurrentSkillState)
             {
                 case ActiveSkillState.NotAttacking:
-                    activeSkillManager.ActivateSkill(type);
+                    activeSkillsManager.ActivateSkill(type);
                     break;
                 case ActiveSkillState.WaitingForPoint:
                 case ActiveSkillState.WaitingForTarget:
-                    activeSkillManager.CancelCurrentSkill();
+                    activeSkillsManager.CancelCurrentSkill();
                     break;
             }
         }
 
         public void OnPrimaryButtonClicked()
         {
-            switch (activeSkillManager.CurrentSkillState)
+            switch (activeSkillsManager.CurrentSkillState)
             {
                 case ActiveSkillState.WaitingForPoint:
                 case ActiveSkillState.WaitingForTarget:
-                    activeSkillManager.ExecuteCurrentSkill();
+                    activeSkillsManager.ExecuteCurrentSkill();
                     break;
                 case ActiveSkillState.NotAttacking:
                     ActivateSkill(ActiveSkillType.Primary);
@@ -216,7 +222,7 @@ namespace Main.Scripts.Player
 
         public void ApplyMapTargetPosition(Vector2 position)
         {
-            activeSkillManager.ApplyTargetMapPosition(position);
+            activeSkillsManager.ApplyTargetMapPosition(position);
         }
 
         private void OnActiveSkillStateChanged(ActiveSkillType type, ActiveSkillState state)
@@ -261,7 +267,17 @@ namespace Main.Scripts.Player
             animator.SetFloat(MOVE_Z_ANIM, moveZ);
         }
 
-        public void ApplyDamage(int damage)
+        public uint GetMaxHealth()
+        {
+            return maxHealth;
+        }
+
+        public uint GetCurrentHealth()
+        {
+            return health;
+        }
+
+        public void ApplyDamage(uint damage)
         {
             if (!isActivated) return;
 
@@ -277,6 +293,13 @@ namespace Main.Scripts.Player
             {
                 health -= damage;
             }
+        }
+        
+        public void ApplyHeal(uint healValue)
+        {
+            if (!isActivated || state == State.Dead) return;
+
+            health = Math.Min(health + healValue, maxHealth);
         }
 
         public void OnPickUp(DropType dropType)

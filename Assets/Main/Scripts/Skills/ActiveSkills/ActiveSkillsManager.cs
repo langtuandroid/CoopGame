@@ -4,9 +4,9 @@ using Fusion;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Main.Scripts.ActiveSkills
+namespace Main.Scripts.Skills.ActiveSkills
 {
-    public class ActiveSkillManager : NetworkBehaviour
+    public class ActiveSkillsManager : NetworkBehaviour
     {
         [SerializeField]
         private ActiveSkillBase primarySkill = default!;

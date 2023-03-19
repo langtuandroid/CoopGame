@@ -4,7 +4,7 @@ using Main.Scripts.Actions;
 using Main.Scripts.Utils;
 using UnityEngine;
 
-namespace Main.Scripts.ActiveSkills
+namespace Main.Scripts.Skills.ActiveSkills
 {
     public class DashActiveSkill : ActiveSkillBase
     {

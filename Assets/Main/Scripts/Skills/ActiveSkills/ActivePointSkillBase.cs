@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 
-namespace Main.Scripts.ActiveSkills
+namespace Main.Scripts.Skills.ActiveSkills
 {
     public abstract class ActivePointSkillBase : ActiveSkillBase
     {

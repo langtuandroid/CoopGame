@@ -3,7 +3,7 @@ using Fusion;
 using Main.Scripts.Actions;
 using UnityEngine;
 
-namespace Main.Scripts.ActiveSkills
+namespace Main.Scripts.Skills.ActiveSkills
 {
     public class MeleeAttackActiveSkill : ActiveSkillBase
     {
@@ -11,7 +11,7 @@ namespace Main.Scripts.ActiveSkills
         private const float DISTANCE_STEP_MULTIPLIER = 3f;
 
         [SerializeField]
-        private int attackDamage = 30;
+        private uint attackDamage = 30;
         [SerializeField]
         private float stunDurationSec = 1f;
         [SerializeField]
@@ -90,7 +90,7 @@ namespace Main.Scripts.ActiveSkills
 
                 foreach (var hitObject in hitObjects)
                 {
-                    var takingDamageObject = hitObject.GetComponent<ObjectWithTakingDamage>();
+                    var takingDamageObject = hitObject.GetComponent<Damageable>();
                     takingDamageObject?.ApplyDamage(attackDamage);
                     var knockableObject = hitObject.GetComponent<ObjectWithGettingKnockBack>();
                     knockableObject?.ApplyKnockBack(directionForward);

@@ -1,5 +1,4 @@
 ﻿using Fusion;
-using Main.Scripts.Utils;
 using UnityEngine;
 
 namespace Main.Scripts.Skills.ActiveSkills
@@ -8,7 +7,11 @@ namespace Main.Scripts.Skills.ActiveSkills
     {
 
         [SerializeField]
+        private GameObject areaMarker = default!;
+        [SerializeField]
         private GameObject mineGold = default!;
+        [SerializeField]
+        private float radius = 1f;
         
         [Networked]
         private TickTimer timer { get; set; }
@@ -20,6 +23,7 @@ namespace Main.Scripts.Skills.ActiveSkills
         private bool isActivated { get; set; }
 
         private float animationDurationSec = 1f;
+        private GameObject? marker;
 
         public override bool Activate(PlayerRef owner)
         {
@@ -62,9 +66,26 @@ namespace Main.Scripts.Skills.ActiveSkills
 
         public override void Render()
         {
+            if (!HasInputAuthority) return;
+
             if (isActivated)
             {
-                DebugHelper.DrawSphere(new Vector3(position.x, 0, position.y), 0.5f, Color.grey, 1 / 60f);
+                if (marker == null)
+                {
+                    marker = Instantiate(areaMarker, new Vector3(position.x, 0.001f, position.y), areaMarker.transform.rotation);
+                }
+
+                if (!marker.activeSelf)
+                {
+                    marker.SetActive(true);
+                }
+
+                marker.transform.position = new Vector3(position.x, 0.001f, position.y);
+                marker.transform.localScale = new Vector3(radius, radius, 1);
+            }
+            else if (marker != null && marker.activeSelf)
+            {
+                marker.SetActive(false);
             }
         }
 

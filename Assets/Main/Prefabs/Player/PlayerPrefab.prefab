@@ -246,7 +246,9 @@ MonoBehaviour:
   OnSkillCanceledEvent:
     m_PersistentCalls:
       m_Calls: []
+  areaMarker: {fileID: 5057171897305266061, guid: ff0d9b2f39e85dc479ec32ae19e5e951, type: 3}
   mineGold: {fileID: 6309509993528129561, guid: 2988b96900ecba849878929955d66bf7, type: 3}
+  radius: 5
 --- !u!54 &5529146898055386871
 Rigidbody:
   m_ObjectHideFlags: 0

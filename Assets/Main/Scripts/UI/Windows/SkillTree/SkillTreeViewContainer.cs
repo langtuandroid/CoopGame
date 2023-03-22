@@ -27,7 +27,7 @@ namespace Main.Scripts.UI.Windows.SkillTree
             this.doc = doc;
             this.skillInfoHolder = skillInfoHolder;
             var root = doc.rootVisualElement;
-            root.visible = false;
+            SetVisibility(false);
             playerLevelCountLabel = root.Q<Label>("PlayerLevelCount");
             xpCountLabel = root.Q<Label>("XpCount");
             var resetButton = root.Q<Button>("SkillResetButton");
@@ -43,7 +43,7 @@ namespace Main.Scripts.UI.Windows.SkillTree
 
         public void SetVisibility(bool isVisible)
         {
-            doc.rootVisualElement.visible = isVisible;
+            doc.rootVisualElement.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         public void Bind(PlayerData playerData)

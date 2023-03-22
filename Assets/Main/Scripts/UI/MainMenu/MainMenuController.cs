@@ -2,6 +2,7 @@ using Fusion;
 using Main.Scripts.Connection;
 using Main.Scripts.Player.Data;
 using Main.Scripts.Room.Transition;
+using Main.Scripts.UI.MainMenu.ProfileSettings;
 using Main.Scripts.UI.MainMenu.Status;
 using Main.Scripts.Utils;
 using UnityEngine;
@@ -15,6 +16,8 @@ namespace Main.Scripts.UI.MainMenu
         private SessionManager sessionManagerPrefab = default!;
         [SerializeField]
         private MainMenuWindow mainMenuWindow = default!;
+        [SerializeField]
+        private ProfileSettingsWindow profileSettingsWindow = default!;
         [SerializeField]
         private ConnectionStatusWindow connectionStatusWindow = default!;
 
@@ -33,6 +36,9 @@ namespace Main.Scripts.UI.MainMenu
             mainMenuWindow.OnUserIdChanged = OnUserIdChanged;
             mainMenuWindow.OnCreateServerClicked = OnCreateServerClicked;
             mainMenuWindow.OnConnectClientClicked = OnConnectClientClicked;
+            mainMenuWindow.OnProfileSettingsClicked = OnProfileSettingsClicked;
+
+            profileSettingsWindow.OnClosedEvent = OnProfileSettingsClosed;
 
             connectionStatusWindow.SetVisibility(false);
             connectionStatusWindow.OnReturnButtonClicked = OnReturnButtonClicked;
@@ -81,6 +87,17 @@ namespace Main.Scripts.UI.MainMenu
                 userId: new UserId(userId),
                 sceneManager: levelTransitionManager
             );
+        }
+
+        private void OnProfileSettingsClicked()
+        {
+            mainMenuWindow.SetVisibility(false);
+            profileSettingsWindow.Show();
+        }
+
+        private void OnProfileSettingsClosed()
+        {
+            mainMenuWindow.SetVisibility(true);
         }
 
         private void OnConnectionStatusChanged(ConnectionStatus status)

@@ -22,6 +22,8 @@
     padding-left: 4;
     padding-right: 4;
     -unity-text-align: middle-left;
+    min-width: 0;
+    flex: 1;
 }
 
 .unity-base-field__input {
@@ -29,6 +31,7 @@
     margin: 0;
     padding-left: 4;
     padding-right: 4;
+    flex: 1;
 }
 
 .unity-button {

@@ -13,13 +13,13 @@ namespace Main.Scripts.UI.Windows.LevelResults
         {
             doc = GetComponent<UIDocument>();
             var root = doc.rootVisualElement;
-            root.visible = false;
+            SetVisibility(false);
             levelResultsText = root.Q<Label>("LevelResultsText");
         }
 
         public void SetVisibility(bool isVisible)
         {
-            doc.rootVisualElement.visible = isVisible;
+            doc.rootVisualElement.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         public void Bind(AwardsData awardsData)

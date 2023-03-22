@@ -12,11 +12,13 @@ namespace Main.Scripts.UI.MainMenu
         private TextField UserIdTextInput = default!;
         private Button createServerButton = default!;
         private Button connectClientButton = default!;
+        private Button profileSettingsButton = default!;
 
         public EventCallback<ChangeEvent<string>>? OnRoomNameChanged;
         public EventCallback<ChangeEvent<string>>? OnUserIdChanged;
         public Action? OnCreateServerClicked;
         public Action? OnConnectClientClicked;
+        public Action? OnProfileSettingsClicked;
 
         private void Awake()
         {
@@ -26,11 +28,13 @@ namespace Main.Scripts.UI.MainMenu
             UserIdTextInput = root.Q<TextField>("UserIdTextInput");
             createServerButton = root.Q<Button>("CreateServerButton");
             connectClientButton = root.Q<Button>("ConnectClientButton");
+            profileSettingsButton = root.Q<Button>("ProfileSettingsButton");
 
             roomNameTextInput.RegisterValueChangedCallback(changeEvent => { OnRoomNameChanged?.Invoke(changeEvent); });
             UserIdTextInput.RegisterValueChangedCallback(changeEvent => { OnUserIdChanged?.Invoke(changeEvent); });
             createServerButton.clicked += () => { OnCreateServerClicked?.Invoke(); };
             connectClientButton.clicked += () => { OnConnectClientClicked?.Invoke(); };
+            profileSettingsButton.clicked += () => { OnProfileSettingsClicked?.Invoke(); };
         }
 
         public void SetVisibility(bool isVisible)

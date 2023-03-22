@@ -10,7 +10,7 @@ namespace Main.Scripts.UI.Gui
         {
             this.doc = doc;
             var root = doc.rootVisualElement;
-            root.visible = false;
+            SetVisibility(false);
             var keyNameLabel = root.Q<Label>("KeyName");
             keyNameLabel.text = $"{keyName}:";
             var descriptionLabel = root.Q<Label>("Description");
@@ -19,7 +19,7 @@ namespace Main.Scripts.UI.Gui
 
         public void SetVisibility(bool isVisible)
         {
-            doc.rootVisualElement.visible = isVisible;
+            doc.rootVisualElement.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
         }
     }
 }

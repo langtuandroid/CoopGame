@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Actions;
+using Main.Scripts.Actions.Health;
+using Main.Scripts.Effects;
 using UnityEngine;
 
 namespace Main.Scripts.Skills.ActiveSkills
@@ -12,6 +14,8 @@ namespace Main.Scripts.Skills.ActiveSkills
 
         [SerializeField]
         private uint attackDamage = 30;
+        [SerializeField]
+        private EffectsCombination? effectsCombination;
         [SerializeField]
         private float stunDurationSec = 1f;
         [SerializeField]
@@ -96,6 +100,11 @@ namespace Main.Scripts.Skills.ActiveSkills
                     knockableObject?.ApplyKnockBack(directionForward);
                     var stunnableObject = hitObject.GetComponent<ObjectWithGettingStun>();
                     stunnableObject?.ApplyStun(stunDurationSec);
+                    
+                    if (effectsCombination != null)
+                    {
+                        hitObject.GetComponent<Affectable>()?.ApplyEffects(effectsCombination);
+                    }
                 }
             }
             

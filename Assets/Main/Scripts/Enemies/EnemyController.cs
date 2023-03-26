@@ -1,18 +1,23 @@
+using System;
 using Fusion;
 using Main.Scripts.Actions;
+using Main.Scripts.Actions.Health;
+using Main.Scripts.Effects;
+using Main.Scripts.Effects.PeriodicEffects;
+using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui;
 using Main.Scripts.Skills.ActiveSkills;
+using Main.Scripts.Skills.PassiveSkills;
 using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.Serialization;
 
 namespace Main.Scripts.Enemies
 {
-    [RequireComponent(typeof(Rigidbody))]
-    [RequireComponent(typeof(Animator))]
     public class EnemyController : NetworkBehaviour,
         Damageable,
+        Healable,
+        Affectable,
         ObjectWithGettingKnockBack,
         ObjectWithGettingStun
     {
@@ -28,20 +33,25 @@ namespace Main.Scripts.Enemies
         private float knockBackDuration = 0.1f; //todo можно высчитать из knockBackForce и rigidbody.drag
         private float moveAcceleration = 50f;
 
-        [FormerlySerializedAs("activeSkillManager")]
-        [SerializeField]
-        private ActiveSkillsManager activeSkillsManager = default!;
         [SerializeField]
         private HealthBar healthBar = default!;
         [SerializeField]
-        private uint maxHealth = 100;
+        private float defaultMaxHealth = 100;
         [SerializeField]
-        private float speed = 5;
+        private float defaultSpeed = 5;
         [SerializeField]
         private float attackDistance = 3; //todo replace to activeWeapon parameter
 
+        private ActiveSkillsManager activeSkillsManager = default!;
+        private PassiveSkillsManager passiveSkillsManager = default!;
+        private EffectsManager effectsManager = default!;
+
         [Networked]
-        private uint health { get; set; }
+        private float health { get; set; }
+        [Networked]
+        private float maxHealth { get; set; }
+        [Networked]
+        private float speed { get; set; }
         [Networked]
         private bool isDead { get; set; }
         [Networked]
@@ -59,12 +69,28 @@ namespace Main.Scripts.Enemies
 
         private bool isActivated => gameObject.activeInHierarchy && !isDead;
 
+        public void OnValidate()
+        {
+            if (GetComponent<Rigidbody>() == null) throw new MissingComponentException("Rigidbody component is required in EnemyController");
+            if (GetComponent<NetworkRigidbody>() == null) throw new MissingComponentException("NetworkRigidbody component is required in EnemyController");
+            if (GetComponent<Animator>() == null) throw new MissingComponentException("Animator component is required in EnemyController");
+            if (GetComponent<ActiveSkillsManager>() == null) throw new MissingComponentException("ActiveSkillsManager component is required in EnemyController");
+            if (GetComponent<PassiveSkillsManager>() == null) throw new MissingComponentException("PassiveSkillsManager component is required in EnemyController");
+            if (GetComponent<EffectsManager>() == null) throw new MissingComponentException("EffectsManager component is required in EnemyController");
+        }
+
         void Awake()
         {
             rigidbody = GetComponent<Rigidbody>();
             networkRigidbody = GetComponent<NetworkRigidbody>();
             animator = GetComponent<Animator>();
             navMeshPath = new NavMeshPath();
+
+            activeSkillsManager = GetComponent<ActiveSkillsManager>();
+            passiveSkillsManager = GetComponent<PassiveSkillsManager>();
+            effectsManager = GetComponent<EffectsManager>();
+
+            effectsManager.OnUpdatedStatModifiersEvent.AddListener(OnUpdatedStatModifiers);
         }
 
         public override void Spawned()
@@ -72,26 +98,39 @@ namespace Main.Scripts.Enemies
             enemiesHelper = EnemiesHelper.Instance.ThrowWhenNull();
         }
 
+        private void OnDestroy()
+        {
+            effectsManager.OnUpdatedStatModifiersEvent.RemoveListener(OnUpdatedStatModifiers);
+        }
+        
         public void ResetState()
         {
+            maxHealth = defaultMaxHealth;
+            speed = defaultSpeed;
+
+            effectsManager.ResetState();
+            passiveSkillsManager.Init();
+
             health = maxHealth;
+            healthBar.SetMaxHealth((uint)Math.Max(0, maxHealth));
+
             isDead = false;
         }
 
         public override void Render()
         {
-            healthBar.SetMaxHealth(maxHealth);
-            healthBar.SetHealth(health);
+            healthBar.SetMaxHealth((uint)maxHealth);
+            healthBar.SetHealth((uint)health);
         }
 
         public override void FixedUpdateNetwork()
         {
-            if (!isActivated)
-            {
-                return;
-            }
+            if (CheckIsDead()) return;
+            if (!isActivated) return;
 
-            if (HasStateAuthority && canMoveByController())
+            effectsManager.UpdateEffects();
+
+            if (isActivated && HasStateAuthority && canMoveByController())
             {
                 var target = enemiesHelper.findPlayerTarget(transform.position);
                 if (target != null)
@@ -119,6 +158,43 @@ namespace Main.Scripts.Enemies
             isMoving = canMoveByController() && rigidbody.velocity.magnitude > 0.01f;
 
             animator.SetBool(IS_MOVING_ANIM, isMoving);
+
+            CheckIsDead();
+        }
+
+        private bool CheckIsDead()
+        {
+            if (isDead)
+            {
+                Runner.Despawn(Object);
+                return true;
+            }
+
+            return false;
+        }
+
+        private void OnUpdatedStatModifiers(StatType statType)
+        {
+            switch (statType)
+            {
+                case StatType.Speed:
+                    speed = effectsManager.GetModifiedValue(statType, defaultSpeed);
+                    break;
+                case StatType.MaxHealth:
+                    var newMaxHealth = effectsManager.GetModifiedValue(statType, defaultMaxHealth);
+                    if ((int)newMaxHealth == (int)maxHealth)
+                    {
+                        healthBar.SetMaxHealth((uint)Math.Max(0, newMaxHealth));
+                    }
+
+                    maxHealth = newMaxHealth;
+                    break;
+                case StatType.Damage:
+                    break;
+                case StatType.ReservedDoNotUse:
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(statType), statType, null);
+            }
         }
 
         private void updateDestination(Vector3? destination)
@@ -131,14 +207,16 @@ namespace Main.Scripts.Enemies
             }
 
             NavMesh.CalculatePath(transform.position, navigationTarget, NavMesh.AllAreas, navMeshPath);
-            var direction = (navMeshPath.corners.Length > 1 ? navMeshPath.corners[1] : navigationTarget) - transform.position;
+            var direction = (navMeshPath.corners.Length > 1 ? navMeshPath.corners[1] : navigationTarget) -
+                            transform.position;
             direction = new Vector3(direction.x, 0, direction.z);
             transform.LookAt(transform.position + direction);
             var currentVelocity = rigidbody.velocity.magnitude;
             if (currentVelocity < speed)
             {
                 var deltaVelocity = speed * direction.normalized - rigidbody.velocity;
-                rigidbody.velocity += Mathf.Min(moveAcceleration * Runner.DeltaTime, deltaVelocity.magnitude) * deltaVelocity.normalized;
+                rigidbody.velocity += Mathf.Min(moveAcceleration * Runner.DeltaTime, deltaVelocity.magnitude) *
+                                      deltaVelocity.normalized;
             }
         }
 
@@ -154,34 +232,36 @@ namespace Main.Scripts.Enemies
         {
             return activeSkillsManager.CurrentSkillState == ActiveSkillState.Attacking;
         }
-        
-        public uint GetMaxHealth()
+
+        public float GetMaxHealth()
         {
             return maxHealth;
         }
 
-        public uint GetCurrentHealth()
+        public float GetCurrentHealth()
         {
             return health;
         }
 
-        public void ApplyDamage(uint damage)
+        public void ApplyHeal(float healValue)
+        {
+            if (!isActivated) return;
+
+            health = Math.Min(health + healValue, maxHealth);
+        }
+
+        public void ApplyDamage(float damage)
         {
             if (!isActivated) return;
 
             if (damage >= health)
             {
                 health = 0;
+                isDead = true;
             }
             else
             {
                 health -= damage;
-            }
-
-            if (health == 0)
-            {
-                isDead = true;
-                Runner.Despawn(Object);
             }
         }
 
@@ -204,6 +284,11 @@ namespace Main.Scripts.Enemies
             return knockBackTimer.ExpiredOrNotRunning(Runner)
                    && stunTimer.ExpiredOrNotRunning(Runner)
                    && !IsAttacking();
+        }
+
+        public void ApplyEffects(EffectsCombination effectsCombination)
+        {
+            effectsManager.AddEffects(effectsCombination.Effects);
         }
     }
 }

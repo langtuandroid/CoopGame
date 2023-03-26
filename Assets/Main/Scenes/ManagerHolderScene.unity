@@ -266,7 +266,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 485258079518117664, guid: 1200016406e802946b1c2efc5f5a035a, type: 3}
       propertyPath: m_Name
-      value: SkillInfoHolder
+      value: Resources
       objectReference: {fileID: 0}
     - target: {fileID: 6974941126205520369, guid: 1200016406e802946b1c2efc5f5a035a, type: 3}
       propertyPath: m_RootOrder
@@ -314,6 +314,29 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1200016406e802946b1c2efc5f5a035a, type: 3}
+--- !u!1 &1404612710 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 485258079518117664, guid: 1200016406e802946b1c2efc5f5a035a, type: 3}
+  m_PrefabInstance: {fileID: 1404612709}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1404612711
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1404612710}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a95602102e9c4b8c8e32c28410c4a953, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  effects:
+  - {fileID: 11400000, guid: cadbb988145dbc149be2151bd134e363, type: 2}
+  - {fileID: 11400000, guid: 099ac80406a07244786367c323161c5f, type: 2}
+  - {fileID: 11400000, guid: d77d0224bf468a946b8df8f522815783, type: 2}
+  - {fileID: 11400000, guid: f20a05ca7e5c5a8419986c7ef87e10b5, type: 2}
+  - {fileID: 11400000, guid: ba005648793fcfd4a90c87bbc540901c, type: 2}
 --- !u!1001 &1580305767
 PrefabInstance:
   m_ObjectHideFlags: 0

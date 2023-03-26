@@ -60,7 +60,7 @@ namespace Main.Scripts.Levels.Missions
                 onBeforeSpawned: (networkRunner, playerObject) =>
                 {
                     var playerController = playerObject.GetComponent<PlayerController>();
-                    playerController.Reset();
+                    playerController.ResetState();
 
                     playerController.OnPlayerStateChangedEvent.AddListener(OnPlayerStateChanged);
                 }

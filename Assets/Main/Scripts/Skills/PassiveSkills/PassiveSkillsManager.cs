@@ -1,5 +1,6 @@
+using System;
 using System.Collections.Generic;
-using Main.Scripts.Skills.PassiveSkills.Effects.Handlers;
+using Main.Scripts.Effects;
 using UnityEngine;
 
 namespace Main.Scripts.Skills.PassiveSkills
@@ -7,35 +8,28 @@ namespace Main.Scripts.Skills.PassiveSkills
     public class PassiveSkillsManager : MonoBehaviour
     {
         [SerializeField]
-        private List<PassiveSkill> passiveSkills = default!;
-        [SerializeField]
-        private GameObject targetObject = default!;
+        private List<EffectsCombination> effectsCombinations = default!;
 
-        private List<EffectsHandler> effectsHandlers = new();
+        private EffectsManager effectsManager = default!;
 
-        private void Awake()
+        public void OnValidate()
         {
-            effectsHandlers.Add(new HealEffectsHandler());
-            effectsHandlers.Add(new DamageEffectsHandler());
-
-            foreach (var effectsHandler in effectsHandlers)
+            foreach (var effectsCombination in effectsCombinations)
             {
-                effectsHandler.TrySetTarget(targetObject);
-                foreach (var passiveSkill in passiveSkills)
-                {
-                    foreach (var effect in passiveSkill.passiveSkillEffects)
-                    {
-                        effectsHandler.TryRegisterEffect(effect);
-                    }
-                }
+                if (effectsCombination == null) throw new ArgumentNullException($"{gameObject.name}: has null EffectCombination in PassiveSkillManager");
             }
         }
 
-        public void HandleEffects(int tick, int tickRate)
+        private void Awake()
         {
-            foreach (var effectsHandler in effectsHandlers)
+            effectsManager = GetComponent<EffectsManager>();
+        }
+
+        public void Init()
+        {
+            foreach (var effectsCombination in effectsCombinations)
             {
-                effectsHandler.HandleEffects(tick, tickRate);
+                effectsManager.AddEffects(effectsCombination.Effects);
             }
         }
     }

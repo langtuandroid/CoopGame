@@ -11,8 +11,9 @@ namespace Main.Scripts.Skills.ActiveSkills
 
         public abstract void Cancel();
 
+        [HideInInspector]
         public UnityEvent<ActivePointSkillBase> OnWaitingForPointEvent = default!;
-
+        [HideInInspector]
         public UnityEvent<ActivePointSkillBase> OnSkillCanceledEvent = default!;
     }
 }

@@ -19,6 +19,8 @@ GameObject:
   - component: {fileID: 1870479772353028648}
   - component: {fileID: 8747675781320779502}
   - component: {fileID: 7879817750835459690}
+  - component: {fileID: 1232518736907365467}
+  - component: {fileID: 17070262016428297}
   m_Layer: 8
   m_Name: EnemyPrefab
   m_TagString: Untagged
@@ -56,10 +58,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  activeSkillManager: {fileID: 7982089108220398672}
   healthBar: {fileID: 8069440124118303122}
-  maxHealth: 100
-  speed: 5
+  defaultMaxHealth: 100
+  defaultSpeed: 5
   attackDistance: 3
 --- !u!114 &3078040559483951986
 MonoBehaviour:
@@ -88,6 +89,7 @@ MonoBehaviour:
   - {fileID: 7982089108220398672}
   - {fileID: 1870479772353028648}
   - {fileID: 7879817750835459690}
+  - {fileID: 17070262016428297}
   SimulationBehaviours: []
 --- !u!114 &1324006215410747384
 MonoBehaviour:
@@ -205,7 +207,7 @@ MonoBehaviour:
   TargetInterpolationDelay: 0.03
 --- !u!95 &8747675781320779502
 Animator:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -222,7 +224,8 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &7879817750835459690
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -243,6 +246,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   attackDamage: 5
+  effectsCombination: {fileID: 11400000, guid: ed3498d141aab034183486f1ca92b7dc, type: 2}
   stunDurationSec: 0.5
   originTransform: {fileID: 8004075537626908674}
   attackDistance: 3
@@ -252,6 +256,36 @@ MonoBehaviour:
     m_Bits: 128
   animationDurationSec: 1
   attackDelaySec: 0.4
+--- !u!114 &1232518736907365467
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2736757121921172608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 572ce91f928c42aeaee3e98ff906637c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  effectsCombinations:
+  - {fileID: 11400000, guid: abe51633e154f80448a88fde050fa984, type: 2}
+--- !u!114 &17070262016428297
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2736757121921172608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4f408133706428493dcbf159f5ced72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 0
+  OnUpdatedStatModifiersEvent:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &5839203437913665313
 GameObject:
   m_ObjectHideFlags: 0

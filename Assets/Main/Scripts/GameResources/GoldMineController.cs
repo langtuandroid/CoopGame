@@ -1,21 +1,20 @@
 using System;
 using Fusion;
-using Main.Scripts.Actions;
+using Main.Scripts.Actions.Health;
 using UnityEngine;
 
 namespace Main.Scripts.GameResources
 {
     public class GoldMineController : NetworkBehaviour,
-        Damageable,
-        Healable
+        Damageable
     {
         [SerializeField]
         private GameObject goldBar = default!;
         [SerializeField] 
-        private uint maxHealth = 100;
+        private float maxHealth = 100;
         
         [Networked]
-        private uint health { get; set; }
+        private float health { get; set; }
         [Networked]
         private float rotation { set; get; }
         [Networked]
@@ -27,17 +26,17 @@ namespace Main.Scripts.GameResources
             rotation = 0f;
         }
         
-        public uint GetMaxHealth()
+        public float GetMaxHealth()
         {
             return maxHealth;
         }
 
-        public uint GetCurrentHealth()
+        public float GetCurrentHealth()
         {
             return health;
         }
 
-        public void ApplyDamage(uint damage)
+        public void ApplyDamage(float damage)
         {
             if (damage >= health)
             {

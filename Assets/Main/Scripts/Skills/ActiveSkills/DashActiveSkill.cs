@@ -1,6 +1,7 @@
 using System;
 using Fusion;
 using Main.Scripts.Actions;
+using Main.Scripts.Effects;
 using Main.Scripts.Utils;
 using UnityEngine;
 
@@ -12,10 +13,13 @@ namespace Main.Scripts.Skills.ActiveSkills
         private float distance = 4f;
         [SerializeField]
         private float speed = 20f;
+        [SerializeField]
+        private EffectsCombination? effectsCombination;
 
         [SerializeField]
         private Transform dashMovableTargetObject = default!;
         private Movable dashMovableTarget = default!;
+        private Affectable? affectableTarget;
 
         [Networked]
         private TickTimer dashTimer { get; set; }
@@ -23,6 +27,7 @@ namespace Main.Scripts.Skills.ActiveSkills
         private void Awake()
         {
             dashMovableTarget = dashMovableTargetObject.GetComponent<Movable>().ThrowWhenNull();
+            affectableTarget = dashMovableTargetObject.GetComponent<Affectable>();
         }
 
         private void OnValidate()
@@ -30,6 +35,11 @@ namespace Main.Scripts.Skills.ActiveSkills
             if (!dashMovableTargetObject || !dashMovableTargetObject.TryGetComponent(out dashMovableTarget))
             {
                 throw new ArgumentException("Dash movable target not assigned");
+            }
+
+            if (!dashMovableTargetObject || dashMovableTargetObject.GetComponent<Affectable>() == null)
+            {
+                Debug.LogWarning($"{name}: Dash target is not Affectable");
             }
         }
 
@@ -39,6 +49,10 @@ namespace Main.Scripts.Skills.ActiveSkills
             {
                 dashTimer = TickTimer.CreateFromSeconds(Runner, distance / speed);
                 OnSkillExecutedEvent.Invoke(this);
+                if (effectsCombination != null)
+                {
+                    affectableTarget?.ApplyEffects(effectsCombination);
+                }
                 return true;
             }
 

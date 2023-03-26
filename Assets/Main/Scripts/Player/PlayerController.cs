@@ -1,15 +1,17 @@
 using System;
 using Fusion;
 using Main.Scripts.Actions;
+using Main.Scripts.Actions.Health;
 using Main.Scripts.Actions.Interaction;
 using Main.Scripts.Drop;
+using Main.Scripts.Effects;
+using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.Skills.PassiveSkills;
 using Main.Scripts.UI.Gui;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
 using UnityEngine.UIElements;
 
 namespace Main.Scripts.Player
@@ -19,6 +21,7 @@ namespace Main.Scripts.Player
     public class PlayerController : NetworkBehaviour,
         Damageable,
         Healable,
+        Affectable,
         ObjectWithPickUp,
         Interactable,
         Movable
@@ -32,24 +35,28 @@ namespace Main.Scripts.Player
         private new Collider collider = default!;
         private Animator animator = default!;
 
-        [SerializeField]
         private ActiveSkillsManager activeSkillsManager = default!;
-        [SerializeField]
         private PassiveSkillsManager passiveSkillsManager = default!;
+        private EffectsManager effectsManager = default!;
+
         [SerializeField]
         private UIDocument interactionInfoDoc = default!;
 
         [SerializeField]
-        private uint maxHealth = 100;
+        private uint defaultMaxHealth = 100;
         [SerializeField]
         private HealthBar healthBar = default!;
         [SerializeField]
-        private float speed = 6f;
+        private float defaultSpeed = 6f;
 
         [Networked(OnChanged = nameof(OnStateChanged))]
         public State state { get; private set; }
         [Networked]
-        private uint health { get; set; }
+        private float maxHealth { get; set; }
+        [Networked]
+        private float health { get; set; }
+        [Networked]
+        private float speed { get; set; }
         [Networked]
         private int gold { get; set; }
         [Networked]
@@ -61,7 +68,19 @@ namespace Main.Scripts.Player
 
         public UnityEvent<PlayerRef, PlayerController, State> OnPlayerStateChangedEvent = default!;
 
-        private bool isActivated => (gameObject.activeInHierarchy && (state == State.Active || state == State.Spawning));
+        private bool isActivated =>
+            (gameObject.activeInHierarchy && (state == State.Active || state == State.Spawning));
+        
+        public void OnValidate()
+        {
+            if (GetComponent<Rigidbody>() == null) throw new MissingComponentException("Rigidbody component is required in PlayerController");
+            if (GetComponent<NetworkRigidbody>() == null) throw new MissingComponentException("NetworkRigidbody component is required in PlayerController");
+            if (GetComponent<Collider>() == null) throw new MissingComponentException("Collider component is required in PlayerController");
+            if (GetComponent<Animator>() == null) throw new MissingComponentException("Animator component is required in PlayerController");
+            if (GetComponent<ActiveSkillsManager>() == null) throw new MissingComponentException("ActiveSkillsManager component is required in PlayerController");
+            if (GetComponent<PassiveSkillsManager>() == null)  throw new MissingComponentException("PassiveSkillsManager component is required in PlayerController");
+            if (GetComponent<EffectsManager>() == null) throw new MissingComponentException("EffectsManager component is required in PlayerController");
+        }
 
         void Awake()
         {
@@ -69,7 +88,13 @@ namespace Main.Scripts.Player
             networkRigidbody = GetComponent<NetworkRigidbody>();
             collider = GetComponent<Collider>();
             animator = GetComponent<Animator>();
+            
+            activeSkillsManager = GetComponent<ActiveSkillsManager>();
+            passiveSkillsManager = GetComponent<PassiveSkillsManager>();
+            effectsManager = GetComponent<EffectsManager>();
+
             activeSkillsManager.OnActiveSkillStateChangedEvent.AddListener(OnActiveSkillStateChanged);
+            effectsManager.OnUpdatedStatModifiersEvent.AddListener(OnUpdatedStatModifiers);
         }
 
         public override void Spawned()
@@ -82,12 +107,24 @@ namespace Main.Scripts.Player
             interactionInfoView = new InteractionInfoView(interactionInfoDoc, "F", "Resurrect");
         }
 
-        public void Reset()
+        public void ResetState()
         {
+            maxHealth = defaultMaxHealth;
+            speed = defaultSpeed;
+
+            effectsManager.ResetState();
+            passiveSkillsManager.Init();
+
             health = maxHealth;
-            healthBar.SetMaxHealth(maxHealth);
+            healthBar.SetMaxHealth((uint)Math.Max(0, maxHealth));
 
             state = State.Spawning;
+        }
+
+        private void OnDestroy()
+        {
+            activeSkillsManager.OnActiveSkillStateChangedEvent.RemoveListener(OnActiveSkillStateChanged);
+            effectsManager.OnUpdatedStatModifiersEvent.RemoveListener(OnUpdatedStatModifiers);
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)
@@ -97,7 +134,7 @@ namespace Main.Scripts.Player
 
         public override void Render()
         {
-            healthBar.SetHealth(health);
+            healthBar.SetHealth((uint)Math.Max(0, health));
         }
 
         public void Active()
@@ -108,7 +145,7 @@ namespace Main.Scripts.Player
         public override void FixedUpdateNetwork()
         {
             AnimatePlayer();
-            passiveSkillsManager.HandleEffects(Runner.Tick.Raw, Runner.Config.Simulation.TickRate);
+            effectsManager.UpdateEffects();
         }
 
         public void SetDirections(Vector2 moveDirection, Vector2 aimDirection)
@@ -188,7 +225,7 @@ namespace Main.Scripts.Player
                 return false;
             }
 
-            Reset();
+            ResetState(); //todo сделать нормальное возраждение
             return true;
         }
 
@@ -247,6 +284,29 @@ namespace Main.Scripts.Player
             }
         }
 
+        private void OnUpdatedStatModifiers(StatType statType)
+        {
+            switch (statType)
+            {
+                case StatType.Speed:
+                    speed = effectsManager.GetModifiedValue(statType, defaultSpeed);
+                    break;
+                case StatType.MaxHealth:
+                    var newMaxHealth = effectsManager.GetModifiedValue(statType, defaultMaxHealth);
+                    if ((int)newMaxHealth == (int)maxHealth)
+                    {
+                        healthBar.SetMaxHealth((uint)Math.Max(0, newMaxHealth));
+                    }
+                    maxHealth = newMaxHealth;
+                    break;
+                case StatType.Damage:
+                    break;
+                case StatType.ReservedDoNotUse:
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(statType), statType, null);
+            }
+        }
+
         private void AnimatePlayer()
         {
             var moveX = 0f;
@@ -267,17 +327,17 @@ namespace Main.Scripts.Player
             animator.SetFloat(MOVE_Z_ANIM, moveZ);
         }
 
-        public uint GetMaxHealth()
+        public float GetMaxHealth()
         {
             return maxHealth;
         }
 
-        public uint GetCurrentHealth()
+        public float GetCurrentHealth()
         {
             return health;
         }
 
-        public void ApplyDamage(uint damage)
+        public void ApplyDamage(float damage)
         {
             if (!isActivated) return;
 
@@ -294,12 +354,17 @@ namespace Main.Scripts.Player
                 health -= damage;
             }
         }
-        
-        public void ApplyHeal(uint healValue)
+
+        public void ApplyHeal(float healValue)
         {
             if (!isActivated || state == State.Dead) return;
 
             health = Math.Min(health + healValue, maxHealth);
+        }
+        
+        public void ApplyEffects(EffectsCombination effectsCombination)
+        {
+            effectsManager.AddEffects(effectsCombination.Effects);
         }
 
         public void OnPickUp(DropType dropType)

@@ -24,6 +24,7 @@ GameObject:
   - component: {fileID: 254030382776569161}
   - component: {fileID: 3178930080744932648}
   - component: {fileID: 3882041571308450913}
+  - component: {fileID: 6178311733673876001}
   m_Layer: 7
   m_Name: PlayerPrefab
   m_TagString: Player
@@ -61,12 +62,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  activeSkillsManager: {fileID: -5471419336138590985}
-  passiveSkillsManager: {fileID: 3882041571308450913}
   interactionInfoDoc: {fileID: 4833751729238062174}
-  maxHealth: 100
+  defaultMaxHealth: 100
   healthBar: {fileID: 5077792976664443005}
-  speed: 6
+  defaultSpeed: 6
   _state: 0
   OnPlayerStateChangedEvent:
     m_PersistentCalls:
@@ -102,6 +101,7 @@ MonoBehaviour:
   - {fileID: 2737533443050263691}
   - {fileID: 254030382776569161}
   - {fileID: 3178930080744932648}
+  - {fileID: 6178311733673876001}
   SimulationBehaviours: []
 --- !u!114 &-5471419336138590985
 MonoBehaviour:
@@ -125,7 +125,7 @@ MonoBehaviour:
       m_Calls: []
 --- !u!95 &6064875345208294012
 Animator:
-  serializedVersion: 4
+  serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -142,7 +142,8 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &9057652909011457133
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -220,6 +221,7 @@ MonoBehaviour:
       m_Calls: []
   distance: 4
   speed: 20
+  effectsCombination: {fileID: 11400000, guid: 4177ca50a498fa54187b96af08f6d4d8, type: 2}
   dashMovableTargetObject: {fileID: 8004075537626908674}
 --- !u!114 &-1649425730490502279
 MonoBehaviour:
@@ -343,6 +345,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   attackDamage: 30
+  effectsCombination: {fileID: 11400000, guid: ed3498d141aab034183486f1ca92b7dc, type: 2}
   stunDurationSec: 0.5
   originTransform: {fileID: 8004075537626908674}
   attackDistance: 3
@@ -364,9 +367,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 572ce91f928c42aeaee3e98ff906637c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  passiveSkills:
-  - {fileID: 11400000, guid: b355d359aee0bb74ca3b5900c70e6021, type: 2}
-  targetObject: {fileID: 2736757121921172608}
+  effectsCombinations:
+  - {fileID: 11400000, guid: 768a3ead7ede7ad4da94e1581f2ce0c6, type: 2}
+--- !u!114 &6178311733673876001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2736757121921172608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4f408133706428493dcbf159f5ced72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 0
+  OnUpdatedStatModifiersEvent:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &3417156228830845648
 GameObject:
   m_ObjectHideFlags: 0

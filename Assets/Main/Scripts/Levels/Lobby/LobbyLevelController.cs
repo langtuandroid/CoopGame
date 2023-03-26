@@ -58,7 +58,7 @@ namespace Main.Scripts.Levels.Lobby
                 onBeforeSpawned: (networkRunner, playerObject) =>
                 {
                     var playerController = playerObject.GetComponent<PlayerController>();
-                    playerController.Reset();
+                    playerController.ResetState();
 
                     playerController.OnPlayerStateChangedEvent.AddListener(OnPlayerStateChanged);
                 }
@@ -106,7 +106,7 @@ namespace Main.Scripts.Levels.Lobby
         
         private void OnPlayerDead(PlayerRef playerRef, PlayerController playerController)
         {
-            playerController.Reset();
+            playerController.ResetState();
         }
 
         private void OnReadyTargetStatusChanged(bool isChecked)

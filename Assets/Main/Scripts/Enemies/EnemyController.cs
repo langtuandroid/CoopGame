@@ -57,8 +57,6 @@ namespace Main.Scripts.Enemies
         [Networked]
         private Vector3 navigationTarget { get; set; }
         [Networked]
-        private bool isMoving { get; set; }
-        [Networked]
         private TickTimer stunTimer { get; set; }
         [Networked]
         private TickTimer knockBackTimer { get; set; }
@@ -66,6 +64,7 @@ namespace Main.Scripts.Enemies
         private Vector3 knockBackDirection { get; set; }
 
         private NavMeshPath navMeshPath = default!;
+        private EnemyAnimationState currentAnimationState;
 
         private bool isActivated => gameObject.activeInHierarchy && !isDead;
 
@@ -119,6 +118,7 @@ namespace Main.Scripts.Enemies
 
         public override void Render()
         {
+            UpdateAnimationState();
             healthBar.SetMaxHealth((uint)maxHealth);
             healthBar.SetHealth((uint)health);
         }
@@ -154,10 +154,6 @@ namespace Main.Scripts.Enemies
                     updateDestination(null);
                 }
             }
-
-            isMoving = canMoveByController() && rigidbody.velocity.magnitude > 0.01f;
-
-            animator.SetBool(IS_MOVING_ANIM, isMoving);
 
             CheckIsDead();
         }
@@ -222,10 +218,7 @@ namespace Main.Scripts.Enemies
 
         private void FireWeapon()
         {
-            if (activeSkillsManager.ActivateSkill(ActiveSkillType.Primary))
-            {
-                animator.SetTrigger(ATTACK_ANIM);
-            }
+            activeSkillsManager.ActivateSkill(ActiveSkillType.Primary);
         }
 
         private bool IsAttacking()
@@ -277,6 +270,45 @@ namespace Main.Scripts.Enemies
         {
             if (!isActivated) return;
             stunTimer = TickTimer.CreateFromSeconds(Runner, durationSec);
+        }
+
+        /* todo fix when attacks are called just after each other, the method might not catch the state change, and animation may be lost
+        same issue with UpdateAnimationState() in PlayerController */
+        private void UpdateAnimationState()
+        {
+            if (currentAnimationState != GetActualAnimationState())
+            {
+                currentAnimationState = GetActualAnimationState();
+                switch (currentAnimationState)
+                {
+                    case EnemyAnimationState.Attacking:
+                        animator.SetTrigger(ATTACK_ANIM);
+                        break;
+                    case EnemyAnimationState.Walking:
+                        animator.SetBool(IS_MOVING_ANIM, true);
+                        break;
+                    case EnemyAnimationState.Idle:
+                        animator.SetBool(IS_MOVING_ANIM, false);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
+
+        private EnemyAnimationState GetActualAnimationState()
+        {
+            if (activeSkillsManager.CurrentSkillState == ActiveSkillState.Attacking)
+            {
+                return EnemyAnimationState.Attacking;
+            }
+
+            if (canMoveByController() && rigidbody.velocity.magnitude > 0.01f)
+            {
+                return EnemyAnimationState.Walking;
+            }
+
+            return EnemyAnimationState.Idle;
         }
 
         private bool canMoveByController()

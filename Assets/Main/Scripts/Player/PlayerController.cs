@@ -65,6 +65,7 @@ namespace Main.Scripts.Player
         private Vector2 aimDirection { get; set; }
 
         private InteractionInfoView interactionInfoView = default!;
+        private PlayerAnimationState currentAnimationState;
 
         public UnityEvent<PlayerRef, PlayerController, State> OnPlayerStateChangedEvent = default!;
 
@@ -134,6 +135,7 @@ namespace Main.Scripts.Player
 
         public override void Render()
         {
+            UpdateAnimationState();
             healthBar.SetHealth((uint)Math.Max(0, health));
         }
 
@@ -144,7 +146,6 @@ namespace Main.Scripts.Player
 
         public override void FixedUpdateNetwork()
         {
-            AnimatePlayer();
             effectsManager.UpdateEffects();
         }
 
@@ -264,24 +265,46 @@ namespace Main.Scripts.Player
 
         private void OnActiveSkillStateChanged(ActiveSkillType type, ActiveSkillState state)
         {
-            switch (state)
+            
+        }
+
+        /* todo fix when attacks are called just after each other, the method might not catch the state change, and animation may be lost
+        same issue with UpdateAnimationState() in EnemyController */
+        private void UpdateAnimationState()
+        {
+            if (currentAnimationState != GetActualAnimationState())
             {
-                case ActiveSkillState.NotAttacking:
-                    break;
-                case ActiveSkillState.Attacking:
-                    animator.SetTrigger(ATTACK_ANIM);
-                    break;
-                case ActiveSkillState.WaitingForPoint:
-                    break;
-                case ActiveSkillState.WaitingForTarget:
-                    break;
-                case ActiveSkillState.Finished:
-                    break;
-                case ActiveSkillState.Canceled:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(state), state, null);
+                currentAnimationState = GetActualAnimationState();
+                switch (currentAnimationState)
+                {
+                    case PlayerAnimationState.None:
+                        break;
+                    case PlayerAnimationState.Attacking:
+                        animator.SetTrigger(ATTACK_ANIM);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
+
+            if (currentAnimationState == PlayerAnimationState.None)
+            {
+                AnimateMoving();
+            }
+        }
+
+        private PlayerAnimationState GetActualAnimationState()
+        {
+            if (state != State.Active)
+            {
+                return PlayerAnimationState.None;
+            }
+            if (activeSkillsManager.CurrentSkillState == ActiveSkillState.Attacking)
+            {
+                return PlayerAnimationState.Attacking;
+            }
+
+            return PlayerAnimationState.None;
         }
 
         private void OnUpdatedStatModifiers(StatType statType)
@@ -307,7 +330,7 @@ namespace Main.Scripts.Player
             }
         }
 
-        private void AnimatePlayer()
+        private void AnimateMoving()
         {
             var moveX = 0f;
             var moveZ = 0f;

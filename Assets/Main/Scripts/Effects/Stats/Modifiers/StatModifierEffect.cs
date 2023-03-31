@@ -7,6 +7,7 @@ namespace Main.Scripts.Effects.Stats.Modifiers
     {
         [SerializeField]
         private StatType statType;
+        //todo сделать отдельные значения для каждого уровня стака
         [SerializeField]
         private float constAdditive;
         [SerializeField]

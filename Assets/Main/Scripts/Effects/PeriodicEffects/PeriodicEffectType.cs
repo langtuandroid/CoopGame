@@ -2,7 +2,8 @@ namespace Main.Scripts.Effects.PeriodicEffects
 {
     public enum PeriodicEffectType
     {
-        Heal,
+        //Effects handle order by type's order
         Damage,
+        Heal,
     }
 }

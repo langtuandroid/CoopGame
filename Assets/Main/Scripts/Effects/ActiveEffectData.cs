@@ -6,11 +6,13 @@ namespace Main.Scripts.Effects
     {
         public readonly int EffectId;
         public readonly int EndTick;
+        public readonly int StackCount;
 
-        public ActiveEffectData(int effectId, int endTick)
+        public ActiveEffectData(int effectId, int endTick, int stackCount)
         {
             EffectId = effectId;
             EndTick = endTick;
+            StackCount = stackCount;
         }
     }
 }

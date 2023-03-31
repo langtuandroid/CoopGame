@@ -15,24 +15,27 @@ namespace Main.Scripts.Effects
         [SerializeField]
         private List<EffectBase> effects = new();
 
-        private Dictionary<int, EffectBase> effectsMap = new();
-        private Dictionary<string, int> effectsIds = new();
+        private Dictionary<int, EffectBase> effectsMap = default!;
+        private Dictionary<string, int> effectsIds = default!;
 
         private void Awake()
         {
             Assert.Check(Instance == null);
             Instance = this;
 
+            effectsMap = new Dictionary<int, EffectBase>(effects.Count);
+            effectsIds = new Dictionary<string, int>(effects.Count);
+
             for (var i = 0; i < effects.Count; i++)
             {
                 var effect = effects[i];
-                if (effectsIds.ContainsKey(effect.Id))
+                if (effectsIds.ContainsKey(effect.NameId))
                 {
-                    throw new ArgumentException($"Effect id {effect.Id} is using in more then one effects");
+                    throw new ArgumentException($"Effect NameId {effect.NameId} is using by more then one effect");
                 }
 
                 effectsMap.Add(i, effect);
-                effectsIds.Add(effect.Id, i);
+                effectsIds.Add(effect.NameId, i);
             }
         }
 
@@ -46,15 +49,15 @@ namespace Main.Scripts.Effects
             {
                 if (effectObject is EffectBase effect)
                 {
-                    if (effect.Id.IsNullOrEmpty())
+                    if (effect.NameId.IsNullOrEmpty())
                     {
-                        throw new ArgumentException($"{effect.name}: effect Id is empty");
+                        throw new ArgumentException($"{effect.name}: effect NameId is empty");
                     }
 
-                    if (ids.Contains(effect.Id))
+                    if (ids.Contains(effect.NameId))
                     {
                         throw new ArgumentException(
-                            $"{effect.name}: effect id {effect.Id} is using in more then one effects");
+                            $"{effect.name}: effect NameId {effect.NameId} is using in more then one effects");
                     }
                     
                     if (effect is StatModifierEffect { StatType: StatType.ReservedDoNotUse })
@@ -64,7 +67,7 @@ namespace Main.Scripts.Effects
                     }
 
                     effects.Add(effect);
-                    ids.Add(effect.Id);
+                    ids.Add(effect.NameId);
                 }
             }
         }
@@ -86,12 +89,12 @@ namespace Main.Scripts.Effects
 
         public int GetEffectId(EffectBase effect)
         {
-            if (!effectsIds.ContainsKey(effect.Id))
+            if (!effectsIds.ContainsKey(effect.NameId))
             {
                 throw new ArgumentException($"{effect.name}: effect is not registered in EffectsBank. Check effect file path.");
             }
 
-            return effectsIds[effect.Id];
+            return effectsIds[effect.NameId];
         }
     }
 }

@@ -96,5 +96,24 @@ namespace Main.Scripts.Effects
 
             return effectsIds[effect.NameId];
         }
+
+        public KeyValuePair<int, int> GetUnlimitedAndLimitedEffectsCounts()
+        {
+            var unlimitedEffectsSum = 0;
+            var limitedEffectsSum = 0;
+            foreach (var effect in effects)
+            {
+                if (effect.DurationSec == 0)
+                {
+                    unlimitedEffectsSum++;
+                }
+                else
+                {
+                    limitedEffectsSum++;
+                }
+            }
+
+            return new KeyValuePair<int, int>(unlimitedEffectsSum, limitedEffectsSum);
+        }
     }
 }

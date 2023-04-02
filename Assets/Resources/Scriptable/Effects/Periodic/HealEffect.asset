@@ -12,10 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4a9c8e09c414c4f8ccdd916237eaaf8, type: 3}
   m_Name: HealEffect
   m_EditorClassIdentifier: 
-  id: HealEffect
-  isStackable: 0
+  maxStackCount: 1
   durationSec: 0
-  periodicEffectType: 0
+  periodicEffectType: 1
   frequency: 2
   constantHeal: 0
   percentMaxHealthHeal: 2

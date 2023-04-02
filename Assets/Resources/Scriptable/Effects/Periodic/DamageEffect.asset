@@ -12,10 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62392b35fca145cc9b254753b0800a32, type: 3}
   m_Name: DamageEffect
   m_EditorClassIdentifier: 
-  id: DamageEffect
-  isStackable: 1
+  maxStackCount: 1
   durationSec: 5
-  periodicEffectType: 1
+  periodicEffectType: 0
   frequency: 2
   constantDamage: 1
   percentMaxHealthDamage: 0

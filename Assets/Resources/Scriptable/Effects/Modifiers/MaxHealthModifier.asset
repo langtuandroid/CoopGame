@@ -12,9 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 27bd643ddff1434cbc9b3e31baf1233f, type: 3}
   m_Name: MaxHealthModifier
   m_EditorClassIdentifier: 
-  id: MaxHealthModifier
+  maxStackCount: 1
+  durationSec: 0
   statType: 1
   constAdditive: 20
   percentAdditive: 50
-  isStackable: 0
-  durationSec: 0

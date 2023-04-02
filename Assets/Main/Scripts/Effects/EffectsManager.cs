@@ -158,7 +158,7 @@ namespace Main.Scripts.Effects
             var tick = Runner.Tick;
             var tickRate = Runner.Config.Simulation.TickRate;
 
-            if (tick % (int)(tickRate / periodicEffect.Frequency) != 0) return;
+            if (tick % (int)(tickRate / periodicEffect.Frequency) != 0) return; //todo учесть выремя старта эффекта
 
 
             periodicEffectsHandlers[periodicEffect.PeriodicEffectType].HandleEffect(periodicEffect, stackCount);

@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 27bd643ddff1434cbc9b3e31baf1233f, type: 3}
   m_Name: SpeedModifier
   m_EditorClassIdentifier: 
-  id: SpeedModifier
-  isStackable: 0
+  maxStackCount: 1
   durationSec: 5
   statType: 0
   constAdditive: 0

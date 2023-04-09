@@ -22,6 +22,8 @@ namespace Main.Scripts.Skills.Common.Component
         private int skillConfigId { get; set; }
 
         [Networked]
+        private int startSkillTick { get; set; }
+        [Networked]
         private TickTimer lifeTimer { get; set; }
         [Networked]
         private TickTimer triggerTimer { get; set; }
@@ -49,13 +51,6 @@ namespace Main.Scripts.Skills.Common.Component
 
         private List<LagCompensatedHit> findTargetHitsList = new();
         private HashSet<NetworkObject> findTargetHitObjectsSet = new();
-
-        private void OnValidate()
-        {
-            //todo SkillDirectionType.ForwardMoveOriginUnit
-            //todo SkillDirectionType.ForwardLookOriginUnit
-            //todo SkillDirectionType.ToSelectedUnit
-        }
 
         public void Init(
             int skillConfigId,
@@ -95,6 +90,7 @@ namespace Main.Scripts.Skills.Common.Component
 
             if (!lifeTimer.IsRunning)
             {
+                startSkillTick = Runner.Tick;
                 lifeTimer = TickTimer.CreateFromSeconds(Runner, skillConfig.DurationSec);
 
                 if (skillConfig.ActionTrigger is TimerSkillActionTrigger timerTrigger)
@@ -155,11 +151,11 @@ namespace Main.Scripts.Skills.Common.Component
                 transform.position = GetPointByType(attachStrategy.AttachTo);
             }
 
-            if (skillConfig.FollowStrategy is MoveToTargetSkillFollowStrategy moveStrategy)
+            if (skillConfig.FollowStrategy is MoveToTargetSkillFollowStrategy moveToTargetStrategy)
             {
-                var targetPoint = GetPointByType(moveStrategy.MoveTo);
+                var targetPoint = GetPointByType(moveToTargetStrategy.MoveTo);
                 var deltaPosition = targetPoint - transform.position;
-                var moveDelta = deltaPosition.normalized * moveStrategy.Speed * Runner.DeltaTime;
+                var moveDelta = deltaPosition.normalized * moveToTargetStrategy.Speed * Runner.DeltaTime;
 
                 if (deltaPosition.sqrMagnitude <= moveDelta.sqrMagnitude)
                 {
@@ -169,6 +165,13 @@ namespace Main.Scripts.Skills.Common.Component
                 {
                     transform.position += moveDelta;
                 }
+            }
+
+            if (skillConfig.FollowStrategy is MoveToDirectionSkillFollowStrategy moveToDirectionStrategy)
+            {
+                var direction = GetDirectionByType(moveToDirectionStrategy.MoveDirectionType);
+                direction = Quaternion.AngleAxis(moveToDirectionStrategy.DirectionAngleOffset, Vector3.up) * direction;
+                transform.position += direction * moveToDirectionStrategy.Speed * Runner.DeltaTime;
             }
         }
 
@@ -232,9 +235,8 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void CheckPeriodicTrigger()
         {
-            //todo читывать время старта скилла
             if (skillConfig.ActionTrigger is PeriodicSkillActionTrigger periodicTrigger
-                && TickHelper.CheckFrequency(Runner.Tick, Runner.Simulation.Config.TickRate, periodicTrigger.Frequency))
+                && TickHelper.CheckFrequency(startSkillTick + Runner.Tick, Runner.Simulation.Config.TickRate, periodicTrigger.Frequency))
             {
                 ExecuteActions();
             }
@@ -453,6 +455,7 @@ namespace Main.Scripts.Skills.Common.Component
             var origin = GetPointByType(strategyConfig.OriginPoint);
 
             var direction = GetDirectionByType(strategyConfig.DirectionType);
+            direction = Quaternion.AngleAxis(strategyConfig.DirectionAngleOffset, Vector3.up) * direction;
 
             var raycastsCount = Mathf.CeilToInt(strategyConfig.Angle / ANGLE_STEP) *
                                 Mathf.CeilToInt(strategyConfig.Radius / DISTANCE_STEP_MULTIPLIER);
@@ -486,6 +489,8 @@ namespace Main.Scripts.Skills.Common.Component
         {
             var origin = GetPointByType(strategyConfig.OriginPoint);
             var direction = GetDirectionByType(strategyConfig.DirectionType);
+            direction = Quaternion.AngleAxis(strategyConfig.DirectionAngleOffset, Vector3.up) * direction;
+            
             var originForwardOffset = strategyConfig.OriginForwardOffset;
 
             var center = origin + direction * (originForwardOffset + strategyConfig.Length / 2f);

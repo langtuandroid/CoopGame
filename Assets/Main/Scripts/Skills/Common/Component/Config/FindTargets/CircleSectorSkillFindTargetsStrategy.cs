@@ -10,6 +10,8 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
         [SerializeField]
         private SkillDirectionType directionType;
         [SerializeField]
+        private float directionAngleOffset;
+        [SerializeField]
         [Min(0f)]
         private float radius = 1f;
         [SerializeField]
@@ -20,6 +22,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
 
         public SkillPointType OriginPoint => originPoint;
         public SkillDirectionType DirectionType => directionType;
+        public float DirectionAngleOffset => directionAngleOffset;
         public float Radius => radius;
         public float Angle => angle;
         public SkillTargetType TargetType => targetType;

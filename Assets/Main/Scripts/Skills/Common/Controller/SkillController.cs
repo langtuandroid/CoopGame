@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Linq;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Skills.Common.Component;
 using Main.Scripts.Skills.Common.Component.Config;
+using Main.Scripts.Skills.Common.Component.Config.Action;
+using Main.Scripts.Skills.Common.Component.Config.FindTargets;
+using Main.Scripts.Skills.Common.Component.Config.Follow;
 using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.Events;
@@ -58,8 +62,7 @@ namespace Main.Scripts.Skills.Common.Controller
 
         private void OnValidate()
         {
-            //todo validate SkillActivationType.UnitTarget with SkillSpawnPointType.SelectedUnitTarget
-            //todo castDuration <= executionDuration
+            SkillConfigsValidationHelper.Validate(skillControllerConfig);
         }
 
         public override void Spawned()
@@ -163,7 +166,7 @@ namespace Main.Scripts.Skills.Common.Controller
             if (IsSkillExecuting) return;
 
             isActivating = false;
-            //todo skillControllerConfig.ExecutionDurationSec == 0 is wait for finish skillComponents
+
             executionTimer = TickTimer.CreateFromSeconds(Runner, skillControllerConfig.ExecutionDurationSec);
             castTimer = TickTimer.CreateFromSeconds(Runner, skillControllerConfig.CastDurationSec);
 

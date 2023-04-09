@@ -24,7 +24,8 @@ namespace Main.Scripts.Player
         Affectable,
         ObjectWithPickUp,
         Interactable,
-        Movable
+        Movable,
+        Dashable
     {
         private static readonly int MOVE_X_ANIM = Animator.StringToHash("MoveX");
         private static readonly int MOVE_Z_ANIM = Animator.StringToHash("MoveZ");
@@ -63,6 +64,12 @@ namespace Main.Scripts.Player
         private Vector2 moveDirection { get; set; }
         [Networked]
         private Vector2 aimDirection { get; set; }
+        [Networked]
+        private TickTimer dashTimer { get; set; }
+        [Networked]
+        private float dashSpeed { get; set; }
+        [Networked]
+        private Vector3 dashDirection { get; set; }
 
         private InteractionInfoView interactionInfoView = default!;
         private PlayerAnimationState currentAnimationState;
@@ -104,6 +111,7 @@ namespace Main.Scripts.Player
             {
                 networkRigidbody.InterpolationDataSource = InterpolationDataSources.NoInterpolation;
             }
+            healthBar.SetMaxHealth((uint)Math.Max(0, maxHealth));
 
             interactionInfoView = new InteractionInfoView(interactionInfoDoc, "F", "Resurrect");
         }
@@ -147,6 +155,15 @@ namespace Main.Scripts.Player
         public override void FixedUpdateNetwork()
         {
             effectsManager.UpdateEffects();
+
+            if (!dashTimer.ExpiredOrNotRunning(Runner))
+            {
+                Move(dashSpeed * dashDirection);
+            }
+            else if (!CanMoveByController())
+            {
+                Move(Vector3.zero);
+            }
         }
 
         public void SetDirections(Vector2 moveDirection, Vector2 aimDirection)
@@ -165,6 +182,13 @@ namespace Main.Scripts.Player
             rigidbody.velocity = velocity;
         }
 
+        public void Dash(Vector3 direction, float speed, float durationSec)
+        {
+            dashTimer = TickTimer.CreateFromSeconds(Runner, durationSec);
+            dashDirection = direction;
+            dashSpeed = speed;
+        }
+
         public void ApplyDirections()
         {
             if (!isActivated)
@@ -172,10 +196,15 @@ namespace Main.Scripts.Player
 
             transform.LookAt(transform.position + new Vector3(aimDirection.x, 0, aimDirection.y));
             
-            if (!activeSkillsManager.IsCurrentSkillOverrideMove())
+            if (CanMoveByController())
             {
                 Move(speed * new Vector3(moveDirection.x, 0, moveDirection.y));
             }
+        }
+
+        private bool CanMoveByController()
+        {
+            return !activeSkillsManager.IsCurrentSkillDisableMove() && dashTimer.ExpiredOrNotRunning(Runner);
         }
 
         private static void OnStateChanged(Changed<PlayerController> changed)
@@ -260,7 +289,7 @@ namespace Main.Scripts.Player
 
         public void ApplyMapTargetPosition(Vector2 position)
         {
-            activeSkillsManager.ApplyTargetMapPosition(position);
+            activeSkillsManager.ApplyTargetMapPosition(new Vector3(position.x, 0, position.y));
         }
 
         private void OnActiveSkillStateChanged(ActiveSkillType type, ActiveSkillState state)
@@ -316,7 +345,7 @@ namespace Main.Scripts.Player
                     break;
                 case StatType.MaxHealth:
                     var newMaxHealth = effectsManager.GetModifiedValue(statType, defaultMaxHealth);
-                    if ((int)newMaxHealth == (int)maxHealth)
+                    if ((int)newMaxHealth != (int)maxHealth)
                     {
                         healthBar.SetMaxHealth((uint)Math.Max(0, newMaxHealth));
                     }

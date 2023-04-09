@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Fusion;
+using Main.Scripts.Skills.Common.Controller;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -9,11 +10,11 @@ namespace Main.Scripts.Skills.ActiveSkills
     public class ActiveSkillsManager : NetworkBehaviour
     {
         [SerializeField]
-        private ActiveSkillBase primarySkill = default!;
+        private SkillController primarySkill = default!;
         [SerializeField]
-        private ActiveSkillBase secondarySkill = default!;
+        private SkillController secondarySkill = default!;
         [SerializeField]
-        private ActiveSkillBase dashSkill = default!;
+        private SkillController dashSkill = default!;
 
         [HideInInspector]
         [Networked] 
@@ -21,7 +22,7 @@ namespace Main.Scripts.Skills.ActiveSkills
         [Networked]
         private ActiveSkillType currentSkillType { get; set; }
         [Networked]
-        private Vector2 targetMapPosition { get; set; }
+        private Vector3 targetMapPosition { get; set; }
 
         [HideInInspector]
         public UnityEvent<ActiveSkillType, ActiveSkillState> OnActiveSkillStateChangedEvent = default!;
@@ -38,12 +39,9 @@ namespace Main.Scripts.Skills.ActiveSkills
 
                 skill.OnSkillFinishedEvent.AddListener(OnActiveSkillFinished);
                 skill.OnSkillExecutedEvent.AddListener(OnActiveSkillExecuted);
-
-                if (skill is ActivePointSkillBase pointSkill)
-                {
-                    pointSkill.OnWaitingForPointEvent.AddListener(OnActiveSkillWaitingForPoint);
-                    pointSkill.OnSkillCanceledEvent.AddListener(OnActiveSkillCanceled);
-                }
+                
+                skill.OnWaitingForPointTargetEvent.AddListener(OnActiveSkillWaitingForPointTarget);
+                skill.OnSkillCanceledEvent.AddListener(OnActiveSkillCanceled);
             }
         }
 
@@ -59,11 +57,8 @@ namespace Main.Scripts.Skills.ActiveSkills
 
                 skill.OnSkillFinishedEvent.RemoveListener(OnActiveSkillFinished);
                 skill.OnSkillExecutedEvent.RemoveListener(OnActiveSkillExecuted);
-                if (skill is ActivePointSkillBase pointSkill)
-                {
-                    pointSkill.OnWaitingForPointEvent.RemoveListener(OnActiveSkillWaitingForPoint);
-                    pointSkill.OnSkillCanceledEvent.RemoveListener(OnActiveSkillCanceled);
-                }
+                skill.OnWaitingForPointTargetEvent.RemoveListener(OnActiveSkillWaitingForPointTarget);
+                skill.OnSkillCanceledEvent.RemoveListener(OnActiveSkillCanceled);
             }
         }
 
@@ -88,47 +83,47 @@ namespace Main.Scripts.Skills.ActiveSkills
         public void ExecuteCurrentSkill()
         {
             var skill = getSkillByType(currentSkillType);
-            if (skill == null
-                || (CurrentSkillState != ActiveSkillState.WaitingForPoint &&
-                    CurrentSkillState != ActiveSkillState.WaitingForTarget)
-                || skill is not ActivePointSkillBase pointSkill)
+            if (skill == null || (CurrentSkillState != ActiveSkillState.WaitingForPoint &&
+                                  CurrentSkillState != ActiveSkillState.WaitingForTarget))
             {
                 Debug.LogError("Incorrect skill state");
                 return;
             }
 
-            pointSkill.Execute();
+            skill.Execute();
         }
 
         public void CancelCurrentSkill()
         {
             var skill = getSkillByType(currentSkillType);
-            if (skill == null
-                || (CurrentSkillState != ActiveSkillState.WaitingForPoint &&
-                    CurrentSkillState != ActiveSkillState.WaitingForTarget)
-                || skill is not ActivePointSkillBase pointSkill)
+            if (skill == null || (CurrentSkillState != ActiveSkillState.WaitingForPoint &&
+                                  CurrentSkillState != ActiveSkillState.WaitingForTarget))
             {
                 Debug.LogError("Incorrect skill state");
                 return;
             }
 
-            pointSkill.Cancel();
+            skill.CancelActivation();
         }
 
-        public void ApplyTargetMapPosition(Vector2 targetMapPosition)
+        public void ApplyTargetMapPosition(Vector3 targetMapPosition)
         {
             this.targetMapPosition = targetMapPosition;
-            var skill = getSkillByType(currentSkillType);
-            if (skill == null || skill is not ActivePointSkillBase pointSkill)
+            foreach (var skillType in Enum.GetValues(typeof(ActiveSkillType)).Cast<ActiveSkillType>())
             {
-                return;
+                var skill = getSkillByType(skillType);
+                if (skill == null)
+                {
+                    continue;
+                }
+
+                skill.UpdateMapPoint(targetMapPosition);
             }
-            pointSkill.ApplyTargetPosition(targetMapPosition);
         }
 
-        public bool IsCurrentSkillOverrideMove()
+        public bool IsCurrentSkillDisableMove()
         {
-            return getSkillByType(currentSkillType)?.IsOverrideMove() ?? false;
+            return getSkillByType(currentSkillType)?.IsDisabledMove() ?? false;
         }
 
         private void UpdateSkillState(ActiveSkillState skillState)
@@ -137,32 +132,32 @@ namespace Main.Scripts.Skills.ActiveSkills
             OnActiveSkillStateChangedEvent.Invoke(currentSkillType, CurrentSkillState);
         }
 
-        private void OnActiveSkillWaitingForPoint(ActiveSkillBase skill)
+        private void OnActiveSkillWaitingForPointTarget(SkillController skill)
         {
             UpdateSkillState(ActiveSkillState.WaitingForPoint);
             ApplyTargetMapPosition(targetMapPosition);
         }
 
-        private void OnActiveSkillExecuted(ActiveSkillBase skill)
+        private void OnActiveSkillExecuted(SkillController skill)
         {
             UpdateSkillState(ActiveSkillState.Attacking);
         }
 
-        private void OnActiveSkillFinished(ActiveSkillBase skill)
+        private void OnActiveSkillFinished(SkillController skill)
         {
             UpdateSkillState(ActiveSkillState.Finished);
             currentSkillType = ActiveSkillType.None;
             CurrentSkillState = ActiveSkillState.NotAttacking;
         }
 
-        private void OnActiveSkillCanceled(ActiveSkillBase skill)
+        private void OnActiveSkillCanceled(SkillController skill)
         {
             UpdateSkillState(ActiveSkillState.Canceled);
             currentSkillType = ActiveSkillType.None;
             CurrentSkillState = ActiveSkillState.NotAttacking;
         }
 
-        private ActiveSkillBase? getSkillByType(ActiveSkillType skillType)
+        private SkillController? getSkillByType(ActiveSkillType skillType)
         {
             return skillType switch
             {

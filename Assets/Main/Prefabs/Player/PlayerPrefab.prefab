@@ -16,13 +16,10 @@ GameObject:
   - component: {fileID: 9057652909011457133}
   - component: {fileID: 2348856940491406096}
   - component: {fileID: 3261203144987785234}
-  - component: {fileID: 113051478187426604}
-  - component: {fileID: -1649425730490502279}
   - component: {fileID: 5529146898055386871}
   - component: {fileID: 2737533443050263691}
   - component: {fileID: 4736437783530052701}
   - component: {fileID: 254030382776569161}
-  - component: {fileID: 3178930080744932648}
   - component: {fileID: 3882041571308450913}
   - component: {fileID: 6178311733673876001}
   m_Layer: 7
@@ -46,6 +43,9 @@ Transform:
   m_Children:
   - {fileID: 8663182565266769017}
   - {fileID: 8674821403801523278}
+  - {fileID: 8323348034047014638}
+  - {fileID: 421283401929126972}
+  - {fileID: 8267619923740268539}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -96,12 +96,12 @@ MonoBehaviour:
   - {fileID: -5471419336138590985}
   - {fileID: 9057652909011457133}
   - {fileID: 2348856940491406096}
-  - {fileID: 113051478187426604}
-  - {fileID: -1649425730490502279}
   - {fileID: 2737533443050263691}
   - {fileID: 254030382776569161}
-  - {fileID: 3178930080744932648}
   - {fileID: 6178311733673876001}
+  - {fileID: 2889870577499749741}
+  - {fileID: 1509733437957679898}
+  - {fileID: 3198279709375634514}
   SimulationBehaviours: []
 --- !u!114 &-5471419336138590985
 MonoBehaviour:
@@ -116,9 +116,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  primarySkill: {fileID: 3178930080744932648}
-  secondarySkill: {fileID: -1649425730490502279}
-  dashSkill: {fileID: 113051478187426604}
+  primarySkill: {fileID: 1509733437957679898}
+  secondarySkill: {fileID: 3198279709375634514}
+  dashSkill: {fileID: 2889870577499749741}
   _CurrentSkillState: 0
   OnActiveSkillStateChangedEvent:
     m_PersistentCalls:
@@ -200,57 +200,6 @@ MonoBehaviour:
   Offset: {x: 0, y: 0, z: 0}
   Root: {fileID: 0}
   GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
---- !u!114 &113051478187426604
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2736757121921172608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f402864887d540e9a0de95e207de6f2d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  OnSkillExecutedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillFinishedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  distance: 4
-  speed: 20
-  effectsCombination: {fileID: 11400000, guid: 4177ca50a498fa54187b96af08f6d4d8, type: 2}
-  dashMovableTargetObject: {fileID: 8004075537626908674}
---- !u!114 &-1649425730490502279
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2736757121921172608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 97db05c962d3454ea23a7b7a76bcfc12, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  OnSkillExecutedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillFinishedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnWaitingForPointEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillCanceledEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  areaMarker: {fileID: 5057171897305266061, guid: ff0d9b2f39e85dc479ec32ae19e5e951, type: 3}
-  mineGold: {fileID: 6309509993528129561, guid: 2988b96900ecba849878929955d66bf7, type: 3}
-  radius: 5
 --- !u!54 &5529146898055386871
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -325,36 +274,6 @@ MonoBehaviour:
   layerMask:
     serializedVersion: 2
     m_Bits: 640
---- !u!114 &3178930080744932648
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2736757121921172608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e0c259395140402f8bf2285109b98131, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  OnSkillExecutedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillFinishedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  attackDamage: 30
-  effectsCombination: {fileID: 11400000, guid: ed3498d141aab034183486f1ca92b7dc, type: 2}
-  stunDurationSec: 0.5
-  originTransform: {fileID: 8004075537626908674}
-  attackDistance: 3
-  attackAngle: 120
-  layerMask:
-    serializedVersion: 2
-    m_Bits: 256
-  animationDurationSec: 1
-  attackDelaySec: 0.4
 --- !u!114 &3882041571308450913
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -447,6 +366,74 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   containerId: Container
+--- !u!1 &3493917457340853213
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 421283401929126972}
+  - component: {fileID: 1509733437957679898}
+  m_Layer: 7
+  m_Name: MeleeAttackSkill
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &421283401929126972
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3493917457340853213}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8004075537626908674}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1509733437957679898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3493917457340853213}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cdbe63c6b5940b9b48b5def1cbc506d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 0
+  skillControllerConfig: {fileID: 11400000, guid: 7300051b66732f642b867689a86fc281, type: 2}
+  rootTransform: {fileID: 8004075537626908674}
+  alliesLayerMask:
+    serializedVersion: 2
+    m_Bits: 128
+  opponentsLayerMask:
+    serializedVersion: 2
+    m_Bits: 256
+  OnWaitingForPointTargetEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnWaitingForUnitTargetEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSkillExecutedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSkillFinishedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSkillCanceledEvent:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &7348652730272053797
 GameObject:
   m_ObjectHideFlags: 0
@@ -544,6 +531,142 @@ SphereCollider:
   serializedVersion: 2
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &8570408215521304925
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8267619923740268539}
+  - component: {fileID: 3198279709375634514}
+  m_Layer: 7
+  m_Name: ExplotionSkill
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8267619923740268539
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8570408215521304925}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8004075537626908674}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3198279709375634514
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8570408215521304925}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cdbe63c6b5940b9b48b5def1cbc506d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 0
+  skillControllerConfig: {fileID: 11400000, guid: 9c45539eb9b82db4c882f02f7cc493b1, type: 2}
+  rootTransform: {fileID: 8004075537626908674}
+  alliesLayerMask:
+    serializedVersion: 2
+    m_Bits: 128
+  opponentsLayerMask:
+    serializedVersion: 2
+    m_Bits: 256
+  OnWaitingForPointTargetEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnWaitingForUnitTargetEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSkillExecutedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSkillFinishedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSkillCanceledEvent:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!1 &8799145588389098330
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8323348034047014638}
+  - component: {fileID: 2889870577499749741}
+  m_Layer: 7
+  m_Name: DashSkill
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8323348034047014638
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8799145588389098330}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8004075537626908674}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2889870577499749741
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8799145588389098330}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cdbe63c6b5940b9b48b5def1cbc506d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 0
+  skillControllerConfig: {fileID: 11400000, guid: 975a24afc35ee8a4fb750463e96c92dd, type: 2}
+  rootTransform: {fileID: 8004075537626908674}
+  alliesLayerMask:
+    serializedVersion: 2
+    m_Bits: 128
+  opponentsLayerMask:
+    serializedVersion: 2
+    m_Bits: 256
+  OnWaitingForPointTargetEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnWaitingForUnitTargetEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSkillExecutedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSkillFinishedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSkillCanceledEvent:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &1098035244587019626
 PrefabInstance:
   m_ObjectHideFlags: 0

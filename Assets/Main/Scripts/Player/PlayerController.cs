@@ -30,6 +30,7 @@ namespace Main.Scripts.Player
         private static readonly int MOVE_X_ANIM = Animator.StringToHash("MoveX");
         private static readonly int MOVE_Z_ANIM = Animator.StringToHash("MoveZ");
         private static readonly int ATTACK_ANIM = Animator.StringToHash("Attack");
+        private static readonly float HEALTH_THRESHOLD = 0.01f;
 
         private new Rigidbody rigidbody = default!;
         private NetworkRigidbody networkRigidbody = default!;
@@ -150,6 +151,7 @@ namespace Main.Scripts.Player
         public void Active()
         {
             state = State.Active;
+            passiveSkillsManager.OnSpawn(Object.InputAuthority);
         }
 
         public override void FixedUpdateNetwork()
@@ -389,16 +391,19 @@ namespace Main.Scripts.Player
             return health;
         }
 
-        public void ApplyDamage(float damage)
+        public void ApplyDamage(float damage, NetworkObject? damageOwner)
         {
             if (!isActivated) return;
+            
+            passiveSkillsManager.OnTakenDamage(Object.InputAuthority, damage, damageOwner);
 
-            if (damage >= health)
+            if (health - damage < HEALTH_THRESHOLD)
             {
                 health = 0;
                 if (HasStateAuthority)
                 {
                     state = State.Dead;
+                    passiveSkillsManager.OnDead(Object.InputAuthority, damageOwner);
                 }
             }
             else
@@ -407,11 +412,13 @@ namespace Main.Scripts.Player
             }
         }
 
-        public void ApplyHeal(float healValue)
+        public void ApplyHeal(float healValue, NetworkObject? healOwner)
         {
             if (!isActivated || state == State.Dead) return;
 
             health = Math.Min(health + healValue, maxHealth);
+            
+            passiveSkillsManager.OnTakenHeal(Object.InputAuthority, healValue, healOwner);
         }
         
         public void ApplyEffects(EffectsCombination effectsCombination)

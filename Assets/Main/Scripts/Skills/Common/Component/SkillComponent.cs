@@ -290,7 +290,7 @@ namespace Main.Scripts.Skills.Common.Component
                     case DamageSkillAction damageAction
                         when actionTarget.TryGetComponent<Damageable>(out var damageable):
 
-                        damageable.ApplyDamage(damageAction.DamageValue);
+                        damageable.ApplyDamage(damageAction.DamageValue, selfUnit);
 
                         break;
                     case ForceSkillAction forceAction
@@ -303,7 +303,7 @@ namespace Main.Scripts.Skills.Common.Component
                     case HealSkillAction healAction
                         when actionTarget.TryGetComponent<Healable>(out var healable):
 
-                        healable.ApplyHeal(healAction.HealValue);
+                        healable.ApplyHeal(healAction.HealValue, selfUnit);
 
                         break;
                     case DashSkillAction dashAction

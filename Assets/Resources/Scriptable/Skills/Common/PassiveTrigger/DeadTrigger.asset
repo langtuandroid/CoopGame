@@ -9,9 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b46e441337148f69d0a9dcf94ecdf85, type: 3}
-  m_Name: DashAction
+  m_Script: {fileID: 11500000, guid: af7a9f84864d40f79db42ea21a77f787, type: 3}
+  m_Name: DeadTrigger
   m_EditorClassIdentifier: 
-  directionType: 5
-  speed: 20
-  durationSec: 0.3

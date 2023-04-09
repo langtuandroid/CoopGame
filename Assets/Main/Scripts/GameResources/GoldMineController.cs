@@ -1,4 +1,3 @@
-using System;
 using Fusion;
 using Main.Scripts.Actions.Health;
 using UnityEngine;
@@ -36,7 +35,7 @@ namespace Main.Scripts.GameResources
             return health;
         }
 
-        public void ApplyDamage(float damage)
+        public void ApplyDamage(float damage, NetworkObject? damageOwner)
         {
             if (damage >= health)
             {
@@ -59,11 +58,6 @@ namespace Main.Scripts.GameResources
                 }
                 Runner.Despawn(Object);
             }
-        }
-        
-        public void ApplyHeal(uint healValue)
-        {
-            health = Math.Min(health + healValue, maxHealth);
         }
     }
 }

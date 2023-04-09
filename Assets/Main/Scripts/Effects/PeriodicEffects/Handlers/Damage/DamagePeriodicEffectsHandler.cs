@@ -25,7 +25,7 @@ namespace Main.Scripts.Effects.PeriodicEffects.Handlers.Damage
 
             var damage = damageEffect.ConstantDamage * stackCount +
                          damageableTarget.GetMaxHealth() * damageEffect.PercentMaxHealthDamage * stackCount * 0.01f;
-            damageableTarget.ApplyDamage(damage);
+            damageableTarget.ApplyDamage(damage, null);
         }
     }
 }

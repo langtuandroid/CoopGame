@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Linq;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Skills.Common.Component;
 using Main.Scripts.Skills.Common.Component.Config;
-using Main.Scripts.Skills.Common.Component.Config.Action;
-using Main.Scripts.Skills.Common.Component.Config.FindTargets;
-using Main.Scripts.Skills.Common.Component.Config.Follow;
 using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.Events;
@@ -58,7 +54,8 @@ namespace Main.Scripts.Skills.Common.Controller
         [HideInInspector]
         public UnityEvent<SkillController> OnSkillCanceledEvent = default!;
 
-        private bool IsSkillExecuting => executionTimer.IsRunning;
+        public bool IsSkillExecuting => executionTimer.IsRunning;
+        public SkillActivationType ActivationType => skillControllerConfig.ActivationType;
 
         private void OnValidate()
         {

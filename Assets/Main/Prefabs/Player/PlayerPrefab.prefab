@@ -46,6 +46,7 @@ Transform:
   - {fileID: 8323348034047014638}
   - {fileID: 421283401929126972}
   - {fileID: 8267619923740268539}
+  - {fileID: 6752460185634090830}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -102,6 +103,7 @@ MonoBehaviour:
   - {fileID: 2889870577499749741}
   - {fileID: 1509733437957679898}
   - {fileID: 3198279709375634514}
+  - {fileID: 2971332246294605615}
   SimulationBehaviours: []
 --- !u!114 &-5471419336138590985
 MonoBehaviour:
@@ -286,7 +288,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 572ce91f928c42aeaee3e98ff906637c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  effectsCombinations:
+  passiveSkillControllers:
+  - {fileID: 2971332246294605615}
+  initialEffects:
   - {fileID: 11400000, guid: 768a3ead7ede7ad4da94e1581f2ce0c6, type: 2}
 --- !u!114 &6178311733673876001
 MonoBehaviour:
@@ -667,6 +671,75 @@ MonoBehaviour:
   OnSkillCanceledEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &9083131407737823299
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6752460185634090830}
+  - component: {fileID: 2971332246294605615}
+  m_Layer: 7
+  m_Name: BonkPassiveSkill
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6752460185634090830
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9083131407737823299}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8004075537626908674}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2971332246294605615
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9083131407737823299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 570773d1b43e4590bafa15b5e07998dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 0
+  skillControllerConfig: {fileID: 11400000, guid: 485b2ddd4a8aa094290e1cd78ad6e84b, type: 2}
+  rootTransform: {fileID: 8004075537626908674}
+  alliesLayerMask:
+    serializedVersion: 2
+    m_Bits: 128
+  opponentsLayerMask:
+    serializedVersion: 2
+    m_Bits: 256
+  OnWaitingForPointTargetEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnWaitingForUnitTargetEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSkillExecutedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSkillFinishedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSkillCanceledEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  passiveSkillTrigger: {fileID: 11400000, guid: 4028be693e3571c4d876f3a9ed1fc15f, type: 2}
 --- !u!1001 &1098035244587019626
 PrefabInstance:
   m_ObjectHideFlags: 0

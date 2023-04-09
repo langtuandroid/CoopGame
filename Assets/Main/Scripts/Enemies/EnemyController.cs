@@ -3,7 +3,6 @@ using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Health;
 using Main.Scripts.Effects;
-using Main.Scripts.Effects.PeriodicEffects;
 using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui;
 using Main.Scripts.Skills.ActiveSkills;
@@ -23,6 +22,7 @@ namespace Main.Scripts.Enemies
     {
         private static readonly int IS_MOVING_ANIM = Animator.StringToHash("isMoving");
         private static readonly int ATTACK_ANIM = Animator.StringToHash("Attack");
+        private static readonly float HEALTH_THRESHOLD = 0.01f;
 
         private new Rigidbody rigidbody = default!;
         private NetworkRigidbody networkRigidbody = default!;
@@ -236,18 +236,18 @@ namespace Main.Scripts.Enemies
             return health;
         }
 
-        public void ApplyHeal(float healValue)
+        public void ApplyHeal(float healValue, NetworkObject? healOwner)
         {
             if (!isActivated) return;
 
             health = Math.Min(health + healValue, maxHealth);
         }
 
-        public void ApplyDamage(float damage)
+        public void ApplyDamage(float damage, NetworkObject? damageOwner)
         {
             if (!isActivated) return;
 
-            if (damage >= health)
+            if (health - damage < HEALTH_THRESHOLD)
             {
                 health = 0;
                 isDead = true;

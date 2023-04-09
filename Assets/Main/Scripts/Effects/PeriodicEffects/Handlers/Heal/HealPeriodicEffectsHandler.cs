@@ -24,7 +24,7 @@ namespace Main.Scripts.Effects.PeriodicEffects.Handlers.Heal
 
             var heal = healEffect.ConstantHeal * stackCount +
                        healableTarget.GetMaxHealth() * healEffect.PercentMaxHealthHeal * stackCount * 0.01f;
-            healableTarget.ApplyHeal(heal);
+            healableTarget.ApplyHeal(heal, null);
         }
     }
 }

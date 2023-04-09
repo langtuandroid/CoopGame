@@ -37,7 +37,7 @@ namespace Main.Scripts.Levels.Lobby
         {
             if (playersHolder.Contains(Runner.LocalPlayer))
             {
-                playerCamera.SetTarget(playersHolder.Get(Runner.LocalPlayer).transform);
+                playerCamera.SetTarget(playersHolder.Get(Runner.LocalPlayer).GetComponent<NetworkRigidbody>().InterpolationTarget.transform);
             }
         }
 

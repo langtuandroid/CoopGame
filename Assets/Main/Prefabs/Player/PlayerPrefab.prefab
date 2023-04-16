@@ -22,6 +22,7 @@ GameObject:
   - component: {fileID: 254030382776569161}
   - component: {fileID: 3882041571308450913}
   - component: {fileID: 6178311733673876001}
+  - component: {fileID: 217654583184049659}
   m_Layer: 7
   m_Name: PlayerPrefab
   m_TagString: Player
@@ -100,6 +101,7 @@ MonoBehaviour:
   - {fileID: 2737533443050263691}
   - {fileID: 254030382776569161}
   - {fileID: 6178311733673876001}
+  - {fileID: 217654583184049659}
   - {fileID: 2889870577499749741}
   - {fileID: 1509733437957679898}
   - {fileID: 3198279709375634514}
@@ -308,6 +310,36 @@ MonoBehaviour:
   OnUpdatedStatModifiersEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &217654583184049659
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2736757121921172608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 506319458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 0
+  Animator: {fileID: 6064875345208294012}
+  TotalWords: 5
+  SyncSettings: 95
+  FloatAccuracy:
+    _value: 0
+    _inverse: 0
+    _hash: -814817977
+  TimeAccuracy:
+    _value: 0
+    _inverse: 0
+    _hash: 1061325578
+  WeightAccuracy:
+    _value: 0
+    _inverse: 0
+    _hash: -814817977
+  StateHashes: 000000008a18fce4b9abd9d3a554260e271b6a8b
+  TriggerHashes: 000000000d286c40
 --- !u!1 &3417156228830845648
 GameObject:
   m_ObjectHideFlags: 0
@@ -415,7 +447,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  skillControllerConfig: {fileID: 11400000, guid: 7300051b66732f642b867689a86fc281, type: 2}
+  skillControllerConfig: {fileID: 11400000, guid: fc8209fbf7f947049b68101db58b5d8c, type: 2}
   rootTransform: {fileID: 8004075537626908674}
   alliesLayerMask:
     serializedVersion: 2

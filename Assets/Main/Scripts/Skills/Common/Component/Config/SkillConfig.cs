@@ -32,6 +32,11 @@ namespace Main.Scripts.Skills.Common.Component.Config
         [SerializeField]
         private SkillInterruptStrategy interruptStrategy;
         [SerializeField]
+        [Min(0f)]
+        private float dontDestroyAfterFinishDurationSec;
+        [SerializeField]
+        private bool dontDestroyAfterStopAction;
+        [SerializeField]
         private SkillComponent prefab = default!;
 
         public SkillSpawnPointType SpawnPointType => spawnPointType;
@@ -44,6 +49,8 @@ namespace Main.Scripts.Skills.Common.Component.Config
         public List<SkillActionBase> Actions => actions;
         public float DurationSec => durationSec;
         public SkillInterruptStrategy InterruptStrategy => interruptStrategy;
+        public float DontDestroyAfterFinishDurationSec => dontDestroyAfterFinishDurationSec;
+        public bool DontDestroyAfterStopAction => dontDestroyAfterStopAction;
         public SkillComponent Prefab => prefab;
     }
 }

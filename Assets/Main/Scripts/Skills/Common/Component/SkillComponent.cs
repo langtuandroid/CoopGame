@@ -10,6 +10,7 @@ using Main.Scripts.Skills.Common.Component.Config.FindTargets;
 using Main.Scripts.Skills.Common.Component.Config.Trigger;
 using Main.Scripts.Utils;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Main.Scripts.Skills.Common.Component
 {
@@ -26,9 +27,13 @@ namespace Main.Scripts.Skills.Common.Component
         [Networked]
         private TickTimer lifeTimer { get; set; }
         [Networked]
+        private TickTimer destroyAfterFinishTimer { get; set; }
+        [Networked]
         private TickTimer triggerTimer { get; set; }
         [Networked]
         private int activatedTriggersCount { get; set; }
+        [Networked]
+        private bool shouldStop { get; set; }
 
         [Networked]
         private Vector3 initialMapPoint { get; set; }
@@ -52,6 +57,13 @@ namespace Main.Scripts.Skills.Common.Component
         private List<LagCompensatedHit> findTargetHitsList = new();
         private HashSet<NetworkObject> findTargetHitObjectsSet = new();
 
+        private Action<SkillComponent>? onSpawnNewSkillComponent;
+
+        private bool isFinished => destroyAfterFinishTimer.IsRunning;
+
+        public UnityEvent OnFinishEvent = new();
+        public UnityEvent OnActionEvent = new();
+
         public void Init(
             int skillConfigId,
             Vector3 initialMapPoint,
@@ -59,13 +71,17 @@ namespace Main.Scripts.Skills.Common.Component
             NetworkObject? selfUnit,
             NetworkObject? selectedUnit,
             LayerMask alliesLayerMask,
-            LayerMask opponentsLayerMask
+            LayerMask opponentsLayerMask,
+            Action<SkillComponent>? onSpawnNewSkillComponent
         )
         {
             this.skillConfigId = skillConfigId;
             lifeTimer = default;
+            destroyAfterFinishTimer = default;
             triggerTimer = default;
             activatedTriggersCount = 0;
+            shouldStop = false;
+            startSkillTick = 0;
 
             this.initialMapPoint = initialMapPoint;
             this.dynamicMapPoint = dynamicMapPoint;
@@ -75,6 +91,14 @@ namespace Main.Scripts.Skills.Common.Component
 
             this.alliesLayerMask = alliesLayerMask;
             this.opponentsLayerMask = opponentsLayerMask;
+
+            this.onSpawnNewSkillComponent = onSpawnNewSkillComponent;
+            
+            affectedTargets.Clear();
+
+            
+            findTargetHitsList.Clear();
+            findTargetHitObjectsSet.Clear();
         }
 
         public override void Spawned()
@@ -87,6 +111,15 @@ namespace Main.Scripts.Skills.Common.Component
         {
             UpdatePosition();
             UpdateRotation();
+            
+            if (isFinished)
+            {
+                if (destroyAfterFinishTimer.Expired(Runner))
+                {
+                    Runner.Despawn(Object);
+                }
+                return;
+            }
 
             if (!lifeTimer.IsRunning)
             {
@@ -104,15 +137,30 @@ namespace Main.Scripts.Skills.Common.Component
                 }
             }
 
-            skillConfig.ThrowWhenNull();
-            if (lifeTimer.Expired(Runner))
+            if (lifeTimer.Expired(Runner) || shouldStop)
             {
+                lifeTimer = default;
+                var shouldDontDestroyIfNeed = !shouldStop || skillConfig.DontDestroyAfterStopAction;
+                if (shouldDontDestroyIfNeed)
+                {
+                    OnFinishEvent.Invoke();
+                }
+
                 if (skillConfig.ActionTrigger is FinishSkillActionTrigger)
                 {
                     ExecuteActions();
                 }
 
-                Runner.Despawn(Object);
+                if (shouldDontDestroyIfNeed && skillConfig.DontDestroyAfterFinishDurationSec > 0f)
+                {
+                    //откладываем дестрой после истечения жизни скилла, либо после экшена стоп при наличии соответствующего флага
+                    destroyAfterFinishTimer =
+                        TickTimer.CreateFromSeconds(Runner, skillConfig.DontDestroyAfterFinishDurationSec);
+                }
+                else
+                {
+                    Runner.Despawn(Object);
+                }
                 return;
             }
 
@@ -128,11 +176,15 @@ namespace Main.Scripts.Skills.Common.Component
 
         public void UpdateMapPoint(Vector3 mapPoint)
         {
+            if (isFinished) return;
+            
             dynamicMapPoint = mapPoint;
         }
 
         public void OnClickTrigger()
         {
+            if (isFinished) return;
+            
             if (skillConfig.ActionTrigger is ClickSkillActionTrigger)
             {
                 ExecuteActions();
@@ -141,7 +193,14 @@ namespace Main.Scripts.Skills.Common.Component
 
         public void TryInterrupt()
         {
+            if (isFinished) return;
+            
             //todo
+        }
+
+        public void OnLostControl()
+        {
+            onSpawnNewSkillComponent = null;
         }
 
         private void UpdatePosition()
@@ -264,6 +323,8 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void ExecuteActions()
         {
+            OnActionEvent.Invoke();
+
             activatedTriggersCount++;
             var actionTargets = FindActionTargets();
             foreach (var action in skillConfig.Actions)
@@ -325,21 +386,51 @@ namespace Main.Scripts.Skills.Common.Component
                 }
             }
 
-            if (action is SpawnSkillAction spawnAction)
+            if (action is SpawnSkillActionBase spawnAction)
             {
                 var position = GetPointByType(spawnAction.SpawnPointType);
                 var rotation = Quaternion.LookRotation(GetDirectionByType(spawnAction.SpawnDirectionType));
 
-                Runner.Spawn(
-                    prefab: spawnAction.PrefabToSpawn,
-                    position: position,
-                    rotation: rotation
-                );
+                switch (spawnAction)
+                {
+                    case SpawnPrefabSkillAction spawnPrefabSkillAction:
+                        Runner.Spawn(
+                            prefab: spawnPrefabSkillAction.PrefabToSpawn,
+                            position: position,
+                            rotation: rotation
+                        );
+                        break;
+                    case SpawnConfigSkillAction spawnPrefabSkillAction:
+                        Runner.Spawn(
+                            prefab: spawnPrefabSkillAction.SkillConfig.Prefab,
+                            position: position,
+                            rotation: rotation,
+                            onBeforeSpawned: (runner, spawnedObject) =>
+                            {
+                                if (spawnedObject.TryGetComponent<SkillComponent>(out var skillComponent))
+                                {
+                                    skillComponent.Init(
+                                        skillConfigId: skillConfigsBank.GetSkillConfigId(spawnPrefabSkillAction.SkillConfig),
+                                        initialMapPoint: initialMapPoint,
+                                        dynamicMapPoint: dynamicMapPoint,
+                                        selfUnit: Object,
+                                        selectedUnit: selectedUnit,
+                                        alliesLayerMask: alliesLayerMask,
+                                        opponentsLayerMask: opponentsLayerMask,
+                                        onSpawnNewSkillComponent: onSpawnNewSkillComponent
+                                    );
+                                    onSpawnNewSkillComponent?.Invoke(skillComponent);
+                                }
+                            }
+                        );
+                        break;
+                }
+
             }
 
             if (action is StopSkillAction stopAction && activatedTriggersCount >= stopAction.LiveUntilTriggersCount)
             {
-                Runner.Despawn(Object);
+                shouldStop = true;
             }
         }
 

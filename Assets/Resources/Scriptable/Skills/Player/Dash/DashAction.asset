@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b46e441337148f69d0a9dcf94ecdf85, type: 3}
   m_Name: DashAction
   m_EditorClassIdentifier: 
-  directionType: 5
+  directionType: 6
   speed: 20
   durationSec: 0.3

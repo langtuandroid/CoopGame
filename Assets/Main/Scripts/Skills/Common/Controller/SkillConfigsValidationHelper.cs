@@ -16,7 +16,7 @@ namespace Main.Scripts.Skills.Common.Controller
                 throw new Exception($"{skillControllerConfig.name}: ExecutionDurationSec must be bigger or equal CastDurationSec");
             }
             
-            foreach (var skillConfig in skillControllerConfig.SkillConfigs)
+            foreach (var skillConfig in skillControllerConfig.RunAfterCastSkillConfigs)
             {
                 if (skillConfig == null)
                 {
@@ -59,7 +59,7 @@ namespace Main.Scripts.Skills.Common.Controller
 
         private static string? GetConfigNameThatUsedIllegalSelectedUnit(SkillControllerConfig skillControllerConfig)
         {
-            foreach (var skillConfig in skillControllerConfig.SkillConfigs)
+            foreach (var skillConfig in skillControllerConfig.RunAfterCastSkillConfigs)
             {
                 if (skillConfig.SpawnPointType == SkillSpawnPointType.SelectedUnitTarget)
                 {
@@ -119,7 +119,7 @@ namespace Main.Scripts.Skills.Common.Controller
                             }
 
                             break;
-                        case SpawnSkillAction spawnAction:
+                        case SpawnConfigSkillAction spawnAction:
                             if (IsPointOrDirectionUseSelectedUnit(spawnAction.SpawnPointType,
                                     spawnAction.SpawnDirectionType))
                             {
@@ -170,7 +170,8 @@ namespace Main.Scripts.Skills.Common.Controller
 
         private static string? GetConfigNameThatUsedIllegalInitialMapPoint(SkillControllerConfig skillControllerConfig)
         {
-            foreach (var skillConfig in skillControllerConfig.SkillConfigs)
+            //todo
+            foreach (var skillConfig in skillControllerConfig.RunAfterCastSkillConfigs)
             {
                 if (skillConfig.SpawnPointType == SkillSpawnPointType.InitialMapPointTarget)
                 {
@@ -227,7 +228,7 @@ namespace Main.Scripts.Skills.Common.Controller
                             }
 
                             break;
-                        case SpawnSkillAction spawnAction:
+                        case SpawnConfigSkillAction spawnAction:
                             if (IsPointOrDirectionUseInitialMapPoint(spawnAction.SpawnPointType,
                                     spawnAction.SpawnDirectionType))
                             {

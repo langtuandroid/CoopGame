@@ -2,6 +2,7 @@
 {
     public enum EnemyAnimationState
     {
+        None,
         Idle,
         Walking,
         Attacking,

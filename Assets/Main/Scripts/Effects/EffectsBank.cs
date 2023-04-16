@@ -10,6 +10,9 @@ namespace Main.Scripts.Effects
 {
     public class EffectsBank : MonoBehaviour
     {
+        public const int UNLIMITED_EFFECTS_COUNT = 10;
+        public const int LIMITED_EFFECTS_COUNT = 10;
+        
         public static EffectsBank? Instance;
 
         [SerializeField]
@@ -70,6 +73,16 @@ namespace Main.Scripts.Effects
                     ids.Add(effect.NameId);
                 }
             }
+            
+            var (unlimitedCount, limitedCount) = GetUnlimitedAndLimitedEffectsCounts();
+            if (unlimitedCount != UNLIMITED_EFFECTS_COUNT)
+            {
+                Debug.LogWarning($"The UNLIMITED_EFFECTS_COUNT is not equal to the registered value: {unlimitedCount}");
+            }
+            if (limitedCount != LIMITED_EFFECTS_COUNT)
+            {
+                Debug.LogWarning($"The LIMITED_EFFECTS_COUNT is not equal to the registered value: {limitedCount}");
+            }
         }
 
         private void OnDestroy()
@@ -97,7 +110,7 @@ namespace Main.Scripts.Effects
             return effectsIds[effect.NameId];
         }
 
-        public KeyValuePair<int, int> GetUnlimitedAndLimitedEffectsCounts()
+        private KeyValuePair<int, int> GetUnlimitedAndLimitedEffectsCounts()
         {
             var unlimitedEffectsSum = 0;
             var limitedEffectsSum = 0;

@@ -8,11 +8,22 @@ namespace Main.Scripts.Levels
     public abstract class LevelControllerBase : NetworkBehaviour
     {
         protected RoomManager roomManager = default!;
+        [Networked]
+        private NetworkBool isInitialized { get; set; }
 
         public override void Spawned()
         {
             roomManager = RoomManager.Instance.ThrowWhenNull();
             if (HasStateAuthority)
+            {
+                roomManager.OnPlayerInitializedEvent.AddListener(OnPlayerInitialized);
+                roomManager.OnPlayerDisconnectedEvent.AddListener(OnPlayerDisconnected);
+            }
+        }
+
+        public override void FixedUpdateNetwork()
+        {
+            if (!isInitialized)
             {
                 var connectedPlayers = Runner.ActivePlayers;
                 foreach (var playerRef in connectedPlayers)
@@ -23,8 +34,7 @@ namespace Main.Scripts.Levels
                     }
                 }
 
-                roomManager.OnPlayerInitializedEvent.AddListener(OnPlayerInitialized);
-                roomManager.OnPlayerDisconnectedEvent.AddListener(OnPlayerDisconnected);
+                isInitialized = true;
             }
         }
 

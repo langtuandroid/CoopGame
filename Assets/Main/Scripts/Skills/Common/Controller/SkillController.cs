@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Skills.Common.Component;
@@ -168,6 +169,8 @@ namespace Main.Scripts.Skills.Common.Controller
             castTimer = TickTimer.CreateFromSeconds(Runner, skillControllerConfig.CastDurationSec);
 
             OnSkillExecutedEvent.Invoke(this);
+            
+            SpawnSkills(skillControllerConfig.RunOnStartSkillConfigs);
 
             CheckCastFinished();
         }
@@ -189,7 +192,7 @@ namespace Main.Scripts.Skills.Common.Controller
             if (castTimer.Expired(Runner))
             {
                 castTimer = default;
-                SpawnSkills();
+                SpawnSkills(skillControllerConfig.RunAfterCastSkillConfigs);
             }
         }
 
@@ -245,12 +248,19 @@ namespace Main.Scripts.Skills.Common.Controller
             initialMapPoint = default;
             dynamicMapPoint = default;
 
+            foreach (var skillComponent in skillComponents)
+            {
+                if (skillComponent != null)
+                {
+                    skillComponent.OnLostControl();
+                }
+            }
             skillComponents.Clear();
         }
 
-        private void SpawnSkills()
+        private void SpawnSkills(List<SkillConfig> skillConfigs)
         {
-            foreach (var skillConfig in skillControllerConfig.SkillConfigs)
+            foreach (var skillConfig in skillConfigs)
             {
                 Vector3 position;
                 Quaternion rotation;
@@ -323,7 +333,11 @@ namespace Main.Scripts.Skills.Common.Controller
                             selfUnit: Object,
                             selectedUnit: selectedUnit,
                             alliesLayerMask: alliesLayerMask,
-                            opponentsLayerMask: opponentsLayerMask
+                            opponentsLayerMask: opponentsLayerMask,
+                            onSpawnNewSkillComponent: spawnedSkillComponent =>
+                            {
+                                skillComponents.Add(spawnedSkillComponent);
+                            } 
                         );
                     }
                 );

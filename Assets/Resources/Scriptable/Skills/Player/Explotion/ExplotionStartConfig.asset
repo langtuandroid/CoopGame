@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 708574db76a74ebe87e92ea04b52a2a5, type: 3}
+  m_Name: ExplotionStartConfig
+  m_EditorClassIdentifier: 
+  spawnPointType: 2
+  spawnDirectionType: 0
+  followDirectionType: 0
+  followStrategy: {fileID: 11400000, guid: 3dd27e4fa2ef1b84f943915d04efaf99, type: 2}
+  actionTrigger: {fileID: 11400000, guid: 0ec5652734b992c4bb529c276b5343cf, type: 2}
+  findTargetsStrategies: []
+  isAffectTargetsOnlyOneTime: 0
+  actions:
+  - {fileID: 11400000, guid: 5bbf7ad168b8cbc40920b50f2287bc96, type: 2}
+  durationSec: 1
+  interruptStrategy: 0
+  prefab: {fileID: -3136543887100792344, guid: 2826da260529e9b41b2de7707bd0ac19, type: 3}

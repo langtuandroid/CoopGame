@@ -15,17 +15,14 @@ namespace Main.Scripts.Effects
 {
     public class EffectsManager : NetworkBehaviour
     {
-        private const int UNLIMITED_EFFECTS_COUNT = 10;
-        private const int LIMITED_EFFECTS_COUNT = 10;
-        
         private EffectsBank effectsBank = default!;
 
         [Networked]
-        [Capacity(UNLIMITED_EFFECTS_COUNT)]
+        [Capacity(EffectsBank.UNLIMITED_EFFECTS_COUNT)]
         private NetworkDictionary<int, ActiveEffectData> unlimitedEffectDataMap => default;
 
         [Networked]
-        [Capacity(LIMITED_EFFECTS_COUNT)]
+        [Capacity(EffectsBank.LIMITED_EFFECTS_COUNT)]
         private NetworkDictionary<int, ActiveEffectData> limitedEffectDataMap => default;
 
         [Networked]
@@ -46,17 +43,7 @@ namespace Main.Scripts.Effects
         private void Awake()
         {
             effectsBank = EffectsBank.Instance.ThrowWhenNull();
-            
-            var (unlimitedCount, limitedCount) = effectsBank.GetUnlimitedAndLimitedEffectsCounts();
-            if (unlimitedCount != UNLIMITED_EFFECTS_COUNT)
-            {
-                Debug.LogWarning($"The UNLIMITED_EFFECTS_COUNT is not equal to the registered value: {unlimitedCount}");
-            }
-            if (limitedCount != LIMITED_EFFECTS_COUNT)
-            {
-                Debug.LogWarning($"The LIMITED_EFFECTS_COUNT is not equal to the registered value: {limitedCount}");
-            }
-            
+
             InitEffectsHandlers();
         }
 

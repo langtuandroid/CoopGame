@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 708574db76a74ebe87e92ea04b52a2a5, type: 3}
+  m_Name: FireballSkillConfig
+  m_EditorClassIdentifier: 
+  spawnPointType: 0
+  spawnDirectionType: 4
+  followDirectionType: 0
+  followStrategy: {fileID: 11400000, guid: 48c287e4453072348b3c1adf78889d81, type: 2}
+  actionTrigger: {fileID: 11400000, guid: 0d2e5d256aa67094eae564ff217370f6, type: 2}
+  findTargetsStrategies:
+  - {fileID: 11400000, guid: e031ebe848faa3a4f8768f9e58a16dbc, type: 2}
+  isAffectTargetsOnlyOneTime: 0
+  actions:
+  - {fileID: 11400000, guid: 7059bd9a479e85d4596d0b3b4d3f2b12, type: 2}
+  - {fileID: 11400000, guid: e729ac14c1f6a614cac6d798c6de3743, type: 2}
+  - {fileID: 11400000, guid: f8182fe568ada8342b28c835094540ea, type: 2}
+  - {fileID: 11400000, guid: 9466c0c91292246479771ec024130019, type: 2}
+  durationSec: 1
+  interruptStrategy: 0
+  dontDestroyAfterFinishDurationSec: 0.2
+  dontDestroyAfterStopAction: 0
+  prefab: {fileID: 3010337366136423708, guid: 091a2a154fb555c4a81b5183c6cec021, type: 3}

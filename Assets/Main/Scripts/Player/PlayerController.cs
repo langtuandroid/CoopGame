@@ -35,7 +35,7 @@ namespace Main.Scripts.Player
         private new Rigidbody rigidbody = default!;
         private NetworkRigidbody networkRigidbody = default!;
         private new Collider collider = default!;
-        private Animator animator = default!;
+        private NetworkMecanimAnimator networkAnimator = default!;
 
         private ActiveSkillsManager activeSkillsManager = default!;
         private PassiveSkillsManager passiveSkillsManager = default!;
@@ -71,6 +71,10 @@ namespace Main.Scripts.Player
         private float dashSpeed { get; set; }
         [Networked]
         private Vector3 dashDirection { get; set; }
+        
+        [Networked]
+        private int animationTriggerId { get; set; }
+        private int lastAnimationTriggerId;
 
         private InteractionInfoView interactionInfoView = default!;
         private PlayerAnimationState currentAnimationState;
@@ -96,7 +100,7 @@ namespace Main.Scripts.Player
             rigidbody = GetComponent<Rigidbody>();
             networkRigidbody = GetComponent<NetworkRigidbody>();
             collider = GetComponent<Collider>();
-            animator = GetComponent<Animator>();
+            networkAnimator = GetComponent<NetworkMecanimAnimator>();
             
             activeSkillsManager = GetComponent<ActiveSkillsManager>();
             passiveSkillsManager = GetComponent<PassiveSkillsManager>();
@@ -144,7 +148,6 @@ namespace Main.Scripts.Player
 
         public override void Render()
         {
-            UpdateAnimationState();
             healthBar.SetHealth((uint)Math.Max(0, health));
         }
 
@@ -166,6 +169,8 @@ namespace Main.Scripts.Player
             {
                 Move(Vector3.zero);
             }
+            
+            UpdateAnimationState();
         }
 
         public void SetDirections(Vector2 moveDirection, Vector2 aimDirection)
@@ -296,28 +301,34 @@ namespace Main.Scripts.Player
 
         private void OnActiveSkillStateChanged(ActiveSkillType type, ActiveSkillState state)
         {
-            
+            if (state == ActiveSkillState.Attacking)
+            {
+                animationTriggerId++;
+            }
         }
 
-        /* todo fix when attacks are called just after each other, the method might not catch the state change, and animation may be lost
-        same issue with UpdateAnimationState() in EnemyController */
         private void UpdateAnimationState()
         {
-            if (currentAnimationState != GetActualAnimationState())
+            if (IsProxy || !Runner.IsForward)
             {
-                currentAnimationState = GetActualAnimationState();
-                switch (currentAnimationState)
+                return;
+            }
+            
+            var newAnimationState = GetActualAnimationState();
+
+            if (lastAnimationTriggerId < animationTriggerId)
+            {
+                switch (newAnimationState)
                 {
-                    case PlayerAnimationState.None:
-                        break;
                     case PlayerAnimationState.Attacking:
-                        animator.SetTrigger(ATTACK_ANIM);
+                        networkAnimator.SetTrigger(ATTACK_ANIM, true);
                         break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
                 }
             }
-
+            
+            lastAnimationTriggerId = animationTriggerId;
+            currentAnimationState = newAnimationState;
+            
             if (currentAnimationState == PlayerAnimationState.None)
             {
                 AnimateMoving();
@@ -377,8 +388,8 @@ namespace Main.Scripts.Player
                 moveX = (float)Math.Sin(animationAngle);
             }
 
-            animator.SetFloat(MOVE_X_ANIM, moveX);
-            animator.SetFloat(MOVE_Z_ANIM, moveZ);
+            networkAnimator.Animator.SetFloat(MOVE_X_ANIM, moveX);
+            networkAnimator.Animator.SetFloat(MOVE_Z_ANIM, moveZ);
         }
 
         public float GetMaxHealth()

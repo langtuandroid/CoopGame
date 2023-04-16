@@ -26,7 +26,7 @@ namespace Main.Scripts.Enemies
 
         private new Rigidbody rigidbody = default!;
         private NetworkRigidbody networkRigidbody = default!;
-        private Animator animator = default!;
+        private NetworkMecanimAnimator networkAnimator = default!;
         private EnemiesHelper enemiesHelper = default!;
 
         private float knockBackForce = 30f; //todo get from ApplyKnockBack
@@ -62,6 +62,10 @@ namespace Main.Scripts.Enemies
         private TickTimer knockBackTimer { get; set; }
         [Networked]
         private Vector3 knockBackDirection { get; set; }
+        
+        [Networked]
+        private int animationTriggerId { get; set; }
+        private int lastAnimationTriggerId;
 
         private NavMeshPath navMeshPath = default!;
         private EnemyAnimationState currentAnimationState;
@@ -82,13 +86,14 @@ namespace Main.Scripts.Enemies
         {
             rigidbody = GetComponent<Rigidbody>();
             networkRigidbody = GetComponent<NetworkRigidbody>();
-            animator = GetComponent<Animator>();
+            networkAnimator = GetComponent<NetworkMecanimAnimator>();
             navMeshPath = new NavMeshPath();
 
             activeSkillsManager = GetComponent<ActiveSkillsManager>();
             passiveSkillsManager = GetComponent<PassiveSkillsManager>();
             effectsManager = GetComponent<EffectsManager>();
 
+            activeSkillsManager.OnActiveSkillStateChangedEvent.AddListener(OnActiveSkillStateChanged);
             effectsManager.OnUpdatedStatModifiersEvent.AddListener(OnUpdatedStatModifiers);
         }
 
@@ -99,6 +104,7 @@ namespace Main.Scripts.Enemies
 
         private void OnDestroy()
         {
+            activeSkillsManager.OnActiveSkillStateChangedEvent.RemoveListener(OnActiveSkillStateChanged);
             effectsManager.OnUpdatedStatModifiersEvent.RemoveListener(OnUpdatedStatModifiers);
         }
         
@@ -114,11 +120,11 @@ namespace Main.Scripts.Enemies
             healthBar.SetMaxHealth((uint)Math.Max(0, maxHealth));
 
             isDead = false;
+            currentAnimationState = EnemyAnimationState.None;
         }
 
         public override void Render()
         {
-            UpdateAnimationState();
             healthBar.SetMaxHealth((uint)maxHealth);
             healthBar.SetHealth((uint)health);
         }
@@ -156,6 +162,8 @@ namespace Main.Scripts.Enemies
             }
 
             CheckIsDead();
+
+            UpdateAnimationState();
         }
 
         private bool CheckIsDead()
@@ -190,6 +198,28 @@ namespace Main.Scripts.Enemies
                 case StatType.ReservedDoNotUse:
                 default:
                     throw new ArgumentOutOfRangeException(nameof(statType), statType, null);
+            }
+        }
+
+        private void OnActiveSkillStateChanged(ActiveSkillType type, ActiveSkillState state)
+        {
+            switch (state)
+            {
+                case ActiveSkillState.NotAttacking:
+                    break;
+                case ActiveSkillState.Attacking:
+                    animationTriggerId++;
+                    break;
+                case ActiveSkillState.WaitingForPoint:
+                    break;
+                case ActiveSkillState.WaitingForTarget:
+                    break;
+                case ActiveSkillState.Finished:
+                    break;
+                case ActiveSkillState.Canceled:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(state), state, null);
             }
         }
 
@@ -272,28 +302,40 @@ namespace Main.Scripts.Enemies
             stunTimer = TickTimer.CreateFromSeconds(Runner, durationSec);
         }
 
-        /* todo fix when attacks are called just after each other, the method might not catch the state change, and animation may be lost
-        same issue with UpdateAnimationState() in PlayerController */
         private void UpdateAnimationState()
         {
-            if (currentAnimationState != GetActualAnimationState())
+            if (IsProxy || !Runner.IsForward)
             {
-                currentAnimationState = GetActualAnimationState();
-                switch (currentAnimationState)
+                return;
+            }
+            
+            var newAnimationState = GetActualAnimationState();
+
+            if (lastAnimationTriggerId < animationTriggerId)
+            {
+                switch (newAnimationState)
                 {
                     case EnemyAnimationState.Attacking:
-                        animator.SetTrigger(ATTACK_ANIM);
+                        networkAnimator.SetTrigger(ATTACK_ANIM, true);
+                        networkAnimator.Animator.SetBool(IS_MOVING_ANIM, false);
                         break;
-                    case EnemyAnimationState.Walking:
-                        animator.SetBool(IS_MOVING_ANIM, true);
-                        break;
-                    case EnemyAnimationState.Idle:
-                        animator.SetBool(IS_MOVING_ANIM, false);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
                 }
             }
+            lastAnimationTriggerId = animationTriggerId;
+
+            if (currentAnimationState != newAnimationState)
+            {
+                switch (newAnimationState)
+                {
+                    case EnemyAnimationState.Walking:
+                        networkAnimator.Animator.SetBool(IS_MOVING_ANIM, true);
+                        break;
+                    case EnemyAnimationState.Idle:
+                        networkAnimator.Animator.SetBool(IS_MOVING_ANIM, false);
+                        break;
+                }
+            }
+            currentAnimationState = newAnimationState;
         }
 
         private EnemyAnimationState GetActualAnimationState()

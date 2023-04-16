@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 8747675781320779502}
   - component: {fileID: 1232518736907365467}
   - component: {fileID: 17070262016428297}
+  - component: {fileID: 4040824336151786535}
   m_Layer: 8
   m_Name: EnemyPrefab
   m_TagString: Untagged
@@ -89,6 +90,7 @@ MonoBehaviour:
   - {fileID: 7982089108220398672}
   - {fileID: 1870479772353028648}
   - {fileID: 17070262016428297}
+  - {fileID: 4040824336151786535}
   - {fileID: 8574961548140711563}
   SimulationBehaviours: []
 --- !u!114 &1324006215410747384
@@ -238,7 +240,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 572ce91f928c42aeaee3e98ff906637c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  effectsCombinations:
+  passiveSkillControllers: []
+  initialEffects:
   - {fileID: 11400000, guid: abe51633e154f80448a88fde050fa984, type: 2}
 --- !u!114 &17070262016428297
 MonoBehaviour:
@@ -256,6 +259,36 @@ MonoBehaviour:
   OnUpdatedStatModifiersEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &4040824336151786535
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2736757121921172608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 506319458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 0
+  Animator: {fileID: 8747675781320779502}
+  TotalWords: 3
+  SyncSettings: 95
+  FloatAccuracy:
+    _value: 0
+    _inverse: 0
+    _hash: -814817977
+  TimeAccuracy:
+    _value: 0
+    _inverse: 0
+    _hash: 1061325578
+  WeightAccuracy:
+    _value: 0
+    _inverse: 0
+    _hash: -814817977
+  StateHashes: 00000000a554260e271b6a8b9da6ca0538e22dba2b1a167c79406955
+  TriggerHashes: 000000000d286c40
 --- !u!1 &4256602683872874748
 GameObject:
   m_ObjectHideFlags: 0

@@ -25,4 +25,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e4f82ac455ed37648bfc8f2442386924, type: 2}
   durationSec: 3
   interruptStrategy: 0
-  prefab: {fileID: -3136543887100792344, guid: 726ce3fc71656c342a26717210ea7c04, type: 3}
+  prefab: {fileID: 3010337366136423708, guid: 29b8aa4d81b0a8f46bb84ed74ebc8617, type: 3}

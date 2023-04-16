@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca3d1d46e4be4df1b28028d25c825374, type: 3}
   m_Name: BonkSkillControllerConfig
   m_EditorClassIdentifier: 
-  skillConfigs:
+  runOnStartSkillConfigs:
   - {fileID: 11400000, guid: 3fee7f67db3e2f1498362c5bb395df84, type: 2}
+  runAfterCastSkillConfigs: []
   activationType: 0
   areaMarker: {fileID: 0}
   executionDurationSec: 0

@@ -75,11 +75,11 @@ MonoBehaviour:
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ObjectInterest: 1
+  ObjectInterest: 0
   DefaultInterestGroups: []
   DestroyWhenStateAuthorityLeaves: 0
   AllowStateAuthorityOverride: 1
-  AoiPositionSource: {fileID: 0}
+  AoiPositionSource: {fileID: 1870479772353028648}
   Flags: 2305
   NetworkGuid:
     RawGuidValue: fb6430ba47924404495b48284fc38986

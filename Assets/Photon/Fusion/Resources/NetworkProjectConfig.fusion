@@ -44,8 +44,8 @@
         "TickRate": 60,
         "MaxPrediction": 20,
         "DefaultPlayers": 10,
-        "ReplicationMode": 0,
-        "ObjectInterest": false,
+        "ReplicationMode": 1,
+        "ObjectInterest": true,
         "ServerPacketInterval": 1,
         "ClientPacketInterval": 1
     },

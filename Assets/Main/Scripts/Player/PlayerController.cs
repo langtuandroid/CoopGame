@@ -159,6 +159,16 @@ namespace Main.Scripts.Player
 
         public override void FixedUpdateNetwork()
         {
+            if (Runner.IsServer)
+            {
+                var controller = Object.InputAuthority;
+                // Set the controlling players area of interest region around this object
+                if (controller)
+                {
+                    Runner.AddPlayerAreaOfInterest(controller, transform.position + Vector3.forward * 5, 25);
+                }
+            }
+            
             effectsManager.UpdateEffects();
 
             if (!dashTimer.ExpiredOrNotRunning(Runner))

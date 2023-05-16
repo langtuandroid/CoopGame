@@ -46,6 +46,7 @@ namespace Main.Scripts.Enemies
         private ActiveSkillsManager activeSkillsManager = default!;
         private PassiveSkillsManager passiveSkillsManager = default!;
         private EffectsManager effectsManager = default!;
+        private HealthChangeDisplayManager? healthChangeDisplayManager;
 
         [Networked]
         private float health { get; set; }
@@ -95,6 +96,7 @@ namespace Main.Scripts.Enemies
             activeSkillsManager = GetComponent<ActiveSkillsManager>();
             passiveSkillsManager = GetComponent<PassiveSkillsManager>();
             effectsManager = GetComponent<EffectsManager>();
+            healthChangeDisplayManager = GetComponent<HealthChangeDisplayManager>();
 
             activeSkillsManager.OnActiveSkillStateChangedEvent.AddListener(OnActiveSkillStateChanged);
             effectsManager.OnUpdatedStatModifiersEvent.AddListener(OnUpdatedStatModifiers);
@@ -277,6 +279,10 @@ namespace Main.Scripts.Enemies
             if (!isActivated) return;
 
             health = Math.Min(health + healValue, maxHealth);
+            if (healthChangeDisplayManager != null)
+            {
+                healthChangeDisplayManager.ApplyHeal(healValue);
+            }
         }
 
         public void ApplyDamage(float damage, NetworkObject? damageOwner)
@@ -291,6 +297,11 @@ namespace Main.Scripts.Enemies
             else
             {
                 health -= damage;
+            }
+
+            if (healthChangeDisplayManager != null)
+            {
+                healthChangeDisplayManager.ApplyDamage(damage);
             }
         }
 

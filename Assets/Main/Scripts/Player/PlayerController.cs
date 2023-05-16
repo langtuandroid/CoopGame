@@ -40,6 +40,7 @@ namespace Main.Scripts.Player
         private ActiveSkillsManager activeSkillsManager = default!;
         private PassiveSkillsManager passiveSkillsManager = default!;
         private EffectsManager effectsManager = default!;
+        private HealthChangeDisplayManager? healthChangeDisplayManager;
 
         [SerializeField]
         private UIDocument interactionInfoDoc = default!;
@@ -105,6 +106,7 @@ namespace Main.Scripts.Player
             activeSkillsManager = GetComponent<ActiveSkillsManager>();
             passiveSkillsManager = GetComponent<PassiveSkillsManager>();
             effectsManager = GetComponent<EffectsManager>();
+            healthChangeDisplayManager = GetComponent<HealthChangeDisplayManager>();
 
             activeSkillsManager.OnActiveSkillStateChangedEvent.AddListener(OnActiveSkillStateChanged);
             effectsManager.OnUpdatedStatModifiersEvent.AddListener(OnUpdatedStatModifiers);
@@ -431,6 +433,11 @@ namespace Main.Scripts.Player
             {
                 health -= damage;
             }
+
+            if (healthChangeDisplayManager != null)
+            {
+                healthChangeDisplayManager.ApplyDamage(damage);
+            }
         }
 
         public void ApplyHeal(float healValue, NetworkObject? healOwner)
@@ -440,6 +447,10 @@ namespace Main.Scripts.Player
             health = Math.Min(health + healValue, maxHealth);
             
             passiveSkillsManager.OnTakenHeal(Object.InputAuthority, healValue, healOwner);
+            if (healthChangeDisplayManager != null)
+            {
+                healthChangeDisplayManager.ApplyHeal(healValue);
+            }
         }
         
         public void ApplyEffects(EffectsCombination effectsCombination)

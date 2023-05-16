@@ -1,27 +1,21 @@
-using Fusion;
 using Main.Scripts.Player.Data;
 using Main.Scripts.Utils;
+using UnityEngine;
 
 namespace Main.Scripts.UI.Windows.LevelResults
 {
-    public class LevelResultsPresenter : NetworkBehaviour, UIScreen
+    public class LevelResultsPresenter : MonoBehaviour, UIScreen
     {
         private LevelResultsView levelResultsView = default!;
-        private PlayerDataManager playerDataManager = default!;
 
         private void Awake()
         {
             levelResultsView = GetComponent<LevelResultsView>();
         }
 
-        public override void Spawned()
-        {
-            playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
-        }
-
         public void Show()
         {
-            var awardsData = playerDataManager.LocalAwardsData;
+            var awardsData = PlayerDataManager.Instance.ThrowWhenNull().LocalAwardsData;
             awardsData.ThrowWhenNull();
 
             levelResultsView.Bind(awardsData.Value);

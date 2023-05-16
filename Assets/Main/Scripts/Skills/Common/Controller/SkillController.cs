@@ -328,6 +328,7 @@ namespace Main.Scripts.Skills.Common.Controller
                     {
                         skillObject.GetComponent<SkillComponent>().Init(
                             skillConfigId: skillConfigsBank.GetSkillConfigId(skillConfig),
+                            ownerId: Object.InputAuthority,
                             initialMapPoint: initialMapPoint,
                             dynamicMapPoint: dynamicMapPoint,
                             selfUnit: Object,

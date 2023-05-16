@@ -26,6 +26,7 @@ namespace Main.Scripts.Player
         private GameObject mineGold = default!;
         
         private UIScreenManager? uiScreenManager;
+        private EnemiesManager enemiesManager = default!;
 
         [Networked]
         private NetworkButtons ButtonsPrevious { get; set; }
@@ -66,6 +67,8 @@ namespace Main.Scripts.Player
                 uiScreenManager = UIScreenManager.Instance.ThrowWhenNull();
                 uiScreenManager.OnCurrentScreenChangedEvent.AddListener(OnCurrentWindowChanged);
             }
+            
+            enemiesManager = EnemiesManager.Instance.ThrowWhenNull();
 
             Debug.Log("Spawned [" + this + "] IsClient=" + Runner.IsClient + " IsServer=" + Runner.IsServer +
                       " HasInputAuth=" + Object.HasInputAuthority + " HasStateAuth=" + Object.HasStateAuthority);
@@ -226,11 +229,7 @@ namespace Main.Scripts.Player
 
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_SPAWN_ENEMY))
                 {
-                    Runner.Spawn(
-                        prefab: enemyPrefab,
-                        position: playerController.transform.position + new Vector3(Random.Range(-5, 5) * 5, 0, Random.Range(-5, 5) * 5),
-                        onBeforeSpawned: (runner, networkObject) => { networkObject.GetComponent<EnemyController>().ResetState(); }
-                    );
+                    enemiesManager.SpawnEnemy(transform.position);
                 }
 
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_SPAWN_MINE))

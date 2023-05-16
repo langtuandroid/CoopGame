@@ -21,6 +21,8 @@ namespace Main.Scripts.Skills.Common.Component
 
         [Networked]
         private int skillConfigId { get; set; }
+        [Networked]
+        private PlayerRef ownerId { get; set; }
 
         [Networked]
         private int startSkillTick { get; set; }
@@ -66,6 +68,7 @@ namespace Main.Scripts.Skills.Common.Component
 
         public void Init(
             int skillConfigId,
+            PlayerRef ownerId,
             Vector3 initialMapPoint,
             Vector3 dynamicMapPoint,
             NetworkObject? selfUnit,
@@ -76,6 +79,7 @@ namespace Main.Scripts.Skills.Common.Component
         )
         {
             this.skillConfigId = skillConfigId;
+            this.ownerId = ownerId;
             lifeTimer = default;
             destroyAfterFinishTimer = default;
             triggerTimer = default;
@@ -308,7 +312,7 @@ namespace Main.Scripts.Skills.Common.Component
                 Runner.LagCompensation.OverlapSphere(
                     origin: transform.position,
                     radius: collisionTrigger.Radius,
-                    player: Object.InputAuthority,
+                    player: ownerId,
                     hits: findTargetHitsList,
                     layerMask: GetLayerMaskByType(collisionTrigger.TargetType),
                     options: HitOptions.IgnoreInputAuthority & HitOptions.SubtickAccuracy
@@ -411,6 +415,7 @@ namespace Main.Scripts.Skills.Common.Component
                                 {
                                     skillComponent.Init(
                                         skillConfigId: skillConfigsBank.GetSkillConfigId(spawnPrefabSkillAction.SkillConfig),
+                                        ownerId: ownerId,
                                         initialMapPoint: initialMapPoint,
                                         dynamicMapPoint: dynamicMapPoint,
                                         selfUnit: Object,
@@ -523,7 +528,7 @@ namespace Main.Scripts.Skills.Common.Component
             Runner.LagCompensation.OverlapSphere(
                 origin: origin,
                 radius: strategyConfig.Radius,
-                player: Object.InputAuthority,
+                player: ownerId,
                 hits: findTargetHitsList,
                 layerMask: GetLayerMaskByType(strategyConfig.TargetType),
                 options: HitOptions.IgnoreInputAuthority & HitOptions.SubtickAccuracy
@@ -560,7 +565,7 @@ namespace Main.Scripts.Skills.Common.Component
                     origin: origin,
                     direction: raycastDirection,
                     length: strategyConfig.Radius,
-                    player: Object.InputAuthority,
+                    player: ownerId,
                     hits: findTargetHitsList,
                     layerMask: GetLayerMaskByType(strategyConfig.TargetType),
                     options: HitOptions.IgnoreInputAuthority & HitOptions.SubtickAccuracy
@@ -592,7 +597,7 @@ namespace Main.Scripts.Skills.Common.Component
                 center: center,
                 extents: extents,
                 orientation: Quaternion.LookRotation(direction),
-                player: Object.StateAuthority,
+                player: ownerId,
                 hits: findTargetHitsList,
                 layerMask: GetLayerMaskByType(strategyConfig.TargetType),
                 options: HitOptions.IgnoreInputAuthority & HitOptions.SubtickAccuracy

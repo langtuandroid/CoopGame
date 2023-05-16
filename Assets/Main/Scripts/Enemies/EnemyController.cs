@@ -10,6 +10,7 @@ using Main.Scripts.Skills.PassiveSkills;
 using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Events;
 
 namespace Main.Scripts.Enemies
 {
@@ -72,6 +73,8 @@ namespace Main.Scripts.Enemies
 
         private bool isActivated => gameObject.activeInHierarchy && !isDead;
 
+        public UnityEvent<EnemyController> OnDeadEvent = default!;
+
         public void OnValidate()
         {
             if (GetComponent<Rigidbody>() == null) throw new MissingComponentException("Rigidbody component is required in EnemyController");
@@ -106,6 +109,8 @@ namespace Main.Scripts.Enemies
         {
             activeSkillsManager.OnActiveSkillStateChangedEvent.RemoveListener(OnActiveSkillStateChanged);
             effectsManager.OnUpdatedStatModifiersEvent.RemoveListener(OnUpdatedStatModifiers);
+            
+            OnDeadEvent.RemoveAllListeners();
         }
         
         public void ResetState()
@@ -170,6 +175,7 @@ namespace Main.Scripts.Enemies
         {
             if (isDead)
             {
+                OnDeadEvent.Invoke(this);
                 Runner.Despawn(Object);
                 return true;
             }

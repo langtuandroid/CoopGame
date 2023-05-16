@@ -4,6 +4,7 @@ using Fusion;
 using Main.Scripts.Levels.Results;
 using Main.Scripts.Player;
 using Main.Scripts.Player.Data;
+using Main.Scripts.Scenarios.Missions;
 using Main.Scripts.Tasks;
 using Main.Scripts.Utils;
 using UnityEngine;
@@ -16,6 +17,8 @@ namespace Main.Scripts.Levels.Missions
         private PlayerController playerPrefab = default!;
         [SerializeField]
         private PlayersHolder playersHolder = default!;
+        [SerializeField]
+        private KillTargetsCountMissionScenario missionScenario = default!;
         [SerializeField]
         private PlaceTargetTask placeTargetTask = default!;
 
@@ -32,6 +35,7 @@ namespace Main.Scripts.Levels.Missions
             if (HasStateAuthority)
             {
                 placeTargetTask.OnTaskCheckChangedEvent.AddListener(OnFinishTaskStatus);
+                missionScenario.OnScenarioFinishedEvent.AddListener(OnMissionScenarioFinished);
             }
         }
 
@@ -39,6 +43,7 @@ namespace Main.Scripts.Levels.Missions
         {
             base.Despawned(runner, hasState);
             placeTargetTask.OnTaskCheckChangedEvent.RemoveListener(OnFinishTaskStatus);
+            missionScenario.OnScenarioFinishedEvent.RemoveListener(OnMissionScenarioFinished);
         }
 
         public override void Render()
@@ -134,9 +139,19 @@ namespace Main.Scripts.Levels.Missions
             roomManager.OnLevelFinished(levelResults);
         }
 
+        private void OnMissionScenarioFinished()
+        {
+            missionScenario.OnScenarioFinishedEvent.RemoveListener(OnMissionScenarioFinished);
+            
+            if (HasStateAuthority)
+            {
+                OnFinishTaskStatus(placeTargetTask.IsTargetChecked);
+            }
+        }
+
         private void OnFinishTaskStatus(bool isChecked)
         {
-            if (isChecked)
+            if (missionScenario.IsFinished && isChecked)
             {
                 placeTargetTask.OnTaskCheckChangedEvent.RemoveListener(OnFinishTaskStatus);
 

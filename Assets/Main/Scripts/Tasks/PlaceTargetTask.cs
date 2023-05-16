@@ -23,6 +23,8 @@ namespace Main.Scripts.Tasks
         private List<LagCompensatedHit> hits = new();
         private Vector3 placeExtents;
 
+        public bool IsTargetChecked => isTargetChecked;
+
         public override void Spawned()
         {
             placeExtents = transform.localScale / 2;
@@ -35,6 +37,8 @@ namespace Main.Scripts.Tasks
 
         public override void FixedUpdateNetwork()
         {
+            if (!Runner.IsServer) return;
+            
             Runner.LagCompensation.OverlapBox(
                 center: transform.position,
                 extents: placeExtents,
@@ -62,6 +66,7 @@ namespace Main.Scripts.Tasks
                 {
                     if (!playersInPlace.ContainsKey(playerRef))
                     {
+                        UpdateTaskStatus(false);
                         return;
                     }
 
@@ -78,6 +83,7 @@ namespace Main.Scripts.Tasks
         private void UpdateTaskStatus(bool isCompleted)
         {
             if (isTargetChecked == isCompleted) return;
+            
             isTargetChecked = isCompleted;
             OnTaskCheckChangedEvent.Invoke(isTargetChecked);
         }

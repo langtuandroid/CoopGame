@@ -45,7 +45,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowHierarchyWindowOverlay: 1
-  mainMenuScene: 0
-  loadingScene: 1
-  lobby: 2
-  levels: 03000000
+  mainMenuScene: 2
+  loadingScene: 3
+  lobby: 4
+  levels: 05000000
+  OnSceneStateChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []

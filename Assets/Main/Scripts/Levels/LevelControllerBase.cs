@@ -1,5 +1,5 @@
-using System;
 using Fusion;
+using Main.Scripts.Player.Data;
 using Main.Scripts.Room;
 using Main.Scripts.Utils;
 
@@ -8,12 +8,15 @@ namespace Main.Scripts.Levels
     public abstract class LevelControllerBase : NetworkBehaviour
     {
         protected RoomManager roomManager = default!;
+        protected PlayerDataManager playerDataManager = default!;
+
         [Networked]
         private NetworkBool isInitialized { get; set; }
 
         public override void Spawned()
         {
             roomManager = RoomManager.Instance.ThrowWhenNull();
+            playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
             if (HasStateAuthority)
             {
                 roomManager.OnPlayerInitializedEvent.AddListener(OnPlayerInitialized);

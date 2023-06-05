@@ -1,5 +1,6 @@
 using System;
 using Fusion;
+using Main.Scripts.UI.Windows.Customization;
 using Main.Scripts.UI.Windows.LevelResults;
 using Main.Scripts.UI.Windows.SkillTree;
 using UnityEngine;
@@ -14,6 +15,8 @@ namespace Main.Scripts.UI.Windows
         private SkillTreeWindow skillTreeScreen = default!;
         [SerializeField]
         private LevelResultsPresenter levelResultsPresenter = default!;
+        [SerializeField]
+        private CustomizationWindow customizationWindow = default!;
 
         private void Awake()
         {
@@ -34,6 +37,8 @@ namespace Main.Scripts.UI.Windows
                     return skillTreeScreen;
                 case ScreenType.LEVEL_RESULTS:
                     return levelResultsPresenter;
+                case ScreenType.CUSTOMIZATION:
+                    return customizationWindow;
                 case ScreenType.MENU:
                 case ScreenType.NONE:
                     return null;

@@ -1824,7 +1824,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  playerPrefab: {fileID: 2494334113858593066, guid: f7dab3b943d91f84dbedafef787c9417, type: 3}
+  playerPrefab: {fileID: 2494334113858593066, guid: 0adccf08a296b9d4ab62f2205b695f42, type: 3}
   playersHolder: {fileID: 909003562}
   missionScenario: {fileID: 909003565}
   placeTargetTask: {fileID: 601317099}

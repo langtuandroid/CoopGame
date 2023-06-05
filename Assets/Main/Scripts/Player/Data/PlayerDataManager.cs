@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Fusion;
 using Main.Scripts.Connection;
+using Main.Scripts.Core.Resources;
 using Main.Scripts.Levels.Results;
 using Main.Scripts.Player.Experience;
 using Main.Scripts.Skills;
@@ -9,6 +10,7 @@ using Main.Scripts.Utils;
 using Main.Scripts.Utils.Save;
 using UnityEngine;
 using UnityEngine.Events;
+using WebSocketSharp;
 
 namespace Main.Scripts.Player.Data
 {
@@ -16,13 +18,21 @@ namespace Main.Scripts.Player.Data
     {
         public static PlayerDataManager? Instance { get; private set; }
         
-        private SkillInfoHolder skillInfoHolder = default!;
+        private GlobalResources resources = default!;
+        
+        [Networked, Capacity(16)]
+        private NetworkDictionary<UserId, PlayerRef> playerRefsMap => default;
+        [Networked, Capacity(16)]
+        private NetworkDictionary<PlayerRef, UserId> userIdsMap => default;
+        [Networked, Capacity(16)]
+        private NetworkDictionary<UserId, PlayerData> playersDataMap => default;
 
         public UserId LocalUserId { get; private set; }
         public PlayerData LocalPlayerData { get; private set; }
         public AwardsData? LocalAwardsData { get; private set; }
 
-        public UnityEvent<UserId, PlayerData> OnPlayerDataChangedEvent = default!;
+        public UnityEvent<UserId, PlayerData, PlayerData> OnPlayerDataChangedEvent = default!;
+        public UnityEvent OnLocalPlayerDataReadyEvent = default!;
 
         private void Awake()
         {
@@ -40,8 +50,73 @@ namespace Main.Scripts.Player.Data
             Debug.Log("PlayerDataManager is spawned");
             DontDestroyOnLoad(this);
             LocalUserId = SessionManager.Instance.ThrowWhenNull().LocalUserId;
-            skillInfoHolder = SkillInfoHolder.Instance.ThrowWhenNull();
-            LocalPlayerData = SaveLoadUtils.Load(LocalUserId.Id.Value);
+            resources = GlobalResources.Instance.ThrowWhenNull();
+            LocalPlayerData = SaveLoadUtils.Load(GlobalResources.Instance.ThrowWhenNull(), LocalUserId.Id.Value);
+            OnLocalPlayerDataReadyEvent.Invoke();
+        }
+
+        public bool IsReady()
+        {
+            return !LocalUserId.Id.Value.IsNullOrEmpty();
+        }
+
+        public bool HasPlayer(PlayerRef playerRef)
+        {
+            return userIdsMap.ContainsKey(playerRef);
+        }
+
+        public bool HasPlayer(UserId userId)
+        {
+            return playerRefsMap.ContainsKey(userId);
+        }
+
+        public UserId GetUserId(PlayerRef playerRef)
+        {
+            return userIdsMap.Get(playerRef);
+        }
+
+        public PlayerRef GetPlayerRef(UserId userId)
+        {
+            return playerRefsMap.Get(userId);
+        }
+
+        public void RemovePlayer(PlayerRef playerRef, bool keepPlayerData)
+        {
+            userIdsMap.Remove(playerRef, out var userId);
+            playerRefsMap.Remove(userId);
+
+            if (keepPlayerData)
+            {
+                playersDataMap.Remove(userId);
+            }
+        }
+
+        public void ClearAllKeepedPlayerData()
+        {
+            foreach (var (userId, _) in playersDataMap)
+            {
+                if (!playerRefsMap.ContainsKey(userId))
+                {
+                    playersDataMap.Remove(userId);
+                }
+            }
+        }
+        
+        public PlayerData? GetPlayerData(PlayerRef playerRef)
+        {
+            return userIdsMap.ContainsKey(playerRef) ? GetPlayerData(userIdsMap[playerRef]) : null;
+        }
+
+        public PlayerData? GetPlayerData(UserId userId)
+        {
+            return playersDataMap.ContainsKey(userId) ? playersDataMap[userId] : null;
+        }
+
+        public void AddPlayerData(PlayerRef playerRef, UserId userId, PlayerData playerData)
+        {
+            playerRefsMap.Set(userId, playerRef);
+            userIdsMap.Set(playerRef, userId);
+            playersDataMap.Set(userId, playerData);
         }
 
         public void ResetSkillPoints()
@@ -63,7 +138,7 @@ namespace Main.Scripts.Player.Data
             if (playerData.GetAvailableSkillPoints() > 0)
             {
                 var currentSkillLevel = playerData.SkillLevels.Get(skillType);
-                if (currentSkillLevel < skillInfoHolder.GetSkillInfo(skillType).MaxLevel)
+                if (currentSkillLevel < resources.SkillInfoHolder.GetSkillInfo(skillType).MaxLevel)
                 {
                     playerData.SkillLevels.Set(skillType, currentSkillLevel + 1);
                     playerData.UsedSkillPoints++;
@@ -82,6 +157,14 @@ namespace Main.Scripts.Player.Data
                 playerData.SkillLevels.Set(skillType, currentSkillLevel - 1);
                 playerData.UsedSkillPoints--;
             }
+
+            UpdatePlayerData(playerData);
+        }
+
+        public void ApplyCustomizationData(CustomizationData customizationData)
+        {
+            var playerData = LocalPlayerData;
+            playerData.Customization = customizationData;
 
             UpdatePlayerData(playerData);
         }
@@ -120,14 +203,20 @@ namespace Main.Scripts.Player.Data
         private void UpdatePlayerData(PlayerData playerData)
         {
             LocalPlayerData = playerData;
-            SaveLoadUtils.Save(LocalUserId.Id.Value, playerData);
+            SaveLoadUtils.Save(resources, LocalUserId.Id.Value, playerData);
             RPC_OnPlayerDataChanged(LocalUserId, LocalPlayerData);
         }
 
         [Rpc(RpcSources.All, RpcTargets.All)]
         private void RPC_OnPlayerDataChanged(UserId userId, PlayerData playerData)
         {
-            OnPlayerDataChangedEvent.Invoke(userId, playerData);
+            if (!playersDataMap.ContainsKey(userId))
+            {
+                throw new Exception("playerData is not exist");
+            }
+            var oldPlayerData = playersDataMap[userId];
+            playersDataMap.Set(userId, playerData);
+            OnPlayerDataChangedEvent.Invoke(userId, playerData, oldPlayerData);
         }
     }
 }

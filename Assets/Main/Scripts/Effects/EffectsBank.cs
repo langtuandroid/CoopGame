@@ -12,8 +12,6 @@ namespace Main.Scripts.Effects
     {
         public const int UNLIMITED_EFFECTS_COUNT = 10;
         public const int LIMITED_EFFECTS_COUNT = 10;
-        
-        public static EffectsBank? Instance;
 
         [SerializeField]
         private List<EffectBase> effects = new();
@@ -23,9 +21,6 @@ namespace Main.Scripts.Effects
 
         private void Awake()
         {
-            Assert.Check(Instance == null);
-            Instance = this;
-
             effectsMap = new Dictionary<int, EffectBase>(effects.Count);
             effectsIds = new Dictionary<string, int>(effects.Count);
 
@@ -83,11 +78,6 @@ namespace Main.Scripts.Effects
             {
                 Debug.LogWarning($"The LIMITED_EFFECTS_COUNT is not equal to the registered value: {limitedCount}");
             }
-        }
-
-        private void OnDestroy()
-        {
-            Instance = null;
         }
 
         public EffectBase GetEffect(int id)

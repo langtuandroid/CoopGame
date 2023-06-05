@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Fusion;
 using Main.Scripts.Skills.Common.Component.Config;
 using UnityEngine;
 
@@ -8,8 +7,6 @@ namespace Main.Scripts.Skills.Common.Component
 {
     public class SkillConfigsBank : MonoBehaviour
     {
-        public static SkillConfigsBank? Instance;
-
         [SerializeField]
         private List<SkillConfig> skillConfigs = new();
 
@@ -18,9 +15,6 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void Awake()
         {
-            Assert.Check(Instance == null);
-            Instance = this;
-
             skillsMap = new Dictionary<int, SkillConfig>(skillConfigs.Count);
             skillsIds = new Dictionary<string, int>(skillConfigs.Count);
 
@@ -58,11 +52,6 @@ namespace Main.Scripts.Skills.Common.Component
                     ids.Add(config.name);
                 }
             }
-        }
-
-        private void OnDestroy()
-        {
-            Instance = null;
         }
 
         public SkillConfig GetSkillConfig(int id)

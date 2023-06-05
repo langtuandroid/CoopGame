@@ -1,6 +1,6 @@
 using Main.Scripts.Core.Mvp;
+using Main.Scripts.Core.Resources;
 using Main.Scripts.Player.Data;
-using Main.Scripts.Skills;
 using Main.Scripts.Utils;
 using UnityEngine.UIElements;
 
@@ -15,11 +15,11 @@ namespace Main.Scripts.UI.Windows.SkillTree
         {
             skillTreeViewContainer = new SkillTreeViewContainer(
                 doc: GetComponent<UIDocument>(),
-                skillInfoHolder: SkillInfoHolder.Instance.ThrowWhenNull()
+                skillInfoHolder: GlobalResources.Instance.ThrowWhenNull().SkillInfoHolder
             );
         }
 
-        public void Show()
+        public void Open()
         {
             if (presenter == null)
             {
@@ -36,7 +36,7 @@ namespace Main.Scripts.UI.Windows.SkillTree
             presenter.Show();
         }
 
-        public void Hide()
+        public void Close()
         {
             presenter?.Hide();
         }

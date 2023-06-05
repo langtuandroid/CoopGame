@@ -3,16 +3,20 @@ using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Health;
 using Main.Scripts.Actions.Interaction;
+using Main.Scripts.Customization;
 using Main.Scripts.Drop;
 using Main.Scripts.Effects;
 using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui;
+using Main.Scripts.Player.Data;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.Skills.PassiveSkills;
 using Main.Scripts.UI.Gui;
+using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UIElements;
+using CustomizationData = Main.Scripts.Player.Data.CustomizationData;
 
 namespace Main.Scripts.Player
 {
@@ -40,7 +44,10 @@ namespace Main.Scripts.Player
         private ActiveSkillsManager activeSkillsManager = default!;
         private PassiveSkillsManager passiveSkillsManager = default!;
         private EffectsManager effectsManager = default!;
+        private CharacterCustomization characterCustomization = default!;
         private HealthChangeDisplayManager? healthChangeDisplayManager;
+
+        private PlayerDataManager playerDataManager = default!;
 
         [SerializeField]
         private UIDocument interactionInfoDoc = default!;
@@ -106,6 +113,7 @@ namespace Main.Scripts.Player
             activeSkillsManager = GetComponent<ActiveSkillsManager>();
             passiveSkillsManager = GetComponent<PassiveSkillsManager>();
             effectsManager = GetComponent<EffectsManager>();
+            characterCustomization = GetComponent<CharacterCustomization>();
             healthChangeDisplayManager = GetComponent<HealthChangeDisplayManager>();
 
             activeSkillsManager.OnActiveSkillStateChangedEvent.AddListener(OnActiveSkillStateChanged);
@@ -114,6 +122,12 @@ namespace Main.Scripts.Player
 
         public override void Spawned()
         {
+            playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
+            playerDataManager.OnPlayerDataChangedEvent.AddListener(OnPlayerDataChanged);
+
+            var playerData = playerDataManager.GetPlayerData(Object.InputAuthority).ThrowWhenNull();
+            ApplyCustomization(playerData.Customization);
+            
             if (!IsProxy)
             {
                 networkRigidbody.InterpolationDataSource = InterpolationDataSources.NoInterpolation;
@@ -146,6 +160,7 @@ namespace Main.Scripts.Player
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
             OnPlayerStateChangedEvent.RemoveAllListeners();
+            playerDataManager.OnPlayerDataChangedEvent.RemoveListener(OnPlayerDataChanged);
         }
 
         public override void Render()
@@ -219,6 +234,19 @@ namespace Main.Scripts.Player
             {
                 Move(speed * new Vector3(moveDirection.x, 0, moveDirection.y));
             }
+        }
+
+        private void OnPlayerDataChanged(UserId userId, PlayerData playerData, PlayerData oldPlayerData)
+        {
+            if (playerDataManager.GetPlayerRef(userId) == Object.InputAuthority)
+            {
+                ApplyCustomization(playerData.Customization);
+            }
+        }
+
+        private void ApplyCustomization(CustomizationData customizationData)
+        {
+            characterCustomization.ApplyCustomizationData(customizationData);
         }
 
         private bool CanMoveByController()

@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement style="flex-direction: row; justify-content: flex-start;">
+        <ui:Button text="Apply" display-tooltip-when-elided="true" name="ApplyBtn" style="background-color: rgb(255, 156, 105); border-top-left-radius: 12px; border-bottom-left-radius: 12px; border-top-right-radius: 12px; border-bottom-right-radius: 12px; padding-right: 8px; padding-left: 8px;" />
+        <ui:Label text="Description" display-tooltip-when-elided="true" name="ItemName" style="-unity-text-align: middle-center; padding-left: 4px; padding-right: 4px; padding-top: 2px; padding-bottom: 2px; margin-left: 4px;" />
+    </ui:VisualElement>
+</ui:UXML>

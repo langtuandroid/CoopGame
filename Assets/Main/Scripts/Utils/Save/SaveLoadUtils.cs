@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Main.Scripts.Core.Resources;
 using Main.Scripts.Player.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -25,9 +26,9 @@ namespace Main.Scripts.Utils.Save
             return list;
         }
 
-        public static void Save(string userId, PlayerData playerData)
+        public static void Save(GlobalResources resources, string userId, PlayerData playerData)
         {
-            var jObject = playerData.toJSON();
+            var jObject = playerData.toJSON(resources);
             var filePath = GetFilePath(userId);
             if (filePath.IsNullOrEmpty())
             {
@@ -40,18 +41,18 @@ namespace Main.Scripts.Utils.Save
             jObject.WriteTo(jsonWriter);
         }
 
-        public static PlayerData Load(string userId)
+        public static PlayerData Load(GlobalResources resources, string userId)
         {
             var filePath = GetFilePath(userId);
             if (File.Exists(filePath))
             {
                 using var streamReader = File.OpenText(filePath);
                 using var jsonReader = new JsonTextReader(streamReader);
-                return PlayerData.parseJSON((JObject)JToken.ReadFrom(jsonReader));
+                return PlayerData.parseJSON(resources, (JObject)JToken.ReadFrom(jsonReader));
             }
 
             var initialPlayerData = PlayerData.GetInitialPlayerData();
-            Save(userId, initialPlayerData);
+            Save(resources, userId, initialPlayerData);
             return initialPlayerData;
         }
 

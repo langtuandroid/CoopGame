@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Fusion;
+using Main.Scripts.Core.Resources;
 using Main.Scripts.Effects.PeriodicEffects;
 using Main.Scripts.Effects.PeriodicEffects.Handlers;
 using Main.Scripts.Effects.PeriodicEffects.Handlers.Damage;
@@ -42,7 +43,7 @@ namespace Main.Scripts.Effects
 
         private void Awake()
         {
-            effectsBank = EffectsBank.Instance.ThrowWhenNull();
+            effectsBank = GlobalResources.Instance.ThrowWhenNull().EffectsBank;
 
             InitEffectsHandlers();
         }

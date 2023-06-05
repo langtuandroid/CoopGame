@@ -130,7 +130,7 @@ namespace Main.Scripts.Levels.Missions
             var levelResults = new Dictionary<UserId, LevelResultsData>();
             foreach (var playerRef in playersHolder.GetKeys(false))
             {
-                levelResults.Add(roomManager.GetUserId(playerRef), new LevelResultsData
+                levelResults.Add(playerDataManager.GetUserId(playerRef), new LevelResultsData
                 {
                     IsSuccess = false
                 });
@@ -158,7 +158,7 @@ namespace Main.Scripts.Levels.Missions
                 var levelResults = new Dictionary<UserId, LevelResultsData>();
                 foreach (var playerRef in playersHolder.GetKeys(false))
                 {
-                    levelResults.Add(roomManager.GetUserId(playerRef), new LevelResultsData
+                    levelResults.Add(playerDataManager.GetUserId(playerRef), new LevelResultsData
                     {
                         IsSuccess = true
                     });

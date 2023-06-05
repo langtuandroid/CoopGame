@@ -45,6 +45,7 @@ namespace Main.Scripts.Levels.Lobby
         {
             base.Despawned(runner, hasState);
             readyToStartTask.OnTaskCheckChangedEvent.RemoveListener(OnReadyTargetStatusChanged);
+            playersHolder.OnChangedEvent.RemoveListener(OnPlayersHolderChanged);
         }
 
         protected override void OnPlayerInitialized(PlayerRef playerRef)
@@ -120,17 +121,18 @@ namespace Main.Scripts.Levels.Lobby
 
         private void OnPlayersHolderChanged()
         {
-            TryShowLevelResults(Runner.LocalPlayer);
+            TryShowLevelResults();
         }
 
-        private void TryShowLevelResults(PlayerRef playerRef)
+        private void TryShowLevelResults()
         {
+            var playerRef = Runner.LocalPlayer;
             if (!roomManager.IsPlayerInitialized(playerRef))
             {
                 return;
             }
-            
-            var userId = roomManager.GetUserId(playerRef);
+
+            var userId = playerDataManager.GetUserId(playerRef);
             if (roomManager.GetLevelResults(userId) != null)
             {
                 roomManager.OnLevelResultsShown(userId);

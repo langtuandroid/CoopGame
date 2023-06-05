@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Health;
+using Main.Scripts.Core.Resources;
 using Main.Scripts.Skills.Common.Component.Config;
 using Main.Scripts.Skills.Common.Component.Config.Action;
 using Main.Scripts.Skills.Common.Component.Config.Follow;
@@ -107,7 +108,7 @@ namespace Main.Scripts.Skills.Common.Component
 
         public override void Spawned()
         {
-            skillConfigsBank = SkillConfigsBank.Instance.ThrowWhenNull();
+            skillConfigsBank = GlobalResources.Instance.ThrowWhenNull().SkillConfigsBank;
             skillConfig = skillConfigsBank.GetSkillConfig(skillConfigId);
         }
 

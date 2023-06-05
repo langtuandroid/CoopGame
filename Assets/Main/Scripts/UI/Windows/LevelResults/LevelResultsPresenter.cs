@@ -13,7 +13,7 @@ namespace Main.Scripts.UI.Windows.LevelResults
             levelResultsView = GetComponent<LevelResultsView>();
         }
 
-        public void Show()
+        public void Open()
         {
             var awardsData = PlayerDataManager.Instance.ThrowWhenNull().LocalAwardsData;
             awardsData.ThrowWhenNull();
@@ -22,7 +22,7 @@ namespace Main.Scripts.UI.Windows.LevelResults
             levelResultsView.SetVisibility(true);
         }
 
-        public void Hide()
+        public void Close()
         {
             levelResultsView.SetVisibility(false);
         }

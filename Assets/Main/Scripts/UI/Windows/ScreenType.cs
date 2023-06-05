@@ -6,5 +6,6 @@ namespace Main.Scripts.UI.Windows
         MENU,
         SKILL_TREE,
         LEVEL_RESULTS,
+        CUSTOMIZATION,
     }
 }

@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
 using Fusion;
+using Main.Scripts.Core.Resources;
 using Main.Scripts.Player.Experience;
 using Main.Scripts.Skills;
 using Newtonsoft.Json.Linq;
 using Main.Scripts.Utils;
-using UnityEngine;
 
 namespace Main.Scripts.Player.Data
 {
@@ -17,6 +17,8 @@ namespace Main.Scripts.Player.Data
         public uint UsedSkillPoints;
         [Networked, Capacity(16)]
         public NetworkDictionary<SkillType, uint> SkillLevels => default;
+
+        public CustomizationData Customization;
 
         public static PlayerData GetInitialPlayerData()
         {
@@ -30,39 +32,45 @@ namespace Main.Scripts.Player.Data
                 playerData.SkillLevels.Set(skill, 0);
             }
 
+            playerData.Customization = CustomizationData.GetDefault();
+
             return playerData;
         }
 
-        public static PlayerData parseJSON(JObject jObject)
+        public static PlayerData parseJSON(GlobalResources resources, JObject jObject)
         {
             var playerData = new PlayerData();
-            playerData.Level = jObject.Value<uint>(LEVEL_KEY);
-            playerData.Experience = jObject.Value<uint>(EXPERIENCE_KEY);
-            playerData.MaxSkillPoints = jObject.Value<uint>(MAX_SKILL_POINTS_KEY);
-            playerData.UsedSkillPoints = jObject.Value<uint>(USED_SKILL_POINTS_KEY);
-            var jSkillLevels = jObject.Value<JObject>(SKILL_LEVELS_KEY).ThrowWhenNull();
+            playerData.Level = jObject.Value<uint>(KEY_LEVEL);
+            playerData.Experience = jObject.Value<uint>(KEY_EXPERIENCE);
+            playerData.MaxSkillPoints = jObject.Value<uint>(KEY_MAX_SKILL_POINTS);
+            playerData.UsedSkillPoints = jObject.Value<uint>(KEY_USED_SKILL_POINTS);
+            var jSkillLevels = jObject.Value<JObject>(KEY_SKILL_LEVELS).ThrowWhenNull();
             foreach (var skillType in Enum.GetValues(typeof(SkillType)).Cast<SkillType>())
             {
                 playerData.SkillLevels.Add(skillType, jSkillLevels.Value<uint>(skillType.GetKey()));
             }
 
+            playerData.Customization =
+                CustomizationData.parseJSON(resources, jObject.Value<JObject>(KEY_CUSTOMIZATION).ThrowWhenNull());
+
             return playerData;
         }
 
-        public JObject toJSON()
+        public JObject toJSON(GlobalResources resources)
         {
             var jObject = new JObject();
-            jObject.Add(LEVEL_KEY, Level);
-            jObject.Add(EXPERIENCE_KEY, Experience);
-            jObject.Add(MAX_SKILL_POINTS_KEY, MaxSkillPoints);
-            jObject.Add(USED_SKILL_POINTS_KEY, UsedSkillPoints);
+            jObject.Add(KEY_LEVEL, Level);
+            jObject.Add(KEY_EXPERIENCE, Experience);
+            jObject.Add(KEY_MAX_SKILL_POINTS, MaxSkillPoints);
+            jObject.Add(KEY_USED_SKILL_POINTS, UsedSkillPoints);
             var jSkillLevels = new JObject();
             foreach (var skillType in Enum.GetValues(typeof(SkillType)).Cast<SkillType>())
             {
                 jSkillLevels.Add(skillType.GetKey(), SkillLevels.Get(skillType));
             }
 
-            jObject.Add(SKILL_LEVELS_KEY, jSkillLevels);
+            jObject.Add(KEY_SKILL_LEVELS, jSkillLevels);
+            jObject.Add(KEY_CUSTOMIZATION, Customization.toJSON(resources));
             return jObject;
         }
 
@@ -94,10 +102,11 @@ namespace Main.Scripts.Player.Data
                    && SkillLevels.Equals<SkillType, uint>(other.SkillLevels);
         }
 
-        private const string LEVEL_KEY = "level";
-        private const string EXPERIENCE_KEY = "experience";
-        private const string MAX_SKILL_POINTS_KEY = "max_skill_points";
-        private const string USED_SKILL_POINTS_KEY = "used_skill_points";
-        private const string SKILL_LEVELS_KEY = "skill_levels";
+        private const string KEY_LEVEL = "level";
+        private const string KEY_EXPERIENCE = "experience";
+        private const string KEY_MAX_SKILL_POINTS = "max_skill_points";
+        private const string KEY_USED_SKILL_POINTS = "used_skill_points";
+        private const string KEY_SKILL_LEVELS = "skill_levels";
+        private const string KEY_CUSTOMIZATION = "customization";
     }
 }

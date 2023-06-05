@@ -53,6 +53,12 @@ namespace Main.Scripts.UI.Windows
                 return;
             }
 
+            if (Input.GetKeyDown(KeyCode.H))
+            {
+                SetScreenType(ScreenType.CUSTOMIZATION);
+                return;
+            }
+
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 SetScreenType(ScreenType.MENU);
@@ -67,12 +73,12 @@ namespace Main.Scripts.UI.Windows
 
             foreach (var screenType in Enum.GetValues(typeof(ScreenType)).Cast<ScreenType>())
             {
-                uiScreensHolder.GetWindow(screenType)?.Hide();
+                uiScreensHolder.GetWindow(screenType)?.Close();
             }
 
             if (CurrentScreenType != ScreenType.NONE)
             {
-                uiScreensHolder.GetWindow(CurrentScreenType)?.Show();
+                uiScreensHolder.GetWindow(CurrentScreenType)?.Open();
             }
 
             OnCurrentScreenChangedEvent.Invoke(CurrentScreenType);

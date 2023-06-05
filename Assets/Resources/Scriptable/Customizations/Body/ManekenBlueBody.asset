@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b94b18672abb417ea645c40a218846a2, type: 3}
+  m_Name: ManekenBlueBody
+  m_EditorClassIdentifier: 
+  nameId: ManekenBlueBody
+  spine: {fileID: -2432090755550338912, guid: 7d824ab1732e3ed478e937da72ed3b54, type: 3}
+  chest: {fileID: -2432090755550338912, guid: 62c02922d299ba4428f43cdd42d54695, type: 3}
+  armLeftLower: {fileID: -2432090755550338912, guid: f41cd79e6dba782459bd028c03ce7acc, type: 3}
+  armLeftUpper: {fileID: -2432090755550338912, guid: a80bc0f122f515848843cb45b98bc0d7, type: 3}
+  armRightLower: {fileID: -2432090755550338912, guid: 598919b775e4d234ebd415a6fa51f40b, type: 3}
+  armRightUpper: {fileID: -2432090755550338912, guid: 48b2ad1beab5f8d42a101f43cead7a75, type: 3}

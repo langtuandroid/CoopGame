@@ -10,6 +10,7 @@ using UnityEngine.Events;
 
 namespace Main.Scripts.Room
 {
+    [OrderAfter(typeof(PlayerDataManager))]
     public class RoomManager : NetworkBehaviour
     {
         public const ShutdownReason ShutdownReason_GameAlreadyRunning = (ShutdownReason)100;
@@ -24,12 +25,6 @@ namespace Main.Scripts.Room
 
         [Networked]
         private SceneState sceneState { get; set; }
-        [Networked, Capacity(16)]
-        private NetworkDictionary<UserId, PlayerRef> playerRefsMap => default;
-        [Networked, Capacity(16)]
-        private NetworkDictionary<PlayerRef, UserId> userIdsMap => default;
-        [Networked, Capacity(16)]
-        private NetworkDictionary<UserId, PlayerData> playersDataMap => default;
         [Networked, Capacity(16)]
         private NetworkDictionary<UserId, LevelResultsData> levelResults => default;
 
@@ -59,9 +54,12 @@ namespace Main.Scripts.Room
             levelTransitionManager.OnSceneStateChangedEvent.AddListener(OnSceneStateChanged);
             sessionManager.OnPlayerConnectedEvent.AddListener(OnPlayerConnected);
             sessionManager.OnPlayerDisconnectedEvent.AddListener(OnPlayerDisconnected);
-            playerDataManager.OnPlayerDataChangedEvent.AddListener(OnPlayerDataChanged);
+            playerDataManager.OnLocalPlayerDataReadyEvent.AddListener(OnLocalPlayerDataReady);
 
-            InitPlayerData();
+            if (playerDataManager.IsReady())
+            {
+                InitLocalPlayerData();
+            }
 
             if (Object.HasStateAuthority)
             {
@@ -74,7 +72,7 @@ namespace Main.Scripts.Room
             levelTransitionManager.OnSceneStateChangedEvent.RemoveListener(OnSceneStateChanged);
             sessionManager.OnPlayerConnectedEvent.RemoveListener(OnPlayerConnected);
             sessionManager.OnPlayerDisconnectedEvent.RemoveListener(OnPlayerDisconnected);
-            playerDataManager.OnPlayerDataChangedEvent.RemoveListener(OnPlayerDataChanged);
+            playerDataManager.OnLocalPlayerDataReadyEvent.RemoveListener(OnLocalPlayerDataReady);
         }
 
         private void OnPlayerConnected(PlayerRef playerRef)
@@ -87,19 +85,25 @@ namespace Main.Scripts.Room
             if (!HasStateAuthority) return;
 
             OnPlayerDisconnectedEvent.Invoke(playerRef);
-            if (userIdsMap.ContainsKey(playerRef))
+            if (playerDataManager.HasPlayer(playerRef))
             {
-                userIdsMap.Remove(playerRef, out var userId);
-                playerRefsMap.Remove(userId);
-                if (sceneState != SceneState.LEVEL)
+                var clearPlayerData = sceneState != SceneState.LEVEL;
+                var userId = playerDataManager.GetUserId(playerRef);
+                
+                playerDataManager.RemovePlayer(playerRef, clearPlayerData);
+                if (clearPlayerData)
                 {
-                    playersDataMap.Remove(userId);
                     levelResults.Remove(userId);
                 }
             }
         }
 
-        private void InitPlayerData()
+        private void OnLocalPlayerDataReady()
+        {
+            InitLocalPlayerData();
+        }
+        
+        private void InitLocalPlayerData()
         {
             RPC_InitPlayerData(
                 playerRef: Runner.LocalPlayer,
@@ -110,22 +114,7 @@ namespace Main.Scripts.Room
 
         public bool IsPlayerInitialized(PlayerRef playerRef)
         {
-            return userIdsMap.ContainsKey(playerRef);
-        }
-
-        public UserId GetUserId(PlayerRef playerRef)
-        {
-            return userIdsMap.Get(playerRef);
-        }
-
-        public PlayerData GetPlayerData(UserId userId)
-        {
-            return playersDataMap.Get(userId);
-        }
-
-        public void OnPlayerDataChanged(UserId userId, PlayerData playerData)
-        {
-            playersDataMap.Set(userId, playerData);
+            return playerDataManager.HasPlayer(playerRef);
         }
 
         public LevelResultsData? GetLevelResults(UserId userId)
@@ -170,10 +159,10 @@ namespace Main.Scripts.Room
             this.levelResults.Clear();
             foreach (var (userId, levelResultsData) in levelResults)
             {
-                if (playerRefsMap.ContainsKey(userId))
+                if (playerDataManager.HasPlayer(userId))
                 {
                     this.levelResults.Add(userId, levelResultsData);
-                    playerDataManager.RPC_ApplyPlayerRewards(playerRefsMap.Get(userId), levelResultsData);
+                    playerDataManager.RPC_ApplyPlayerRewards(playerDataManager.GetPlayerRef(userId), levelResultsData);
                 }
             }
 
@@ -185,13 +174,7 @@ namespace Main.Scripts.Room
             if (HasStateAuthority)
             {
                 this.sceneState = sceneState;
-                foreach (var (userId, _) in playersDataMap)
-                {
-                    if (!playerRefsMap.ContainsKey(userId))
-                    {
-                        playersDataMap.Remove(userId);
-                    }
-                }
+                playerDataManager.ClearAllKeepedPlayerData();
             }
         }
 
@@ -205,10 +188,15 @@ namespace Main.Scripts.Room
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
         private void RPC_InitPlayerData(PlayerRef playerRef, UserId userId, PlayerData playerData)
         {
-            if (playersDataMap.ContainsKey(userId))
+            var keepedPlayerData = playerDataManager.GetPlayerData(userId);
+            if (playerDataManager.HasPlayer(userId))
             {
-                var cashedPlayerData = playersDataMap.Get(userId);
-                if (!cashedPlayerData.Equals(playerData))
+                Runner.Disconnect(playerRef);
+                return;
+            }
+            if (keepedPlayerData != null)
+            {
+                if (!keepedPlayerData.Equals(playerData))
                 {
                     Runner.Disconnect(playerRef);
                     return;
@@ -218,10 +206,8 @@ namespace Main.Scripts.Room
                 Runner.Disconnect(playerRef);
                 return;
             }
-
-            playerRefsMap.Set(userId, playerRef);
-            userIdsMap.Set(playerRef, userId);
-            playersDataMap.Set(userId, playerData);
+            
+            playerDataManager.AddPlayerData(playerRef, userId, playerData);
 
             OnPlayerInitializedEvent.Invoke(playerRef);
         }

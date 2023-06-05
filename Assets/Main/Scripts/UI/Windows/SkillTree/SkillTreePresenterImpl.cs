@@ -17,7 +17,7 @@ namespace Main.Scripts.UI.Windows.SkillTree
             this.playerDataManager = playerDataManager;
         }
 
-        private void OnPlayerDataChanged(UserId userId, PlayerData playerData)
+        private void OnPlayerDataChanged(UserId userId, PlayerData playerData, PlayerData oldPlayerData)
         {
             view.Bind(playerData);
         }

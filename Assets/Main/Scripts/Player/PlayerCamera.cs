@@ -15,7 +15,7 @@ namespace Main.Scripts.Player
         Transform? _target;
 
         // current camera distance
-        private float distance = 20f;
+        private float distance = 15f;
         private float pitch = -40;
         private float cameraStretch = 0.1f;
 

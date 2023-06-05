@@ -6,25 +6,12 @@ namespace Main.Scripts.Skills
 {
     public class SkillInfoHolder : MonoBehaviour
     {
-        public static SkillInfoHolder? Instance { get; private set; }
-        
         [SerializeField]
         private SkillInfo healthBoostInfo = default!;
         [SerializeField]
         private SkillInfo damageBoostInfo = default!;
         [SerializeField]
         private SkillInfo speedBoostInfo = default!;
-
-        private void Awake()
-        {
-            Assert.Check(Instance == null);
-            Instance = this;
-        }
-
-        private void OnDestroy()
-        {
-            Instance = null;
-        }
 
         public SkillInfo GetSkillInfo(SkillType skillType)
         {

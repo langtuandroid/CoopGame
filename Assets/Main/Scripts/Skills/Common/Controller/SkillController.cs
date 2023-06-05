@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Actions;
+using Main.Scripts.Core.Resources;
 using Main.Scripts.Skills.Common.Component;
 using Main.Scripts.Skills.Common.Component.Config;
 using Main.Scripts.Utils;
@@ -65,7 +66,7 @@ namespace Main.Scripts.Skills.Common.Controller
 
         public override void Spawned()
         {
-            skillConfigsBank = SkillConfigsBank.Instance.ThrowWhenNull();
+            skillConfigsBank = GlobalResources.Instance.ThrowWhenNull().SkillConfigsBank;
         }
 
         public override void Render()

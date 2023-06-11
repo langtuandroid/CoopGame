@@ -56,7 +56,7 @@ namespace Main.Scripts.Customization.Banks
             }
         }
 
-        public List<T> GetConfigs()
+        public IEnumerable<T> GetConfigs()
         {
             return configsList;
         }

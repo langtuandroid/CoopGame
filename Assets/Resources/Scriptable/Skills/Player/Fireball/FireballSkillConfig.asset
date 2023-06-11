@@ -22,7 +22,7 @@ MonoBehaviour:
   isAffectTargetsOnlyOneTime: 0
   actions:
   - {fileID: 11400000, guid: 7059bd9a479e85d4596d0b3b4d3f2b12, type: 2}
-  - {fileID: 11400000, guid: e729ac14c1f6a614cac6d798c6de3743, type: 2}
+  - {fileID: 11400000, guid: a390a481429dc724c8ca7ffe3bbfc3e6, type: 2}
   - {fileID: 11400000, guid: f8182fe568ada8342b28c835094540ea, type: 2}
   - {fileID: 11400000, guid: 9466c0c91292246479771ec024130019, type: 2}
   durationSec: 1

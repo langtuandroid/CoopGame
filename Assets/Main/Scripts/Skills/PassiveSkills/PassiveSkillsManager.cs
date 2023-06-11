@@ -112,18 +112,18 @@ namespace Main.Scripts.Skills.PassiveSkills
         {
             switch (skillController.ActivationType)
             {
-                case SkillActivationType.UnitTarget when selectedTarget != null:
+                case SkillActivationType.WithUnitTarget when selectedTarget != null:
                     skillController.Activate(skillOwner);
                     skillController.ApplyUnitTarget(selectedTarget);
                     skillController.Execute();
                     break;
-                case SkillActivationType.UnitTarget when selectedTarget == null:
+                case SkillActivationType.WithUnitTarget when selectedTarget == null:
                     Debug.LogError("PassiveSkillController: ActivationType is UnitTarget and SelectedTarget is null");
                     break;
-                case SkillActivationType.None:
+                case SkillActivationType.Instantly:
                     skillController.Activate(skillOwner);
                     break;
-                case SkillActivationType.MapPointTarget:
+                case SkillActivationType.WithMapPointTarget:
                     Debug.LogWarning("PassiveSkillController: ActivationType MapPointTarget is not supported");
                     break;
                 default:

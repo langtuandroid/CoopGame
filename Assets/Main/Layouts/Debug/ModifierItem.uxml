@@ -1,0 +1,3 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Toggle label="Toggle" name="Toggle" value="false" style="color: rgba(255, 255, 255, 255); -unity-font-style: bold; font-size: 16px; -unity-text-align: upper-left; white-space: normal; flex-direction: row-reverse; flex-wrap: nowrap;" />
+</ui:UXML>

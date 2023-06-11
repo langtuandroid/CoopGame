@@ -28,7 +28,7 @@ namespace Main.Scripts.Utils.Save
 
         public static void Save(GlobalResources resources, string userId, PlayerData playerData)
         {
-            var jObject = playerData.toJSON(resources);
+            var jObject = playerData.ToJSON(resources);
             var filePath = GetFilePath(userId);
             if (filePath.IsNullOrEmpty())
             {
@@ -48,7 +48,7 @@ namespace Main.Scripts.Utils.Save
             {
                 using var streamReader = File.OpenText(filePath);
                 using var jsonReader = new JsonTextReader(streamReader);
-                return PlayerData.parseJSON(resources, (JObject)JToken.ReadFrom(jsonReader));
+                return PlayerData.ParseJSON(resources, (JObject)JToken.ReadFrom(jsonReader));
             }
 
             var initialPlayerData = PlayerData.GetInitialPlayerData();

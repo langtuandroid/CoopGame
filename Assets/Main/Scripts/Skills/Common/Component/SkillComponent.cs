@@ -4,6 +4,8 @@ using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Health;
 using Main.Scripts.Core.Resources;
+using Main.Scripts.Modifiers;
+using Main.Scripts.Player.Data;
 using Main.Scripts.Skills.Common.Component.Config;
 using Main.Scripts.Skills.Common.Component.Config.Action;
 using Main.Scripts.Skills.Common.Component.Config.Follow;
@@ -18,7 +20,10 @@ namespace Main.Scripts.Skills.Common.Component
     public class SkillComponent : NetworkBehaviour
     {
         private SkillConfigsBank skillConfigsBank = default!;
+        private ModifierIdsBank modifierIdsBank = default!;
+
         private SkillConfig skillConfig = default!;
+        private PlayerData? playerData;
 
         [Networked]
         private int skillConfigId { get; set; }
@@ -56,6 +61,11 @@ namespace Main.Scripts.Skills.Common.Component
         [Networked]
         [Capacity(20)]
         private NetworkLinkedList<NetworkObject> affectedTargets => default;
+
+        private SkillFollowStrategyBase followStrategy = default!;
+        private SkillActionTriggerBase actionTrigger = default!;
+        private List<SkillFindTargetsStrategyBase> findTargetStrategiesList = new();
+        private List<SkillActionBase> actionsList = new();
 
         private List<LagCompensatedHit> findTargetHitsList = new();
         private HashSet<NetworkObject> findTargetHitObjectsSet = new();
@@ -108,8 +118,43 @@ namespace Main.Scripts.Skills.Common.Component
 
         public override void Spawned()
         {
-            skillConfigsBank = GlobalResources.Instance.ThrowWhenNull().SkillConfigsBank;
+            var resources = GlobalResources.Instance.ThrowWhenNull();
+            skillConfigsBank = resources.SkillConfigsBank;
+            modifierIdsBank = resources.ModifierIdsBank;
+            
+            playerData = PlayerDataManager.Instance.ThrowWhenNull().GetPlayerData(ownerId);
             skillConfig = skillConfigsBank.GetSkillConfig(skillConfigId);
+
+            SkillFollowStrategyConfigsResolver.ResolveEnabledModifiers(
+                modifierIdsBank,
+                ref playerData,
+                skillConfig.FollowStrategy,
+                out followStrategy
+            );
+            
+            SkillActionTriggerConfigsResolver.ResolveEnabledModifiers(
+                modifierIdsBank,
+                ref playerData,
+                skillConfig.ActionTrigger,
+                out actionTrigger
+            );
+            
+            findTargetStrategiesList.Clear();
+            SkillFindTargetsStrategiesConfigsResolver.ResolveEnabledModifiers(
+                modifierIdsBank,
+                ref playerData,
+                skillConfig.FindTargetsStrategies,
+                findTargetStrategiesList
+            );
+            
+            actionsList.Clear();
+            SkillActionConfigsResolver.ResolveEnabledModifiers(
+                modifierIdsBank,
+                ref playerData,
+                skillConfig.Actions,
+                actionsList
+            );
+
         }
 
         public override void FixedUpdateNetwork()
@@ -131,12 +176,12 @@ namespace Main.Scripts.Skills.Common.Component
                 startSkillTick = Runner.Tick;
                 lifeTimer = TickTimer.CreateFromSeconds(Runner, skillConfig.DurationSec);
 
-                if (skillConfig.ActionTrigger is TimerSkillActionTrigger timerTrigger)
+                if (actionTrigger is TimerSkillActionTrigger timerTrigger)
                 {
                     triggerTimer = TickTimer.CreateFromSeconds(Runner, timerTrigger.DelaySec);
                 }
 
-                if (skillConfig.ActionTrigger is StartSkillActionTrigger)
+                if (actionTrigger is StartSkillActionTrigger)
                 {
                     ExecuteActions();
                 }
@@ -151,7 +196,7 @@ namespace Main.Scripts.Skills.Common.Component
                     OnFinishEvent.Invoke();
                 }
 
-                if (skillConfig.ActionTrigger is FinishSkillActionTrigger)
+                if (actionTrigger is FinishSkillActionTrigger)
                 {
                     ExecuteActions();
                 }
@@ -190,7 +235,7 @@ namespace Main.Scripts.Skills.Common.Component
         {
             if (isFinished) return;
             
-            if (skillConfig.ActionTrigger is ClickSkillActionTrigger)
+            if (actionTrigger is ClickSkillActionTrigger)
             {
                 ExecuteActions();
             }
@@ -210,12 +255,12 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void UpdatePosition()
         {
-            if (skillConfig.FollowStrategy is AttachToTargetSkillFollowStrategy attachStrategy)
+            if (followStrategy is AttachToTargetSkillFollowStrategy attachStrategy)
             {
                 transform.position = GetPointByType(attachStrategy.AttachTo);
             }
 
-            if (skillConfig.FollowStrategy is MoveToTargetSkillFollowStrategy moveToTargetStrategy)
+            if (followStrategy is MoveToTargetSkillFollowStrategy moveToTargetStrategy)
             {
                 var targetPoint = GetPointByType(moveToTargetStrategy.MoveTo);
                 var deltaPosition = targetPoint - transform.position;
@@ -231,7 +276,7 @@ namespace Main.Scripts.Skills.Common.Component
                 }
             }
 
-            if (skillConfig.FollowStrategy is MoveToDirectionSkillFollowStrategy moveToDirectionStrategy)
+            if (followStrategy is MoveToDirectionSkillFollowStrategy moveToDirectionStrategy)
             {
                 var direction = GetDirectionByType(moveToDirectionStrategy.MoveDirectionType);
                 direction = Quaternion.AngleAxis(moveToDirectionStrategy.DirectionAngleOffset, Vector3.up) * direction;
@@ -247,7 +292,7 @@ namespace Main.Scripts.Skills.Common.Component
         private IEnumerable<NetworkObject> FindActionTargets()
         {
             findTargetHitObjectsSet.Clear();
-            foreach (var findTargetStrategy in skillConfig.FindTargetsStrategies)
+            foreach (var findTargetStrategy in findTargetStrategiesList)
             {
                 switch (findTargetStrategy)
                 {
@@ -299,7 +344,7 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void CheckPeriodicTrigger()
         {
-            if (skillConfig.ActionTrigger is PeriodicSkillActionTrigger periodicTrigger
+            if (actionTrigger is PeriodicSkillActionTrigger periodicTrigger
                 && TickHelper.CheckFrequency(startSkillTick + Runner.Tick, Runner.Simulation.Config.TickRate, periodicTrigger.Frequency))
             {
                 ExecuteActions();
@@ -308,7 +353,7 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void CheckCollisionTrigger()
         {
-            if (skillConfig.ActionTrigger is CollisionSkillActionTrigger collisionTrigger)
+            if (actionTrigger is CollisionSkillActionTrigger collisionTrigger)
             {
                 Runner.LagCompensation.OverlapSphere(
                     origin: transform.position,
@@ -332,7 +377,7 @@ namespace Main.Scripts.Skills.Common.Component
 
             activatedTriggersCount++;
             var actionTargets = FindActionTargets();
-            foreach (var action in skillConfig.Actions)
+            foreach (var action in actionsList)
             {
                 ApplyAction(action, actionTargets);
             }

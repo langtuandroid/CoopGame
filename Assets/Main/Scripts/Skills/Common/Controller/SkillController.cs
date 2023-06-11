@@ -115,13 +115,13 @@ namespace Main.Scripts.Skills.Common.Controller
 
             switch (skillControllerConfig.ActivationType)
             {
-                case SkillActivationType.None:
+                case SkillActivationType.Instantly:
                     Execute();
                     break;
-                case SkillActivationType.MapPointTarget:
+                case SkillActivationType.WithMapPointTarget:
                     OnWaitingForPointTargetEvent.Invoke(this);
                     break;
-                case SkillActivationType.UnitTarget:
+                case SkillActivationType.WithUnitTarget:
                     OnWaitingForUnitTargetEvent.Invoke(this);
                     break;
                 default:

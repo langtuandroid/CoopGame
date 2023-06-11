@@ -1,6 +1,7 @@
 using System;
 using Fusion;
 using Main.Scripts.UI.Windows.Customization;
+using Main.Scripts.UI.Windows.DebugPanel;
 using Main.Scripts.UI.Windows.LevelResults;
 using Main.Scripts.UI.Windows.SkillTree;
 using UnityEngine;
@@ -17,6 +18,8 @@ namespace Main.Scripts.UI.Windows
         private LevelResultsPresenter levelResultsPresenter = default!;
         [SerializeField]
         private CustomizationWindow customizationWindow = default!;
+        [SerializeField]
+        private DebugWindow debugWindow = default!;
 
         private void Awake()
         {
@@ -39,6 +42,8 @@ namespace Main.Scripts.UI.Windows
                     return levelResultsPresenter;
                 case ScreenType.CUSTOMIZATION:
                     return customizationWindow;
+                case ScreenType.DEBUG:
+                    return debugWindow;
                 case ScreenType.MENU:
                 case ScreenType.NONE:
                     return null;

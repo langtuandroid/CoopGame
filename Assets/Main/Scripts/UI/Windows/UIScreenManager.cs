@@ -59,6 +59,12 @@ namespace Main.Scripts.UI.Windows
                 return;
             }
 
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                SetScreenType(ScreenType.DEBUG);
+                return;
+            }
+
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 SetScreenType(ScreenType.MENU);

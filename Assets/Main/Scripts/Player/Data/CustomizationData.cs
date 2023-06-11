@@ -23,7 +23,7 @@ namespace Main.Scripts.Player.Data
             return data;
         }
 
-        public static CustomizationData parseJSON(GlobalResources resources, JObject jObject)
+        public static CustomizationData ParseJSON(GlobalResources resources, JObject jObject)
         {
             var bank = resources.CustomizationConfigsBank;
             var customizationData = new CustomizationData();

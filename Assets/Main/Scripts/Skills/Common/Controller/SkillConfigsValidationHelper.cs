@@ -34,7 +34,7 @@ namespace Main.Scripts.Skills.Common.Controller
                 }
             }
             
-            if (skillControllerConfig.ActivationType != SkillActivationType.UnitTarget)
+            if (skillControllerConfig.ActivationType != SkillActivationType.WithUnitTarget)
             {
                 var configName = GetConfigNameThatUsedIllegalSelectedUnit(skillControllerConfig);
                 if (configName != null)
@@ -45,7 +45,7 @@ namespace Main.Scripts.Skills.Common.Controller
                 }
             }
             
-            if (skillControllerConfig.ActivationType != SkillActivationType.MapPointTarget)
+            if (skillControllerConfig.ActivationType != SkillActivationType.WithMapPointTarget)
             {
                 var configName = GetConfigNameThatUsedIllegalInitialMapPoint(skillControllerConfig);
                 if (configName != null)

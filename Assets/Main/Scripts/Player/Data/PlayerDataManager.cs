@@ -169,6 +169,16 @@ namespace Main.Scripts.Player.Data
             UpdatePlayerData(playerData);
         }
 
+        public void SetModifierEnable(int modifierToken, bool enable)
+        {
+            var playerData = LocalPlayerData;
+            if (playerData.Modifiers.Values[modifierToken] != enable)
+            {
+                playerData.Modifiers.Values.Set(modifierToken, enable);
+                UpdatePlayerData(playerData);
+            }
+        }
+
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         public void RPC_ApplyPlayerRewards([RpcTarget] PlayerRef playerRef, LevelResultsData levelResultsData)
         {

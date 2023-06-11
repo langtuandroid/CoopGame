@@ -17,8 +17,8 @@ namespace Main.Scripts.Player.Data
         public uint UsedSkillPoints;
         [Networked, Capacity(16)]
         public NetworkDictionary<SkillType, uint> SkillLevels => default;
-
         public CustomizationData Customization;
+        public ModifiersData Modifiers;
 
         public static PlayerData GetInitialPlayerData()
         {
@@ -33,11 +33,12 @@ namespace Main.Scripts.Player.Data
             }
 
             playerData.Customization = CustomizationData.GetDefault();
+            playerData.Modifiers = ModifiersData.GetDefault();
 
             return playerData;
         }
 
-        public static PlayerData parseJSON(GlobalResources resources, JObject jObject)
+        public static PlayerData ParseJSON(GlobalResources resources, JObject jObject)
         {
             var playerData = new PlayerData();
             playerData.Level = jObject.Value<uint>(KEY_LEVEL);
@@ -51,12 +52,14 @@ namespace Main.Scripts.Player.Data
             }
 
             playerData.Customization =
-                CustomizationData.parseJSON(resources, jObject.Value<JObject>(KEY_CUSTOMIZATION).ThrowWhenNull());
+                CustomizationData.ParseJSON(resources, jObject.Value<JObject>(KEY_CUSTOMIZATION).ThrowWhenNull());
+
+            playerData.Modifiers = ModifiersData.ParseJSON(resources, jObject.Value<JArray>(KEY_MODIFIERS));
 
             return playerData;
         }
 
-        public JObject toJSON(GlobalResources resources)
+        public JObject ToJSON(GlobalResources resources)
         {
             var jObject = new JObject();
             jObject.Add(KEY_LEVEL, Level);
@@ -71,6 +74,7 @@ namespace Main.Scripts.Player.Data
 
             jObject.Add(KEY_SKILL_LEVELS, jSkillLevels);
             jObject.Add(KEY_CUSTOMIZATION, Customization.toJSON(resources));
+            jObject.Add(KEY_MODIFIERS, Modifiers.toJSONArray(resources));
             return jObject;
         }
 
@@ -108,5 +112,6 @@ namespace Main.Scripts.Player.Data
         private const string KEY_USED_SKILL_POINTS = "used_skill_points";
         private const string KEY_SKILL_LEVELS = "skill_levels";
         private const string KEY_CUSTOMIZATION = "customization";
+        private const string KEY_MODIFIERS = "modifiers";
     }
 }

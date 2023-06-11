@@ -7,5 +7,6 @@ namespace Main.Scripts.UI.Windows
         SKILL_TREE,
         LEVEL_RESULTS,
         CUSTOMIZATION,
+        DEBUG,
     }
 }

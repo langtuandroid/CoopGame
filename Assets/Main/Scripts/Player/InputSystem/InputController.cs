@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Fusion;
 using Fusion.Sockets;
 using Main.Scripts.Enemies;
+using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Player.Interaction;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.UI.Windows;
@@ -10,7 +11,7 @@ using Main.Scripts.Utils;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace Main.Scripts.Player
+namespace Main.Scripts.Player.InputSystem
 {
     /// <summary>
     /// Handle player input by responding to Fusion input polling, filling an input struct and then working with
@@ -21,11 +22,10 @@ namespace Main.Scripts.Player
         [SerializeField]
         private LayerMask mouseRayMask;
         [SerializeField]
-        private EnemyController enemyPrefab = default!;
-        [SerializeField]
         private GameObject mineGold = default!;
         
         private UIScreenManager? uiScreenManager;
+        private FindTargetManager? findTargetSystem;
         private EnemiesManager enemiesManager = default!;
 
         [Networked]
@@ -40,9 +40,12 @@ namespace Main.Scripts.Player
         private Vector2 moveDelta;
         private Vector2 aimDelta;
         private Vector2 mouseOnMapPosition;
+        private NetworkObject? unitTarget;
         private bool primaryFire;
         private bool secondaryFire;
         private bool firstSkillPressed;
+        private bool secondSkillPressed;
+        private bool thirdSkillPressed;
         private bool dashSkillPressed;
         private bool spawnEnemy;
         private bool spawnMine;
@@ -66,6 +69,8 @@ namespace Main.Scripts.Player
                 Runner.AddCallbacks(this);
                 uiScreenManager = UIScreenManager.Instance.ThrowWhenNull();
                 uiScreenManager.OnCurrentScreenChangedEvent.AddListener(OnCurrentWindowChanged);
+                
+                findTargetSystem = FindTargetManager.Instance.ThrowWhenNull();
             }
             
             enemiesManager = EnemiesManager.Instance.ThrowWhenNull();
@@ -103,12 +108,15 @@ namespace Main.Scripts.Player
                 frameworkInput.aimDirection = aimDelta.normalized;
                 frameworkInput.moveDirection = moveDelta.normalized;
                 frameworkInput.mousePosition = mouseOnMapPosition;
+                frameworkInput.unitTargetId = unitTarget != null ? unitTarget.Id : new NetworkId();
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_FIRE_PRIMARY, primaryFire);
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_FIRE_SECONDARY, secondaryFire);
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_SPAWN_ENEMY, spawnEnemy);
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_SPAWN_MINE, spawnMine);
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_INTERACT, interact);
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_CAST_FIRST_SKILL, firstSkillPressed);
+                frameworkInput.Buttons.Set(NetworkInputData.BUTTON_CAST_SECOND_SKILL, secondSkillPressed);
+                frameworkInput.Buttons.Set(NetworkInputData.BUTTON_CAST_THIRD_SKILL, thirdSkillPressed);
                 frameworkInput.Buttons.Set(NetworkInputData.BUTTON_CAST_DASH_SKILL, dashSkillPressed);
             }
 
@@ -127,6 +135,8 @@ namespace Main.Scripts.Player
                 primaryFire = false;
                 secondaryFire = false;
                 firstSkillPressed = false;
+                secondSkillPressed = false;
+                thirdSkillPressed = false;
                 dashSkillPressed = false;
                 spawnEnemy = false;
                 spawnMine = false;
@@ -138,17 +148,13 @@ namespace Main.Scripts.Player
             }
             
             primaryFire = Input.GetMouseButton(0);
-
             secondaryFire = Input.GetMouseButton(1);
-
             firstSkillPressed = Input.GetKey(KeyCode.Alpha1);
-
+            secondSkillPressed = Input.GetKey(KeyCode.Alpha2);
+            thirdSkillPressed = Input.GetKey(KeyCode.Alpha3);
             dashSkillPressed = Input.GetKey(KeyCode.LeftShift);
-
             spawnEnemy = Input.GetKey(KeyCode.T);
-
             spawnMine = Input.GetKey(KeyCode.Y);
-
             interact = Input.GetKey(KeyCode.F);
 
             moveDelta = Vector2.zero;
@@ -173,24 +179,13 @@ namespace Main.Scripts.Player
                 moveDelta += Vector2.right;
             }
 
-            Vector3 mousePos = Input.mousePosition;
+            var mapPoint = MousePositionHelper.GetMapPoint(mouseRayMask);
 
-            RaycastHit hit;
-            Ray ray = Camera.main.ScreenPointToRay(mousePos);
-
-            Vector3 mouseCollisionPoint = Vector3.zero;
-            // Raycast towards the mouse collider box in the world
-            if (Physics.Raycast(ray, out hit, Mathf.Infinity, mouseRayMask))
-            {
-                if (hit.collider != null)
-                {
-                    mouseCollisionPoint = hit.point;
-                }
-            }
-
-            Vector3 aimDirection = mouseCollisionPoint - playerController.transform.position;
+            var aimDirection = mapPoint - playerController.transform.position;
             aimDelta = new Vector2(aimDirection.x, aimDirection.z);
-            mouseOnMapPosition = new Vector2(mouseCollisionPoint.x, mouseCollisionPoint.z);
+            mouseOnMapPosition = new Vector2(mapPoint.x, mapPoint.z);
+
+            unitTarget = findTargetSystem != null ? findTargetSystem.FocusedTarget : null;
         }
 
         /// <summary>
@@ -206,6 +201,7 @@ namespace Main.Scripts.Player
                 ButtonsPrevious = input.Buttons;
 
                 playerController.ApplyMapTargetPosition(input.mousePosition);
+                playerController.ApplyUnitTarget(input.unitTargetId);
 
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_FIRE_PRIMARY))
                 {
@@ -214,12 +210,22 @@ namespace Main.Scripts.Player
 
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_CAST_FIRST_SKILL))
                 {
-                    playerController.ActivateSkill(ActiveSkillType.SecondarySkill);
+                    playerController.ActivateSkill(ActiveSkillType.FIRST_SKILL);
+                }
+
+                if (pressedButtons.IsSet(NetworkInputData.BUTTON_CAST_SECOND_SKILL))
+                {
+                    playerController.ActivateSkill(ActiveSkillType.SECOND_SKILL);
+                }
+
+                if (pressedButtons.IsSet(NetworkInputData.BUTTON_CAST_THIRD_SKILL))
+                {
+                    playerController.ActivateSkill(ActiveSkillType.THIRD_SKILL);
                 }
 
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_CAST_DASH_SKILL))
                 {
-                    playerController.ActivateSkill(ActiveSkillType.Dash);
+                    playerController.ActivateSkill(ActiveSkillType.DASH);
                 }
 
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_INTERACT))
@@ -275,12 +281,15 @@ namespace Main.Scripts.Player
         public const int BUTTON_SPAWN_ENEMY = 2;
         public const int BUTTON_SPAWN_MINE = 3;
         public const int BUTTON_INTERACT = 4;
-        public const int BUTTON_CAST_FIRST_SKILL = 5;
-        public const int BUTTON_CAST_DASH_SKILL = 6;
+        public const int BUTTON_CAST_DASH_SKILL = 5;
+        public const int BUTTON_CAST_FIRST_SKILL = 6;
+        public const int BUTTON_CAST_SECOND_SKILL = 7;
+        public const int BUTTON_CAST_THIRD_SKILL = 8;
 
         public NetworkButtons Buttons;
         public Vector2 aimDirection;
         public Vector2 moveDirection;
         public Vector2 mousePosition;
+        public NetworkId unitTargetId;
     }
 }

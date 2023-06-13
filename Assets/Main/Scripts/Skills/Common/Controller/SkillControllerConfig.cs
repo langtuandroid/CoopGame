@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills.Common.Component.Config;
 using UnityEngine;
 
@@ -15,6 +16,8 @@ namespace Main.Scripts.Skills.Common.Controller
         private SkillActivationType activationType;
         [SerializeField]
         private GameObject? areaMarker;
+        [SerializeField]
+        private UnitTargetType selectionTargetType;
         [SerializeField]
         [Min(0f)]
         private float executionDurationSec;
@@ -33,6 +36,7 @@ namespace Main.Scripts.Skills.Common.Controller
         public List<SkillConfig> RunAfterCastSkillConfigs => runAfterCastSkillConfigs;
         public SkillActivationType ActivationType => activationType;
         public GameObject? AreaMarker => areaMarker;
+        public UnitTargetType SelectionTargetType => selectionTargetType;
         public float ExecutionDurationSec => executionDurationSec;
         public bool DisableMoveOnExecution => disableMoveOnExecution;
         public float CastDurationSec => castDurationSec;

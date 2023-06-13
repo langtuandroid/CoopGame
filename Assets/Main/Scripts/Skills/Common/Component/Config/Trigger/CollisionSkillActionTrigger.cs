@@ -1,3 +1,4 @@
+using Main.Scripts.Player.InputSystem.Target;
 using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Trigger
@@ -9,9 +10,9 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
         [Min(0f)]
         private float radius;
         [SerializeField]
-        private SkillTargetType targetType;
+        private UnitTargetType targetType;
 
         public float Radius => radius;
-        public SkillTargetType TargetType => targetType;
+        public UnitTargetType TargetType => targetType;
     }
 }

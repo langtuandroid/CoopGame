@@ -6,6 +6,7 @@ using Main.Scripts.Actions.Health;
 using Main.Scripts.Core.Resources;
 using Main.Scripts.Modifiers;
 using Main.Scripts.Player.Data;
+using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills.Common.Component.Config;
 using Main.Scripts.Skills.Common.Component.Config.Action;
 using Main.Scripts.Skills.Common.Component.Config.Follow;
@@ -553,13 +554,13 @@ namespace Main.Scripts.Skills.Common.Component
             }
         }
 
-        private LayerMask GetLayerMaskByType(SkillTargetType targetType)
+        private LayerMask GetLayerMaskByType(UnitTargetType targetType)
         {
             return targetType switch
             {
-                SkillTargetType.Allies => alliesLayerMask,
-                SkillTargetType.Opponents => opponentsLayerMask,
-                SkillTargetType.All => alliesLayerMask | opponentsLayerMask,
+                UnitTargetType.Allies => alliesLayerMask,
+                UnitTargetType.Opponents => opponentsLayerMask,
+                UnitTargetType.All => alliesLayerMask | opponentsLayerMask,
                 _ => throw new ArgumentOutOfRangeException(nameof(targetType), targetType, null)
             };
         }

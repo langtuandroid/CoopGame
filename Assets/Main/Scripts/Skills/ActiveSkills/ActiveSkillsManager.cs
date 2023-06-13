@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Fusion;
+using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills.Common.Controller;
 using UnityEngine;
 using UnityEngine.Events;
@@ -10,22 +11,81 @@ namespace Main.Scripts.Skills.ActiveSkills
     public class ActiveSkillsManager : NetworkBehaviour
     {
         [SerializeField]
-        private SkillController primarySkill = default!;
+        private LayerMask alliesLayerMask;
         [SerializeField]
-        private SkillController secondarySkill = default!;
+        private LayerMask opponentsLayerMask;
+        
         [SerializeField]
-        private SkillController dashSkill = default!;
+        private SkillController? primarySkill;
+        [SerializeField]
+        private SkillController? dashSkill;
+        [SerializeField]
+        private SkillController? firstSkill;
+        [SerializeField]
+        private SkillController? secondSkill;
+        [SerializeField]
+        private SkillController? thirdSkill;
 
+        [Networked]
         [HideInInspector]
-        [Networked] 
         public ActiveSkillState CurrentSkillState { get; private set; }
         [Networked]
         private ActiveSkillType currentSkillType { get; set; }
         [Networked]
         private Vector3 targetMapPosition { get; set; }
+        [Networked]
+        private NetworkId unitTargetId { get; set; }
 
         [HideInInspector]
         public UnityEvent<ActiveSkillType, ActiveSkillState> OnActiveSkillStateChangedEvent = default!;
+
+        private void Awake()
+        {
+            if (primarySkill != null)
+            {
+                primarySkill.Init(
+                    transform,
+                    alliesLayerMask,
+                    opponentsLayerMask
+                );
+            }
+
+            if (dashSkill != null)
+            {
+                dashSkill.Init(
+                    transform,
+                    alliesLayerMask,
+                    opponentsLayerMask
+                );
+            }
+
+            if (firstSkill != null)
+            {
+                firstSkill.Init(
+                    transform,
+                    alliesLayerMask,
+                    opponentsLayerMask
+                );
+            }
+
+            if (secondSkill != null)
+            {
+                secondSkill.Init(
+                    transform,
+                    alliesLayerMask,
+                    opponentsLayerMask
+                );
+            }
+
+            if (thirdSkill != null)
+            {
+                thirdSkill.Init(
+                    transform,
+                    alliesLayerMask,
+                    opponentsLayerMask
+                );
+            }
+        }
 
         public override void Spawned()
         {
@@ -41,6 +101,7 @@ namespace Main.Scripts.Skills.ActiveSkills
                 skill.OnSkillExecutedEvent.AddListener(OnActiveSkillExecuted);
                 
                 skill.OnWaitingForPointTargetEvent.AddListener(OnActiveSkillWaitingForPointTarget);
+                skill.OnWaitingForUnitTargetEvent.AddListener(OnActiveSkillWaitingForUnitTarget);
                 skill.OnSkillCanceledEvent.AddListener(OnActiveSkillCanceled);
             }
         }
@@ -90,6 +151,12 @@ namespace Main.Scripts.Skills.ActiveSkills
                 return;
             }
 
+            if (CurrentSkillState == ActiveSkillState.WaitingForTarget && Runner.FindObject(unitTargetId) == null)
+            {
+                skill.CancelActivation();
+                return;
+            }
+
             skill.Execute();
         }
 
@@ -121,6 +188,37 @@ namespace Main.Scripts.Skills.ActiveSkills
             }
         }
 
+        public void ApplyUnitTarget(NetworkId unitTargetId)
+        {
+            this.unitTargetId = unitTargetId;
+            foreach (var skillType in Enum.GetValues(typeof(ActiveSkillType)).Cast<ActiveSkillType>())
+            {
+                var skill = getSkillByType(skillType);
+                if (skill == null)
+                {
+                    continue;
+                }
+
+                var unitTarget = Runner.FindObject(unitTargetId);
+                if (unitTarget != null)
+                {
+                    skill.ApplyUnitTarget(unitTarget);
+                }
+            }
+        }
+
+        public UnitTargetType GetSelectionTargetType()
+        {
+            var skill = getSkillByType(currentSkillType);
+            if (skill == null || (CurrentSkillState != ActiveSkillState.WaitingForPoint &&
+                                  CurrentSkillState != ActiveSkillState.WaitingForTarget))
+            {
+                throw new Exception("Incorrect skill state");
+            }
+
+            return skill.SelectionTargetType;
+        }
+
         public bool IsCurrentSkillDisableMove()
         {
             return getSkillByType(currentSkillType)?.IsDisabledMove() ?? false;
@@ -138,6 +236,12 @@ namespace Main.Scripts.Skills.ActiveSkills
             ApplyTargetMapPosition(targetMapPosition);
         }
 
+        private void OnActiveSkillWaitingForUnitTarget(SkillController skill)
+        {
+            UpdateSkillState(ActiveSkillState.WaitingForTarget);
+            ApplyUnitTarget(unitTargetId);
+        }
+
         private void OnActiveSkillExecuted(SkillController skill)
         {
             UpdateSkillState(ActiveSkillState.Attacking);
@@ -146,14 +250,14 @@ namespace Main.Scripts.Skills.ActiveSkills
         private void OnActiveSkillFinished(SkillController skill)
         {
             UpdateSkillState(ActiveSkillState.Finished);
-            currentSkillType = ActiveSkillType.None;
+            currentSkillType = ActiveSkillType.NONE;
             CurrentSkillState = ActiveSkillState.NotAttacking;
         }
 
         private void OnActiveSkillCanceled(SkillController skill)
         {
             UpdateSkillState(ActiveSkillState.Canceled);
-            currentSkillType = ActiveSkillType.None;
+            currentSkillType = ActiveSkillType.NONE;
             CurrentSkillState = ActiveSkillState.NotAttacking;
         }
 
@@ -161,10 +265,12 @@ namespace Main.Scripts.Skills.ActiveSkills
         {
             return skillType switch
             {
-                ActiveSkillType.Primary => primarySkill,
-                ActiveSkillType.SecondarySkill => secondarySkill,
-                ActiveSkillType.Dash => dashSkill,
-                ActiveSkillType.None => null,
+                ActiveSkillType.PRIMARY => primarySkill,
+                ActiveSkillType.DASH => dashSkill,
+                ActiveSkillType.FIRST_SKILL => firstSkill,
+                ActiveSkillType.SECOND_SKILL => secondSkill,
+                ActiveSkillType.THIRD_SKILL => thirdSkill,
+                ActiveSkillType.NONE => null,
                 _ => throw new ArgumentOutOfRangeException(nameof(skillType), skillType, null)
             };
         }

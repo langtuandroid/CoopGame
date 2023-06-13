@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Core.Resources;
+using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills.Common.Component;
 using Main.Scripts.Skills.Common.Component.Config;
 using Main.Scripts.Utils;
@@ -15,12 +16,6 @@ namespace Main.Scripts.Skills.Common.Controller
     {
         [SerializeField]
         private SkillControllerConfig skillControllerConfig = default!;
-        [SerializeField]
-        private Transform rootTransform = default!;
-        [SerializeField]
-        private LayerMask alliesLayerMask;
-        [SerializeField]
-        private LayerMask opponentsLayerMask;
 
         private GameObject? marker;
         private SkillConfigsBank skillConfigsBank = default!;
@@ -44,6 +39,10 @@ namespace Main.Scripts.Skills.Common.Controller
         [Networked]
         [Capacity(10)]
         private NetworkLinkedList<SkillComponent?> skillComponents => default;
+        
+        private Transform selfUnitTransform = default!;
+        private LayerMask alliesLayerMask;
+        private LayerMask opponentsLayerMask;
 
         [HideInInspector]
         public UnityEvent<SkillController> OnWaitingForPointTargetEvent = default!;
@@ -58,10 +57,22 @@ namespace Main.Scripts.Skills.Common.Controller
 
         public bool IsSkillExecuting => executionTimer.IsRunning;
         public SkillActivationType ActivationType => skillControllerConfig.ActivationType;
+        public UnitTargetType SelectionTargetType => skillControllerConfig.SelectionTargetType;
 
         private void OnValidate()
         {
             SkillConfigsValidationHelper.Validate(skillControllerConfig);
+        }
+
+        public void Init(
+            Transform selfUnitTransform,
+            LayerMask alliesLayerMask,
+            LayerMask opponentsLayerMask
+        )
+        {
+            this.selfUnitTransform = selfUnitTransform;
+            this.alliesLayerMask = alliesLayerMask;
+            this.opponentsLayerMask = opponentsLayerMask;
         }
 
         public override void Spawned()
@@ -73,15 +84,21 @@ namespace Main.Scripts.Skills.Common.Controller
         {
             if (!HasInputAuthority) return;
 
-            if (isActivating)
+            var canShowMarker = skillControllerConfig.ActivationType != SkillActivationType.WithUnitTarget ||
+                                selectedUnit != null;
+            if (isActivating && canShowMarker)
             {
+                var markerPosition = selectedUnit != null && skillControllerConfig.ActivationType == SkillActivationType.WithUnitTarget
+                        ? selectedUnit.transform.position
+                        : initialMapPoint;
+                    
                 if (marker == null)
                 {
                     if (skillControllerConfig.AreaMarker != null)
                     {
                         marker = Instantiate(
                             original: skillControllerConfig.AreaMarker,
-                            position: new Vector3(initialMapPoint.x, 0.001f, initialMapPoint.z),
+                            position: new Vector3(markerPosition.x, 0.001f, markerPosition.z),
                             rotation: skillControllerConfig.AreaMarker.transform.rotation
                         );
                     }
@@ -94,7 +111,7 @@ namespace Main.Scripts.Skills.Common.Controller
                         marker.SetActive(true);
                     }
 
-                    marker.transform.position = new Vector3(initialMapPoint.x, 0.001f, initialMapPoint.z);
+                    marker.transform.position = new Vector3(markerPosition.x, 0.001f, markerPosition.z);
                 }
             }
             else if (marker != null && marker.activeSelf)
@@ -268,7 +285,7 @@ namespace Main.Scripts.Skills.Common.Controller
                 switch (skillConfig.SpawnPointType)
                 {
                     case SkillSpawnPointType.SelfUnitTarget:
-                        position = rootTransform.transform.position;
+                        position = selfUnitTransform.transform.position;
                         break;
                     case SkillSpawnPointType.SelectedUnitTarget:
                         selectedUnit.ThrowWhenNull();
@@ -287,7 +304,7 @@ namespace Main.Scripts.Skills.Common.Controller
                 switch (skillConfig.SpawnDirectionType)
                 {
                     case SkillSpawnDirectionType.ToSelfUnit:
-                        rotation = Quaternion.LookRotation(rootTransform.transform.position - position);
+                        rotation = Quaternion.LookRotation(selfUnitTransform.transform.position - position);
                         break;
                     case SkillSpawnDirectionType.ToSelectedUnit:
                         selectedUnit.ThrowWhenNull();
@@ -300,11 +317,11 @@ namespace Main.Scripts.Skills.Common.Controller
                         rotation = Quaternion.LookRotation(dynamicMapPoint - position);
                         break;
                     case SkillSpawnDirectionType.SelfUnitLookDirection:
-                        rotation = rootTransform.transform.rotation;
+                        rotation = selfUnitTransform.transform.rotation;
                         break;
                     case SkillSpawnDirectionType.SelfUnitMoveDirection:
                         rotation = Quaternion.LookRotation(
-                            rootTransform.GetComponent<Movable>()?.GetMovingDirection() ?? Vector3.zero
+                            selfUnitTransform.GetComponent<Movable>()?.GetMovingDirection() ?? Vector3.zero
                         );
                         break;
                     case SkillSpawnDirectionType.SelectedUnitLookDirection:

@@ -16,22 +16,14 @@ namespace Main.Scripts.Skills.Common.Controller
                 throw new Exception($"{skillControllerConfig.name}: ExecutionDurationSec must be bigger or equal CastDurationSec");
             }
             
+            foreach (var skillConfig in skillControllerConfig.RunOnStartSkillConfigs)
+            {
+                CheckSkillConfig(skillConfig, skillControllerConfig.name);
+            }
+            
             foreach (var skillConfig in skillControllerConfig.RunAfterCastSkillConfigs)
             {
-                if (skillConfig == null)
-                {
-                    throw new Exception($"{skillControllerConfig.name}: SkillConfigs has empty value");
-                }
-
-                if (skillConfig.FindTargetsStrategies.Any(findTargetsStrategy => findTargetsStrategy == null))
-                {
-                    throw new Exception($"{skillControllerConfig.name}::{skillConfig.name}: FindTargetsStrategies has empty value");
-                }
-
-                if (skillConfig.Actions.Any(action => action == null))
-                {
-                    throw new Exception($"{skillControllerConfig.name}::{skillConfig.name}: Actions has empty value");
-                }
+                CheckSkillConfig(skillConfig, skillControllerConfig.name);
             }
             
             if (skillControllerConfig.ActivationType != SkillActivationType.WithUnitTarget)
@@ -54,6 +46,34 @@ namespace Main.Scripts.Skills.Common.Controller
                         $"{skillControllerConfig.name}: using InitialMapPoint in {configName} when ActivationType is not MapPointTarget");
 
                 }
+            }
+        }
+
+        private static void CheckSkillConfig(SkillConfig? skillConfig, string skillControllerConfigName)
+        {
+            if (skillConfig == null)
+            {
+                throw new Exception($"{skillControllerConfigName}: SkillConfigs has empty value");
+            }
+
+            if (skillConfig.FollowStrategy == null)
+            {
+                throw new Exception($"{skillControllerConfigName}::{skillConfig.name}: FollowStrategy has empty value");
+            }
+
+            if (skillConfig.ActionTrigger == null)
+            {
+                throw new Exception($"{skillControllerConfigName}::{skillConfig.name}: ActionTrigger has empty value");
+            }
+
+            if (skillConfig.FindTargetsStrategies.Any(findTargetsStrategy => findTargetsStrategy == null))
+            {
+                throw new Exception($"{skillControllerConfigName}::{skillConfig.name}: FindTargetsStrategies has empty value");
+            }
+
+            if (skillConfig.Actions.Any(action => action == null))
+            {
+                throw new Exception($"{skillControllerConfigName}::{skillConfig.name}: Actions has empty value");
             }
         }
 

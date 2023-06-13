@@ -256,7 +256,7 @@ namespace Main.Scripts.Enemies
 
         private void FireWeapon()
         {
-            activeSkillsManager.ActivateSkill(ActiveSkillType.Primary);
+            activeSkillsManager.ActivateSkill(ActiveSkillType.PRIMARY);
         }
 
         private bool IsAttacking()

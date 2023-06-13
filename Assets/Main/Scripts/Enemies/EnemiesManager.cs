@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
 using UnityEngine.Events;
@@ -15,6 +15,8 @@ namespace Main.Scripts.Enemies
 
         public UnityEvent<EnemyController> OnEnemySpawnedEvent = default!;
         public UnityEvent<EnemyController> OnEnemyDeadEvent = default!;
+
+        private Dictionary<NetworkId, NetworkObject> localEnemiesMap = new();
 
         private void Awake()
         {
@@ -41,6 +43,21 @@ namespace Main.Scripts.Enemies
                     enemyController.OnDeadEvent.AddListener(OnEnemyDead);
                     OnEnemySpawnedEvent.Invoke(enemyController);
                 });
+        }
+
+        public IEnumerable<NetworkObject> GetEnemies()
+        {
+            return localEnemiesMap.Values;
+        }
+
+        public void RegisterEnemy(NetworkObject enemy)
+        {
+            localEnemiesMap.Add(enemy.Id, enemy);
+        }
+
+        public void UnregisterEnemy(NetworkObject enemy)
+        {
+            localEnemiesMap.Remove(enemy.Id);
         }
 
         private void OnEnemyDead(EnemyController enemyController)

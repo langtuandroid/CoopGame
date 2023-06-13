@@ -9,6 +9,7 @@ using Main.Scripts.Effects;
 using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui;
 using Main.Scripts.Player.Data;
+using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.Skills.PassiveSkills;
 using Main.Scripts.UI.Gui;
@@ -46,6 +47,7 @@ namespace Main.Scripts.Player
         private EffectsManager effectsManager = default!;
         private CharacterCustomization characterCustomization = default!;
         private HealthChangeDisplayManager? healthChangeDisplayManager;
+        private FindTargetManager? findTargetManager;
 
         private PlayerDataManager playerDataManager = default!;
 
@@ -135,6 +137,11 @@ namespace Main.Scripts.Player
             healthBar.SetMaxHealth((uint)Math.Max(0, maxHealth));
 
             interactionInfoView = new InteractionInfoView(interactionInfoDoc, "F", "Resurrect");
+
+            if (HasInputAuthority)
+            {
+                findTargetManager = FindTargetManager.Instance.ThrowWhenNull();
+            }
         }
 
         public void ResetState()
@@ -166,6 +173,28 @@ namespace Main.Scripts.Player
         public override void Render()
         {
             healthBar.SetHealth((uint)Math.Max(0, health));
+
+            if (findTargetManager != null)
+            {
+                if (activeSkillsManager.CurrentSkillState == ActiveSkillState.WaitingForTarget)
+                {
+                    if (findTargetManager.State != FindTargetState.SELECTED)
+                    {
+                        var targetMask = activeSkillsManager.GetSelectionTargetType();
+                        if (findTargetManager.TryActivate(Object, targetMask, out var unitTarget))
+                        {
+                            activeSkillsManager.ApplyUnitTarget(unitTarget);
+                        }
+                    }
+                }
+                else
+                {
+                    if (findTargetManager.State != FindTargetState.NOT_ACTIVE)
+                    {
+                        findTargetManager.StopActive(true);
+                    }
+                }
+            }
         }
 
         public void Active()
@@ -329,7 +358,7 @@ namespace Main.Scripts.Player
                     activeSkillsManager.ExecuteCurrentSkill();
                     break;
                 case ActiveSkillState.NotAttacking:
-                    ActivateSkill(ActiveSkillType.Primary);
+                    ActivateSkill(ActiveSkillType.PRIMARY);
                     break;
             }
         }
@@ -337,6 +366,11 @@ namespace Main.Scripts.Player
         public void ApplyMapTargetPosition(Vector2 position)
         {
             activeSkillsManager.ApplyTargetMapPosition(new Vector3(position.x, 0, position.y));
+        }
+
+        public void ApplyUnitTarget(NetworkId unitTargetId)
+        {
+            activeSkillsManager.ApplyUnitTarget(unitTargetId);
         }
 
         private void OnActiveSkillStateChanged(ActiveSkillType type, ActiveSkillState state)

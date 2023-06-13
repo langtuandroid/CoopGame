@@ -2,9 +2,11 @@ namespace Main.Scripts.Skills.ActiveSkills
 {
     public enum ActiveSkillType
     {
-        None,
-        Primary,
-        SecondarySkill,
-        Dash
+        NONE,
+        PRIMARY,
+        DASH,
+        FIRST_SKILL,
+        SECOND_SKILL,
+        THIRD_SKILL,
     }
 }

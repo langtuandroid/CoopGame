@@ -384,6 +384,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 572ce91f928c42aeaee3e98ff906637c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  alliesLayerMask:
+    serializedVersion: 2
+    m_Bits: 128
+  opponentsLayerMask:
+    serializedVersion: 2
+    m_Bits: 256
   passiveSkillControllers:
   - {fileID: 2971332246294605615}
   initialEffects:
@@ -779,7 +785,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  painterType: 1
+  painterForce: 1
 --- !u!1 &7348652730272053797
 GameObject:
   m_ObjectHideFlags: 0

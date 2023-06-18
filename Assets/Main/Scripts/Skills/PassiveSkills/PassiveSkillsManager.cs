@@ -12,6 +12,11 @@ namespace Main.Scripts.Skills.PassiveSkills
     public class PassiveSkillsManager : MonoBehaviour
     {
         [SerializeField]
+        private LayerMask alliesLayerMask;
+        [SerializeField]
+        private LayerMask opponentsLayerMask;
+
+        [SerializeField]
         private List<PassiveSkillController> passiveSkillControllers = new();
         [SerializeField]
         private List<EffectsCombination> initialEffects = default!;
@@ -45,6 +50,12 @@ namespace Main.Scripts.Skills.PassiveSkills
 
             foreach (var skillController in passiveSkillControllers)
             {
+                skillController.Init(
+                    transform,
+                    alliesLayerMask,
+                    opponentsLayerMask
+                );
+                
                 var type = skillController.PassiveSkillTrigger switch
                 {
                     SpawnPassiveSkillTrigger => PassiveSkillTriggerType.OnSpawn,

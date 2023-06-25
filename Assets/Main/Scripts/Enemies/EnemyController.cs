@@ -158,7 +158,6 @@ namespace Main.Scripts.Enemies
                 var targetRef = enemiesHelper.FindPlayerTarget(transform.position);
                 if (targetRef != null)
                 {
-                    var isNewTarget = targetPlayerRef != targetRef.Value;
                     targetPlayerRef = targetRef.Value;
                     var targetPosition = levelContext.PlayersHolder.Get(targetPlayerRef).transform.position;
                     var distanceToTarget = Vector3.Distance(transform.position, targetPosition);

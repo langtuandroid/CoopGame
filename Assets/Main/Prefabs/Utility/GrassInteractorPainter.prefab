@@ -67,6 +67,6 @@ MonoBehaviour:
   painterTextureF3: {fileID: 8600000, guid: a361cb20dcbac2847a66784f6741df00, type: 2}
   painterTextureF4: {fileID: 8600000, guid: 28de88ff9f25f3e459906ec5cf8a5656, type: 2}
   painterTextureF5: {fileID: 8600000, guid: d301b78dd63b8d64c8f1ced51ad8fc69, type: 2}
-  painterTextureSize: 64
-  targetTextureSize: 1024
+  painterTextureSize: 32
+  targetTextureSize: 512
   size: 100

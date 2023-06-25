@@ -98,7 +98,7 @@ MonoBehaviour:
   - {fileID: 4040824336151786535}
   - {fileID: 8554452486374799627}
   - {fileID: 8574961548140711563}
-  - {fileID: 1264484163266089591}
+  - {fileID: 2795909396761841043}
   SimulationBehaviours: []
 --- !u!114 &1324006215410747384
 MonoBehaviour:
@@ -364,7 +364,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4495490745188107703}
-  - component: {fileID: 1264484163266089591}
+  - component: {fileID: 2795909396761841043}
   m_Layer: 8
   m_Name: GrassInteractPainter
   m_TagString: Untagged
@@ -387,7 +387,7 @@ Transform:
   m_Father: {fileID: 6565723816960306059}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1264484163266089591
+--- !u!114 &2795909396761841043
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -693,6 +693,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6565723816960306059}
     m_Modifications:
+    - target: {fileID: 329603473574903267, guid: ffa1af8c8bedcd949865c39bcd4c081a, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1495857487265950862, guid: ffa1af8c8bedcd949865c39bcd4c081a, type: 3}
       propertyPath: m_Name
       value: HealthBarPrefab
@@ -724,6 +728,10 @@ PrefabInstance:
     - target: {fileID: 7277142642198578805, guid: ffa1af8c8bedcd949865c39bcd4c081a, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 7354164608484524344, guid: ffa1af8c8bedcd949865c39bcd4c081a, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7543094889546732465, guid: ffa1af8c8bedcd949865c39bcd4c081a, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -989,10 +997,31 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1788459068909094664, guid: bfa6bc96c73793f4d99a7803a8794a68, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 325636984544664208}
   m_SourcePrefab: {fileID: 100100000, guid: bfa6bc96c73793f4d99a7803a8794a68, type: 3}
 --- !u!4 &2146175658969278145 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5941182627992630639, guid: bfa6bc96c73793f4d99a7803a8794a68, type: 3}
   m_PrefabInstance: {fileID: 5745446863340622766}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &6298864034433979558 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1788459068909094664, guid: bfa6bc96c73793f4d99a7803a8794a68, type: 3}
+  m_PrefabInstance: {fileID: 5745446863340622766}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &325636984544664208
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6298864034433979558}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c831c6d81f2648b5a3fd86ebaeac5d00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enableShadowCast: 0

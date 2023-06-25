@@ -21,7 +21,6 @@ GameObject:
   - component: {fileID: 1232518736907365467}
   - component: {fileID: 17070262016428297}
   - component: {fileID: 4040824336151786535}
-  - component: {fileID: 6394427572981673665}
   - component: {fileID: 8554452486374799627}
   - component: {fileID: 4988630158712456428}
   m_Layer: 8
@@ -97,7 +96,6 @@ MonoBehaviour:
   - {fileID: 1870479772353028648}
   - {fileID: 17070262016428297}
   - {fileID: 4040824336151786535}
-  - {fileID: 6394427572981673665}
   - {fileID: 8554452486374799627}
   - {fileID: 8574961548140711563}
   - {fileID: 1264484163266089591}
@@ -331,23 +329,6 @@ MonoBehaviour:
     _hash: -814817977
   StateHashes: 00000000a554260e271b6a8b9da6ca0538e22dba2b1a167c79406955
   TriggerHashes: 000000000d286c40
---- !u!114 &6394427572981673665
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2736757121921172608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1d3cb5d13f194925b6923e058c7ac879, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  tickBufferStep: 5
-  textLifeTimer: 0.5
-  textSpeed: 5
-  healthChangeDisplay: {fileID: 2810098918455596548, guid: 2e12ba9d46989ac46acbb5ad436fb79b, type: 3}
 --- !u!114 &8554452486374799627
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -719,6 +700,10 @@ PrefabInstance:
     - target: {fileID: 1495857487265950862, guid: ffa1af8c8bedcd949865c39bcd4c081a, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 1571318261239820903, guid: ffa1af8c8bedcd949865c39bcd4c081a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1571318261239820903, guid: ffa1af8c8bedcd949865c39bcd4c081a, type: 3}
       propertyPath: m_StaticEditorFlags

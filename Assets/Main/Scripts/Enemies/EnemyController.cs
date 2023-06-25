@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Health;
 using Main.Scripts.Effects;
 using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui;
+using Main.Scripts.Levels;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.Skills.PassiveSkills;
 using Main.Scripts.Utils;
@@ -43,6 +46,8 @@ namespace Main.Scripts.Enemies
         [SerializeField]
         private float attackDistance = 3; //todo replace to activeWeapon parameter
 
+        private LevelContext levelContext = default!;
+
         private ActiveSkillsManager activeSkillsManager = default!;
         private PassiveSkillsManager passiveSkillsManager = default!;
         private EffectsManager effectsManager = default!;
@@ -64,13 +69,17 @@ namespace Main.Scripts.Enemies
         private TickTimer knockBackTimer { get; set; }
         [Networked]
         private Vector3 knockBackDirection { get; set; }
+        [Networked]
+        private PlayerRef targetPlayerRef { get; set; }
         
         [Networked]
         private int animationTriggerId { get; set; }
         private int lastAnimationTriggerId;
 
-        private NavMeshPath navMeshPath = default!;
+        private List<Vector3> pathCorners = new();
         private EnemyAnimationState currentAnimationState;
+
+        private int nextNavPathCornerIndex;
 
         private bool isActivated => gameObject.activeInHierarchy && !isDead;
 
@@ -91,12 +100,13 @@ namespace Main.Scripts.Enemies
             rigidbody = GetComponent<Rigidbody>();
             networkRigidbody = GetComponent<NetworkRigidbody>();
             networkAnimator = GetComponent<NetworkMecanimAnimator>();
-            navMeshPath = new NavMeshPath();
 
             activeSkillsManager = GetComponent<ActiveSkillsManager>();
             passiveSkillsManager = GetComponent<PassiveSkillsManager>();
             effectsManager = GetComponent<EffectsManager>();
             healthChangeDisplayManager = GetComponent<HealthChangeDisplayManager>();
+            
+            levelContext = LevelContext.Instance.ThrowWhenNull();
 
             activeSkillsManager.OnActiveSkillStateChangedEvent.AddListener(OnActiveSkillStateChanged);
             effectsManager.OnUpdatedStatModifiersEvent.AddListener(OnUpdatedStatModifiers);
@@ -145,10 +155,12 @@ namespace Main.Scripts.Enemies
 
             if (isActivated && HasStateAuthority && canMoveByController())
             {
-                var target = enemiesHelper.findPlayerTarget(transform.position);
-                if (target != null)
+                var targetRef = enemiesHelper.FindPlayerTarget(transform.position);
+                if (targetRef != null)
                 {
-                    var targetPosition = target.Value;
+                    var isNewTarget = targetPlayerRef != targetRef.Value;
+                    targetPlayerRef = targetRef.Value;
+                    var targetPosition = levelContext.PlayersHolder.Get(targetPlayerRef).transform.position;
                     var distanceToTarget = Vector3.Distance(transform.position, targetPosition);
 
                     if (distanceToTarget > attackDistance)
@@ -234,14 +246,33 @@ namespace Main.Scripts.Enemies
         private void updateDestination(Vector3? destination)
         {
             navigationTarget = destination ?? transform.position;
+
             if (destination == null)
             {
+                pathCorners.Clear();
                 rigidbody.velocity = Vector3.zero;
+                nextNavPathCornerIndex = 1;
+
                 return;
             }
+            
+            enemiesHelper.StartCalculatePath(Object.Id, transform.position, navigationTarget);
+            var newPathCorners = enemiesHelper.GetPathCorners(Object.Id);
+            if (newPathCorners != null)
+            {
+                pathCorners.Clear();
+                pathCorners.AddRange(newPathCorners);
+                nextNavPathCornerIndex = 1;
+            }
 
-            NavMesh.CalculatePath(transform.position, navigationTarget, NavMesh.AllAreas, navMeshPath);
-            var direction = (navMeshPath.corners.Length > 1 ? navMeshPath.corners[1] : navigationTarget) -
+            if (nextNavPathCornerIndex < pathCorners.Count)
+            {
+                if (Vector3.Distance(pathCorners[nextNavPathCornerIndex], transform.position) < 0.2f)
+                {
+                    nextNavPathCornerIndex++;
+                }
+            }
+            var direction = (nextNavPathCornerIndex < pathCorners.Count ? pathCorners[nextNavPathCornerIndex] : navigationTarget) -
                             transform.position;
             direction = new Vector3(direction.x, 0, direction.z);
             transform.LookAt(transform.position + direction);

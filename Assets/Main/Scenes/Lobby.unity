@@ -122,7 +122,7 @@ NavMeshSettings:
     preserveTilesOutsideBounds: 0
     debug:
       m_Flags: 0
-  m_NavMeshData: {fileID: 23800000, guid: 09d266cf62e98594fab8d12bab2b550d, type: 2}
+  m_NavMeshData: {fileID: 0}
 --- !u!1 &98784860
 GameObject:
   m_ObjectHideFlags: 0
@@ -754,6 +754,7 @@ GameObject:
   - component: {fileID: 504426374}
   - component: {fileID: 504426376}
   - component: {fileID: 504426377}
+  - component: {fileID: 504426378}
   m_Layer: 0
   m_Name: LobbyLevelManager
   m_TagString: Untagged
@@ -833,6 +834,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playersHolder: {fileID: 504426375}
+  navigationManager: {fileID: 504426378}
 --- !u!114 &504426375
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -883,6 +885,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playersHolder: {fileID: 504426375}
   enemiesManager: {fileID: 504426376}
+--- !u!114 &504426378
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 504426370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2dcaf1f0d4241b591bae7bf004680a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &552739259
 GameObject:
   m_ObjectHideFlags: 0
@@ -894,7 +908,7 @@ GameObject:
   - component: {fileID: 552739260}
   - component: {fileID: 552739261}
   m_Layer: 0
-  m_Name: GrassSpawner
+  m_Name: DecorationsSpawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -927,6 +941,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a57266e84c744a6e83a9a64e30271944, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  navMeshSurface: {fileID: 981794249}
   decorationPrefabs:
   - {fileID: 4273614417802531091, guid: 6ec2f75819ad2ee4e9a6ff953451494b, type: 3}
   - {fileID: 1438992088075028192, guid: a1faf8a330f9e8448b7af354072ef174, type: 3}
@@ -1209,11 +1224,11 @@ MonoBehaviour:
   m_IgnoreNavMeshAgent: 1
   m_IgnoreNavMeshObstacle: 1
   m_OverrideTileSize: 1
-  m_TileSize: 1020
+  m_TileSize: 1024
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.2
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: 67f173e3c6230ca4a875ba3b5171254b, type: 2}
+  m_NavMeshData: {fileID: 0}
   m_BuildHeightMesh: 0
 --- !u!4 &981794250
 Transform:

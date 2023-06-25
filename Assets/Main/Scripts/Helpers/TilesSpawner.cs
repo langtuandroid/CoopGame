@@ -1,10 +1,14 @@
 using System.Collections.Generic;
+using Unity.AI.Navigation;
 using UnityEngine;
 
 namespace Main.Scripts.Helpers
 {
     public class TilesSpawner : MonoBehaviour
     {
+        [SerializeField]
+        private NavMeshSurface navMeshSurface = default!;
+        
         [SerializeField]
         private List<Object> decorationPrefabs = new();
         [SerializeField]
@@ -39,7 +43,8 @@ namespace Main.Scripts.Helpers
                     Instantiate(
                         original: decorationPrefabs[Random.Range(0, decorationPrefabs.Count)],
                         position: new Vector3(leftDownX + Random.Range(0f, width), 0f, leftDownZ + Random.Range(0f, height)),
-                        rotation: Quaternion.Euler(0f, Random.Range(0f, 360f), 0f)
+                        rotation: Quaternion.Euler(0f, Random.Range(0f, 360f), 0f),
+                        parent: navMeshSurface.transform
                     );
                 }
             }
@@ -51,13 +56,15 @@ namespace Main.Scripts.Helpers
                     for (var j = 0; j < columnsCount; j++)
                     {
                         Instantiate(
-                            grassPrefab,
+                            original: grassPrefab,
                             new Vector3(leftDownX + (i + 0.5f) * tileSize, 0f, leftDownZ + (j + 0.5f) * tileSize),
                             Quaternion.identity
                         );
                     }
                 }
             }
+
+            navMeshSurface.BuildNavMesh();
         }
     }
 }

@@ -10,6 +10,8 @@ namespace Main.Scripts.Enemies
         
         [SerializeField]
         private PlayersHolder playersHolder = default!;
+        [SerializeField]
+        private NavigationManager navigationManager = default!;
 
         private void Awake()
         {
@@ -22,19 +24,36 @@ namespace Main.Scripts.Enemies
             Instance = null;
         }
 
-        public Vector3? findPlayerTarget(Vector3 fromPosition)
+        public PlayerRef? FindPlayerTarget(Vector3 fromPosition)
         {
-            var target = (Vector3?)null;
+            var targetPosition = (Vector3?)null;
+            var targetRef = (PlayerRef?)null;
             foreach (var playerRef in playersHolder.GetKeys())
             {
                 var playerPosition = playersHolder.Get(playerRef).transform.position;
-                if (target == null || Vector3.Distance(fromPosition, playerPosition) < Vector3.Distance(fromPosition, target.Value))
+                if (targetPosition == null || Vector3.Distance(fromPosition, playerPosition) < Vector3.Distance(fromPosition, targetPosition.Value))
                 {
-                    target = playerPosition;
+                    targetPosition = playerPosition;
+                    targetRef = playerRef;
                 }
             }
 
-            return target;
+            return targetRef;
+        }
+
+        public void StartCalculatePath(NetworkId id, Vector3 fromPosition, Vector3 toPosition)
+        {
+            navigationManager.StartCalculatePath(id, fromPosition, toPosition);
+        }
+
+        public Vector3[]? GetPathCorners(NetworkId id)
+        {
+            return navigationManager.GetPathCorners(id);
+        }
+
+        public void StopCalculatePath(NetworkId id)
+        {
+            navigationManager.StopCalculatePath(id);
         }
     }
 }

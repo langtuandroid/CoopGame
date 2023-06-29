@@ -9,6 +9,10 @@ using UnityEngine;
 
 namespace Main.Scripts.Skills.PassiveSkills
 {
+    [SimulationBehaviour(
+        Stages = (SimulationStages) 8,
+        Modes  = (SimulationModes) 8
+    )]
     public class PassiveSkillsManager : MonoBehaviour
     {
         [SerializeField]
@@ -75,6 +79,14 @@ namespace Main.Scripts.Skills.PassiveSkills
             foreach (var effectsCombination in initialEffects)
             {
                 effectsManager.AddEffects(effectsCombination.Effects);
+            }
+        }
+
+        public void SetOwner(PlayerRef owner)
+        {
+            foreach (var skillController in passiveSkillControllers)
+            {
+                skillController.SetOwner(owner);
             }
         }
 

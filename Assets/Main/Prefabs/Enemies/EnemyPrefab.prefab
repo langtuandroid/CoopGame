@@ -1,5 +1,51 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1412676921839971475
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3289261245127387377}
+  - component: {fileID: 1878330545365194317}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3289261245127387377
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1412676921839971475}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.22872342, y: -0.3464589, z: -3.3826425}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6565723816960306059}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1878330545365194317
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1412676921839971475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffeafd87202b4ff99e096d54820f675e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 0
+  painterForce: 1
 --- !u!1 &2736757121921172608
 GameObject:
   m_ObjectHideFlags: 0
@@ -16,13 +62,13 @@ GameObject:
   - component: {fileID: 7982089108220398672}
   - component: {fileID: 3473994687292452832}
   - component: {fileID: 6982114154254946840}
-  - component: {fileID: 1870479772353028648}
   - component: {fileID: 8747675781320779502}
   - component: {fileID: 1232518736907365467}
   - component: {fileID: 17070262016428297}
   - component: {fileID: 4040824336151786535}
   - component: {fileID: 8554452486374799627}
   - component: {fileID: 4988630158712456428}
+  - component: {fileID: 7082237308381909159}
   m_Layer: 8
   m_Name: EnemyPrefab
   m_TagString: Untagged
@@ -63,7 +109,7 @@ MonoBehaviour:
   _interpolationDataSource: 0
   healthBar: {fileID: 6734015301302651011}
   defaultMaxHealth: 100
-  defaultSpeed: 6
+  defaultSpeed: 7
   attackDistance: 2
   OnDeadEvent:
     m_PersistentCalls:
@@ -84,7 +130,7 @@ MonoBehaviour:
   DefaultInterestGroups: []
   DestroyWhenStateAuthorityLeaves: 0
   AllowStateAuthorityOverride: 1
-  AoiPositionSource: {fileID: 1870479772353028648}
+  AoiPositionSource: {fileID: 0}
   Flags: 2305
   NetworkGuid:
     RawGuidValue: fb6430ba47924404495b48284fc38986
@@ -93,12 +139,12 @@ MonoBehaviour:
   - {fileID: 8977078318047038321}
   - {fileID: 1324006215410747384}
   - {fileID: 7982089108220398672}
-  - {fileID: 1870479772353028648}
   - {fileID: 17070262016428297}
   - {fileID: 4040824336151786535}
   - {fileID: 8554452486374799627}
+  - {fileID: 7082237308381909159}
   - {fileID: 8574961548140711563}
-  - {fileID: 2795909396761841043}
+  - {fileID: 1878330545365194317}
   SimulationBehaviours: []
 --- !u!114 &1324006215410747384
 MonoBehaviour:
@@ -113,7 +159,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  Config: 1
+  Config: 0
   BroadRadius: 0.6
   Offset: {x: 0, y: 0, z: 0}
   GizmosColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
@@ -213,34 +259,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 116
   m_CollisionDetection: 0
---- !u!114 &1870479772353028648
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2736757121921172608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 1710889294, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 2
-  InterpolationSpace: 0
-  InterpolationTarget: {fileID: 6565723816960306059}
-  InterpolateErrorCorrection: 1
-  InterpolatedErrorCorrectionSettings:
-    MinRate: 20
-    MaxRate: 30
-    PosBlendStart: 0.1
-    PosBlendEnd: 0.5
-    PosMinCorrection: 0.05
-    PosTeleportDistance: 2
-    RotBlendStart: 0.1
-    RotBlendEnd: 0.5
-    RotTeleportRadians: 1.5
-  UseLegacySharedModeInterpolation: 0
-  TargetInterpolationDelay: 0.03
 --- !u!95 &8747675781320779502
 Animator:
   serializedVersion: 5
@@ -355,52 +373,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   marker: {fileID: 1423888546162875522}
---- !u!1 &3896114355939608716
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4495490745188107703}
-  - component: {fileID: 2795909396761841043}
-  m_Layer: 8
-  m_Name: GrassInteractPainter
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 18
-  m_IsActive: 1
---- !u!4 &4495490745188107703
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3896114355939608716}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 1, z: 2}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 6565723816960306059}
-  m_RootOrder: -1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2795909396761841043
+--- !u!114 &7082237308381909159
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3896114355939608716}
+  m_GameObject: {fileID: 2736757121921172608}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ffeafd87202b4ff99e096d54820f675e, type: 3}
+  m_Script: {fileID: 11500000, guid: 28c56d5e51ce43e89defb99ab30804ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  painterForce: 1
+  _interpolationDataSource: 2
+  InterpolationSpace: 0
+  InterpolationTarget: {fileID: 6565723816960306059}
+  InterpolateErrorCorrection: 1
+  InterpolatedErrorCorrectionSettings:
+    MinRate: 20
+    MaxRate: 30
+    PosBlendStart: 0.1
+    PosBlendEnd: 0.5
+    PosMinCorrection: 0.005
+    PosTeleportDistance: 2
+    RotBlendStart: 0.1
+    RotBlendEnd: 0.5
+    RotTeleportRadians: 1.5
+  UseLegacySharedModeInterpolation: 0
+  TargetInterpolationDelay: 0.03
 --- !u!1 &4256602683872874748
 GameObject:
   m_ObjectHideFlags: 0
@@ -598,7 +598,7 @@ Transform:
   - {fileID: 2146175658969278145}
   - {fileID: 8717106489598338431}
   - {fileID: 5723565571356375019}
-  - {fileID: 4495490745188107703}
+  - {fileID: 3289261245127387377}
   m_Father: {fileID: 8004075537626908674}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -695,7 +695,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 329603473574903267, guid: ffa1af8c8bedcd949865c39bcd4c081a, type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1495857487265950862, guid: ffa1af8c8bedcd949865c39bcd4c081a, type: 3}
       propertyPath: m_Name
@@ -707,7 +707,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1571318261239820903, guid: ffa1af8c8bedcd949865c39bcd4c081a, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1571318261239820903, guid: ffa1af8c8bedcd949865c39bcd4c081a, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -715,11 +715,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3866973380396189058, guid: ffa1af8c8bedcd949865c39bcd4c081a, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3866973380396189058, guid: ffa1af8c8bedcd949865c39bcd4c081a, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4372042707510071081, guid: ffa1af8c8bedcd949865c39bcd4c081a, type: 3}
       propertyPath: m_StaticEditorFlags

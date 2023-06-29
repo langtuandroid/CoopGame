@@ -9,11 +9,14 @@ using Main.Scripts.Effects.PeriodicEffects.Handlers.Heal;
 using Main.Scripts.Effects.Stats;
 using Main.Scripts.Effects.Stats.Modifiers;
 using Main.Scripts.Utils;
-using UnityEngine;
 using UnityEngine.Events;
 
 namespace Main.Scripts.Effects
 {
+    [SimulationBehaviour(
+        Stages = (SimulationStages) 8,
+        Modes  = (SimulationModes) 8
+    )]
     public class EffectsManager : NetworkBehaviour
     {
         private EffectsBank effectsBank = default!;

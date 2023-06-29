@@ -1,23 +1,27 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Health;
+using Main.Scripts.Core.CustomPhysics;
+using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Effects;
 using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui;
-using Main.Scripts.Levels;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.Skills.PassiveSkills;
 using Main.Scripts.Utils;
 using UnityEngine;
-using UnityEngine.AI;
 using UnityEngine.Events;
+using UnityEngine.Profiling;
 
 namespace Main.Scripts.Enemies
 {
-    public class EnemyController : NetworkBehaviour,
+    [SimulationBehaviour(
+        Stages = (SimulationStages) 8,
+        Modes  = (SimulationModes) 8
+    )]
+    public class EnemyController : GameLoopEntity,
         Damageable,
         Healable,
         Affectable,
@@ -29,13 +33,14 @@ namespace Main.Scripts.Enemies
         private static readonly float HEALTH_THRESHOLD = 0.01f;
 
         private new Rigidbody rigidbody = default!;
-        private NetworkRigidbody networkRigidbody = default!;
+        private NetworkTransform networkTransform = default!;
         private NetworkMecanimAnimator networkAnimator = default!;
         private EnemiesHelper enemiesHelper = default!;
+        private Transform cachedTransform = default!;
 
         private float knockBackForce = 30f; //todo get from ApplyKnockBack
         private float knockBackDuration = 0.1f; //todo можно высчитать из knockBackForce и rigidbody.drag
-        private float moveAcceleration = 50f;
+        private float moveAcceleration = 200f;
 
         [SerializeField]
         private HealthBar healthBar = default!;
@@ -45,8 +50,6 @@ namespace Main.Scripts.Enemies
         private float defaultSpeed = 5;
         [SerializeField]
         private float attackDistance = 3; //todo replace to activeWeapon parameter
-
-        private LevelContext levelContext = default!;
 
         private ActiveSkillsManager activeSkillsManager = default!;
         private PassiveSkillsManager passiveSkillsManager = default!;
@@ -80,6 +83,7 @@ namespace Main.Scripts.Enemies
         private EnemyAnimationState currentAnimationState;
 
         private int nextNavPathCornerIndex;
+        private float sqrAttackDistance;
 
         private bool isActivated => gameObject.activeInHierarchy && !isDead;
 
@@ -88,7 +92,7 @@ namespace Main.Scripts.Enemies
         public void OnValidate()
         {
             if (GetComponent<Rigidbody>() == null) throw new MissingComponentException("Rigidbody component is required in EnemyController");
-            if (GetComponent<NetworkRigidbody>() == null) throw new MissingComponentException("NetworkRigidbody component is required in EnemyController");
+            if (GetComponent<NetworkTransform>() == null) throw new MissingComponentException("NetworkTransform component is required in EnemyController");
             if (GetComponent<Animator>() == null) throw new MissingComponentException("Animator component is required in EnemyController");
             if (GetComponent<ActiveSkillsManager>() == null) throw new MissingComponentException("ActiveSkillsManager component is required in EnemyController");
             if (GetComponent<PassiveSkillsManager>() == null) throw new MissingComponentException("PassiveSkillsManager component is required in EnemyController");
@@ -98,31 +102,41 @@ namespace Main.Scripts.Enemies
         void Awake()
         {
             rigidbody = GetComponent<Rigidbody>();
-            networkRigidbody = GetComponent<NetworkRigidbody>();
+            networkTransform = GetComponent<NetworkTransform>();
             networkAnimator = GetComponent<NetworkMecanimAnimator>();
+            cachedTransform = transform;
 
             activeSkillsManager = GetComponent<ActiveSkillsManager>();
             passiveSkillsManager = GetComponent<PassiveSkillsManager>();
             effectsManager = GetComponent<EffectsManager>();
             healthChangeDisplayManager = GetComponent<HealthChangeDisplayManager>();
-            
-            levelContext = LevelContext.Instance.ThrowWhenNull();
 
             activeSkillsManager.OnActiveSkillStateChangedEvent.AddListener(OnActiveSkillStateChanged);
             effectsManager.OnUpdatedStatModifiersEvent.AddListener(OnUpdatedStatModifiers);
+
+            sqrAttackDistance = attackDistance * attackDistance;
         }
 
         public override void Spawned()
         {
+            base.Spawned();
             enemiesHelper = EnemiesHelper.Instance.ThrowWhenNull();
+            
+            activeSkillsManager.SetOwner(Object.InputAuthority);
+            passiveSkillsManager.SetOwner(Object.InputAuthority);
+        }
+
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            base.Despawned(runner, hasState);
+            enemiesHelper = default!;
+            OnDeadEvent.RemoveAllListeners();
         }
 
         private void OnDestroy()
         {
             activeSkillsManager.OnActiveSkillStateChangedEvent.RemoveListener(OnActiveSkillStateChanged);
             effectsManager.OnUpdatedStatModifiersEvent.RemoveListener(OnUpdatedStatModifiers);
-            
-            OnDeadEvent.RemoveAllListeners();
         }
         
         public void ResetState()
@@ -146,40 +160,98 @@ namespace Main.Scripts.Enemies
             healthBar.SetHealth((uint)health);
         }
 
-        public override void FixedUpdateNetwork()
+        public override void OnBeforePhysicsSteps()
         {
             if (CheckIsDead()) return;
             if (!isActivated) return;
+            Profiler.BeginSample("EnemiesController::OnBeforePhysicsSteps");
 
+            Profiler.BeginSample("UpdateEffects");
             effectsManager.UpdateEffects();
+            Profiler.EndSample();
 
-            if (isActivated && HasStateAuthority && canMoveByController())
+            Profiler.BeginSample("Enemy logic");
+            if (isActivated && HasStateAuthority && CanMoveByController())
             {
-                var targetRef = enemiesHelper.FindPlayerTarget(transform.position);
+                var targetRef = enemiesHelper.FindPlayerTarget(Runner, transform.position, out var targetPosition);
                 if (targetRef != null)
                 {
                     targetPlayerRef = targetRef.Value;
-                    var targetPosition = levelContext.PlayersHolder.Get(targetPlayerRef).transform.position;
-                    var distanceToTarget = Vector3.Distance(transform.position, targetPosition);
+                    var sqrDistanceToTarget = Vector3.SqrMagnitude(transform.position - targetPosition);
 
-                    if (distanceToTarget > attackDistance)
+                    if (sqrDistanceToTarget > sqrAttackDistance)
                     {
-                        updateDestination(targetPosition);
+                        UpdateDestination(targetPosition);
                     }
                     else
                     {
-                        updateDestination(null);
+                        UpdateDestination(null);
                         transform.LookAt(targetPosition);
                         FireWeapon();
                     }
                 }
                 else
                 {
-                    updateDestination(null);
+                    UpdateDestination(null);
+                }
+            }
+            Profiler.EndSample();
+            
+            Profiler.EndSample();
+        }
+        
+        public override void OnBeforePhysicsStep()
+        {
+            if (!isActivated || !HasStateAuthority || !CanMoveByController()) return;
+            Profiler.BeginSample("EnemyController::OnBeforePhysicsStep");
+
+            var curPosition = cachedTransform.position;
+            var curNavigationTarget = navigationTarget;
+
+            enemiesHelper.StartCalculatePath(ref Object.Id, curPosition, curNavigationTarget);
+            
+            var newPathCorners = enemiesHelper.GetPathCorners(ref Object.Id);
+            if (newPathCorners != null)
+            {
+                pathCorners.Clear();
+                pathCorners.AddRange(newPathCorners);
+                nextNavPathCornerIndex = 1;
+            }
+
+            if (nextNavPathCornerIndex < pathCorners.Count)
+            {
+                if (Vector3.SqrMagnitude(pathCorners[nextNavPathCornerIndex] - cachedTransform.position) < 0.04f) //threshold delta
+                {
+                    nextNavPathCornerIndex++;
                 }
             }
 
-            CheckIsDead();
+            
+            var direction = (nextNavPathCornerIndex < pathCorners.Count
+                    ? pathCorners[nextNavPathCornerIndex]
+                    : curNavigationTarget
+                ) - curPosition;
+            
+            direction = new Vector3(direction.x, 0, direction.z);
+            cachedTransform.LookAt(curPosition + direction);
+            var currentVelocity = rigidbody.velocity;
+            if (currentVelocity.sqrMagnitude < speed * speed)
+            {
+                var deltaVelocity = speed * direction.normalized - currentVelocity;
+                var deltaVelocityMagnitude = deltaVelocity.magnitude;
+                rigidbody.velocity = currentVelocity + Mathf.Min(moveAcceleration * PhysicsManager.DeltaTime / deltaVelocityMagnitude, 1f) *
+                                      deltaVelocity;
+            }
+            
+            Profiler.EndSample();
+        }
+
+        public override void OnAfterPhysicsSteps()
+        {
+            if (CheckIsDead())
+            {
+                return;
+            }
 
             UpdateAnimationState();
         }
@@ -242,7 +314,7 @@ namespace Main.Scripts.Enemies
             }
         }
 
-        private void updateDestination(Vector3? destination)
+        private void UpdateDestination(Vector3? destination)
         {
             navigationTarget = destination ?? transform.position;
 
@@ -251,36 +323,6 @@ namespace Main.Scripts.Enemies
                 pathCorners.Clear();
                 rigidbody.velocity = Vector3.zero;
                 nextNavPathCornerIndex = 1;
-
-                return;
-            }
-            
-            enemiesHelper.StartCalculatePath(Object.Id, transform.position, navigationTarget);
-            var newPathCorners = enemiesHelper.GetPathCorners(Object.Id);
-            if (newPathCorners != null)
-            {
-                pathCorners.Clear();
-                pathCorners.AddRange(newPathCorners);
-                nextNavPathCornerIndex = 1;
-            }
-
-            if (nextNavPathCornerIndex < pathCorners.Count)
-            {
-                if (Vector3.Distance(pathCorners[nextNavPathCornerIndex], transform.position) < 0.2f)
-                {
-                    nextNavPathCornerIndex++;
-                }
-            }
-            var direction = (nextNavPathCornerIndex < pathCorners.Count ? pathCorners[nextNavPathCornerIndex] : navigationTarget) -
-                            transform.position;
-            direction = new Vector3(direction.x, 0, direction.z);
-            transform.LookAt(transform.position + direction);
-            var currentVelocity = rigidbody.velocity.magnitude;
-            if (currentVelocity < speed)
-            {
-                var deltaVelocity = speed * direction.normalized - rigidbody.velocity;
-                rigidbody.velocity += Mathf.Min(moveAcceleration * Runner.DeltaTime, deltaVelocity.magnitude) *
-                                      deltaVelocity.normalized;
             }
         }
 
@@ -392,7 +434,7 @@ namespace Main.Scripts.Enemies
                 return EnemyAnimationState.Attacking;
             }
 
-            if (canMoveByController() && rigidbody.velocity.magnitude > 0.01f)
+            if (CanMoveByController() && rigidbody.velocity.magnitude > 0.01f)
             {
                 return EnemyAnimationState.Walking;
             }
@@ -400,7 +442,7 @@ namespace Main.Scripts.Enemies
             return EnemyAnimationState.Idle;
         }
 
-        private bool canMoveByController()
+        private bool CanMoveByController()
         {
             return knockBackTimer.ExpiredOrNotRunning(Runner)
                    && stunTimer.ExpiredOrNotRunning(Runner)

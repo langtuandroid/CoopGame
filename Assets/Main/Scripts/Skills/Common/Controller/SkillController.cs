@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Actions;
+using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Core.Resources;
 using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills.Common.Component;
@@ -12,7 +13,7 @@ using UnityEngine.Events;
 
 namespace Main.Scripts.Skills.Common.Controller
 {
-    public class SkillController : NetworkBehaviour
+    public class SkillController : GameLoopEntity
     {
         [SerializeField]
         private SkillControllerConfig skillControllerConfig = default!;
@@ -43,6 +44,7 @@ namespace Main.Scripts.Skills.Common.Controller
         private Transform selfUnitTransform = default!;
         private LayerMask alliesLayerMask;
         private LayerMask opponentsLayerMask;
+        private PlayerRef owner;
 
         [HideInInspector]
         public UnityEvent<SkillController> OnWaitingForPointTargetEvent = default!;
@@ -77,12 +79,13 @@ namespace Main.Scripts.Skills.Common.Controller
 
         public override void Spawned()
         {
+            base.Spawned();
             skillConfigsBank = GlobalResources.Instance.ThrowWhenNull().SkillConfigsBank;
         }
 
         public override void Render()
         {
-            if (!HasInputAuthority) return;
+            if (!Runner.LocalPlayer == owner) return;
 
             var canShowMarker = skillControllerConfig.ActivationType != SkillActivationType.WithUnitTarget ||
                                 selectedUnit != null;
@@ -118,6 +121,12 @@ namespace Main.Scripts.Skills.Common.Controller
             {
                 marker.SetActive(false);
             }
+        }
+
+        public void SetOwner(PlayerRef owner)
+        {
+            this.owner = owner;
+
         }
 
         public bool Activate(PlayerRef owner)
@@ -193,7 +202,7 @@ namespace Main.Scripts.Skills.Common.Controller
             CheckCastFinished();
         }
 
-        public override void FixedUpdateNetwork()
+        public override void OnBeforePhysicsSteps()
         {
             CheckCastFinished();
 
@@ -346,7 +355,7 @@ namespace Main.Scripts.Skills.Common.Controller
                     {
                         skillObject.GetComponent<SkillComponent>().Init(
                             skillConfigId: skillConfigsBank.GetSkillConfigId(skillConfig),
-                            ownerId: Object.InputAuthority,
+                            ownerId: owner,
                             initialMapPoint: initialMapPoint,
                             dynamicMapPoint: dynamicMapPoint,
                             selfUnit: Object,

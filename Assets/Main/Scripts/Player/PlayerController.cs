@@ -3,6 +3,8 @@ using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Health;
 using Main.Scripts.Actions.Interaction;
+using Main.Scripts.Core.CustomPhysics;
+using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Customization;
 using Main.Scripts.Drop;
 using Main.Scripts.Effects;
@@ -23,7 +25,7 @@ namespace Main.Scripts.Player
 {
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(Animator))]
-    public class PlayerController : NetworkBehaviour,
+    public class PlayerController : GameLoopEntity,
         Damageable,
         Healable,
         Affectable,
@@ -38,7 +40,6 @@ namespace Main.Scripts.Player
         private static readonly float HEALTH_THRESHOLD = 0.01f;
 
         private new Rigidbody rigidbody = default!;
-        private NetworkRigidbody networkRigidbody = default!;
         private new Collider collider = default!;
         private NetworkMecanimAnimator networkAnimator = default!;
 
@@ -81,6 +82,8 @@ namespace Main.Scripts.Player
         private float dashSpeed { get; set; }
         [Networked]
         private Vector3 dashDirection { get; set; }
+        [Networked]
+        private PlayerRef owner { get; set; }
         
         [Networked]
         private int animationTriggerId { get; set; }
@@ -88,16 +91,20 @@ namespace Main.Scripts.Player
 
         private InteractionInfoView interactionInfoView = default!;
         private PlayerAnimationState currentAnimationState;
-
-        public UnityEvent<PlayerRef, PlayerController, State> OnPlayerStateChangedEvent = default!;
-
+        
+        private float moveAcceleration = 200f;
+        
         private bool isActivated =>
             (gameObject.activeInHierarchy && (state == State.Active || state == State.Spawning));
-        
+        private bool hasInputAuthority => Runner.LocalPlayer == owner;
+
+        public UnityEvent<PlayerRef, PlayerController, State> OnPlayerStateChangedEvent = default!;
+        public PlayerRef Owner => owner;
+
         public void OnValidate()
         {
             if (GetComponent<Rigidbody>() == null) throw new MissingComponentException("Rigidbody component is required in PlayerController");
-            if (GetComponent<NetworkRigidbody>() == null) throw new MissingComponentException("NetworkRigidbody component is required in PlayerController");
+            if (GetComponent<NetworkTransform>() == null) throw new MissingComponentException("NetworkTransform component is required in PlayerController");
             if (GetComponent<Collider>() == null) throw new MissingComponentException("Collider component is required in PlayerController");
             if (GetComponent<Animator>() == null) throw new MissingComponentException("Animator component is required in PlayerController");
             if (GetComponent<ActiveSkillsManager>() == null) throw new MissingComponentException("ActiveSkillsManager component is required in PlayerController");
@@ -108,7 +115,6 @@ namespace Main.Scripts.Player
         void Awake()
         {
             rigidbody = GetComponent<Rigidbody>();
-            networkRigidbody = GetComponent<NetworkRigidbody>();
             collider = GetComponent<Collider>();
             networkAnimator = GetComponent<NetworkMecanimAnimator>();
             
@@ -124,24 +130,30 @@ namespace Main.Scripts.Player
 
         public override void Spawned()
         {
+            base.Spawned();
             playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
             playerDataManager.OnPlayerDataChangedEvent.AddListener(OnPlayerDataChanged);
 
-            var playerData = playerDataManager.GetPlayerData(Object.InputAuthority).ThrowWhenNull();
+            var playerData = playerDataManager.GetPlayerData(owner).ThrowWhenNull();
             ApplyCustomization(playerData.Customization);
             
-            if (!IsProxy)
-            {
-                networkRigidbody.InterpolationDataSource = InterpolationDataSources.NoInterpolation;
-            }
             healthBar.SetMaxHealth((uint)Math.Max(0, maxHealth));
 
             interactionInfoView = new InteractionInfoView(interactionInfoDoc, "F", "Resurrect");
 
-            if (HasInputAuthority)
+            if (hasInputAuthority)
             {
                 findTargetManager = FindTargetManager.Instance.ThrowWhenNull();
             }
+            
+            activeSkillsManager.SetOwner(owner);
+            passiveSkillsManager.SetOwner(owner);
+        }
+
+        public void Init(PlayerRef owner)
+        {
+            this.owner = owner;
+            ResetState();
         }
 
         public void ResetState()
@@ -166,6 +178,7 @@ namespace Main.Scripts.Player
 
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
+            base.Despawned(runner, hasState);
             OnPlayerStateChangedEvent.RemoveAllListeners();
             playerDataManager.OnPlayerDataChangedEvent.RemoveListener(OnPlayerDataChanged);
         }
@@ -200,23 +213,21 @@ namespace Main.Scripts.Player
         public void Active()
         {
             state = State.Active;
-            passiveSkillsManager.OnSpawn(Object.InputAuthority);
+            passiveSkillsManager.OnSpawn(owner);
         }
 
-        public override void FixedUpdateNetwork()
+        public override void OnBeforePhysicsSteps()
         {
             if (Runner.IsServer)
             {
-                var controller = Object.InputAuthority;
-                // Set the controlling players area of interest region around this object
-                if (controller)
-                {
-                    Runner.AddPlayerAreaOfInterest(controller, transform.position + Vector3.forward * 5, 25);
-                }
+                Runner.AddPlayerAreaOfInterest(owner, transform.position + Vector3.forward * 5, 25);
             }
             
             effectsManager.UpdateEffects();
+        }
 
+        public override void OnBeforePhysicsStep()
+        {
             if (!dashTimer.ExpiredOrNotRunning(Runner))
             {
                 Move(dashSpeed * dashDirection);
@@ -225,7 +236,14 @@ namespace Main.Scripts.Player
             {
                 Move(Vector3.zero);
             }
-            
+            else
+            {
+                ApplyDirections();
+            }
+        }
+
+        public override void OnAfterPhysicsSteps()
+        {
             UpdateAnimationState();
         }
 
@@ -252,7 +270,7 @@ namespace Main.Scripts.Player
             dashSpeed = speed;
         }
 
-        public void ApplyDirections()
+        private void ApplyDirections()
         {
             if (!isActivated)
                 return;
@@ -261,13 +279,19 @@ namespace Main.Scripts.Player
             
             if (CanMoveByController())
             {
-                Move(speed * new Vector3(moveDirection.x, 0, moveDirection.y));
+                var currentVelocity = rigidbody.velocity.magnitude;
+                if (currentVelocity < speed)
+                {
+                    var deltaVelocity = speed * GetMovingDirection().normalized - rigidbody.velocity;
+                    rigidbody.velocity += Mathf.Min(moveAcceleration * PhysicsManager.DeltaTime, deltaVelocity.magnitude) *
+                                          deltaVelocity.normalized;
+                }
             }
         }
 
         private void OnPlayerDataChanged(UserId userId, PlayerData playerData, PlayerData oldPlayerData)
         {
-            if (playerDataManager.GetPlayerRef(userId) == Object.InputAuthority)
+            if (playerDataManager.GetPlayerRef(userId) == owner)
             {
                 ApplyCustomization(playerData.Customization);
             }
@@ -301,12 +325,12 @@ namespace Main.Scripts.Player
                 collider.enabled = true;
             }
 
-            OnPlayerStateChangedEvent.Invoke(Object.InputAuthority, this, state);
+            OnPlayerStateChangedEvent.Invoke(owner, this, state);
         }
 
         public bool IsInteractionEnabled(PlayerRef playerRef)
         {
-            if (Object.InputAuthority == playerRef)
+            if (owner == playerRef)
             {
                 return false;
             }
@@ -321,7 +345,7 @@ namespace Main.Scripts.Player
 
         public bool Interact(PlayerRef playerRef)
         {
-            if (Object.InputAuthority == playerRef)
+            if (owner == playerRef)
             {
                 throw new Exception("Invalid state interact");
             }
@@ -480,7 +504,7 @@ namespace Main.Scripts.Player
         {
             if (!isActivated) return;
             
-            passiveSkillsManager.OnTakenDamage(Object.InputAuthority, damage, damageOwner);
+            passiveSkillsManager.OnTakenDamage(owner, damage, damageOwner);
 
             if (health - damage < HEALTH_THRESHOLD)
             {
@@ -488,7 +512,7 @@ namespace Main.Scripts.Player
                 if (HasStateAuthority)
                 {
                     state = State.Dead;
-                    passiveSkillsManager.OnDead(Object.InputAuthority, damageOwner);
+                    passiveSkillsManager.OnDead(owner, damageOwner);
                 }
             }
             else
@@ -508,7 +532,7 @@ namespace Main.Scripts.Player
 
             health = Math.Min(health + healValue, maxHealth);
             
-            passiveSkillsManager.OnTakenHeal(Object.InputAuthority, healValue, healOwner);
+            passiveSkillsManager.OnTakenHeal(owner, healValue, healOwner);
             if (healthChangeDisplayManager != null)
             {
                 healthChangeDisplayManager.ApplyHeal(healValue);

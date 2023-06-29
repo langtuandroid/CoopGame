@@ -11,7 +11,7 @@ namespace Main.Scripts.Player
         [Networked(OnChanged = nameof(OnPlayerObjectsChanged)), Capacity(16)]
         private NetworkDictionary<PlayerRef, NetworkObject> playerObjects => default;
 
-        private Dictionary<PlayerRef, PlayerController> cashedPlayerControllers = new();
+        private Dictionary<int, PlayerController> cachedPlayerControllers = new();
 
         public UnityEvent OnChangedEvent = default!;
 
@@ -23,7 +23,7 @@ namespace Main.Scripts.Player
             }
 
             playerObjects.Add(playerRef, playerController.Object);
-            cashedPlayerControllers.Add(playerRef, playerController);
+            cachedPlayerControllers.Add(playerRef, playerController);
         }
 
         public bool Contains(PlayerRef playerRef)
@@ -33,22 +33,27 @@ namespace Main.Scripts.Player
 
         public PlayerController Get(PlayerRef playerRef)
         {
-            if (!cashedPlayerControllers.ContainsKey(playerRef))
+            return Get(playerRef.PlayerId);
+        }
+
+        public PlayerController Get(int playerRef)
+        {
+            if (!cachedPlayerControllers.ContainsKey(playerRef))
             {
-                var networkObject = playerObjects.Get(playerRef).ThrowWhenNull();
-                cashedPlayerControllers[playerRef] = networkObject.GetComponent<PlayerController>().ThrowWhenNull();
+                var networkObject = playerObjects[playerRef].ThrowWhenNull();
+                cachedPlayerControllers[playerRef] = networkObject.GetComponent<PlayerController>().ThrowWhenNull();
             }
 
-            return cashedPlayerControllers[playerRef];
+            return cachedPlayerControllers[playerRef];
         }
 
         public void Remove(PlayerRef playerRef)
         {
             playerObjects.Remove(playerRef);
-            cashedPlayerControllers.Remove(playerRef);
+            cachedPlayerControllers.Remove(playerRef.PlayerId);
         }
 
-        public IEnumerable<PlayerRef> GetKeys(bool isValueContains = true)
+        public List<PlayerRef> GetKeys(bool isValueContains = true)
         {
             var list = new List<PlayerRef>();
             foreach (var (playerRef, _) in playerObjects)

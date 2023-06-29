@@ -1,6 +1,7 @@
 using System;
 using Fusion;
 using Main.Scripts.Player;
+using Main.Scripts.Player.InputSystem;
 using Main.Scripts.Tasks;
 using Main.Scripts.UI.Windows;
 using Main.Scripts.Utils;
@@ -10,6 +11,8 @@ namespace Main.Scripts.Levels.Lobby
 {
     public class LobbyLevelController : LevelControllerBase
     {
+        [SerializeField]
+        private InputController inputController = default!;
         [SerializeField]
         private PlayerController playerPrefab = default!;
         [SerializeField]
@@ -37,7 +40,7 @@ namespace Main.Scripts.Levels.Lobby
         {
             if (playersHolder.Contains(Runner.LocalPlayer))
             {
-                playerCamera.SetTarget(playersHolder.Get(Runner.LocalPlayer).GetComponent<NetworkRigidbody>().InterpolationTarget.transform);
+                playerCamera.SetTarget(playersHolder.Get(Runner.LocalPlayer).GetComponent<NetworkTransform>().InterpolationTarget.transform);
             }
         }
 
@@ -55,11 +58,10 @@ namespace Main.Scripts.Levels.Lobby
                 prefab: playerPrefab,
                 position: Vector3.zero,
                 rotation: Quaternion.identity,
-                inputAuthority: playerRef,
                 onBeforeSpawned: (networkRunner, playerObject) =>
                 {
                     var playerController = playerObject.GetComponent<PlayerController>();
-                    playerController.ResetState();
+                    playerController.Init(playerRef);
 
                     playerController.OnPlayerStateChangedEvent.AddListener(OnPlayerStateChanged);
                 }
@@ -95,6 +97,15 @@ namespace Main.Scripts.Levels.Lobby
                     if (!playersHolder.Contains(playerRef))
                     {
                         playersHolder.Add(playerRef, playerController);
+                        
+                        Runner.Spawn(
+                            prefab: inputController,
+                            position: Vector3.zero,
+                            rotation: Quaternion.identity,
+                            inputAuthority: playerRef,
+                            onBeforeSpawned: (networkRunner, playerObject) =>
+                            { }
+                        );
                     }
                     break;
                 case PlayerController.State.Dead:

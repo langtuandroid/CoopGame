@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Health;
+using Main.Scripts.Core.CustomPhysics;
+using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Core.Resources;
 using Main.Scripts.Modifiers;
 using Main.Scripts.Player.Data;
@@ -18,7 +20,7 @@ using UnityEngine.Events;
 
 namespace Main.Scripts.Skills.Common.Component
 {
-    public class SkillComponent : NetworkBehaviour
+    public class SkillComponent : GameLoopEntity
     {
         private SkillConfigsBank skillConfigsBank = default!;
         private ModifierIdsBank modifierIdsBank = default!;
@@ -119,6 +121,7 @@ namespace Main.Scripts.Skills.Common.Component
 
         public override void Spawned()
         {
+            base.Spawned();
             var resources = GlobalResources.Instance.ThrowWhenNull();
             skillConfigsBank = resources.SkillConfigsBank;
             modifierIdsBank = resources.ModifierIdsBank;
@@ -158,11 +161,8 @@ namespace Main.Scripts.Skills.Common.Component
 
         }
 
-        public override void FixedUpdateNetwork()
+        public override void OnBeforePhysicsSteps()
         {
-            UpdatePosition();
-            UpdateRotation();
-            
             if (isFinished)
             {
                 if (destroyAfterFinishTimer.Expired(Runner))
@@ -222,6 +222,15 @@ namespace Main.Scripts.Skills.Common.Component
             }
 
             CheckPeriodicTrigger();
+        }
+
+        public override void OnBeforePhysicsStep()
+        {
+            if (shouldStop) return;
+            
+            UpdatePosition();
+            UpdateRotation();
+            
             CheckCollisionTrigger();
         }
 
@@ -265,7 +274,7 @@ namespace Main.Scripts.Skills.Common.Component
             {
                 var targetPoint = GetPointByType(moveToTargetStrategy.MoveTo);
                 var deltaPosition = targetPoint - transform.position;
-                var moveDelta = deltaPosition.normalized * moveToTargetStrategy.Speed * Runner.DeltaTime;
+                var moveDelta = deltaPosition.normalized * moveToTargetStrategy.Speed * PhysicsManager.DeltaTime;
 
                 if (deltaPosition.sqrMagnitude <= moveDelta.sqrMagnitude)
                 {
@@ -281,7 +290,7 @@ namespace Main.Scripts.Skills.Common.Component
             {
                 var direction = GetDirectionByType(moveToDirectionStrategy.MoveDirectionType);
                 direction = Quaternion.AngleAxis(moveToDirectionStrategy.DirectionAngleOffset, Vector3.up) * direction;
-                transform.position += direction * moveToDirectionStrategy.Speed * Runner.DeltaTime;
+                transform.position += direction * moveToDirectionStrategy.Speed * PhysicsManager.DeltaTime;
             }
         }
 

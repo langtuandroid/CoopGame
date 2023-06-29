@@ -82,8 +82,11 @@ namespace Main.Scripts.Player
 
         public void SetTarget(Transform target)
         {
-            _target = target;
-            UpdateCamera(false);
+            if (_target != target)
+            {
+                _target = target;
+                UpdateCamera(false);
+            }
         }
 
         private void CalculateCameraTransform(Transform target, float pitch, float distance, out Vector3 pos,

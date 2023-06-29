@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using Fusion;
+using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Player;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace Main.Scripts.Tasks
 {
-    public class PlaceTargetTask : NetworkBehaviour
+    public class PlaceTargetTask : GameLoopEntity
     {
         [SerializeField]
         private PlayersHolder playersHolder = default!;
@@ -27,15 +28,17 @@ namespace Main.Scripts.Tasks
 
         public override void Spawned()
         {
+            base.Spawned();
             placeExtents = transform.localScale / 2;
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
+            base.Despawned(runner, hasState);
             OnTaskCheckChangedEvent.RemoveAllListeners();
         }
 
-        public override void FixedUpdateNetwork()
+        public override void OnBeforePhysicsSteps()
         {
             if (!Runner.IsServer) return;
             
@@ -54,7 +57,7 @@ namespace Main.Scripts.Tasks
                 var playerController = hit.GameObject.GetComponent<PlayerController>();
                 if (playerController != null)
                 {
-                    playersInPlace.Add(playerController.Object.InputAuthority, true);
+                    playersInPlace.Add(playerController.Owner, true);
                 }
             }
 

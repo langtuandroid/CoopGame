@@ -1,13 +1,16 @@
 ﻿using System.Collections.Generic;
 using Fusion;
+using Main.Scripts.Core.GameLogic;
 using UnityEngine;
 
 namespace Main.Scripts.Gui
 {
-    public class HealthChangeDisplayManager : NetworkBehaviour
+    public class HealthChangeDisplayManager : GameLoopEntity
     {
         private const int TICK_BUFFER_LENGTH = 10;
 
+        [SerializeField]
+        private Transform interpolationTransform = default!;
         [SerializeField]
         private int tickBufferStep = 5;
         [SerializeField]
@@ -37,7 +40,7 @@ namespace Main.Scripts.Gui
             }
         }
 
-        public override void FixedUpdateNetwork()
+        public override void OnAfterPhysicsSteps()
         {
             var nextIndex = GetNextIndex();
             damageSumBuffer.Set(nextIndex, 0f);
@@ -65,7 +68,7 @@ namespace Main.Scripts.Gui
                 {
                     if (!displayItemsPool.TryPop(out var displayItem) || displayItem == null)
                     {
-                        displayItem = Instantiate(healthChangeDisplay, transform);
+                        displayItem = Instantiate(healthChangeDisplay, interpolationTransform);
                     }
 
                     displayItem.SetActive();

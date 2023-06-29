@@ -1,9 +1,10 @@
 using Fusion;
+using Main.Scripts.Core.GameLogic;
 using UnityEngine;
 
 namespace Main.Scripts.Helpers
 {
-    public class LifeTimer : NetworkBehaviour
+    public class LifeTimer : GameLoopEntity
     {
         [SerializeField]
         private float lifeDurationSec;
@@ -11,7 +12,7 @@ namespace Main.Scripts.Helpers
         [Networked]
         private TickTimer lifeTimer { get; set; }
 
-        public override void FixedUpdateNetwork()
+        public override void OnBeforePhysicsSteps()
         {
             if (!lifeTimer.IsRunning)
             {

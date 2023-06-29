@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Actions.Interaction;
+using Main.Scripts.Core.GameLogic;
 using UnityEngine;
 
 namespace Main.Scripts.Player.Interaction
 {
-    public class InteractionController : NetworkBehaviour
+    public class InteractionController : GameLoopEntity
     {
         [SerializeField]
         private float interactionRadius = 3f;
@@ -15,16 +16,23 @@ namespace Main.Scripts.Player.Interaction
         private List<LagCompensatedHit> hits = new();
         private Interactable? lastInteractableObject;
 
-        public override void FixedUpdateNetwork()
+        private PlayerRef owner;
+
+        public override void OnAfterPhysicsSteps()
         {
-            if (!HasInputAuthority || !Runner.IsLastTick) return;
+            if ((Runner.LocalPlayer != owner) || !Runner.IsLastTick) return;
 
             var allowedInteractableObject = GetClosestInteractable();
 
-            lastInteractableObject?.SetInteractionInfoVisibility(Object.InputAuthority, false);
+            lastInteractableObject?.SetInteractionInfoVisibility(owner, false);
             lastInteractableObject = allowedInteractableObject;
 
-            allowedInteractableObject?.SetInteractionInfoVisibility(Object.InputAuthority, true);
+            allowedInteractableObject?.SetInteractionInfoVisibility(owner, true);
+        }
+        
+        public void SetOwner(PlayerRef owner)
+        {
+            this.owner = owner;
         }
 
         private Interactable? GetClosestInteractable()
@@ -32,7 +40,7 @@ namespace Main.Scripts.Player.Interaction
             Runner.LagCompensation.OverlapSphere(
                 origin: transform.position,
                 radius: interactionRadius,
-                player: Object.InputAuthority,
+                player: owner,
                 hits: hits,
                 layerMask: layerMask
             );
@@ -43,7 +51,7 @@ namespace Main.Scripts.Player.Interaction
             {
                 if (hit.Distance < minDistance && hit.GameObject.TryGetComponent<Interactable>(out var interactableObject))
                 {
-                    if (interactableObject.IsInteractionEnabled(Object.InputAuthority))
+                    if (interactableObject.IsInteractionEnabled(owner))
                     {
                         minDistance = hit.Distance;
                         closestInteractableObject = interactableObject;
@@ -60,7 +68,7 @@ namespace Main.Scripts.Player.Interaction
             var allowedInteractableObject = GetClosestInteractable();
             if (allowedInteractableObject != null)
             {
-                allowedInteractableObject.Interact(Object.InputAuthority);
+                allowedInteractableObject.Interact(owner);
                 return true;
             }
 

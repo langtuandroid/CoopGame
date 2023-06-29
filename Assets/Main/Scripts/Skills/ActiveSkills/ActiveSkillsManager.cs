@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Fusion;
 using Main.Scripts.Player.InputSystem.Target;
@@ -8,6 +9,10 @@ using UnityEngine.Events;
 
 namespace Main.Scripts.Skills.ActiveSkills
 {
+    [SimulationBehaviour(
+        Stages = (SimulationStages) 8,
+        Modes  = (SimulationModes) 8
+    )]
     public class ActiveSkillsManager : NetworkBehaviour
     {
         [SerializeField]
@@ -36,6 +41,9 @@ namespace Main.Scripts.Skills.ActiveSkills
         [Networked]
         private NetworkId unitTargetId { get; set; }
 
+        private List<SkillController> allSkillControllers = new();
+        private PlayerRef owner;
+
         [HideInInspector]
         public UnityEvent<ActiveSkillType, ActiveSkillState> OnActiveSkillStateChangedEvent = default!;
 
@@ -43,43 +51,32 @@ namespace Main.Scripts.Skills.ActiveSkills
         {
             if (primarySkill != null)
             {
-                primarySkill.Init(
-                    transform,
-                    alliesLayerMask,
-                    opponentsLayerMask
-                );
+                allSkillControllers.Add(primarySkill);
             }
 
             if (dashSkill != null)
             {
-                dashSkill.Init(
-                    transform,
-                    alliesLayerMask,
-                    opponentsLayerMask
-                );
+                allSkillControllers.Add(dashSkill);
             }
 
             if (firstSkill != null)
             {
-                firstSkill.Init(
-                    transform,
-                    alliesLayerMask,
-                    opponentsLayerMask
-                );
+                allSkillControllers.Add(firstSkill);
             }
 
             if (secondSkill != null)
             {
-                secondSkill.Init(
-                    transform,
-                    alliesLayerMask,
-                    opponentsLayerMask
-                );
+                allSkillControllers.Add(secondSkill);
             }
 
             if (thirdSkill != null)
             {
-                thirdSkill.Init(
+                allSkillControllers.Add(thirdSkill);
+            }
+
+            foreach (var skillController in allSkillControllers)
+            {
+                skillController.Init(
                     transform,
                     alliesLayerMask,
                     opponentsLayerMask
@@ -123,6 +120,14 @@ namespace Main.Scripts.Skills.ActiveSkills
             }
         }
 
+        public void SetOwner(PlayerRef owner)
+        {
+            this.owner = owner;
+            foreach (var skillController in allSkillControllers)
+            {
+                skillController.SetOwner(owner);
+            }
+        }
 
         public bool ActivateSkill(ActiveSkillType skillType)
         {
@@ -138,7 +143,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             }
 
             currentSkillType = skillType;
-            return skill.Activate(Object.InputAuthority);
+            return skill.Activate(owner);
         }
 
         public void ExecuteCurrentSkill()

@@ -2,7 +2,7 @@
     "Version": 1,
     "TypeId": "NetworkProjectConfig",
     "PeerMode": 0,
-    "PhysicsEngine": 0,
+    "PhysicsEngine": 2,
     "ServerPhysicsMode": 1,
     "UseLagCompensation": true,
     "LagCompensation": {
@@ -41,7 +41,7 @@
     "HostMigrationSnapshotInterval": 60,
     "Simulation": {
         "InputDataWordCount": 0,
-        "TickRate": 46,
+        "TickRate": 20,
         "MaxPrediction": 20,
         "DefaultPlayers": 10,
         "ReplicationMode": 1,

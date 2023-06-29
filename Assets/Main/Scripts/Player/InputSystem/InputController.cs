@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Fusion;
 using Fusion.Sockets;
+using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Enemies;
 using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Player.Interaction;
@@ -17,7 +18,7 @@ namespace Main.Scripts.Player.InputSystem
     /// Handle player input by responding to Fusion input polling, filling an input struct and then working with
     /// that input struct in the Fusion Simulation loop.
     /// </summary>
-    public class InputController : NetworkBehaviour, INetworkRunnerCallbacks
+    public class InputController : GameLoopEntity, INetworkRunnerCallbacks
     {
         [SerializeField]
         private LayerMask mouseRayMask;
@@ -33,8 +34,8 @@ namespace Main.Scripts.Player.InputSystem
         
         public bool fetchInput = true;
 
-        private PlayerController playerController = default!;
-        private InteractionController interactionController = default!;
+        private PlayerController? playerController;
+        private InteractionController? interactionController;
         
         private NetworkInputData frameworkInput;
         private Vector2 moveDelta;
@@ -51,20 +52,15 @@ namespace Main.Scripts.Player.InputSystem
         private bool spawnMine;
         private bool interact;
 
-        private void Awake()
-        {
-            playerController = GetComponent<PlayerController>();
-            interactionController = GetComponent<InteractionController>();
-        }
-
         /// <summary>
         /// Hook up to the Fusion callbacks so we can handle the input polling
         /// </summary>
         public override void Spawned()
         {
+            base.Spawned();
             // Technically, it does not really matter which InputController fills the input structure, since the actual data will only be sent to the one that does have authority,
             // but in the name of clarity, let's make sure we give input control to the gameobject that also has Input authority.
-            if (Object.HasInputAuthority)
+            if (HasInputAuthority)
             {
                 Runner.AddCallbacks(this);
                 uiScreenManager = UIScreenManager.Instance.ThrowWhenNull();
@@ -72,7 +68,12 @@ namespace Main.Scripts.Player.InputSystem
                 
                 findTargetSystem = FindTargetManager.Instance.ThrowWhenNull();
             }
-            
+
+            var playersHolder = levelContext.PlayersHolder;
+            playersHolder.OnChangedEvent.AddListener(OnPlayersHolderChanged);
+
+            OnPlayersHolderChanged();
+
             enemiesManager = EnemiesManager.Instance.ThrowWhenNull();
 
             Debug.Log("Spawned [" + this + "] IsClient=" + Runner.IsClient + " IsServer=" + Runner.IsServer +
@@ -81,16 +82,33 @@ namespace Main.Scripts.Player.InputSystem
 
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
+            base.Despawned(runner, hasState);
             if (HasInputAuthority)
             {
                 uiScreenManager.ThrowWhenNull();
                 uiScreenManager.OnCurrentScreenChangedEvent.RemoveListener(OnCurrentWindowChanged);
+            }
+
+            if (levelContext != null)
+            {
+                levelContext.PlayersHolder.OnChangedEvent.RemoveListener(OnPlayersHolderChanged);
             }
         }
 
         private void OnCurrentWindowChanged(ScreenType screenType)
         {
             fetchInput = screenType == ScreenType.NONE;
+        }
+
+        private void OnPlayersHolderChanged()
+        {
+            var playersHolder = levelContext.PlayersHolder;
+            if (playersHolder.Contains(Object.InputAuthority))
+            {
+                playerController = playersHolder.Get(Object.InputAuthority);
+                interactionController = playerController.GetComponent<InteractionController>();
+                interactionController.SetOwner(Object.InputAuthority);
+            }
         }
 
         /// <summary>
@@ -130,6 +148,8 @@ namespace Main.Scripts.Player.InputSystem
 
         private void Update()
         {
+            if (playerController == null) return;
+            
             if (!fetchInput)
             {
                 primaryFire = false;
@@ -186,14 +206,19 @@ namespace Main.Scripts.Player.InputSystem
             mouseOnMapPosition = new Vector2(mapPoint.x, mapPoint.z);
 
             unitTarget = findTargetSystem != null ? findTargetSystem.FocusedTarget : null;
+            
+            playerController.ApplyMapTargetPosition(mouseOnMapPosition);
+            playerController.ApplyUnitTarget(unitTarget);
         }
 
         /// <summary>
         /// FixedUpdateNetwork is the main Fusion simulation callback - this is where
         /// we modify network state.
         /// </summary>
-        public override void FixedUpdateNetwork()
+        public override void OnBeforePhysicsSteps()
         {
+            if (playerController == null) return;
+            
             if (GetInput<NetworkInputData>(out var input))
             {
                 var pressedButtons = input.Buttons.GetPressed(ButtonsPrevious);
@@ -228,14 +253,17 @@ namespace Main.Scripts.Player.InputSystem
                     playerController.ActivateSkill(ActiveSkillType.DASH);
                 }
 
-                if (pressedButtons.IsSet(NetworkInputData.BUTTON_INTERACT))
+                if (pressedButtons.IsSet(NetworkInputData.BUTTON_INTERACT) && interactionController != null)
                 {
                     interactionController.TryInteract();
                 }
 
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_SPAWN_ENEMY))
                 {
-                    enemiesManager.SpawnEnemy(transform.position);
+                    for (var i = 0; i < 10; i++)
+                    {
+                        enemiesManager.SpawnEnemy(transform.position);
+                    }
                 }
 
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_SPAWN_MINE))
@@ -245,8 +273,6 @@ namespace Main.Scripts.Player.InputSystem
 
                 playerController.SetDirections(input.moveDirection.normalized, input.aimDirection.normalized);
             }
-
-            playerController.ApplyDirections();
         }
 
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }

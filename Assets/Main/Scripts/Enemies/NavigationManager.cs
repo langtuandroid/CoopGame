@@ -7,9 +7,9 @@ namespace Main.Scripts.Enemies
 {
     public class NavigationManager : MonoBehaviour
     {
-        private Dictionary<NetworkId, NavMeshPath> pathMap = new();
-        private Dictionary<NetworkId, TaskData> taskMap = new();
-        private Queue<NetworkId> taskQueue = new();
+        private Dictionary<uint, NavMeshPath> pathMap = new();
+        private Dictionary<uint, TaskData> taskMap = new();
+        private Queue<uint> taskQueue = new();
         private Stack<NavMeshPath> navMeshPool = new();
         
         private void Update()
@@ -20,31 +20,34 @@ namespace Main.Scripts.Enemies
             }
         }
 
-        public void StartCalculatePath(NetworkId id, Vector3 fromPosition, Vector3 toPosition)
+        public void StartCalculatePath(ref NetworkId id, Vector3 fromPosition, Vector3 toPosition)
         {
             var taskData = new TaskData();
 
             taskData.fromPosition = fromPosition;
             taskData.toPosition = toPosition;
 
-            if (!taskMap.ContainsKey(id))
+            var idRaw = id.Raw;
+
+            if (!taskMap.ContainsKey(idRaw))
             {
-                taskQueue.Enqueue(id);
+                taskQueue.Enqueue(idRaw);
                 taskData.navMeshPath = GetNavMeshPath();
-                taskMap.Add(id, taskData);
+                taskMap.Add(idRaw, taskData);
             }
             else
             {
-                taskData.navMeshPath = taskMap[id].navMeshPath;
-                taskMap[id] = taskData;
+                taskData.navMeshPath = taskMap[idRaw].navMeshPath;
+                taskMap[idRaw] = taskData;
             }
         }
 
-        public Vector3[]? GetPathCorners(NetworkId id)
+        public Vector3[]? GetPathCorners(ref NetworkId id)
         {
             Vector3[]? navMeshPathCorners = null;
+            var idRaw = id.Raw;
 
-            if (pathMap.Remove(id, out var navMeshPath))
+            if (pathMap.Remove(idRaw, out var navMeshPath))
             {
                 navMeshPathCorners = navMeshPath.corners;
             }
@@ -52,14 +55,15 @@ namespace Main.Scripts.Enemies
             return navMeshPathCorners;
         }
 
-        public void StopCalculatePath(NetworkId id)
+        public void StopCalculatePath(ref NetworkId id)
         {
-            if (pathMap.Remove(id, out var navMeshPath))
+            var idRaw = id.Raw;
+            if (pathMap.Remove(idRaw, out var navMeshPath))
             {
                 navMeshPool.Push(navMeshPath);
             }
 
-            taskMap.Remove(id);
+            taskMap.Remove(idRaw);
         }
 
         private void Process()

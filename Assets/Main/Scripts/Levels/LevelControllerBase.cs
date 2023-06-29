@@ -1,11 +1,12 @@
 using Fusion;
+using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Player.Data;
 using Main.Scripts.Room;
 using Main.Scripts.Utils;
 
 namespace Main.Scripts.Levels
 {
-    public abstract class LevelControllerBase : NetworkBehaviour
+    public abstract class LevelControllerBase : GameLoopEntity
     {
         protected RoomManager roomManager = default!;
         protected PlayerDataManager playerDataManager = default!;
@@ -15,6 +16,7 @@ namespace Main.Scripts.Levels
 
         public override void Spawned()
         {
+            base.Spawned();
             roomManager = RoomManager.Instance.ThrowWhenNull();
             playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
             if (HasStateAuthority)
@@ -24,7 +26,7 @@ namespace Main.Scripts.Levels
             }
         }
 
-        public override void FixedUpdateNetwork()
+        public override void OnBeforePhysicsSteps()
         {
             if (!isInitialized)
             {
@@ -43,6 +45,7 @@ namespace Main.Scripts.Levels
 
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
+            base.Despawned(runner, hasState);
             if (HasStateAuthority)
             {
                 roomManager.OnPlayerInitializedEvent.RemoveListener(OnPlayerInitialized);

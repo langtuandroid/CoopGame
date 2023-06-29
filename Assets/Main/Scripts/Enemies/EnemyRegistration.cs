@@ -3,6 +3,10 @@ using Main.Scripts.Utils;
 
 namespace Main.Scripts.Enemies
 {
+    [SimulationBehaviour(
+        Stages = (SimulationStages) 8,
+        Modes  = (SimulationModes) 8
+    )]
     public class EnemyRegistration : NetworkBehaviour
     {
         private EnemiesManager enemiesManager = default!;

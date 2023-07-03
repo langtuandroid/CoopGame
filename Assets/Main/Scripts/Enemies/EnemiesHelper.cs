@@ -1,6 +1,7 @@
 using Fusion;
 using Main.Scripts.Player;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace Main.Scripts.Enemies
 {
@@ -63,7 +64,7 @@ namespace Main.Scripts.Enemies
             navigationManager.StartCalculatePath(ref id, fromPosition, toPosition);
         }
 
-        public Vector3[]? GetPathCorners(ref NetworkId id)
+        public Vector3[] GetPathCorners(ref NetworkId id)
         {
             return navigationManager.GetPathCorners(ref id);
         }

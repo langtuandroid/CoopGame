@@ -119,7 +119,7 @@ namespace Main.Scripts.Player.InputSystem
         public void OnInput(NetworkRunner runner, NetworkInput input)
         {
             if (playerController != null && playerController.Object != null &&
-                playerController.state == PlayerController.State.Active)
+                playerController.GetPlayerState() == PlayerState.Active)
             {
                 // Fill networked input struct with input data
 
@@ -271,7 +271,9 @@ namespace Main.Scripts.Player.InputSystem
                     Runner.Spawn(mineGold, new Vector3(Random.Range(-5, 5), 0, Random.Range(-5, 5)));
                 }
 
-                playerController.SetDirections(input.moveDirection.normalized, input.aimDirection.normalized);
+                var moveDirectionNormalized = input.moveDirection.normalized;
+                var aimDirectionNormalized = input.aimDirection.normalized;
+                playerController.SetDirections(ref moveDirectionNormalized, ref aimDirectionNormalized);
             }
         }
 

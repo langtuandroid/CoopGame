@@ -72,19 +72,15 @@ GameObject:
   - component: {fileID: 8004075537626908674}
   - component: {fileID: 2494334113858593066}
   - component: {fileID: 626219843279604393}
-  - component: {fileID: -5471419336138590985}
   - component: {fileID: 6064875345208294012}
   - component: {fileID: 2348856940491406096}
   - component: {fileID: 3261203144987785234}
   - component: {fileID: 5529146898055386871}
   - component: {fileID: 4736437783530052701}
   - component: {fileID: 254030382776569161}
-  - component: {fileID: 3882041571308450913}
-  - component: {fileID: 6178311733673876001}
   - component: {fileID: 217654583184049659}
   - component: {fileID: 6586615100897760114}
   - component: {fileID: 329681220656657619}
-  - component: {fileID: 1299871336059719226}
   - component: {fileID: 2952700188687888355}
   m_Layer: 7
   m_Name: PlayerPrefab
@@ -128,11 +124,41 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  interactionInfoDoc: {fileID: 4833751729238062174}
-  defaultMaxHealth: 100
-  healthBar: {fileID: 5077792976664443005}
-  defaultSpeed: 8
-  _state: 0
+  playerConfig:
+    DefaultMaxHealth: 100
+    DefaultSpeed: 6
+    InteractionInfoDoc: {fileID: 4833751729238062174}
+    HealthBar: {fileID: 5077792976664443005}
+    ActiveSkillsConfig:
+      AlliesLayerMask:
+        serializedVersion: 2
+        m_Bits: 128
+      OpponentsLayerMask:
+        serializedVersion: 2
+        m_Bits: 256
+      PrimarySkill: {fileID: 1509733437957679898}
+      DashSkill: {fileID: 2889870577499749741}
+      FirstSkill: {fileID: 3198279709375634514}
+      SecondSkill: {fileID: 1551921117978426020}
+      ThirdSkill: {fileID: 0}
+    PassiveSkillsConfig:
+      AlliesLayerMask:
+        serializedVersion: 2
+        m_Bits: 128
+      OpponentsLayerMask:
+        serializedVersion: 2
+        m_Bits: 256
+      PassiveSkillControllers:
+      - {fileID: 2971332246294605615}
+      InitialEffects:
+      - {fileID: 11400000, guid: 768a3ead7ede7ad4da94e1581f2ce0c6, type: 2}
+    ShowHealthChangeDisplay: 1
+    HealthChangeDisplayConfig:
+      interpolationTransform: {fileID: 6322223177212228670}
+      tickBufferStep: 5
+      textLifeTimer: 0.5
+      textSpeed: 5
+      healthChangeDisplay: {fileID: 2810098918455596548, guid: 2e12ba9d46989ac46acbb5ad436fb79b, type: 3}
   OnPlayerStateChangedEvent:
     m_PersistentCalls:
       m_Calls: []
@@ -159,12 +185,9 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 2494334113858593066}
-  - {fileID: -5471419336138590985}
   - {fileID: 2348856940491406096}
   - {fileID: 254030382776569161}
-  - {fileID: 6178311733673876001}
   - {fileID: 217654583184049659}
-  - {fileID: 1299871336059719226}
   - {fileID: 2952700188687888355}
   - {fileID: 2889870577499749741}
   - {fileID: 1509733437957679898}
@@ -173,34 +196,6 @@ MonoBehaviour:
   - {fileID: 2971332246294605615}
   - {fileID: 86701534218447756}
   SimulationBehaviours: []
---- !u!114 &-5471419336138590985
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2736757121921172608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9a14aa7c64d27c54f832630758cebbb5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  alliesLayerMask:
-    serializedVersion: 2
-    m_Bits: 128
-  opponentsLayerMask:
-    serializedVersion: 2
-    m_Bits: 256
-  primarySkill: {fileID: 1509733437957679898}
-  dashSkill: {fileID: 2889870577499749741}
-  firstSkill: {fileID: 3198279709375634514}
-  secondSkill: {fileID: 1551921117978426020}
-  thirdSkill: {fileID: 0}
-  _CurrentSkillState: 0
-  OnActiveSkillStateChangedEvent:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!95 &6064875345208294012
 Animator:
   serializedVersion: 5
@@ -324,44 +319,6 @@ MonoBehaviour:
   layerMask:
     serializedVersion: 2
     m_Bits: 640
---- !u!114 &3882041571308450913
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2736757121921172608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 572ce91f928c42aeaee3e98ff906637c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  alliesLayerMask:
-    serializedVersion: 2
-    m_Bits: 128
-  opponentsLayerMask:
-    serializedVersion: 2
-    m_Bits: 256
-  passiveSkillControllers:
-  - {fileID: 2971332246294605615}
-  initialEffects:
-  - {fileID: 11400000, guid: 768a3ead7ede7ad4da94e1581f2ce0c6, type: 2}
---- !u!114 &6178311733673876001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2736757121921172608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4f408133706428493dcbf159f5ced72, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  OnUpdatedStatModifiersEvent:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!114 &217654583184049659
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -433,24 +390,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   marker: {fileID: 6521326392892129766}
---- !u!114 &1299871336059719226
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2736757121921172608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1d3cb5d13f194925b6923e058c7ac879, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  interpolationTransform: {fileID: 6322223177212228670}
-  tickBufferStep: 5
-  textLifeTimer: 0.5
-  textSpeed: 5
-  healthChangeDisplay: {fileID: 2810098918455596548, guid: 2e12ba9d46989ac46acbb5ad436fb79b, type: 3}
 --- !u!114 &2952700188687888355
 MonoBehaviour:
   m_ObjectHideFlags: 0

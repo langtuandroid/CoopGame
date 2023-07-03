@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Main.Scripts.Gui
+namespace Main.Scripts.Gui.HealthChangeDisplay
 {
     public class HealthChangeDisplay : MonoBehaviour
     {

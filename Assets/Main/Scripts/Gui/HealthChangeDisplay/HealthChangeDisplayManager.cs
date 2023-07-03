@@ -1,54 +1,59 @@
 ﻿using System.Collections.Generic;
 using Fusion;
-using Main.Scripts.Core.GameLogic;
 using UnityEngine;
 
-namespace Main.Scripts.Gui
+namespace Main.Scripts.Gui.HealthChangeDisplay
 {
-    public class HealthChangeDisplayManager : GameLoopEntity
+    public class HealthChangeDisplayManager
     {
-        private const int TICK_BUFFER_LENGTH = 10;
+        private static int TICK_BUFFER_LENGTH = HealthChangeDisplayData.TICK_BUFFER_LENGTH;
 
-        [SerializeField]
-        private Transform interpolationTransform = default!;
-        [SerializeField]
-        private int tickBufferStep = 5;
-        [SerializeField]
-        private float textLifeTimer = 2f;
-        [SerializeField]
-        private float textSpeed = 5f;
-        [SerializeField]
-        private HealthChangeDisplay healthChangeDisplay = default!;
-
-        [Networked]
-        [Capacity(TICK_BUFFER_LENGTH)]
-        private NetworkArray<float> damageSumBuffer => default!;
-        [Networked]
-        [Capacity(TICK_BUFFER_LENGTH)]
-        private NetworkArray<float> healSumBuffer => default!;
+        private HealthChangeDisplayConfig config;
+        private DataHolder dataHolder;
+        private NetworkObject objectContext = default!;
 
         private HealthChangeDisplay?[] syncDisplayItemsList = new HealthChangeDisplay?[TICK_BUFFER_LENGTH];
         private Stack<HealthChangeDisplay> displayItemsPool = new();
         private int displayItemsCount;
         private int lastTicksGroupChange;
 
-        private void Awake()
+        public HealthChangeDisplayManager(
+            ref HealthChangeDisplayConfig config,
+            DataHolder dataHolder
+        )
         {
+            this.config = config;
+            this.dataHolder = dataHolder;
+            
             for (var i = 0; i < TICK_BUFFER_LENGTH; i++)
             {
                 syncDisplayItemsList[i] = null;
             }
         }
 
-        public override void OnAfterPhysicsSteps()
+        public void Spawned(NetworkObject objectContext)
         {
-            var nextIndex = GetNextIndex();
-            damageSumBuffer.Set(nextIndex, 0f);
-            healSumBuffer.Set(nextIndex, 0f);
+            this.objectContext = objectContext;
         }
 
-        public override void Render()
+        public void Despawned(NetworkRunner runner, bool hasState)
         {
+            objectContext = default!;
+        }
+
+        public void OnAfterPhysicsSteps()
+        {
+            ref var data = ref dataHolder.GetHealthChangeDisplayData();
+            
+            var nextIndex = GetNextIndex();
+            data.damageSumBuffer.Set(nextIndex, 0f);
+            data.healSumBuffer.Set(nextIndex, 0f);
+        }
+
+        public void Render()
+        {
+            ref var data = ref dataHolder.GetHealthChangeDisplayData();
+            
             var prevIndex = GetPrevIndex();
             var nextIndex = GetNextIndex();
 
@@ -60,20 +65,20 @@ namespace Main.Scripts.Gui
 
             for (var i = 0; i < TICK_BUFFER_LENGTH; i++)
             {
-                var healSum = healSumBuffer[i];
-                var damageSum = damageSumBuffer[i];
+                var healSum = data.healSumBuffer[i];
+                var damageSum = data.damageSumBuffer[i];
 
 
                 if (shouldSpawnDisplayItem && i == prevIndex && (healSum > 0 || damageSum > 0))
                 {
                     if (!displayItemsPool.TryPop(out var displayItem) || displayItem == null)
                     {
-                        displayItem = Instantiate(healthChangeDisplay, interpolationTransform);
+                        displayItem = Object.Instantiate(config.healthChangeDisplay, config.interpolationTransform);
                     }
 
                     displayItem.SetActive();
-                    displayItem.SetTimer(textLifeTimer);
-                    displayItem.SetTextSpeed(textSpeed);
+                    displayItem.SetTimer(config.textLifeTimer);
+                    displayItem.SetTextSpeed(config.textSpeed);
                     displayItem.OnDisplayDisableAction += OnDisplayDisable;
 
                     syncDisplayItemsList[i] = displayItem;
@@ -91,36 +96,45 @@ namespace Main.Scripts.Gui
 
         public void ApplyDamage(float damage)
         {
+            ref var data = ref dataHolder.GetHealthChangeDisplayData();
+            
             var currentIndex = GetCurrentIndex();
-            var newDamageSum = damageSumBuffer[currentIndex] + damage;
-            damageSumBuffer.Set(currentIndex, newDamageSum);
+            var newDamageSum = data.damageSumBuffer[currentIndex] + damage;
+            data.damageSumBuffer.Set(currentIndex, newDamageSum);
         }
 
         public void ApplyHeal(float heal)
         {
+            ref var data = ref dataHolder.GetHealthChangeDisplayData();
+            
             var currentIndex = GetCurrentIndex();
-            var newHealSum = healSumBuffer[currentIndex] + heal;
-            healSumBuffer.Set(currentIndex, newHealSum);
+            var newHealSum = data.healSumBuffer[currentIndex] + heal;
+            data.healSumBuffer.Set(currentIndex, newHealSum);
         }
 
         private int GetCurrentIndex()
         {
-            return (Runner.Tick / tickBufferStep) % TICK_BUFFER_LENGTH;
+            return (objectContext.Runner.Tick / config.tickBufferStep) % TICK_BUFFER_LENGTH;
         }
 
         private int GetNextIndex()
         {
-            return (Runner.Tick / tickBufferStep + 1) % TICK_BUFFER_LENGTH;
+            return (objectContext.Runner.Tick / config.tickBufferStep + 1) % TICK_BUFFER_LENGTH;
         }
 
         private int GetPrevIndex()
         {
-            return (Runner.Tick / tickBufferStep - 1 + TICK_BUFFER_LENGTH) % TICK_BUFFER_LENGTH;
+            return (objectContext.Runner.Tick / config.tickBufferStep - 1 + TICK_BUFFER_LENGTH) % TICK_BUFFER_LENGTH;
         }
 
         private void OnDisplayDisable(HealthChangeDisplay display)
         {
             displayItemsPool.Push(display);
+        }
+
+        public interface DataHolder
+        {
+            public ref HealthChangeDisplayData GetHealthChangeDisplayData();
         }
     }
 }

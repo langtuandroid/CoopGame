@@ -2,64 +2,42 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion;
-using Main.Scripts.Effects;
+using Main.Scripts.Actions;
 using Main.Scripts.Skills.Common.Controller;
 using Main.Scripts.Skills.PassiveSkills.Triggers;
 using UnityEngine;
 
 namespace Main.Scripts.Skills.PassiveSkills
 {
-    [SimulationBehaviour(
-        Stages = (SimulationStages) 8,
-        Modes  = (SimulationModes) 8
-    )]
-    public class PassiveSkillsManager : MonoBehaviour
+    public class PassiveSkillsManager
     {
-        [SerializeField]
-        private LayerMask alliesLayerMask;
-        [SerializeField]
-        private LayerMask opponentsLayerMask;
+        private PassiveSkillsConfig config;
+        private Affectable affectable;
 
-        [SerializeField]
-        private List<PassiveSkillController> passiveSkillControllers = new();
-        [SerializeField]
-        private List<EffectsCombination> initialEffects = default!;
-
-        private EffectsManager effectsManager = default!;
         private Dictionary<PassiveSkillTriggerType, List<PassiveSkillController>> skillControllersMap = new();
 
-        public void OnValidate()
+        public PassiveSkillsManager(
+            ref PassiveSkillsConfig config,
+            Affectable affectable,
+            Transform transform
+        )
         {
-            if (initialEffects.Any(effectsCombination => effectsCombination == null))
-            {
-                throw new ArgumentNullException(
-                    $"{gameObject.name}: has empty value in PassiveSkillManager::InitialEffects");
-            }
-
-            if (passiveSkillControllers.Any(skillController => skillController == null))
-            {
-                throw new ArgumentNullException(
-                    $"{gameObject.name}: has empty value in PassiveSkillManager::PassiveSkillControllers");
-            }
-        }
-
-        private void Awake()
-        {
-            effectsManager = GetComponent<EffectsManager>();
+            this.config = config;
+            this.affectable = affectable;
 
             foreach (var type in Enum.GetValues(typeof(PassiveSkillTriggerType)).Cast<PassiveSkillTriggerType>())
             {
                 skillControllersMap.Add(type, new List<PassiveSkillController>());
             }
 
-            foreach (var skillController in passiveSkillControllers)
+            foreach (var skillController in config.PassiveSkillControllers)
             {
                 skillController.Init(
                     transform,
-                    alliesLayerMask,
-                    opponentsLayerMask
+                    config.AlliesLayerMask,
+                    config.OpponentsLayerMask
                 );
-                
+
                 var type = skillController.PassiveSkillTrigger switch
                 {
                     SpawnPassiveSkillTrigger => PassiveSkillTriggerType.OnSpawn,
@@ -74,19 +52,34 @@ namespace Main.Scripts.Skills.PassiveSkills
             }
         }
 
-        public void Init()
+        public static void OnValidate(GameObject gameObject, ref PassiveSkillsConfig config)
         {
-            foreach (var effectsCombination in initialEffects)
+            if (config.InitialEffects.Any(effectsCombination => effectsCombination == null))
             {
-                effectsManager.AddEffects(effectsCombination.Effects);
+                throw new ArgumentNullException(
+                    $"{gameObject.name}: has empty value in PassiveSkillsConfig::InitialEffects");
+            }
+
+            if (config.PassiveSkillControllers.Any(skillController => skillController == null))
+            {
+                throw new ArgumentNullException(
+                    $"{gameObject.name}: has empty value in PassiveSkillsConfig::PassiveSkillControllers");
             }
         }
 
-        public void SetOwner(PlayerRef owner)
+        public void Init()
         {
-            foreach (var skillController in passiveSkillControllers)
+            foreach (var effectsCombination in config.InitialEffects)
             {
-                skillController.SetOwner(owner);
+                affectable.ApplyEffects(effectsCombination);
+            }
+        }
+
+        public void SetOwnerRef(PlayerRef ownerRef)
+        {
+            foreach (var skillController in config.PassiveSkillControllers)
+            {
+                skillController.SetOwnerRef(ownerRef);
             }
         }
 

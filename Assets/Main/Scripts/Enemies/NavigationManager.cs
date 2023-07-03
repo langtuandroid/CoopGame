@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
@@ -42,17 +43,9 @@ namespace Main.Scripts.Enemies
             }
         }
 
-        public Vector3[]? GetPathCorners(ref NetworkId id)
+        public Vector3[] GetPathCorners(ref NetworkId id)
         {
-            Vector3[]? navMeshPathCorners = null;
-            var idRaw = id.Raw;
-
-            if (pathMap.Remove(idRaw, out var navMeshPath))
-            {
-                navMeshPathCorners = navMeshPath.corners;
-            }
-
-            return navMeshPathCorners;
+            return pathMap.Remove(id.Raw, out var navMeshPath) ? navMeshPath.corners : Array.Empty<Vector3>();
         }
 
         public void StopCalculatePath(ref NetworkId id)

@@ -59,12 +59,9 @@ GameObject:
   - component: {fileID: 3078040559483951986}
   - component: {fileID: 1324006215410747384}
   - component: {fileID: 8994940609841448472}
-  - component: {fileID: 7982089108220398672}
   - component: {fileID: 3473994687292452832}
   - component: {fileID: 6982114154254946840}
   - component: {fileID: 8747675781320779502}
-  - component: {fileID: 1232518736907365467}
-  - component: {fileID: 17070262016428297}
   - component: {fileID: 4040824336151786535}
   - component: {fileID: 8554452486374799627}
   - component: {fileID: 4988630158712456428}
@@ -107,10 +104,39 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  healthBar: {fileID: 6734015301302651011}
-  defaultMaxHealth: 100
-  defaultSpeed: 7
-  attackDistance: 2
+  enemyConfig:
+    DefaultMaxHealth: 100
+    DefaultSpeed: 10
+    AttackDistance: 3
+    HealthBar: {fileID: 6734015301302651011}
+    ActiveSkillsConfig:
+      AlliesLayerMask:
+        serializedVersion: 2
+        m_Bits: 256
+      OpponentsLayerMask:
+        serializedVersion: 2
+        m_Bits: 128
+      PrimarySkill: {fileID: 8574961548140711563}
+      DashSkill: {fileID: 0}
+      FirstSkill: {fileID: 0}
+      SecondSkill: {fileID: 0}
+      ThirdSkill: {fileID: 0}
+    PassiveSkillsConfig:
+      AlliesLayerMask:
+        serializedVersion: 2
+        m_Bits: 256
+      OpponentsLayerMask:
+        serializedVersion: 2
+        m_Bits: 128
+      PassiveSkillControllers: []
+      InitialEffects: []
+    ShowHealthChangeDisplay: 0
+    HealthChangeDisplayConfig:
+      interpolationTransform: {fileID: 6565723816960306059}
+      tickBufferStep: 5
+      textLifeTimer: 0.5
+      textSpeed: 5
+      healthChangeDisplay: {fileID: 2810098918455596548, guid: 2e12ba9d46989ac46acbb5ad436fb79b, type: 3}
   OnDeadEvent:
     m_PersistentCalls:
       m_Calls: []
@@ -138,8 +164,6 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 8977078318047038321}
   - {fileID: 1324006215410747384}
-  - {fileID: 7982089108220398672}
-  - {fileID: 17070262016428297}
   - {fileID: 4040824336151786535}
   - {fileID: 8554452486374799627}
   - {fileID: 7082237308381909159}
@@ -183,34 +207,6 @@ MonoBehaviour:
   Offset: {x: 0, y: 0, z: 0}
   Root: {fileID: 1324006215410747384}
   GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
---- !u!114 &7982089108220398672
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2736757121921172608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9a14aa7c64d27c54f832630758cebbb5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  alliesLayerMask:
-    serializedVersion: 2
-    m_Bits: 256
-  opponentsLayerMask:
-    serializedVersion: 2
-    m_Bits: 128
-  primarySkill: {fileID: 8574961548140711563}
-  dashSkill: {fileID: 0}
-  firstSkill: {fileID: 0}
-  secondSkill: {fileID: 0}
-  thirdSkill: {fileID: 0}
-  _CurrentSkillState: 0
-  OnActiveSkillStateChangedEvent:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!135 &3473994687292452832
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -280,43 +276,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &1232518736907365467
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2736757121921172608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 572ce91f928c42aeaee3e98ff906637c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  alliesLayerMask:
-    serializedVersion: 2
-    m_Bits: 256
-  opponentsLayerMask:
-    serializedVersion: 2
-    m_Bits: 128
-  passiveSkillControllers: []
-  initialEffects:
-  - {fileID: 11400000, guid: abe51633e154f80448a88fde050fa984, type: 2}
---- !u!114 &17070262016428297
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2736757121921172608}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4f408133706428493dcbf159f5ced72, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  OnUpdatedStatModifiersEvent:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!114 &4040824336151786535
 MonoBehaviour:
   m_ObjectHideFlags: 0

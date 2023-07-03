@@ -5,87 +5,69 @@ using Fusion;
 using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills.Common.Controller;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Main.Scripts.Skills.ActiveSkills
 {
-    [SimulationBehaviour(
-        Stages = (SimulationStages) 8,
-        Modes  = (SimulationModes) 8
-    )]
-    public class ActiveSkillsManager : NetworkBehaviour
+    public class ActiveSkillsManager
     {
-        [SerializeField]
-        private LayerMask alliesLayerMask;
-        [SerializeField]
-        private LayerMask opponentsLayerMask;
-        
-        [SerializeField]
-        private SkillController? primarySkill;
-        [SerializeField]
-        private SkillController? dashSkill;
-        [SerializeField]
-        private SkillController? firstSkill;
-        [SerializeField]
-        private SkillController? secondSkill;
-        [SerializeField]
-        private SkillController? thirdSkill;
-
-        [Networked]
-        [HideInInspector]
-        public ActiveSkillState CurrentSkillState { get; private set; }
-        [Networked]
-        private ActiveSkillType currentSkillType { get; set; }
-        [Networked]
-        private Vector3 targetMapPosition { get; set; }
-        [Networked]
-        private NetworkId unitTargetId { get; set; }
+        private ActiveSkillsConfig config;
+        private DataHolder dataHolder;
+        private EventListener eventListener;
+        private NetworkObject objectContext = default!;
 
         private List<SkillController> allSkillControllers = new();
-        private PlayerRef owner;
+        private PlayerRef ownerRef;
 
-        [HideInInspector]
-        public UnityEvent<ActiveSkillType, ActiveSkillState> OnActiveSkillStateChangedEvent = default!;
-
-        private void Awake()
+        public ActiveSkillsManager(
+            ref ActiveSkillsConfig config,
+            DataHolder dataHolder,
+            EventListener eventListener,
+            Transform transform
+        )
         {
-            if (primarySkill != null)
+            this.config = config;
+            this.dataHolder = dataHolder;
+            this.eventListener = eventListener;
+
+            if (config.PrimarySkill != null)
             {
-                allSkillControllers.Add(primarySkill);
+                allSkillControllers.Add(config.PrimarySkill);
             }
 
-            if (dashSkill != null)
+            if (config.DashSkill != null)
             {
-                allSkillControllers.Add(dashSkill);
+                allSkillControllers.Add(config.DashSkill);
             }
 
-            if (firstSkill != null)
+            if (config.FirstSkill != null)
             {
-                allSkillControllers.Add(firstSkill);
+                allSkillControllers.Add(config.FirstSkill);
             }
 
-            if (secondSkill != null)
+            if (config.SecondSkill != null)
             {
-                allSkillControllers.Add(secondSkill);
+                allSkillControllers.Add(config.SecondSkill);
             }
 
-            if (thirdSkill != null)
+            if (config.ThirdSkill != null)
             {
-                allSkillControllers.Add(thirdSkill);
+                allSkillControllers.Add(config.ThirdSkill);
             }
 
             foreach (var skillController in allSkillControllers)
             {
                 skillController.Init(
                     transform,
-                    alliesLayerMask,
-                    opponentsLayerMask
+                    config.AlliesLayerMask,
+                    config.OpponentsLayerMask
                 );
             }
         }
 
-        public override void Spawned()
+        public void Spawned(NetworkObject objectContext)
         {
+            this.objectContext = objectContext;
+
             foreach (var skillType in Enum.GetValues(typeof(ActiveSkillType)).Cast<ActiveSkillType>())
             {
                 var skill = getSkillByType(skillType);
@@ -96,14 +78,14 @@ namespace Main.Scripts.Skills.ActiveSkills
 
                 skill.OnSkillFinishedEvent.AddListener(OnActiveSkillFinished);
                 skill.OnSkillExecutedEvent.AddListener(OnActiveSkillExecuted);
-                
+
                 skill.OnWaitingForPointTargetEvent.AddListener(OnActiveSkillWaitingForPointTarget);
                 skill.OnWaitingForUnitTargetEvent.AddListener(OnActiveSkillWaitingForUnitTarget);
                 skill.OnSkillCanceledEvent.AddListener(OnActiveSkillCanceled);
             }
         }
 
-        public override void Despawned(NetworkRunner runner, bool hasState)
+        public void Despawned(NetworkRunner runner, bool hasState)
         {
             foreach (var skillType in Enum.GetValues(typeof(ActiveSkillType)).Cast<ActiveSkillType>())
             {
@@ -118,20 +100,24 @@ namespace Main.Scripts.Skills.ActiveSkills
                 skill.OnWaitingForPointTargetEvent.RemoveListener(OnActiveSkillWaitingForPointTarget);
                 skill.OnSkillCanceledEvent.RemoveListener(OnActiveSkillCanceled);
             }
+
+            objectContext = default!;
         }
 
-        public void SetOwner(PlayerRef owner)
+        public void SetOwnerRef(PlayerRef ownerRef)
         {
-            this.owner = owner;
+            this.ownerRef = ownerRef;
             foreach (var skillController in allSkillControllers)
             {
-                skillController.SetOwner(owner);
+                skillController.SetOwnerRef(ownerRef);
             }
         }
 
         public bool ActivateSkill(ActiveSkillType skillType)
         {
-            if (CurrentSkillState != ActiveSkillState.NotAttacking)
+            ref var data = ref dataHolder.GetActiveSkillsData();
+
+            if (data.currentSkillState != ActiveSkillState.NotAttacking)
             {
                 return false;
             }
@@ -142,21 +128,24 @@ namespace Main.Scripts.Skills.ActiveSkills
                 return false;
             }
 
-            currentSkillType = skillType;
-            return skill.Activate(owner);
+            data.currentSkillType = skillType;
+            return skill.Activate(ownerRef);
         }
 
         public void ExecuteCurrentSkill()
         {
-            var skill = getSkillByType(currentSkillType);
-            if (skill == null || (CurrentSkillState != ActiveSkillState.WaitingForPoint &&
-                                  CurrentSkillState != ActiveSkillState.WaitingForTarget))
+            ref var data = ref dataHolder.GetActiveSkillsData();
+
+            var skill = getSkillByType(data.currentSkillType);
+            if (skill == null || (data.currentSkillState != ActiveSkillState.WaitingForPoint &&
+                                  data.currentSkillState != ActiveSkillState.WaitingForTarget))
             {
                 Debug.LogError("Incorrect skill state");
                 return;
             }
 
-            if (CurrentSkillState == ActiveSkillState.WaitingForTarget && Runner.FindObject(unitTargetId) == null)
+            if (data.currentSkillState == ActiveSkillState.WaitingForTarget &&
+                objectContext.Runner.FindObject(data.unitTargetId) == null)
             {
                 skill.CancelActivation();
                 return;
@@ -167,9 +156,11 @@ namespace Main.Scripts.Skills.ActiveSkills
 
         public void CancelCurrentSkill()
         {
-            var skill = getSkillByType(currentSkillType);
-            if (skill == null || (CurrentSkillState != ActiveSkillState.WaitingForPoint &&
-                                  CurrentSkillState != ActiveSkillState.WaitingForTarget))
+            ref var data = ref dataHolder.GetActiveSkillsData();
+
+            var skill = getSkillByType(data.currentSkillType);
+            if (skill == null || (data.currentSkillState != ActiveSkillState.WaitingForPoint &&
+                                  data.currentSkillState != ActiveSkillState.WaitingForTarget))
             {
                 Debug.LogError("Incorrect skill state");
                 return;
@@ -180,7 +171,9 @@ namespace Main.Scripts.Skills.ActiveSkills
 
         public void ApplyTargetMapPosition(Vector3 targetMapPosition)
         {
-            this.targetMapPosition = targetMapPosition;
+            ref var data = ref dataHolder.GetActiveSkillsData();
+
+            data.targetMapPosition = targetMapPosition;
             foreach (var skillType in Enum.GetValues(typeof(ActiveSkillType)).Cast<ActiveSkillType>())
             {
                 var skill = getSkillByType(skillType);
@@ -195,7 +188,9 @@ namespace Main.Scripts.Skills.ActiveSkills
 
         public void ApplyUnitTarget(NetworkId unitTargetId)
         {
-            this.unitTargetId = unitTargetId;
+            ref var data = ref dataHolder.GetActiveSkillsData();
+
+            data.unitTargetId = unitTargetId;
             foreach (var skillType in Enum.GetValues(typeof(ActiveSkillType)).Cast<ActiveSkillType>())
             {
                 var skill = getSkillByType(skillType);
@@ -204,7 +199,7 @@ namespace Main.Scripts.Skills.ActiveSkills
                     continue;
                 }
 
-                var unitTarget = Runner.FindObject(unitTargetId);
+                var unitTarget = objectContext.Runner.FindObject(unitTargetId);
                 if (unitTarget != null)
                 {
                     skill.ApplyUnitTarget(unitTarget);
@@ -214,9 +209,11 @@ namespace Main.Scripts.Skills.ActiveSkills
 
         public UnitTargetType GetSelectionTargetType()
         {
-            var skill = getSkillByType(currentSkillType);
-            if (skill == null || (CurrentSkillState != ActiveSkillState.WaitingForPoint &&
-                                  CurrentSkillState != ActiveSkillState.WaitingForTarget))
+            ref var data = ref dataHolder.GetActiveSkillsData();
+
+            var skill = getSkillByType(data.currentSkillType);
+            if (skill == null || (data.currentSkillState != ActiveSkillState.WaitingForPoint &&
+                                  data.currentSkillState != ActiveSkillState.WaitingForTarget))
             {
                 throw new Exception("Incorrect skill state");
             }
@@ -226,58 +223,86 @@ namespace Main.Scripts.Skills.ActiveSkills
 
         public bool IsCurrentSkillDisableMove()
         {
-            return getSkillByType(currentSkillType)?.IsDisabledMove() ?? false;
+            ref var data = ref dataHolder.GetActiveSkillsData();
+
+            return getSkillByType(data.currentSkillType)?.IsDisabledMove() ?? false;
         }
 
-        private void UpdateSkillState(ActiveSkillState skillState)
+        public ActiveSkillState GetCurrentSkillState()
         {
-            CurrentSkillState = skillState;
-            OnActiveSkillStateChangedEvent.Invoke(currentSkillType, CurrentSkillState);
+            ref var data = ref dataHolder.GetActiveSkillsData();
+            return data.currentSkillState;
+        }
+
+        private void UpdateSkillState(ref ActiveSkillsData data, ActiveSkillState skillState)
+        {
+            data.currentSkillState = skillState;
+            eventListener.OnActiveSkillStateChanged(data.currentSkillType, data.currentSkillState);
         }
 
         private void OnActiveSkillWaitingForPointTarget(SkillController skill)
         {
-            UpdateSkillState(ActiveSkillState.WaitingForPoint);
-            ApplyTargetMapPosition(targetMapPosition);
+            ref var data = ref dataHolder.GetActiveSkillsData();
+
+            UpdateSkillState(ref data, ActiveSkillState.WaitingForPoint);
+            ApplyTargetMapPosition(data.targetMapPosition);
         }
 
         private void OnActiveSkillWaitingForUnitTarget(SkillController skill)
         {
-            UpdateSkillState(ActiveSkillState.WaitingForTarget);
-            ApplyUnitTarget(unitTargetId);
+            ref var data = ref dataHolder.GetActiveSkillsData();
+
+            UpdateSkillState(ref data, ActiveSkillState.WaitingForTarget);
+            ApplyUnitTarget(data.unitTargetId);
         }
 
         private void OnActiveSkillExecuted(SkillController skill)
         {
-            UpdateSkillState(ActiveSkillState.Attacking);
+            ref var data = ref dataHolder.GetActiveSkillsData();
+
+            UpdateSkillState(ref data, ActiveSkillState.Attacking);
         }
 
         private void OnActiveSkillFinished(SkillController skill)
         {
-            UpdateSkillState(ActiveSkillState.Finished);
-            currentSkillType = ActiveSkillType.NONE;
-            CurrentSkillState = ActiveSkillState.NotAttacking;
+            ref var data = ref dataHolder.GetActiveSkillsData();
+
+            UpdateSkillState(ref data, ActiveSkillState.Finished);
+            data.currentSkillType = ActiveSkillType.NONE;
+            data.currentSkillState = ActiveSkillState.NotAttacking;
         }
 
         private void OnActiveSkillCanceled(SkillController skill)
         {
-            UpdateSkillState(ActiveSkillState.Canceled);
-            currentSkillType = ActiveSkillType.NONE;
-            CurrentSkillState = ActiveSkillState.NotAttacking;
+            ref var data = ref dataHolder.GetActiveSkillsData();
+
+            UpdateSkillState(ref data, ActiveSkillState.Canceled);
+            data.currentSkillType = ActiveSkillType.NONE;
+            data.currentSkillState = ActiveSkillState.NotAttacking;
         }
 
         private SkillController? getSkillByType(ActiveSkillType skillType)
         {
             return skillType switch
             {
-                ActiveSkillType.PRIMARY => primarySkill,
-                ActiveSkillType.DASH => dashSkill,
-                ActiveSkillType.FIRST_SKILL => firstSkill,
-                ActiveSkillType.SECOND_SKILL => secondSkill,
-                ActiveSkillType.THIRD_SKILL => thirdSkill,
+                ActiveSkillType.PRIMARY => config.PrimarySkill,
+                ActiveSkillType.DASH => config.DashSkill,
+                ActiveSkillType.FIRST_SKILL => config.FirstSkill,
+                ActiveSkillType.SECOND_SKILL => config.SecondSkill,
+                ActiveSkillType.THIRD_SKILL => config.ThirdSkill,
                 ActiveSkillType.NONE => null,
                 _ => throw new ArgumentOutOfRangeException(nameof(skillType), skillType, null)
             };
+        }
+
+        public interface DataHolder
+        {
+            public ref ActiveSkillsData GetActiveSkillsData();
+        }
+
+        public interface EventListener
+        {
+            public void OnActiveSkillStateChanged(ActiveSkillType type, ActiveSkillState state);
         }
     }
 }

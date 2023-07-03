@@ -39,7 +39,6 @@ namespace Main.Scripts.Enemies
                 onBeforeSpawned: (runner, networkObject) =>
                 {
                     var enemyController = networkObject.GetComponent<EnemyController>();
-                    enemyController.ResetState();
                     enemyController.OnDeadEvent.AddListener(OnEnemyDead);
                     OnEnemySpawnedEvent.Invoke(enemyController);
                 });

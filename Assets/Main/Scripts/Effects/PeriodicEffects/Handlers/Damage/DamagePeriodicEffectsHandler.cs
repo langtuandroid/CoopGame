@@ -1,6 +1,5 @@
 using System;
 using Main.Scripts.Actions.Health;
-using UnityEngine;
 
 namespace Main.Scripts.Effects.PeriodicEffects.Handlers.Damage
 {
@@ -8,9 +7,9 @@ namespace Main.Scripts.Effects.PeriodicEffects.Handlers.Damage
     {
         private Damageable? damageableTarget;
 
-        public void TrySetTarget(GameObject targetObject)
+        public void TrySetTarget(object targetObject)
         {
-            damageableTarget = targetObject.GetComponent<Damageable>();
+            damageableTarget = targetObject as Damageable;
         }
 
         public void HandleEffect(PeriodicEffectBase periodicEffect, int stackCount)

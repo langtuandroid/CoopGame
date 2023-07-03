@@ -57,7 +57,7 @@ namespace Main.Scripts.Tasks
                 var playerController = hit.GameObject.GetComponent<PlayerController>();
                 if (playerController != null)
                 {
-                    playersInPlace.Add(playerController.Owner, true);
+                    playersInPlace.Add(playerController.GetOwnerRef(), true);
                 }
             }
 
@@ -65,7 +65,7 @@ namespace Main.Scripts.Tasks
             foreach (var playerRef in playersHolder.GetKeys())
             {
                 var playerController = playersHolder.Get(playerRef);
-                if (playerController.state != PlayerController.State.Dead)
+                if (playerController.GetPlayerState() != PlayerState.Dead)
                 {
                     if (!playersInPlace.ContainsKey(playerRef))
                     {

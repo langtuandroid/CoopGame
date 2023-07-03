@@ -27,7 +27,7 @@ namespace Main.Scripts.Player.InputSystem.Target
 
 
         private UnitTargetType targetType;
-        private NetworkObject? owner;
+        private PlayerRef ownerRef;
 
         public FindTargetState State { get; private set; } = FindTargetState.NOT_ACTIVE;
         public NetworkObject? FocusedTarget { get; private set; }
@@ -67,13 +67,13 @@ namespace Main.Scripts.Player.InputSystem.Target
             }
         }
 
-        public bool TryActivate(NetworkObject owner, UnitTargetType targetType, out NetworkObject? foundTarget)
+        public bool TryActivate(PlayerRef ownerRef, UnitTargetType targetType, out NetworkObject? foundTarget)
         {
             foundTarget = null;
             switch (State)
             {
                 case FindTargetState.NOT_ACTIVE:
-                    Activate(owner, targetType);
+                    Activate(ownerRef, targetType);
                     if (FocusedTarget != null)
                     {
                         foundTarget = FocusedTarget;
@@ -83,7 +83,7 @@ namespace Main.Scripts.Player.InputSystem.Target
                 case FindTargetState.ACTIVE:
                     break;
                 case FindTargetState.SELECTED:
-                    Activate(owner, targetType);
+                    Activate(ownerRef, targetType);
                     if (FocusedTarget != null)
                     {
                         foundTarget = FocusedTarget;
@@ -111,11 +111,11 @@ namespace Main.Scripts.Player.InputSystem.Target
             }
         }
 
-        private void Activate(NetworkObject owner, UnitTargetType targetType)
+        private void Activate(PlayerRef ownerRef, UnitTargetType targetType)
         {
             State = FindTargetState.ACTIVE;
             this.targetType = targetType;
-            this.owner = owner;
+            this.ownerRef = ownerRef;
 
             if (FocusedTarget != null)
             {
@@ -132,7 +132,7 @@ namespace Main.Scripts.Player.InputSystem.Target
 
         private NetworkObject? TryFocusNearestToMapPointTarget()
         {
-            if (owner == null) return null;
+            if (ownerRef == default) return null;
 
             NetworkObject? nearestTarget = null;
             var targetDistance = 0f;
@@ -145,7 +145,7 @@ namespace Main.Scripts.Player.InputSystem.Target
 
                 foreach (var playerRef in playerRefs)
                 {
-                    if (playerRef == owner.InputAuthority) continue;
+                    if (playerRef == ownerRef) continue;
                     var player = playersHolder.Get(playerRef);
 
                     var distance = Vector3.Distance(mapPoint, player.transform.position);

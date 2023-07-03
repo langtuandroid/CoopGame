@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Actions.Interaction;
 using Main.Scripts.Core.GameLogic;
+using Main.Scripts.Utils;
 using UnityEngine;
 
 namespace Main.Scripts.Player.Interaction
@@ -49,7 +50,7 @@ namespace Main.Scripts.Player.Interaction
             var minDistance = float.MaxValue;
             foreach (var hit in hits)
             {
-                if (hit.Distance < minDistance && hit.GameObject.TryGetComponent<Interactable>(out var interactableObject))
+                if (hit.Distance < minDistance && hit.GameObject.TryGetInterface<Interactable>(out var interactableObject))
                 {
                     if (interactableObject.IsInteractionEnabled(owner))
                     {

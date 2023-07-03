@@ -1,6 +1,5 @@
 using System;
 using Main.Scripts.Actions.Health;
-using UnityEngine;
 
 namespace Main.Scripts.Effects.PeriodicEffects.Handlers.Heal
 {
@@ -8,9 +7,9 @@ namespace Main.Scripts.Effects.PeriodicEffects.Handlers.Heal
     {
         private Healable? healableTarget;
 
-        public void TrySetTarget(GameObject targetObject)
+        public void TrySetTarget(object targetObject)
         {
-            healableTarget = targetObject.GetComponent<Healable>();
+            healableTarget = targetObject as Healable;
         }
 
         public void HandleEffect(PeriodicEffectBase periodicEffect, int stackCount)

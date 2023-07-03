@@ -44,7 +44,7 @@ namespace Main.Scripts.Skills.Common.Controller
         private Transform selfUnitTransform = default!;
         private LayerMask alliesLayerMask;
         private LayerMask opponentsLayerMask;
-        private PlayerRef owner;
+        private PlayerRef ownerRef;
 
         [HideInInspector]
         public UnityEvent<SkillController> OnWaitingForPointTargetEvent = default!;
@@ -85,7 +85,7 @@ namespace Main.Scripts.Skills.Common.Controller
 
         public override void Render()
         {
-            if (!Runner.LocalPlayer == owner) return;
+            if (!Runner.LocalPlayer == ownerRef) return;
 
             var canShowMarker = skillControllerConfig.ActivationType != SkillActivationType.WithUnitTarget ||
                                 selectedUnit != null;
@@ -123,9 +123,9 @@ namespace Main.Scripts.Skills.Common.Controller
             }
         }
 
-        public void SetOwner(PlayerRef owner)
+        public void SetOwnerRef(PlayerRef ownerRef)
         {
-            this.owner = owner;
+            this.ownerRef = ownerRef;
 
         }
 
@@ -330,7 +330,7 @@ namespace Main.Scripts.Skills.Common.Controller
                         break;
                     case SkillSpawnDirectionType.SelfUnitMoveDirection:
                         rotation = Quaternion.LookRotation(
-                            selfUnitTransform.GetComponent<Movable>()?.GetMovingDirection() ?? Vector3.zero
+                            selfUnitTransform.GetInterface<Movable>()?.GetMovingDirection() ?? Vector3.zero
                         );
                         break;
                     case SkillSpawnDirectionType.SelectedUnitLookDirection:
@@ -340,7 +340,7 @@ namespace Main.Scripts.Skills.Common.Controller
                     case SkillSpawnDirectionType.SelectedUnitMoveDirection:
                         selectedUnit.ThrowWhenNull();
                         rotation = Quaternion.LookRotation(
-                            selectedUnit.GetComponent<Movable>()?.GetMovingDirection() ?? Vector3.zero
+                            selectedUnit.GetInterface<Movable>()?.GetMovingDirection() ?? Vector3.zero
                         );
                         break;
                     default:
@@ -355,7 +355,7 @@ namespace Main.Scripts.Skills.Common.Controller
                     {
                         skillObject.GetComponent<SkillComponent>().Init(
                             skillConfigId: skillConfigsBank.GetSkillConfigId(skillConfig),
-                            ownerId: owner,
+                            ownerId: ownerRef,
                             initialMapPoint: initialMapPoint,
                             dynamicMapPoint: dynamicMapPoint,
                             selfUnit: Object,

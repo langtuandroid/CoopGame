@@ -400,7 +400,7 @@ namespace Main.Scripts.Skills.Common.Component
                 switch (action)
                 {
                     case ApplyEffectsSkillAction applyEffectsAction
-                        when actionTarget.TryGetComponent<Affectable>(out var affectable):
+                        when actionTarget.TryGetInterface<Affectable>(out var affectable):
 
                         foreach (var effectsCombination in applyEffectsAction.EffectsCombinations)
                         {
@@ -409,36 +409,37 @@ namespace Main.Scripts.Skills.Common.Component
 
                         break;
                     case DamageSkillAction damageAction
-                        when actionTarget.TryGetComponent<Damageable>(out var damageable):
+                        when actionTarget.TryGetInterface<Damageable>(out var damageable):
 
                         damageable.ApplyDamage(damageAction.DamageValue, selfUnit);
 
                         break;
                     case ForceSkillAction forceAction
-                        when actionTarget.TryGetComponent(out ObjectWithGettingKnockBack knockable):
+                        when actionTarget.TryGetInterface(out ObjectWithGettingKnockBack knockable):
 
                         var direction = actionTarget.transform.position - transform.position;
                         knockable.ApplyKnockBack(direction.normalized * forceAction.ForceValue);
 
                         break;
                     case HealSkillAction healAction
-                        when actionTarget.TryGetComponent<Healable>(out var healable):
+                        when actionTarget.TryGetInterface<Healable>(out var healable):
 
                         healable.ApplyHeal(healAction.HealValue, selfUnit);
 
                         break;
                     case DashSkillAction dashAction
-                        when actionTarget.TryGetComponent<Dashable>(out var dashable):
+                        when actionTarget.TryGetInterface<Dashable>(out var dashable):
 
+                        var directionByType = GetDirectionByType(dashAction.DirectionType);
                         dashable.Dash(
-                            direction: GetDirectionByType(dashAction.DirectionType),
+                            direction: ref directionByType,
                             speed: dashAction.Speed,
                             durationSec: dashAction.DurationSec
                         );
 
                         break;
                     case StunSkillAction stunAction
-                        when actionTarget.TryGetComponent(out ObjectWithGettingStun stunnable):
+                        when actionTarget.TryGetInterface(out ObjectWithGettingStun stunnable):
 
                         stunnable.ApplyStun(stunAction.DurationSec);
 
@@ -547,7 +548,7 @@ namespace Main.Scripts.Skills.Common.Component
 
                 case SkillDirectionType.SelfUnitMoveDirection:
                     return selfUnit != null
-                        ? selfUnit.GetComponent<Movable>()?.GetMovingDirection() ?? Vector3.zero
+                        ? selfUnit.GetInterface<Movable>()?.GetMovingDirection() ?? Vector3.zero
                         : transform.forward;
 
                 case SkillDirectionType.SelectedUnitLookDirection:
@@ -555,7 +556,7 @@ namespace Main.Scripts.Skills.Common.Component
 
                 case SkillDirectionType.SelectedUnitMoveDirection:
                     return selectedUnit != null
-                        ? selectedUnit.GetComponent<Movable>()?.GetMovingDirection() ?? Vector3.zero
+                        ? selectedUnit.GetInterface<Movable>()?.GetMovingDirection() ?? Vector3.zero
                         : transform.forward;
 
                 default:

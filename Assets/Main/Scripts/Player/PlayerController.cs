@@ -1,566 +1,220 @@
 using System;
+using System.Collections.Generic;
 using Fusion;
-using Main.Scripts.Actions;
-using Main.Scripts.Actions.Health;
-using Main.Scripts.Actions.Interaction;
-using Main.Scripts.Core.CustomPhysics;
+using Main.Scripts.Core.Architecture;
 using Main.Scripts.Core.GameLogic;
+using Main.Scripts.Core.Resources;
 using Main.Scripts.Customization;
-using Main.Scripts.Drop;
 using Main.Scripts.Effects;
-using Main.Scripts.Effects.Stats;
-using Main.Scripts.Gui;
-using Main.Scripts.Player.Data;
-using Main.Scripts.Player.InputSystem.Target;
+using Main.Scripts.Gui.HealthChangeDisplay;
 using Main.Scripts.Skills.ActiveSkills;
-using Main.Scripts.Skills.PassiveSkills;
-using Main.Scripts.UI.Gui;
 using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.UIElements;
-using CustomizationData = Main.Scripts.Player.Data.CustomizationData;
 
 namespace Main.Scripts.Player
 {
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(Animator))]
     public class PlayerController : GameLoopEntity,
-        Damageable,
-        Healable,
-        Affectable,
-        ObjectWithPickUp,
-        Interactable,
-        Movable,
-        Dashable
+        InterfacesHolder,
+        PlayerLogicDelegate.DataHolder,
+        PlayerLogicDelegate.EventListener
     {
-        private static readonly int MOVE_X_ANIM = Animator.StringToHash("MoveX");
-        private static readonly int MOVE_Z_ANIM = Animator.StringToHash("MoveZ");
-        private static readonly int ATTACK_ANIM = Animator.StringToHash("Attack");
-        private static readonly float HEALTH_THRESHOLD = 0.01f;
-
-        private new Rigidbody rigidbody = default!;
-        private new Collider collider = default!;
-        private NetworkMecanimAnimator networkAnimator = default!;
-
-        private ActiveSkillsManager activeSkillsManager = default!;
-        private PassiveSkillsManager passiveSkillsManager = default!;
-        private EffectsManager effectsManager = default!;
-        private CharacterCustomization characterCustomization = default!;
-        private HealthChangeDisplayManager? healthChangeDisplayManager;
-        private FindTargetManager? findTargetManager;
-
-        private PlayerDataManager playerDataManager = default!;
+        private Dictionary<Type, Component> cachedComponents = new();
 
         [SerializeField]
-        private UIDocument interactionInfoDoc = default!;
+        private PlayerConfig playerConfig = PlayerConfig.GetDefault();
 
-        [SerializeField]
-        private uint defaultMaxHealth = 100;
-        [SerializeField]
-        private HealthBar healthBar = default!;
-        [SerializeField]
-        private float defaultSpeed = 6f;
+        [Networked]
+        private ref PlayerLogicData playerLogicData => ref MakeRef<PlayerLogicData>();
+        [Networked]
+        private ref EffectsData effectsData => ref MakeRef<EffectsData>();
+        [Networked]
+        private ref ActiveSkillsData activeSkillsData => ref MakeRef<ActiveSkillsData>();
+        [Networked]
+        private ref HealthChangeDisplayData healthChangeDisplayData => ref MakeRef<HealthChangeDisplayData>();
 
-        [Networked(OnChanged = nameof(OnStateChanged))]
-        public State state { get; private set; }
-        [Networked]
-        private float maxHealth { get; set; }
-        [Networked]
-        private float health { get; set; }
-        [Networked]
-        private float speed { get; set; }
-        [Networked]
-        private int gold { get; set; }
-        [Networked]
-        private Vector2 moveDirection { get; set; }
-        [Networked]
-        private Vector2 aimDirection { get; set; }
-        [Networked]
-        private TickTimer dashTimer { get; set; }
-        [Networked]
-        private float dashSpeed { get; set; }
-        [Networked]
-        private Vector3 dashDirection { get; set; }
-        [Networked]
-        private PlayerRef owner { get; set; }
-        
-        [Networked]
-        private int animationTriggerId { get; set; }
-        private int lastAnimationTriggerId;
+        private PlayerLogicDelegate playerLogicDelegate = default!;
 
-        private InteractionInfoView interactionInfoView = default!;
-        private PlayerAnimationState currentAnimationState;
-        
-        private float moveAcceleration = 200f;
-        
-        private bool isActivated =>
-            (gameObject.activeInHierarchy && (state == State.Active || state == State.Spawning));
-        private bool hasInputAuthority => Runner.LocalPlayer == owner;
-
-        public UnityEvent<PlayerRef, PlayerController, State> OnPlayerStateChangedEvent = default!;
-        public PlayerRef Owner => owner;
+        public UnityEvent<PlayerRef, PlayerController, PlayerState> OnPlayerStateChangedEvent = default!;
 
         public void OnValidate()
         {
-            if (GetComponent<Rigidbody>() == null) throw new MissingComponentException("Rigidbody component is required in PlayerController");
-            if (GetComponent<NetworkTransform>() == null) throw new MissingComponentException("NetworkTransform component is required in PlayerController");
-            if (GetComponent<Collider>() == null) throw new MissingComponentException("Collider component is required in PlayerController");
-            if (GetComponent<Animator>() == null) throw new MissingComponentException("Animator component is required in PlayerController");
-            if (GetComponent<ActiveSkillsManager>() == null) throw new MissingComponentException("ActiveSkillsManager component is required in PlayerController");
-            if (GetComponent<PassiveSkillsManager>() == null)  throw new MissingComponentException("PassiveSkillsManager component is required in PlayerController");
-            if (GetComponent<EffectsManager>() == null) throw new MissingComponentException("EffectsManager component is required in PlayerController");
+            if (GetComponent<Rigidbody>() == null)
+                throw new MissingComponentException("Rigidbody component is required in PlayerController");
+            if (GetComponent<NetworkTransform>() == null)
+                throw new MissingComponentException("NetworkTransform component is required in PlayerController");
+            if (GetComponent<Collider>() == null)
+                throw new MissingComponentException("Collider component is required in PlayerController");
+            if (GetComponent<Animator>() == null)
+                throw new MissingComponentException("Animator component is required in PlayerController");
+
+            PlayerLogicDelegate.OnValidate(gameObject, ref playerConfig);
         }
 
         void Awake()
         {
-            rigidbody = GetComponent<Rigidbody>();
-            collider = GetComponent<Collider>();
-            networkAnimator = GetComponent<NetworkMecanimAnimator>();
-            
-            activeSkillsManager = GetComponent<ActiveSkillsManager>();
-            passiveSkillsManager = GetComponent<PassiveSkillsManager>();
-            effectsManager = GetComponent<EffectsManager>();
-            characterCustomization = GetComponent<CharacterCustomization>();
-            healthChangeDisplayManager = GetComponent<HealthChangeDisplayManager>();
+            cachedComponents[typeof(Transform)] = GetComponent<Transform>();
+            cachedComponents[typeof(Rigidbody)] = GetComponent<Rigidbody>();
+            cachedComponents[typeof(Collider)] = GetComponent<Collider>();
+            cachedComponents[typeof(NetworkMecanimAnimator)] = GetComponent<NetworkMecanimAnimator>();
 
-            activeSkillsManager.OnActiveSkillStateChangedEvent.AddListener(OnActiveSkillStateChanged);
-            effectsManager.OnUpdatedStatModifiersEvent.AddListener(OnUpdatedStatModifiers);
+            cachedComponents[typeof(CharacterCustomization)] = GetComponent<CharacterCustomization>();
+
+            playerLogicDelegate = new PlayerLogicDelegate(
+                config: ref playerConfig,
+                dataHolder: this,
+                eventListener: this
+            );
+        }
+
+        public new T GetComponent<T>()
+        {
+            if (playerLogicDelegate is T typed)
+            {
+                return typed;
+            }
+
+            return gameObject.GetComponent<T>();
         }
 
         public override void Spawned()
         {
             base.Spawned();
-            playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
-            playerDataManager.OnPlayerDataChangedEvent.AddListener(OnPlayerDataChanged);
-
-            var playerData = playerDataManager.GetPlayerData(owner).ThrowWhenNull();
-            ApplyCustomization(playerData.Customization);
-            
-            healthBar.SetMaxHealth((uint)Math.Max(0, maxHealth));
-
-            interactionInfoView = new InteractionInfoView(interactionInfoDoc, "F", "Resurrect");
-
-            if (hasInputAuthority)
-            {
-                findTargetManager = FindTargetManager.Instance.ThrowWhenNull();
-            }
-            
-            activeSkillsManager.SetOwner(owner);
-            passiveSkillsManager.SetOwner(owner);
+            cachedComponents[typeof(EffectsBank)] = GlobalResources.Instance.ThrowWhenNull().EffectsBank;
+            playerLogicDelegate.Spawned(Object);
         }
 
-        public void Init(PlayerRef owner)
+        public void SetOwnerRef(PlayerRef ownerRef)
         {
-            this.owner = owner;
-            ResetState();
+            playerLogicDelegate.SetOwnerRef(ownerRef);
         }
 
-        public void ResetState()
+        public PlayerRef GetOwnerRef()
         {
-            maxHealth = defaultMaxHealth;
-            speed = defaultSpeed;
-
-            effectsManager.ResetState();
-            passiveSkillsManager.Init();
-
-            health = maxHealth;
-            healthBar.SetMaxHealth((uint)Math.Max(0, maxHealth));
-
-            state = State.Spawning;
+            return playerLogicDelegate.GetOwnerRef();
         }
 
-        private void OnDestroy()
+        public void Respawn()
         {
-            activeSkillsManager.OnActiveSkillStateChangedEvent.RemoveListener(OnActiveSkillStateChanged);
-            effectsManager.OnUpdatedStatModifiersEvent.RemoveListener(OnUpdatedStatModifiers);
+            playerLogicDelegate.Respawn();
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
             base.Despawned(runner, hasState);
+            cachedComponents.Remove(typeof(EffectsBank));
+
             OnPlayerStateChangedEvent.RemoveAllListeners();
-            playerDataManager.OnPlayerDataChangedEvent.RemoveListener(OnPlayerDataChanged);
+            playerLogicDelegate.Despawned(runner, hasState);
         }
 
         public override void Render()
         {
-            healthBar.SetHealth((uint)Math.Max(0, health));
-
-            if (findTargetManager != null)
-            {
-                if (activeSkillsManager.CurrentSkillState == ActiveSkillState.WaitingForTarget)
-                {
-                    if (findTargetManager.State != FindTargetState.SELECTED)
-                    {
-                        var targetMask = activeSkillsManager.GetSelectionTargetType();
-                        if (findTargetManager.TryActivate(Object, targetMask, out var unitTarget))
-                        {
-                            activeSkillsManager.ApplyUnitTarget(unitTarget);
-                        }
-                    }
-                }
-                else
-                {
-                    if (findTargetManager.State != FindTargetState.NOT_ACTIVE)
-                    {
-                        findTargetManager.StopActive(true);
-                    }
-                }
-            }
+            playerLogicDelegate.Render();
         }
 
         public void Active()
         {
-            state = State.Active;
-            passiveSkillsManager.OnSpawn(owner);
+            playerLogicDelegate.Active();
+        }
+
+        public PlayerState GetPlayerState()
+        {
+            return playerLogicDelegate.GetPlayerState();
         }
 
         public override void OnBeforePhysicsSteps()
         {
-            if (Runner.IsServer)
-            {
-                Runner.AddPlayerAreaOfInterest(owner, transform.position + Vector3.forward * 5, 25);
-            }
-            
-            effectsManager.UpdateEffects();
+            playerLogicDelegate.OnBeforePhysicsSteps();
         }
 
         public override void OnBeforePhysicsStep()
         {
-            if (!dashTimer.ExpiredOrNotRunning(Runner))
-            {
-                Move(dashSpeed * dashDirection);
-            }
-            else if (!CanMoveByController())
-            {
-                Move(Vector3.zero);
-            }
-            else
-            {
-                ApplyDirections();
-            }
+            playerLogicDelegate.OnBeforePhysicsStep();
         }
 
         public override void OnAfterPhysicsSteps()
         {
-            UpdateAnimationState();
+            playerLogicDelegate.OnAfterPhysicsSteps();
         }
 
-        public void SetDirections(Vector2 moveDirection, Vector2 aimDirection)
+        public void SetDirections(ref Vector2 moveDirection, ref Vector2 aimDirection)
         {
-            this.moveDirection = moveDirection;
-            this.aimDirection = aimDirection;
-        }
-
-        public Vector3 GetMovingDirection()
-        {
-            return new Vector3(moveDirection.x, 0, moveDirection.y);
-        }
-
-        public void Move(Vector3 velocity)
-        {
-            rigidbody.velocity = velocity;
-        }
-
-        public void Dash(Vector3 direction, float speed, float durationSec)
-        {
-            dashTimer = TickTimer.CreateFromSeconds(Runner, durationSec);
-            dashDirection = direction;
-            dashSpeed = speed;
-        }
-
-        private void ApplyDirections()
-        {
-            if (!isActivated)
-                return;
-
-            transform.LookAt(transform.position + new Vector3(aimDirection.x, 0, aimDirection.y));
-            
-            if (CanMoveByController())
-            {
-                var currentVelocity = rigidbody.velocity.magnitude;
-                if (currentVelocity < speed)
-                {
-                    var deltaVelocity = speed * GetMovingDirection().normalized - rigidbody.velocity;
-                    rigidbody.velocity += Mathf.Min(moveAcceleration * PhysicsManager.DeltaTime, deltaVelocity.magnitude) *
-                                          deltaVelocity.normalized;
-                }
-            }
-        }
-
-        private void OnPlayerDataChanged(UserId userId, PlayerData playerData, PlayerData oldPlayerData)
-        {
-            if (playerDataManager.GetPlayerRef(userId) == owner)
-            {
-                ApplyCustomization(playerData.Customization);
-            }
-        }
-
-        private void ApplyCustomization(CustomizationData customizationData)
-        {
-            characterCustomization.ApplyCustomizationData(customizationData);
-        }
-
-        private bool CanMoveByController()
-        {
-            return !activeSkillsManager.IsCurrentSkillDisableMove() && dashTimer.ExpiredOrNotRunning(Runner);
-        }
-
-        private static void OnStateChanged(Changed<PlayerController> changed)
-        {
-            if (changed.Behaviour)
-                changed.Behaviour.OnStateChanged();
-        }
-
-        private void OnStateChanged()
-        {
-            if (state == State.Dead)
-            {
-                collider.enabled = false;
-                rigidbody.velocity = Vector3.zero;
-            }
-            else
-            {
-                collider.enabled = true;
-            }
-
-            OnPlayerStateChangedEvent.Invoke(owner, this, state);
-        }
-
-        public bool IsInteractionEnabled(PlayerRef playerRef)
-        {
-            if (owner == playerRef)
-            {
-                return false;
-            }
-
-            return state == State.Dead;
-        }
-
-        public void SetInteractionInfoVisibility(PlayerRef player, bool isVisible)
-        {
-            interactionInfoView.SetVisibility(isVisible);
-        }
-
-        public bool Interact(PlayerRef playerRef)
-        {
-            if (owner == playerRef)
-            {
-                throw new Exception("Invalid state interact");
-            }
-
-            if (state != State.Dead)
-            {
-                return false;
-            }
-
-            ResetState(); //todo сделать нормальное возраждение
-            return true;
+            playerLogicDelegate.SetDirections(ref moveDirection, ref aimDirection);
         }
 
         public void ActivateSkill(ActiveSkillType type)
         {
-            switch (activeSkillsManager.CurrentSkillState)
-            {
-                case ActiveSkillState.NotAttacking:
-                    activeSkillsManager.ActivateSkill(type);
-                    break;
-                case ActiveSkillState.WaitingForPoint:
-                case ActiveSkillState.WaitingForTarget:
-                    activeSkillsManager.CancelCurrentSkill();
-                    break;
-            }
+            playerLogicDelegate.ActivateSkill(type);
         }
 
         public void OnPrimaryButtonClicked()
         {
-            switch (activeSkillsManager.CurrentSkillState)
-            {
-                case ActiveSkillState.WaitingForPoint:
-                case ActiveSkillState.WaitingForTarget:
-                    activeSkillsManager.ExecuteCurrentSkill();
-                    break;
-                case ActiveSkillState.NotAttacking:
-                    ActivateSkill(ActiveSkillType.PRIMARY);
-                    break;
-            }
+            playerLogicDelegate.OnPrimaryButtonClicked();
         }
 
         public void ApplyMapTargetPosition(Vector2 position)
         {
-            activeSkillsManager.ApplyTargetMapPosition(new Vector3(position.x, 0, position.y));
+            playerLogicDelegate.ApplyMapTargetPosition(position);
         }
 
         public void ApplyUnitTarget(NetworkId unitTargetId)
         {
-            activeSkillsManager.ApplyUnitTarget(unitTargetId);
+            playerLogicDelegate.ApplyUnitTarget(unitTargetId);
         }
 
-        private void OnActiveSkillStateChanged(ActiveSkillType type, ActiveSkillState state)
+        public T GetCachedComponent<T>() where T : Component
         {
-            if (state == ActiveSkillState.Attacking)
-            {
-                animationTriggerId++;
-            }
+            return (T)cachedComponents[typeof(T)];
         }
 
-        private void UpdateAnimationState()
+        public ref EffectsData GetEffectsData()
         {
-            if (IsProxy || !Runner.IsForward)
-            {
-                return;
-            }
-            
-            var newAnimationState = GetActualAnimationState();
-
-            if (lastAnimationTriggerId < animationTriggerId)
-            {
-                switch (newAnimationState)
-                {
-                    case PlayerAnimationState.Attacking:
-                        networkAnimator.SetTrigger(ATTACK_ANIM, true);
-                        break;
-                }
-            }
-            
-            lastAnimationTriggerId = animationTriggerId;
-            currentAnimationState = newAnimationState;
-            
-            if (currentAnimationState == PlayerAnimationState.None)
-            {
-                AnimateMoving();
-            }
+            return ref effectsData;
         }
 
-        private PlayerAnimationState GetActualAnimationState()
+        public ref PlayerLogicData GetPlayerLogicData()
         {
-            if (state != State.Active)
-            {
-                return PlayerAnimationState.None;
-            }
-            if (activeSkillsManager.CurrentSkillState == ActiveSkillState.Attacking)
-            {
-                return PlayerAnimationState.Attacking;
-            }
-
-            return PlayerAnimationState.None;
-        }
-
-        private void OnUpdatedStatModifiers(StatType statType)
-        {
-            switch (statType)
-            {
-                case StatType.Speed:
-                    speed = effectsManager.GetModifiedValue(statType, defaultSpeed);
-                    break;
-                case StatType.MaxHealth:
-                    var newMaxHealth = effectsManager.GetModifiedValue(statType, defaultMaxHealth);
-                    if ((int)newMaxHealth != (int)maxHealth)
-                    {
-                        healthBar.SetMaxHealth((uint)Math.Max(0, newMaxHealth));
-                    }
-                    maxHealth = newMaxHealth;
-                    break;
-                case StatType.Damage:
-                    break;
-                case StatType.ReservedDoNotUse:
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(statType), statType, null);
-            }
-        }
-
-        private void AnimateMoving()
-        {
-            var moveX = 0f;
-            var moveZ = 0f;
-            if (moveDirection.sqrMagnitude > 0)
-            {
-                var moveAngle = Vector3.SignedAngle(Vector3.forward, new Vector3(moveDirection.x, 0, moveDirection.y),
-                    Vector3.up);
-                var lookAngle = Vector3.SignedAngle(Vector3.forward, new Vector3(aimDirection.x, 0, aimDirection.y),
-                    Vector3.up);
-                var animationAngle = Mathf.Deg2Rad * (moveAngle - lookAngle);
-
-                moveZ = (float)Math.Cos(animationAngle);
-                moveX = (float)Math.Sin(animationAngle);
-            }
-
-            networkAnimator.Animator.SetFloat(MOVE_X_ANIM, moveX);
-            networkAnimator.Animator.SetFloat(MOVE_Z_ANIM, moveZ);
-        }
-
-        public float GetMaxHealth()
-        {
-            return maxHealth;
-        }
-
-        public float GetCurrentHealth()
-        {
-            return health;
-        }
-
-        public void ApplyDamage(float damage, NetworkObject? damageOwner)
-        {
-            if (!isActivated) return;
-            
-            passiveSkillsManager.OnTakenDamage(owner, damage, damageOwner);
-
-            if (health - damage < HEALTH_THRESHOLD)
-            {
-                health = 0;
-                if (HasStateAuthority)
-                {
-                    state = State.Dead;
-                    passiveSkillsManager.OnDead(owner, damageOwner);
-                }
-            }
-            else
-            {
-                health -= damage;
-            }
-
-            if (healthChangeDisplayManager != null)
-            {
-                healthChangeDisplayManager.ApplyDamage(damage);
-            }
-        }
-
-        public void ApplyHeal(float healValue, NetworkObject? healOwner)
-        {
-            if (!isActivated || state == State.Dead) return;
-
-            health = Math.Min(health + healValue, maxHealth);
-            
-            passiveSkillsManager.OnTakenHeal(owner, healValue, healOwner);
-            if (healthChangeDisplayManager != null)
-            {
-                healthChangeDisplayManager.ApplyHeal(healValue);
-            }
+            return ref playerLogicData;
         }
         
-        public void ApplyEffects(EffectsCombination effectsCombination)
+        public ref ActiveSkillsData GetActiveSkillsData()
         {
-            effectsManager.AddEffects(effectsCombination.Effects);
+            return ref activeSkillsData;
         }
 
-        public void OnPickUp(DropType dropType)
+        public ref HealthChangeDisplayData GetHealthChangeDisplayData()
         {
-            switch (dropType)
+            return ref healthChangeDisplayData;
+        }
+
+        public void OnPlayerStateChanged(PlayerRef owner, PlayerState state)
+        {
+            OnPlayerStateChangedEvent.Invoke(owner, this, state);
+        }
+
+        public T? GetInterface<T>()
+        {
+            if (playerLogicDelegate is T typed)
             {
-                case DropType.Gold:
-                    gold += 1;
-                    break;
+                return typed;
             }
+
+            return default;
         }
 
-        public enum State
+        public bool TryGetInterface<T>(out T typed)
         {
-            None,
-            Despawned,
-            Spawning,
-            Active,
-            Dead
+            if (playerLogicDelegate is T typedDelegate)
+            {
+                typed = typedDelegate;
+                return true;
+            }
+
+            typed = default!;
+            return false;
         }
     }
 }

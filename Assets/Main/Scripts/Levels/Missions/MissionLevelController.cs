@@ -65,7 +65,7 @@ namespace Main.Scripts.Levels.Missions
                 onBeforeSpawned: (networkRunner, playerObject) =>
                 {
                     var playerController = playerObject.GetComponent<PlayerController>();
-                    playerController.ResetState();
+                    playerController.Respawn();
 
                     playerController.OnPlayerStateChangedEvent.AddListener(OnPlayerStateChanged);
                 }
@@ -85,25 +85,25 @@ namespace Main.Scripts.Levels.Missions
         private void OnPlayerStateChanged(
             PlayerRef playerRef,
             PlayerController playerController,
-            PlayerController.State playerState
+            PlayerState playerState
         )
         {
             switch (playerState)
             {
-                case PlayerController.State.None:
+                case PlayerState.None:
                     break;
-                case PlayerController.State.Despawned:
+                case PlayerState.Despawned:
                     break;
-                case PlayerController.State.Spawning:
+                case PlayerState.Spawning:
                     playerController.Active();
                     break;
-                case PlayerController.State.Active:
+                case PlayerState.Active:
                     if (!playersHolder.Contains(playerRef))
                     {
                         playersHolder.Add(playerRef, playerController);
                     }
                     break;
-                case PlayerController.State.Dead:
+                case PlayerState.Dead:
                     OnPlayerDead(playerRef, playerController);
                     break;
                 default:
@@ -116,7 +116,7 @@ namespace Main.Scripts.Levels.Missions
             foreach (var playerRef in playersHolder.GetKeys())
             {
                 var player = playersHolder.Get(playerRef);
-                if (player.state != PlayerController.State.Dead)
+                if (player.GetPlayerState() != PlayerState.Dead)
                 {
                     return;
                 }

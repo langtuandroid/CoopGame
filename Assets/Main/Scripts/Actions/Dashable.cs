@@ -4,6 +4,6 @@ namespace Main.Scripts.Actions
 {
     public interface Dashable
     {
-        void Dash(Vector3 direction, float speed, float durationSec);
+        void Dash(ref Vector3 direction, float speed, float durationSec);
     }
 }

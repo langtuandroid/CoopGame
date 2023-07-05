@@ -60,7 +60,7 @@ namespace Main.Scripts.Player
             cachedComponents[typeof(Collider)] = GetComponent<Collider>();
             cachedComponents[typeof(NetworkMecanimAnimator)] = GetComponent<NetworkMecanimAnimator>();
 
-            cachedComponents[typeof(CharacterCustomization)] = GetComponent<CharacterCustomization>();
+            cachedComponents[typeof(CharacterCustomizationSkinned)] = GetComponent<CharacterCustomizationSkinned>();
 
             playerLogicDelegate = new PlayerLogicDelegate(
                 config: ref playerConfig,

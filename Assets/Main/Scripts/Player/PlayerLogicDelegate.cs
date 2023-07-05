@@ -50,7 +50,7 @@ namespace Main.Scripts.Player
         private ActiveSkillsManager activeSkillsManager;
         private PassiveSkillsManager passiveSkillsManager;
         private EffectsManager effectsManager;
-        private CharacterCustomization characterCustomization;
+        private CharacterCustomizationSkinned characterCustomization;
         private HealthChangeDisplayManager? healthChangeDisplayManager;
         private FindTargetManager? findTargetManager;
         private UIDocument interactionInfoDoc;
@@ -82,7 +82,7 @@ namespace Main.Scripts.Player
             collider = dataHolder.GetCachedComponent<Collider>();
             networkAnimator = dataHolder.GetCachedComponent<NetworkMecanimAnimator>();
 
-            characterCustomization = dataHolder.GetCachedComponent<CharacterCustomization>();
+            characterCustomization = dataHolder.GetCachedComponent<CharacterCustomizationSkinned>();
 
             healthBar = config.HealthBar;
             interactionInfoDoc = config.InteractionInfoDoc;

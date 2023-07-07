@@ -65,6 +65,8 @@ namespace Main.Scripts.Helpers
             }
 
             navMeshSurface.BuildNavMesh();
+            
+            StaticBatchingUtility.Combine(navMeshSurface.gameObject);
         }
     }
 }

@@ -35,6 +35,7 @@ namespace Main.Scripts.Customization.Combiner
             }
         }
 
+#if UNITY_EDITOR
         [ContextMenu("Combine mesh")]
         private void CombineMesh()
         {
@@ -47,5 +48,7 @@ namespace Main.Scripts.Customization.Combiner
             
             Debug.LogWarning($"!!!Success: Don't forget apply generated mesh at {path}!!!");
         }
+#endif
+
     }
 }

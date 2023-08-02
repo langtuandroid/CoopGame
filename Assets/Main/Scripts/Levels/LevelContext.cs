@@ -2,6 +2,7 @@ using Fusion;
 using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Enemies;
 using Main.Scripts.Player;
+using Main.Scripts.UI.Windows.HUD;
 using UnityEngine;
 
 namespace Main.Scripts.Levels
@@ -16,10 +17,13 @@ namespace Main.Scripts.Levels
         private EnemiesManager enemiesManager = default!;
         [SerializeField]
         private GameLoopManager gameLoopManager = default!;
+        [SerializeField]
+        private HUDScreen hudScreen = default!;
 
         public PlayersHolder PlayersHolder => playersHolder;
         public EnemiesManager EnemiesManager => enemiesManager;
         public GameLoopManager GameLoopManager => gameLoopManager;
+        public HUDScreen HudScreen => hudScreen;
 
         private void Awake()
         {

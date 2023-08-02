@@ -21,4 +21,4 @@ MonoBehaviour:
   disableMoveOnExecution: 0
   castDurationSec: 0
   disableMoveOnCast: 0
-  cooldownSec: 0
+  cooldownSec: 1

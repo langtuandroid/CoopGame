@@ -471,21 +471,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   skillControllerConfig: {fileID: 11400000, guid: baaab2be5825b6d44a6a1813fa205a57, type: 2}
-  OnWaitingForPointTargetEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnWaitingForUnitTargetEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillExecutedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillFinishedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillCanceledEvent:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!1 &5839203437913665313
 GameObject:
   m_ObjectHideFlags: 0

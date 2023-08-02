@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Main.Scripts.Skills.ActiveSkills
 {
-    public class ActiveSkillsManager
+    public class ActiveSkillsManager : SkillController.Listener
     {
         private ActiveSkillsConfig config;
         private DataHolder dataHolder;
@@ -76,12 +76,7 @@ namespace Main.Scripts.Skills.ActiveSkills
                     continue;
                 }
 
-                skill.OnSkillFinishedEvent.AddListener(OnActiveSkillFinished);
-                skill.OnSkillExecutedEvent.AddListener(OnActiveSkillExecuted);
-
-                skill.OnWaitingForPointTargetEvent.AddListener(OnActiveSkillWaitingForPointTarget);
-                skill.OnWaitingForUnitTargetEvent.AddListener(OnActiveSkillWaitingForUnitTarget);
-                skill.OnSkillCanceledEvent.AddListener(OnActiveSkillCanceled);
+                skill.AddListener(this);
             }
         }
 
@@ -95,10 +90,7 @@ namespace Main.Scripts.Skills.ActiveSkills
                     continue;
                 }
 
-                skill.OnSkillFinishedEvent.RemoveListener(OnActiveSkillFinished);
-                skill.OnSkillExecutedEvent.RemoveListener(OnActiveSkillExecuted);
-                skill.OnWaitingForPointTargetEvent.RemoveListener(OnActiveSkillWaitingForPointTarget);
-                skill.OnSkillCanceledEvent.RemoveListener(OnActiveSkillCanceled);
+                skill.RemoveListener();
             }
 
             objectContext = default!;
@@ -234,13 +226,18 @@ namespace Main.Scripts.Skills.ActiveSkills
             return data.currentSkillState;
         }
 
+        public int GetSkillCooldownLeftTicks(ActiveSkillType skillType)
+        {
+            return getSkillByType(skillType)?.GetCooldownLeftTicks() ?? 0;
+        }
+
         private void UpdateSkillState(ref ActiveSkillsData data, ActiveSkillState skillState)
         {
             data.currentSkillState = skillState;
             eventListener.OnActiveSkillStateChanged(data.currentSkillType, data.currentSkillState);
         }
 
-        private void OnActiveSkillWaitingForPointTarget(SkillController skill)
+        public void OnSkillWaitingForPointTarget(SkillController skill)
         {
             ref var data = ref dataHolder.GetActiveSkillsData();
 
@@ -248,7 +245,14 @@ namespace Main.Scripts.Skills.ActiveSkills
             ApplyTargetMapPosition(data.targetMapPosition);
         }
 
-        private void OnActiveSkillWaitingForUnitTarget(SkillController skill)
+        public void OnSkillCooldownChanged(SkillController skill)
+        {
+            var type = getTypeBySkill(skill);
+            var cooldownLeftTicks = skill.GetCooldownLeftTicks();
+            eventListener.OnSkillCooldownChanged(type, cooldownLeftTicks);
+        }
+
+        public void OnSkillWaitingForUnitTarget(SkillController skill)
         {
             ref var data = ref dataHolder.GetActiveSkillsData();
 
@@ -256,14 +260,14 @@ namespace Main.Scripts.Skills.ActiveSkills
             ApplyUnitTarget(data.unitTargetId);
         }
 
-        private void OnActiveSkillExecuted(SkillController skill)
+        public void OnSkillExecuted(SkillController skill)
         {
             ref var data = ref dataHolder.GetActiveSkillsData();
 
             UpdateSkillState(ref data, ActiveSkillState.Attacking);
         }
 
-        private void OnActiveSkillFinished(SkillController skill)
+        public void OnSkillFinished(SkillController skill)
         {
             ref var data = ref dataHolder.GetActiveSkillsData();
 
@@ -272,7 +276,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             data.currentSkillState = ActiveSkillState.NotAttacking;
         }
 
-        private void OnActiveSkillCanceled(SkillController skill)
+        public void OnSkillCanceled(SkillController skill)
         {
             ref var data = ref dataHolder.GetActiveSkillsData();
 
@@ -295,6 +299,19 @@ namespace Main.Scripts.Skills.ActiveSkills
             };
         }
 
+        private ActiveSkillType getTypeBySkill(SkillController skill)
+        {
+            return skill switch
+            {
+                _ when skill == config.PrimarySkill => ActiveSkillType.PRIMARY,
+                _ when skill == config.DashSkill => ActiveSkillType.DASH,
+                _ when skill == config.FirstSkill => ActiveSkillType.FIRST_SKILL,
+                _ when skill == config.SecondSkill => ActiveSkillType.SECOND_SKILL,
+                _ when skill == config.ThirdSkill => ActiveSkillType.THIRD_SKILL,
+                _ => throw new Exception("Couldn't get type by skill")
+            };
+        }
+
         public interface DataHolder
         {
             public ref ActiveSkillsData GetActiveSkillsData();
@@ -303,6 +320,7 @@ namespace Main.Scripts.Skills.ActiveSkills
         public interface EventListener
         {
             public void OnActiveSkillStateChanged(ActiveSkillType type, ActiveSkillState state);
+            public void OnSkillCooldownChanged(ActiveSkillType type, int cooldownLeftTicks) { }
         }
     }
 }

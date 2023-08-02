@@ -8,6 +8,7 @@ using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Player.Interaction;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.UI.Windows;
+using Main.Scripts.UI.Windows.HUD;
 using Main.Scripts.Utils;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -26,6 +27,7 @@ namespace Main.Scripts.Player.InputSystem
         private GameObject mineGold = default!;
         
         private UIScreenManager? uiScreenManager;
+        private HUDScreen? hudScreen;
         private FindTargetManager? findTargetSystem;
         private EnemiesManager enemiesManager = default!;
 
@@ -87,6 +89,8 @@ namespace Main.Scripts.Player.InputSystem
             {
                 uiScreenManager.ThrowWhenNull();
                 uiScreenManager.OnCurrentScreenChangedEvent.RemoveListener(OnCurrentWindowChanged);
+                hudScreen.ThrowWhenNull();
+                hudScreen.Close();
             }
 
             if (levelContext != null)
@@ -108,6 +112,9 @@ namespace Main.Scripts.Player.InputSystem
                 playerController = playersHolder.Get(Object.InputAuthority);
                 interactionController = playerController.GetComponent<InteractionController>();
                 interactionController.SetOwner(Object.InputAuthority);
+
+                hudScreen = levelContext.ThrowWhenNull().HudScreen;
+                hudScreen.Open();
             }
         }
 

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Health;
@@ -12,6 +14,7 @@ using Main.Scripts.Gui;
 using Main.Scripts.Gui.HealthChangeDisplay;
 using Main.Scripts.Player.Data;
 using Main.Scripts.Player.InputSystem.Target;
+using Main.Scripts.Skills;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.Skills.PassiveSkills;
 using Main.Scripts.UI.Gui;
@@ -30,7 +33,8 @@ namespace Main.Scripts.Player
         Movable,
         Dashable,
         EffectsManager.EventListener,
-        ActiveSkillsManager.EventListener
+        ActiveSkillsManager.EventListener,
+        SkillsOwner
     {
         private static readonly int MOVE_X_ANIM = Animator.StringToHash("MoveX");
         private static readonly int MOVE_Z_ANIM = Animator.StringToHash("MoveZ");
@@ -40,6 +44,7 @@ namespace Main.Scripts.Player
         private PlayerConfig config;
         private DataHolder dataHolder;
         private EventListener eventListener;
+        private List<SkillsOwner.Listener> listeners = new();
         private NetworkObject objectContext = default!;
 
         private Transform transform;
@@ -638,6 +643,30 @@ namespace Main.Scripts.Player
                     data.gold += 1;
                     break;
             }
+        }
+
+        public void OnSkillCooldownChanged(ActiveSkillType type, int cooldownLeftTicks)
+        {
+            foreach (var listener in listeners)
+            {
+                listener.OnActiveSkillCooldownChanged(type, cooldownLeftTicks);
+            }
+
+        }
+
+        public void AddSkillListener(SkillsOwner.Listener listener)
+        {
+            listeners.Add(listener);
+        }
+
+        public void RemoveSkillListener(SkillsOwner.Listener listener)
+        {
+            listeners.Remove(listener);
+        }
+
+        public int GetActiveSkillCooldownLeftTicks(ActiveSkillType skillType)
+        {
+            return activeSkillsManager.GetSkillCooldownLeftTicks(skillType);
         }
 
         public interface DataHolder :

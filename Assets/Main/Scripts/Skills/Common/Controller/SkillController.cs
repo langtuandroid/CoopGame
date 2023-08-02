@@ -9,7 +9,6 @@ using Main.Scripts.Skills.Common.Component;
 using Main.Scripts.Skills.Common.Component.Config;
 using Main.Scripts.Utils;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Main.Scripts.Skills.Common.Controller
 {
@@ -18,6 +17,7 @@ namespace Main.Scripts.Skills.Common.Controller
         [SerializeField]
         private SkillControllerConfig skillControllerConfig = default!;
 
+        private Listener? listener;
         private GameObject? marker;
         private SkillConfigsBank skillConfigsBank = default!;
 
@@ -45,17 +45,6 @@ namespace Main.Scripts.Skills.Common.Controller
         private LayerMask alliesLayerMask;
         private LayerMask opponentsLayerMask;
         private PlayerRef ownerRef;
-
-        [HideInInspector]
-        public UnityEvent<SkillController> OnWaitingForPointTargetEvent = default!;
-        [HideInInspector]
-        public UnityEvent<SkillController> OnWaitingForUnitTargetEvent = default!;
-        [HideInInspector]
-        public UnityEvent<SkillController> OnSkillExecutedEvent = default!;
-        [HideInInspector]
-        public UnityEvent<SkillController> OnSkillFinishedEvent = default!;
-        [HideInInspector]
-        public UnityEvent<SkillController> OnSkillCanceledEvent = default!;
 
         public bool IsSkillExecuting => executionTimer.IsRunning;
         public SkillActivationType ActivationType => skillControllerConfig.ActivationType;
@@ -145,10 +134,10 @@ namespace Main.Scripts.Skills.Common.Controller
                     Execute();
                     break;
                 case SkillActivationType.WithMapPointTarget:
-                    OnWaitingForPointTargetEvent.Invoke(this);
+                    listener?.OnSkillWaitingForPointTarget(this);
                     break;
                 case SkillActivationType.WithUnitTarget:
-                    OnWaitingForUnitTargetEvent.Invoke(this);
+                    listener?.OnSkillWaitingForUnitTarget(this);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -195,8 +184,8 @@ namespace Main.Scripts.Skills.Common.Controller
             executionTimer = TickTimer.CreateFromSeconds(Runner, skillControllerConfig.ExecutionDurationSec);
             castTimer = TickTimer.CreateFromSeconds(Runner, skillControllerConfig.CastDurationSec);
 
-            OnSkillExecutedEvent.Invoke(this);
-            
+            listener?.OnSkillExecuted(this);
+
             SpawnSkills(skillControllerConfig.RunOnStartSkillConfigs);
 
             CheckCastFinished();
@@ -210,7 +199,20 @@ namespace Main.Scripts.Skills.Common.Controller
             {
                 ResetOnFinish();
 
-                OnSkillFinishedEvent.Invoke(this);
+                listener?.OnSkillFinished(this);
+            }
+        }
+
+        public override void OnAfterPhysicsSteps()
+        {
+            if (cooldownTimer.IsRunning)
+            {
+                if (cooldownTimer.Expired(Runner))
+                {
+                    cooldownTimer = default;
+                }
+
+                listener?.OnSkillCooldownChanged(this);
             }
         }
 
@@ -219,8 +221,14 @@ namespace Main.Scripts.Skills.Common.Controller
             if (castTimer.Expired(Runner))
             {
                 castTimer = default;
+                cooldownTimer = TickTimer.CreateFromSeconds(Runner, skillControllerConfig.CooldownSec);
                 SpawnSkills(skillControllerConfig.RunAfterCastSkillConfigs);
             }
+        }
+
+        public int GetCooldownLeftTicks()
+        {
+            return cooldownTimer.RemainingTicks(Runner) ?? 0;
         }
 
         //todo
@@ -255,7 +263,7 @@ namespace Main.Scripts.Skills.Common.Controller
 
             ResetOnFinish();
 
-            OnSkillCanceledEvent.Invoke(this);
+            listener?.OnSkillCanceled(this);
         }
 
         public bool IsDisabledMove()
@@ -283,6 +291,16 @@ namespace Main.Scripts.Skills.Common.Controller
                 }
             }
             skillComponents.Clear();
+        }
+
+        public void AddListener(SkillController.Listener listener)
+        {
+            this.listener = listener;
+        }
+
+        public void RemoveListener()
+        {
+            listener = null;
         }
 
         private void SpawnSkills(List<SkillConfig> skillConfigs)
@@ -374,6 +392,16 @@ namespace Main.Scripts.Skills.Common.Controller
                     skillComponents.Add(spawnedSkill);
                 }
             }
+        }
+
+        public interface Listener
+        {
+            public void OnSkillCooldownChanged(SkillController skill);
+            public void OnSkillWaitingForPointTarget(SkillController skill);
+            public void OnSkillWaitingForUnitTarget(SkillController skill);
+            public void OnSkillExecuted(SkillController skill);
+            public void OnSkillFinished(SkillController skill);
+            public void OnSkillCanceled(SkillController skill);
         }
     }
 }

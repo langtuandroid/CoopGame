@@ -1,7 +1,6 @@
 using System;
 using Fusion;
 using Main.Scripts.Player;
-using Main.Scripts.Player.InputSystem;
 using Main.Scripts.Tasks;
 using Main.Scripts.UI.Windows;
 using Main.Scripts.Utils;
@@ -12,14 +11,10 @@ namespace Main.Scripts.Levels.Lobby
     public class LobbyLevelController : LevelControllerBase
     {
         [SerializeField]
-        private InputController inputController = default!;
-        [SerializeField]
         private PlayerController playerPrefab = default!;
         [SerializeField]
-        private PlayersHolder playersHolder = default!;
-        [SerializeField]
         private PlaceTargetTask readyToStartTask = default!;
-
+        
         private PlayerCamera playerCamera = default!;
         private UIScreenManager uiScreenManager = default!;
 
@@ -28,12 +23,7 @@ namespace Main.Scripts.Levels.Lobby
             base.Spawned();
             playerCamera = PlayerCamera.Instance.ThrowWhenNull();
             uiScreenManager = UIScreenManager.Instance.ThrowWhenNull();
-            if (HasStateAuthority)
-            {
-                readyToStartTask.OnTaskCheckChangedEvent.AddListener(OnReadyTargetStatusChanged);
-            }
-
-            playersHolder.OnChangedEvent.AddListener(OnPlayersHolderChanged);
+            readyToStartTask.OnTaskCheckChangedEvent.AddListener(OnReadyTargetStatusChanged);
         }
 
         public override void Render()
@@ -48,37 +38,21 @@ namespace Main.Scripts.Levels.Lobby
         {
             base.Despawned(runner, hasState);
             readyToStartTask.OnTaskCheckChangedEvent.RemoveListener(OnReadyTargetStatusChanged);
-            playersHolder.OnChangedEvent.RemoveListener(OnPlayersHolderChanged);
         }
 
         protected override void OnPlayerInitialized(PlayerRef playerRef)
         {
+            if (!HasStateAuthority) return;
             //todo добавить спавн поинты
-            Runner.Spawn(
-                prefab: playerPrefab,
-                position: Vector3.zero,
-                rotation: Quaternion.identity,
-                onBeforeSpawned: (networkRunner, playerObject) =>
-                {
-                    var playerController = playerObject.GetComponent<PlayerController>();
-                    playerController.SetOwnerRef(playerRef);
-
-                    playerController.OnPlayerStateChangedEvent.AddListener(OnPlayerStateChanged);
-                }
-            );
+            RPC_SpawnLocalPlayer(playerRef);
         }
 
         protected override void OnPlayerDisconnected(PlayerRef playerRef)
         {
-            if (playersHolder.Contains(playerRef))
-            {
-                var playerController = playersHolder.Get(playerRef);
-                Runner.Despawn(playerController.Object);
-                playersHolder.Remove(playerRef);
-            }
+            
         }
 
-        private void OnPlayerStateChanged(
+        private void OnLocalPlayerStateChanged(
             PlayerRef playerRef,
             PlayerController playerController,
             PlayerState playerState
@@ -94,45 +68,24 @@ namespace Main.Scripts.Levels.Lobby
                     playerController.Active();
                     break;
                 case PlayerState.Active:
-                    if (!playersHolder.Contains(playerRef))
-                    {
-                        playersHolder.Add(playerRef, playerController);
-                        
-                        Runner.Spawn(
-                            prefab: inputController,
-                            position: Vector3.zero,
-                            rotation: Quaternion.identity,
-                            inputAuthority: playerRef,
-                            onBeforeSpawned: (networkRunner, playerObject) =>
-                            { }
-                        );
-                    }
                     break;
                 case PlayerState.Dead:
-                    OnPlayerDead(playerRef, playerController);
+                    playerController.Respawn();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(playerState), playerState, null);
             }
         }
-        
-        private void OnPlayerDead(PlayerRef playerRef, PlayerController playerController)
-        {
-            playerController.Respawn();
-        }
 
         private void OnReadyTargetStatusChanged(bool isChecked)
         {
+            if (!HasStateAuthority) return;
+            
             if (isChecked)
             {
                 readyToStartTask.OnTaskCheckChangedEvent.RemoveListener(OnReadyTargetStatusChanged);
                 roomManager.OnAllPlayersReady();
             }
-        }
-
-        private void OnPlayersHolderChanged()
-        {
-            TryShowLevelResults();
         }
 
         private void TryShowLevelResults()
@@ -149,6 +102,25 @@ namespace Main.Scripts.Levels.Lobby
                 roomManager.OnLevelResultsShown(userId);
                 uiScreenManager.SetScreenType(ScreenType.LEVEL_RESULTS);
             }
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_SpawnLocalPlayer([RpcTarget] PlayerRef playerRef)
+        {
+            Runner.Spawn(
+                prefab: playerPrefab,
+                position: Vector3.zero,
+                rotation: Quaternion.identity,
+                inputAuthority: playerRef,
+                onBeforeSpawned: (networkRunner, playerObject) =>
+                {
+                    var playerController = playerObject.GetComponent<PlayerController>();
+
+                    playerController.OnPlayerStateChangedEvent.AddListener(OnLocalPlayerStateChanged);
+                }
+            );
+
+            TryShowLevelResults();
         }
     }
 }

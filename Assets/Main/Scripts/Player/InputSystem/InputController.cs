@@ -19,7 +19,7 @@ namespace Main.Scripts.Player.InputSystem
     /// Handle player input by responding to Fusion input polling, filling an input struct and then working with
     /// that input struct in the Fusion Simulation loop.
     /// </summary>
-    public class InputController : GameLoopEntity, INetworkRunnerCallbacks
+    public class InputController : GameLoopEntity, INetworkRunnerCallbacks, IAfterSpawned
     {
         [SerializeField]
         private LayerMask mouseRayMask;
@@ -27,7 +27,6 @@ namespace Main.Scripts.Player.InputSystem
         private GameObject mineGold = default!;
         
         private UIScreenManager? uiScreenManager;
-        private HUDScreen? hudScreen;
         private FindTargetManager? findTargetSystem;
         private EnemiesManager enemiesManager = default!;
 
@@ -62,6 +61,17 @@ namespace Main.Scripts.Player.InputSystem
             base.Spawned();
             // Technically, it does not really matter which InputController fills the input structure, since the actual data will only be sent to the one that does have authority,
             // but in the name of clarity, let's make sure we give input control to the gameobject that also has Input authority.
+
+            playerController = GetComponent<PlayerController>();
+            interactionController = GetComponent<InteractionController>();
+            interactionController.SetOwner(Object.InputAuthority);
+
+            Debug.Log("Spawned [" + this + "] IsClient=" + Runner.IsClient + " IsServer=" + Runner.IsSharedModeMasterClient +
+                      " HasInputAuth=" + Object.HasInputAuthority + " HasStateAuth=" + Object.HasStateAuthority);
+        }
+
+        public void AfterSpawned()
+        {
             if (HasInputAuthority)
             {
                 Runner.AddCallbacks(this);
@@ -71,15 +81,7 @@ namespace Main.Scripts.Player.InputSystem
                 findTargetSystem = FindTargetManager.Instance.ThrowWhenNull();
             }
 
-            var playersHolder = levelContext.PlayersHolder;
-            playersHolder.OnChangedEvent.AddListener(OnPlayersHolderChanged);
-
-            OnPlayersHolderChanged();
-
             enemiesManager = EnemiesManager.Instance.ThrowWhenNull();
-
-            Debug.Log("Spawned [" + this + "] IsClient=" + Runner.IsClient + " IsServer=" + Runner.IsServer +
-                      " HasInputAuth=" + Object.HasInputAuthority + " HasStateAuth=" + Object.HasStateAuthority);
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)
@@ -89,33 +91,12 @@ namespace Main.Scripts.Player.InputSystem
             {
                 uiScreenManager.ThrowWhenNull();
                 uiScreenManager.OnCurrentScreenChangedEvent.RemoveListener(OnCurrentWindowChanged);
-                hudScreen.ThrowWhenNull();
-                hudScreen.Close();
-            }
-
-            if (levelContext != null)
-            {
-                levelContext.PlayersHolder.OnChangedEvent.RemoveListener(OnPlayersHolderChanged);
             }
         }
 
         private void OnCurrentWindowChanged(ScreenType screenType)
         {
             fetchInput = screenType == ScreenType.NONE;
-        }
-
-        private void OnPlayersHolderChanged()
-        {
-            var playersHolder = levelContext.PlayersHolder;
-            if (playersHolder.Contains(Object.InputAuthority))
-            {
-                playerController = playersHolder.Get(Object.InputAuthority);
-                interactionController = playerController.GetComponent<InteractionController>();
-                interactionController.SetOwner(Object.InputAuthority);
-
-                hudScreen = levelContext.ThrowWhenNull().HudScreen;
-                hudScreen.Open();
-            }
         }
 
         /// <summary>
@@ -222,7 +203,7 @@ namespace Main.Scripts.Player.InputSystem
         /// FixedUpdateNetwork is the main Fusion simulation callback - this is where
         /// we modify network state.
         /// </summary>
-        public override void OnBeforePhysicsSteps()
+        public override void OnInputPhase()
         {
             if (playerController == null) return;
             
@@ -267,7 +248,7 @@ namespace Main.Scripts.Player.InputSystem
 
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_SPAWN_ENEMY))
                 {
-                    for (var i = 0; i < 10; i++)
+                    for (var i = 0; i < 2; i++)
                     {
                         enemiesManager.SpawnEnemy(transform.position);
                     }

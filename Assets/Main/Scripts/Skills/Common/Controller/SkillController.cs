@@ -44,7 +44,6 @@ namespace Main.Scripts.Skills.Common.Controller
         private Transform selfUnitTransform = default!;
         private LayerMask alliesLayerMask;
         private LayerMask opponentsLayerMask;
-        private PlayerRef ownerRef;
 
         public bool IsSkillExecuting => executionTimer.IsRunning;
         public SkillActivationType ActivationType => skillControllerConfig.ActivationType;
@@ -74,7 +73,7 @@ namespace Main.Scripts.Skills.Common.Controller
 
         public override void Render()
         {
-            if (!Runner.LocalPlayer == ownerRef) return;
+            if (Runner.LocalPlayer != Object.StateAuthority) return;
 
             var canShowMarker = skillControllerConfig.ActivationType != SkillActivationType.WithUnitTarget ||
                                 selectedUnit != null;
@@ -112,13 +111,7 @@ namespace Main.Scripts.Skills.Common.Controller
             }
         }
 
-        public void SetOwnerRef(PlayerRef ownerRef)
-        {
-            this.ownerRef = ownerRef;
-
-        }
-
-        public bool Activate(PlayerRef owner)
+        public bool Activate()
         {
             if (isActivating || IsSkillExecuting || !cooldownTimer.ExpiredOrNotRunning(Runner))
             {
@@ -191,7 +184,7 @@ namespace Main.Scripts.Skills.Common.Controller
             CheckCastFinished();
         }
 
-        public override void OnBeforePhysicsSteps()
+        public override void OnBeforePhysics()
         {
             CheckCastFinished();
 
@@ -373,7 +366,7 @@ namespace Main.Scripts.Skills.Common.Controller
                     {
                         skillObject.GetComponent<SkillComponent>().Init(
                             skillConfigId: skillConfigsBank.GetSkillConfigId(skillConfig),
-                            ownerId: ownerRef,
+                            ownerId: Object.StateAuthority,
                             initialMapPoint: initialMapPoint,
                             dynamicMapPoint: dynamicMapPoint,
                             selfUnit: Object,

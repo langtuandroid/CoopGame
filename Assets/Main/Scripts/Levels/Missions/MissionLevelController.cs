@@ -16,16 +16,11 @@ namespace Main.Scripts.Levels.Missions
         [SerializeField]
         private PlayerController playerPrefab = default!;
         [SerializeField]
-        private PlayersHolder playersHolder = default!;
-        [SerializeField]
         private KillTargetsCountMissionScenario missionScenario = default!;
         [SerializeField]
         private PlaceTargetTask placeTargetTask = default!;
 
         private PlayerCamera playerCamera = default!;
-
-        [Networked, Capacity(16)]
-        private NetworkDictionary<UserId, bool> playersProgress => default; //todo поддержать сохранение прогресса текущей миссии для игроков
 
         public override void Spawned()
         {
@@ -56,33 +51,18 @@ namespace Main.Scripts.Levels.Missions
 
         protected override void OnPlayerInitialized(PlayerRef playerRef)
         {
+            if (!HasStateAuthority) return;
             //todo добавить спавн поинты
-            Runner.Spawn(
-                prefab: playerPrefab,
-                position: Vector3.zero,
-                rotation: Quaternion.identity,
-                inputAuthority: playerRef,
-                onBeforeSpawned: (networkRunner, playerObject) =>
-                {
-                    var playerController = playerObject.GetComponent<PlayerController>();
-                    playerController.Respawn();
-
-                    playerController.OnPlayerStateChangedEvent.AddListener(OnPlayerStateChanged);
-                }
-            );
+            
+            RPC_SpawnLocalPlayer(playerRef);
         }
 
         protected override void OnPlayerDisconnected(PlayerRef playerRef)
         {
-            if (playersHolder.Contains(playerRef))
-            {
-                var playerController = playersHolder.Get(playerRef);
-                Runner.Despawn(playerController.Object);
-                playersHolder.Remove(playerRef);
-            }
+            
         }
 
-        private void OnPlayerStateChanged(
+        private void OnLocalPlayerStateChanged(
             PlayerRef playerRef,
             PlayerController playerController,
             PlayerState playerState
@@ -98,37 +78,19 @@ namespace Main.Scripts.Levels.Missions
                     playerController.Active();
                     break;
                 case PlayerState.Active:
-                    if (!playersHolder.Contains(playerRef))
-                    {
-                        playersHolder.Add(playerRef, playerController);
-                    }
                     break;
                 case PlayerState.Dead:
-                    OnPlayerDead(playerRef, playerController);
+                    RPC_OnPlayerStateDead();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(playerState), playerState, null);
             }
         }
 
-        private void OnPlayerDead(PlayerRef deadPlayerRef, PlayerController playerController)
-        {
-            foreach (var playerRef in playersHolder.GetKeys())
-            {
-                var player = playersHolder.Get(playerRef);
-                if (player.GetPlayerState() != PlayerState.Dead)
-                {
-                    return;
-                }
-            }
-
-            OnMissionFailed();
-        }
-
         private void OnMissionFailed()
         {
             var levelResults = new Dictionary<UserId, LevelResultsData>();
-            foreach (var playerRef in playersHolder.GetKeys(false))
+            foreach (var playerRef in playersHolder.GetKeys())
             {
                 levelResults.Add(playerDataManager.GetUserId(playerRef), new LevelResultsData
                 {
@@ -156,7 +118,7 @@ namespace Main.Scripts.Levels.Missions
                 placeTargetTask.OnTaskCheckChangedEvent.RemoveListener(OnFinishTaskStatus);
 
                 var levelResults = new Dictionary<UserId, LevelResultsData>();
-                foreach (var playerRef in playersHolder.GetKeys(false))
+                foreach (var playerRef in playersHolder.GetKeys())
                 {
                     levelResults.Add(playerDataManager.GetUserId(playerRef), new LevelResultsData
                     {
@@ -166,6 +128,38 @@ namespace Main.Scripts.Levels.Missions
 
                 roomManager.OnLevelFinished(levelResults);
             }
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_SpawnLocalPlayer([RpcTarget] PlayerRef playerRef)
+        {
+            Runner.Spawn(
+                prefab: playerPrefab,
+                position: Vector3.zero,
+                rotation: Quaternion.identity,
+                inputAuthority: playerRef,
+                onBeforeSpawned: (networkRunner, playerObject) =>
+                {
+                    var playerController = playerObject.GetComponent<PlayerController>();
+
+                    playerController.OnPlayerStateChangedEvent.AddListener(OnLocalPlayerStateChanged);
+                }
+            );
+        }
+        
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        private void RPC_OnPlayerStateDead()
+        {
+            foreach (var playerRef in playersHolder.GetKeys())
+            {
+                var player = playersHolder.Get(playerRef);
+                if (player.GetPlayerState() != PlayerState.Dead)
+                {
+                    return;
+                }
+            }
+
+            OnMissionFailed();
         }
     }
 }

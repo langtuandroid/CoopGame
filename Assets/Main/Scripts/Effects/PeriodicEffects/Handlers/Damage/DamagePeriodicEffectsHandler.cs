@@ -1,4 +1,5 @@
 using System;
+using Main.Scripts.Actions.Data;
 using Main.Scripts.Actions.Health;
 
 namespace Main.Scripts.Effects.PeriodicEffects.Handlers.Damage
@@ -24,7 +25,12 @@ namespace Main.Scripts.Effects.PeriodicEffects.Handlers.Damage
 
             var damage = damageEffect.ConstantDamage * stackCount +
                          damageableTarget.GetMaxHealth() * damageEffect.PercentMaxHealthDamage * stackCount * 0.01f;
-            damageableTarget.ApplyDamage(damage, null);
+            var damageActionData = new DamageActionData
+            {
+                damageOwner = null,
+                damageValue = damage
+            };
+            damageableTarget.AddDamage(ref damageActionData);
         }
     }
 }

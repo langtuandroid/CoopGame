@@ -1,9 +1,9 @@
-﻿using UnityEngine;
+﻿using Main.Scripts.Actions.Data;
 
 namespace Main.Scripts.Actions
 {
     public interface ObjectWithGettingKnockBack
     {
-        void ApplyKnockBack(Vector3 direction);
+        void AddKnockBack(ref KnockBackActionData data);
     }
 }

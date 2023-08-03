@@ -15,14 +15,22 @@ namespace Main.Scripts.Effects
 
         [SerializeField]
         private List<EffectBase> effects = new();
+        [SerializeField]
+        private List<EffectsCombination> effectsCombinations = new();
 
         private Dictionary<int, EffectBase> effectsMap = default!;
         private Dictionary<string, int> effectsIds = default!;
+        
+        private Dictionary<int, EffectsCombination> effectsCombinationsMap = default!;
+        private Dictionary<string, int> effectsCombinationsIds = default!;
 
         private void Awake()
         {
             effectsMap = new Dictionary<int, EffectBase>(effects.Count);
             effectsIds = new Dictionary<string, int>(effects.Count);
+            
+            effectsCombinationsMap = new Dictionary<int, EffectsCombination>(effects.Count);
+            effectsCombinationsIds = new Dictionary<string, int>(effects.Count);
 
             for (var i = 0; i < effects.Count; i++)
             {
@@ -35,12 +43,26 @@ namespace Main.Scripts.Effects
                 effectsMap.Add(i, effect);
                 effectsIds.Add(effect.NameId, i);
             }
+
+            for (var i = 0; i < effectsCombinations.Count; i++)
+            {
+                var effectsCombination = effectsCombinations[i];
+                if (effectsCombinationsIds.ContainsKey(effectsCombination.NameId))
+                {
+                    throw new ArgumentException($"EffectsCombination NameId {effectsCombination.NameId} is using by more then one effects combinations");
+                }
+
+                effectsCombinationsMap.Add(i, effectsCombination);
+                effectsCombinationsIds.Add(effectsCombination.NameId, i);
+            }
         }
 
         private void OnValidate()
         {
-            var ids = new HashSet<string>();
+            var effectsIdsSet = new HashSet<string>();
+            var effectsCombinationsIdsSet = new HashSet<string>();
             effects.Clear();
+            effectsCombinations.Clear();
 
             var effectsObjects = Resources.LoadAll("Scriptable/Effects", typeof(EffectBase));
             foreach (var effectObject in effectsObjects)
@@ -52,7 +74,7 @@ namespace Main.Scripts.Effects
                         throw new ArgumentException($"{effect.name}: effect NameId is empty");
                     }
 
-                    if (ids.Contains(effect.NameId))
+                    if (effectsIdsSet.Contains(effect.NameId))
                     {
                         throw new ArgumentException(
                             $"{effect.name}: effect NameId {effect.NameId} is using in more then one effects");
@@ -65,7 +87,7 @@ namespace Main.Scripts.Effects
                     }
 
                     effects.Add(effect);
-                    ids.Add(effect.NameId);
+                    effectsIdsSet.Add(effect.NameId);
                 }
             }
             
@@ -77,6 +99,27 @@ namespace Main.Scripts.Effects
             if (limitedCount != LIMITED_EFFECTS_COUNT)
             {
                 Debug.LogWarning($"The LIMITED_EFFECTS_COUNT is not equal to the registered value: {limitedCount}");
+            }
+            
+            var effectsCombinationsObjects = Resources.LoadAll("Scriptable/EffectsCombinations", typeof(EffectsCombination));
+            foreach (var effectsCombinationObject in effectsCombinationsObjects)
+            {
+                if (effectsCombinationObject is EffectsCombination effectsCombination)
+                {
+                    if (effectsCombination.NameId.IsNullOrEmpty())
+                    {
+                        throw new ArgumentException($"{effectsCombination.name}: effectsCombination NameId is empty");
+                    }
+
+                    if (effectsCombinationsIdsSet.Contains(effectsCombination.NameId))
+                    {
+                        throw new ArgumentException(
+                            $"{effectsCombination.name}: effectsCombination NameId {effectsCombination.NameId} is using in more then one effectsCombinations");
+                    }
+                    
+                    effectsCombinations.Add(effectsCombination);
+                    effectsCombinationsIdsSet.Add(effectsCombination.NameId);
+                }
             }
         }
 
@@ -98,6 +141,26 @@ namespace Main.Scripts.Effects
             }
 
             return effectsIds[effect.NameId];
+        }
+
+        public EffectsCombination GetEffectsCombination(int id)
+        {
+            if (!effectsCombinationsMap.ContainsKey(id))
+            {
+                throw new ArgumentException($"EffectsCombination Id {id} is not registered in EffectsBank");
+            }
+
+            return effectsCombinationsMap[id];
+        }
+
+        public int GetEffectsCombinationId(EffectsCombination effectsCombination)
+        {
+            if (!effectsCombinationsIds.ContainsKey(effectsCombination.NameId))
+            {
+                throw new ArgumentException($"{effectsCombination.name}: effectsCombination is not registered in EffectsBank. Check effectsCombination file path.");
+            }
+
+            return effectsCombinationsIds[effectsCombination.NameId];
         }
 
         private KeyValuePair<int, int> GetUnlimitedAndLimitedEffectsCounts()

@@ -1,9 +1,9 @@
-using UnityEngine;
+using Main.Scripts.Actions.Data;
 
 namespace Main.Scripts.Actions
 {
     public interface Dashable
     {
-        void Dash(ref Vector3 direction, float speed, float durationSec);
+        void AddDash(ref DashActionData data);
     }
 }

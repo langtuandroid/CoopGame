@@ -1,9 +1,9 @@
-﻿using Fusion;
+﻿using Main.Scripts.Actions.Data;
 
 namespace Main.Scripts.Actions.Health
 {
     public interface Damageable : HealthProvider
     {
-        void ApplyDamage(float damage, NetworkObject? damageOwner);
+        void AddDamage(ref DamageActionData data);
     }
 }

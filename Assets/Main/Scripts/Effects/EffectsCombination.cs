@@ -7,6 +7,7 @@ namespace Main.Scripts.Effects
     [CreateAssetMenu(fileName = "EffectsCombination", menuName = "Scriptable/Effects/EffectsCombination")]
     public class EffectsCombination : ScriptableObject
     {
+        public string NameId => name;
         public List<EffectBase> Effects = new();
 
         public void OnValidate()

@@ -10,8 +10,7 @@ using UnityEngine.Events;
 
 namespace Main.Scripts.Room
 {
-    [OrderAfter(typeof(PlayerDataManager))]
-    public class RoomManager : NetworkBehaviour
+    public class RoomManager : NetworkBehaviour, IAfterSpawned
     {
         public const ShutdownReason ShutdownReason_GameAlreadyRunning = (ShutdownReason)100;
         
@@ -49,21 +48,26 @@ namespace Main.Scripts.Room
             
             sessionManager = SessionManager.Instance.ThrowWhenNull();
             levelTransitionManager = LevelTransitionManager.Instance.ThrowWhenNull();
-            playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
-
+            
             levelTransitionManager.OnSceneStateChangedEvent.AddListener(OnSceneStateChanged);
+            
             sessionManager.OnPlayerConnectedEvent.AddListener(OnPlayerConnected);
             sessionManager.OnPlayerDisconnectedEvent.AddListener(OnPlayerDisconnected);
-            playerDataManager.OnLocalPlayerDataReadyEvent.AddListener(OnLocalPlayerDataReady);
+        }
 
-            if (playerDataManager.IsReady())
-            {
-                InitLocalPlayerData();
-            }
+        public void AfterSpawned()
+        {
+            playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
+            playerDataManager.OnLocalPlayerDataReadyEvent.AddListener(OnLocalPlayerDataReady);
 
             if (Object.HasStateAuthority)
             {
                 LoadLevel(-1);
+            }
+            
+            if (playerDataManager.IsReady())
+            {
+                InitLocalPlayerData();
             }
         }
 
@@ -77,11 +81,14 @@ namespace Main.Scripts.Room
 
         private void OnPlayerConnected(PlayerRef playerRef)
         {
+            if (!HasStateAuthority) return;
+            
             //todo sync in level controller
         }
 
         private void OnPlayerDisconnected(PlayerRef playerRef)
         {
+            //todo request StateAuthority to all host managers
             if (!HasStateAuthority) return;
 
             OnPlayerDisconnectedEvent.Invoke(playerRef);
@@ -171,11 +178,10 @@ namespace Main.Scripts.Room
 
         private void OnSceneStateChanged(SceneState sceneState)
         {
-            if (HasStateAuthority)
-            {
-                this.sceneState = sceneState;
-                playerDataManager.ClearAllKeepedPlayerData();
-            }
+            if (!HasStateAuthority) return;
+            
+            this.sceneState = sceneState;
+            playerDataManager.ClearAllKeepedPlayerData();
         }
 
         private void LoadLevel(int nextLevelIndex)
@@ -194,6 +200,7 @@ namespace Main.Scripts.Room
                 Runner.Disconnect(playerRef);
                 return;
             }
+
             if (keepedPlayerData != null)
             {
                 if (!keepedPlayerData.Equals(playerData))
@@ -201,12 +208,13 @@ namespace Main.Scripts.Room
                     Runner.Disconnect(playerRef);
                     return;
                 }
-            } else if (levelTransitionManager.CurrentSceneState is SceneState.LEVEL)
+            }
+            else if (levelTransitionManager.CurrentSceneState is SceneState.LEVEL)
             {
                 Runner.Disconnect(playerRef);
                 return;
             }
-            
+
             playerDataManager.AddPlayerData(playerRef, userId, playerData);
 
             OnPlayerInitializedEvent.Invoke(playerRef);

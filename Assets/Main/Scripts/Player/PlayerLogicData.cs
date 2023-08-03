@@ -26,8 +26,6 @@ namespace Main.Scripts.Player
         [Networked]
         public Vector3 dashDirection { get; set; }
         [Networked]
-        public PlayerRef ownerRef { get; set; }
-        [Networked]
         public int animationTriggerId { get; set; }
     }
 }

@@ -31,8 +31,6 @@ namespace Main.Scripts.Enemies
 
         public void SpawnEnemy(Vector3 targetPosition)
         {
-            if (!Runner.IsServer) return;
-            
             Runner.Spawn(
                 prefab: enemyPrefab,
                 position: targetPosition + new Vector3(Random.Range(-25, 25), 0, Random.Range(-25, 25)),
@@ -41,7 +39,8 @@ namespace Main.Scripts.Enemies
                     var enemyController = networkObject.GetComponent<EnemyController>();
                     enemyController.OnDeadEvent.AddListener(OnEnemyDead);
                     OnEnemySpawnedEvent.Invoke(enemyController);
-                });
+                }
+            );
         }
 
         public IEnumerable<NetworkObject> GetEnemies()

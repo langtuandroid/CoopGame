@@ -752,9 +752,9 @@ GameObject:
   - component: {fileID: 504426371}
   - component: {fileID: 504426375}
   - component: {fileID: 504426374}
-  - component: {fileID: 504426376}
   - component: {fileID: 504426377}
   - component: {fileID: 504426378}
+  - component: {fileID: 504426379}
   m_Layer: 0
   m_Name: LobbyLevelManager
   m_TagString: Untagged
@@ -785,8 +785,7 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 504426372}
-  - {fileID: 504426375}
-  - {fileID: 504426376}
+  - {fileID: 504426379}
   - {fileID: 1210559671}
   SimulationBehaviours: []
 --- !u!114 &504426372
@@ -802,9 +801,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  inputController: {fileID: 2021868621407922547, guid: 37c09c7591324e845b516bc2d89b0990, type: 3}
-  playerPrefab: {fileID: 2494334113858593066, guid: 0adccf08a296b9d4ab62f2205b695f42, type: 3}
-  playersHolder: {fileID: 504426375}
+  playerPrefab: {fileID: 8621184440868273307, guid: 0adccf08a296b9d4ab62f2205b695f42, type: 3}
   readyToStartTask: {fileID: 883741403}
 --- !u!4 &504426373
 Transform:
@@ -851,28 +848,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a010e71e64749a6849613f4110da699, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
   OnChangedEvent:
-    m_PersistentCalls:
-      m_Calls: []
---- !u!114 &504426376
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 504426370}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6bb5a412690241d89a94bc0aead4413e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  enemyPrefab: {fileID: 8977078318047038321, guid: fb6430ba47924404495b48284fc38986, type: 3}
-  OnEnemySpawnedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnEnemyDeadEvent:
     m_PersistentCalls:
       m_Calls: []
 --- !u!114 &504426377
@@ -888,7 +864,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playersHolder: {fileID: 504426375}
-  enemiesManager: {fileID: 504426376}
+  enemiesManager: {fileID: 504426379}
   gameLoopManager: {fileID: 1210559671}
   hudScreen: {fileID: 2034418547}
 --- !u!114 &504426378
@@ -903,6 +879,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2dcaf1f0d4241b591bae7bf004680a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &504426379
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 504426370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bb5a412690241d89a94bc0aead4413e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 0
+  enemyPrefab: {fileID: 8873510702002083441, guid: fb6430ba47924404495b48284fc38986, type: 3}
+  OnEnemySpawnedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnEnemyDeadEvent:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &552739259
 GameObject:
   m_ObjectHideFlags: 0
@@ -919,7 +915,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &552739260
 Transform:
   m_ObjectHideFlags: 0
@@ -1034,7 +1030,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3799011573757095425, guid: 3672ff2704fd23b4fb8e37038771f36d, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4899239290309147189, guid: 3672ff2704fd23b4fb8e37038771f36d, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6019038875358741888, guid: 3672ff2704fd23b4fb8e37038771f36d, type: 3}
       propertyPath: m_Intensity
@@ -1306,7 +1306,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3940975437235736535, guid: b34fb75fadcdcaa40bc2d6ffdcb563f9, type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3940975437235736535, guid: b34fb75fadcdcaa40bc2d6ffdcb563f9, type: 3}
       propertyPath: m_CastShadows
@@ -1362,7 +1362,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6391604548399976288, guid: b34fb75fadcdcaa40bc2d6ffdcb563f9, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1646,7 +1646,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -3673397528348933454, guid: 10fbd0853adea904ca9b20cb66bd9464, type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3509411479969988688, guid: 10fbd0853adea904ca9b20cb66bd9464, type: 3}
       propertyPath: m_Name
@@ -1654,7 +1654,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3509411479969988688, guid: 10fbd0853adea904ca9b20cb66bd9464, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5617367109667085877, guid: 10fbd0853adea904ca9b20cb66bd9464, type: 3}
       propertyPath: m_RootOrder

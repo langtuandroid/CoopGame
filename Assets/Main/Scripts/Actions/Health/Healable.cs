@@ -1,9 +1,9 @@
-using Fusion;
+using Main.Scripts.Actions.Data;
 
 namespace Main.Scripts.Actions.Health
 {
     public interface Healable : HealthProvider
     {
-        void ApplyHeal(float healValue, NetworkObject? healOwner);
+        void AddHeal(ref HealActionData data);
     }
 }

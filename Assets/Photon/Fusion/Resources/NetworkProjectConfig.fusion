@@ -41,9 +41,9 @@
     "HostMigrationSnapshotInterval": 60,
     "Simulation": {
         "InputDataWordCount": 0,
-        "TickRate": 20,
+        "TickRate": 24,
         "MaxPrediction": 20,
-        "DefaultPlayers": 10,
+        "DefaultPlayers": 4,
         "ReplicationMode": 1,
         "ObjectInterest": true,
         "ServerPacketInterval": 1,

@@ -25,5 +25,7 @@ namespace Main.Scripts.Enemies
         public PlayerRef targetPlayerRef { get; set; }
         [Networked]
         public int animationTriggerId { get; set; }
+        [Networked, Capacity(4)]
+        public NetworkArray<int> playerInterestPoints => default;
     }
 }

@@ -1,7 +1,9 @@
-﻿namespace Main.Scripts.Actions
+﻿using Main.Scripts.Actions.Data;
+
+namespace Main.Scripts.Actions
 {
     public interface ObjectWithGettingStun
     {
-        void ApplyStun(float durationSec);
+        void AddStun(ref StunActionData data);
     }
 }

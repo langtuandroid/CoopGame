@@ -51,6 +51,8 @@ namespace Main.Scripts.Player.Data
             DontDestroyOnLoad(this);
             LocalUserId = SessionManager.Instance.ThrowWhenNull().LocalUserId;
             resources = GlobalResources.Instance.ThrowWhenNull();
+            
+            //todo вынести загрузку в отдельный поток
             LocalPlayerData = SaveLoadUtils.Load(GlobalResources.Instance.ThrowWhenNull(), LocalUserId.Id.Value);
             OnLocalPlayerDataReadyEvent.Invoke();
         }

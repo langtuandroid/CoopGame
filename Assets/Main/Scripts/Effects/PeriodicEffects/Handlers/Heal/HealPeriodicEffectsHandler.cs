@@ -1,4 +1,5 @@
 using System;
+using Main.Scripts.Actions.Data;
 using Main.Scripts.Actions.Health;
 
 namespace Main.Scripts.Effects.PeriodicEffects.Handlers.Heal
@@ -23,7 +24,12 @@ namespace Main.Scripts.Effects.PeriodicEffects.Handlers.Heal
 
             var heal = healEffect.ConstantHeal * stackCount +
                        healableTarget.GetMaxHealth() * healEffect.PercentMaxHealthHeal * stackCount * 0.01f;
-            healableTarget.ApplyHeal(heal, null);
+            var healActionData = new HealActionData
+            {
+                healOwner = null,
+                healValue = heal
+            };
+            healableTarget.AddHeal(ref healActionData);
         }
     }
 }

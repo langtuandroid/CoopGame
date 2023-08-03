@@ -12,7 +12,7 @@ namespace Main.Scripts.Helpers
         [Networked]
         private TickTimer lifeTimer { get; set; }
 
-        public override void OnBeforePhysicsSteps()
+        public override void OnBeforePhysics()
         {
             if (!lifeTimer.IsRunning)
             {

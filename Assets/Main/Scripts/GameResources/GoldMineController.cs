@@ -1,4 +1,5 @@
 using Fusion;
+using Main.Scripts.Actions.Data;
 using Main.Scripts.Actions.Health;
 using UnityEngine;
 
@@ -35,15 +36,15 @@ namespace Main.Scripts.GameResources
             return health;
         }
 
-        public void ApplyDamage(float damage, NetworkObject? damageOwner)
+        public void AddDamage(ref DamageActionData data)
         {
-            if (damage >= health)
+            if (data.damageValue >= health)
             {
                 health = 0;
             }
             else
             {
-                health -= damage;
+                health -= data.damageValue;
             }
             rotation += 30;
             transform.localRotation = Quaternion.Euler(0, -rotation, 0); //TODO change such an extraterrestrial and exquisite representation of damage receiving to something more vulgar and mundane

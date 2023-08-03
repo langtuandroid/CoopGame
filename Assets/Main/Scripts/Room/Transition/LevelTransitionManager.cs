@@ -69,7 +69,7 @@ namespace Main.Scripts.Room.Transition
                 yield break;
             }
 
-            if (Runner.IsServer)
+            if (Runner.IsSharedModeMasterClient)
             {
                 UpdateSceneState(SceneState.TRANSITION);
             }
@@ -107,7 +107,7 @@ namespace Main.Scripts.Room.Transition
 
         private void SwitchScenePostFadeIn(SceneRef prevScene, SceneRef newScene)
         {
-            if (Runner.IsServer)
+            if (Runner.IsSharedModeMasterClient)
             {
                 UpdateSceneState(activeScene.buildIndex == lobby ? SceneState.LOBBY : SceneState.LEVEL);
             }

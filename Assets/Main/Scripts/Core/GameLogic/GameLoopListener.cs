@@ -2,9 +2,12 @@ namespace Main.Scripts.Core.GameLogic
 {
     public interface GameLoopListener
     {
-        void OnBeforePhysicsSteps();
-        void OnBeforePhysicsStep();
-        void OnAfterPhysicsStep();
-        void OnAfterPhysicsSteps();
+        void OnSyncTransformBeforeAll() { }
+        void OnInputPhase() { }
+        void OnBeforePhysics() { }
+        void OnBeforePhysicsStep() { }
+        void OnAfterPhysicsStep() { }
+        void OnAfterPhysicsSteps() { }
+        void OnSyncTransformAfterAll() { }
     }
 }

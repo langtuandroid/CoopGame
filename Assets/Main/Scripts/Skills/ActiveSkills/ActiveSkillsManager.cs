@@ -96,15 +96,6 @@ namespace Main.Scripts.Skills.ActiveSkills
             objectContext = default!;
         }
 
-        public void SetOwnerRef(PlayerRef ownerRef)
-        {
-            this.ownerRef = ownerRef;
-            foreach (var skillController in allSkillControllers)
-            {
-                skillController.SetOwnerRef(ownerRef);
-            }
-        }
-
         public bool ActivateSkill(ActiveSkillType skillType)
         {
             ref var data = ref dataHolder.GetActiveSkillsData();
@@ -121,7 +112,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             }
 
             data.currentSkillType = skillType;
-            return skill.Activate(ownerRef);
+            return skill.Activate();
         }
 
         public void ExecuteCurrentSkill()

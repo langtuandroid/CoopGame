@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Fusion;
+using Main.Scripts.Actions;
+using Main.Scripts.Actions.Data;
+using Main.Scripts.Actions.Health;
 using Main.Scripts.Core.Architecture;
 using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Core.Resources;
@@ -20,12 +23,19 @@ namespace Main.Scripts.Enemies
     public class EnemyController : GameLoopEntity,
         InterfacesHolder,
         EnemyLogicDelegate.DataHolder,
-        EnemyLogicDelegate.EventListener
+        EnemyLogicDelegate.EventListener,
+        Damageable,
+        Healable,
+        Affectable,
+        ObjectWithGettingKnockBack,
+        ObjectWithGettingStun
     {
         private Dictionary<Type, Component> cachedComponents = new();
 
         [SerializeField]
         private EnemyConfig enemyConfig = EnemyConfig.GetDefault();
+
+        private EffectsBank effectsBank = default!;
 
         [Networked]
         private ref EnemyData enemyData => ref MakeRef<EnemyData>();
@@ -69,8 +79,10 @@ namespace Main.Scripts.Enemies
         public override void Spawned()
         {
             base.Spawned();
+            effectsBank = GlobalResources.Instance.ThrowWhenNull().EffectsBank;
+            
             cachedComponents[typeof(EnemiesHelper)] = EnemiesHelper.Instance.ThrowWhenNull();
-            cachedComponents[typeof(EffectsBank)] = GlobalResources.Instance.ThrowWhenNull().EffectsBank;
+            cachedComponents[typeof(EffectsBank)] = effectsBank;
 
             enemyLogicDelegate.Spawned(Object);
         }
@@ -78,6 +90,7 @@ namespace Main.Scripts.Enemies
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
             base.Despawned(runner, hasState);
+            effectsBank = default!;
             cachedComponents.Remove(typeof(EnemiesHelper));
             cachedComponents.Remove(typeof(EffectsBank));
             OnDeadEvent.RemoveAllListeners();
@@ -90,7 +103,7 @@ namespace Main.Scripts.Enemies
             enemyLogicDelegate.Render();
         }
 
-        public override void OnBeforePhysicsSteps()
+        public override void OnBeforePhysics()
         {
             enemyLogicDelegate.OnBeforePhysicsSteps();
         }
@@ -137,6 +150,11 @@ namespace Main.Scripts.Enemies
 
         public T? GetInterface<T>()
         {
+            if (this is T typedThis)
+            {
+                return typedThis;
+            }
+            
             if (enemyLogicDelegate is T typed)
             {
                 return typed;
@@ -147,6 +165,12 @@ namespace Main.Scripts.Enemies
 
         public bool TryGetInterface<T>(out T typed)
         {
+            if (this is T typedThis)
+            {
+                typed = typedThis;
+                return true;
+            }
+            
             if (enemyLogicDelegate is T typedDelegate)
             {
                 typed = typedDelegate;
@@ -155,6 +179,100 @@ namespace Main.Scripts.Enemies
 
             typed = default!;
             return false;
+        }
+        
+        public float GetMaxHealth()
+        {
+            return enemyLogicDelegate.GetMaxHealth();
+        }
+
+        public float GetCurrentHealth()
+        {
+            return enemyLogicDelegate.GetCurrentHealth();
+        }
+                
+        public void AddDamage(ref DamageActionData data)
+        {
+            RPC_AddDamage(data.damageOwner, data.damageValue);
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        private void RPC_AddDamage(NetworkId damageOwnerId, float damageValue)
+        {
+            //todo NetworkId and get from registered <NetworkId, NetworkObject> map
+            var data = new DamageActionData
+            {
+                damageOwner = Runner.FindObject(damageOwnerId),
+                damageValue = damageValue
+            };
+            enemyLogicDelegate.AddDamage(ref data);
+        }
+
+        public void AddHeal(ref HealActionData data)
+        {
+            RPC_AddHeal(data.healOwner, data.healValue);
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        private void RPC_AddHeal(NetworkId healOwner, float healValue)
+        {
+            var data = new HealActionData
+            {
+                healOwner = Runner.FindObject(healOwner),
+                healValue = healValue
+            };
+            enemyLogicDelegate.AddHeal(ref data);
+        }
+
+        public void AddEffects(EffectsCombination effectsCombination)
+        {
+            RPC_ApplyEffects(effectsBank.GetEffectsCombinationId(effectsCombination));
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        private void RPC_ApplyEffects(int effectsCombinationId)
+        {
+            enemyLogicDelegate.AddEffects(effectsBank.GetEffectsCombination(effectsCombinationId));
+        }
+
+        public void AddKnockBack(ref KnockBackActionData data)
+        {
+            enemyLogicDelegate.AddKnockBack(ref data);
+
+            if (!HasStateAuthority)
+            {
+                RPC_AddKnockBack(data.direction);
+            }
+        }
+
+        [Rpc(RpcSources.Proxies, RpcTargets.StateAuthority)]
+        private void RPC_AddKnockBack(Vector3 direction)
+        {
+            var data = new KnockBackActionData
+            {
+                direction = direction
+            };
+            enemyLogicDelegate.AddKnockBack(ref data);
+        }
+
+        public void AddStun(ref StunActionData data)
+        {
+            enemyLogicDelegate.AddStun(ref data);
+            
+            if (!HasStateAuthority)
+            {
+                RPC_AddStun(data.durationSec);
+            }
+        }
+
+        [Rpc(RpcSources.Proxies, RpcTargets.StateAuthority)]
+        private void RPC_AddStun(float durationSec)
+        {
+            var data = new StunActionData
+            {
+                durationSec = durationSec
+            };
+            enemyLogicDelegate.AddStun(ref data);
         }
     }
 }

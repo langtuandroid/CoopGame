@@ -71,42 +71,34 @@ namespace Main.Scripts.Skills.PassiveSkills
         {
             foreach (var effectsCombination in config.InitialEffects)
             {
-                affectable.ApplyEffects(effectsCombination);
+                affectable.AddEffects(effectsCombination);
             }
         }
 
-        public void SetOwnerRef(PlayerRef ownerRef)
-        {
-            foreach (var skillController in config.PassiveSkillControllers)
-            {
-                skillController.SetOwnerRef(ownerRef);
-            }
-        }
-
-        public void OnSpawn(PlayerRef skillOwner)
+        public void OnSpawn()
         {
             foreach (var skillController in skillControllersMap[PassiveSkillTriggerType.OnSpawn])
             {
-                ActivateSkill(skillController, skillOwner);
+                ActivateSkill(skillController);
             }
         }
 
-        public void OnDead(PlayerRef skillOwner, NetworkObject? damageOwner)
+        public void OnDead(NetworkObject? damageOwner)
         {
             foreach (var skillController in skillControllersMap[PassiveSkillTriggerType.OnDead])
             {
-                ActivateSkill(skillController, skillOwner, damageOwner);
+                ActivateSkill(skillController, damageOwner);
             }
         }
 
-        public void OnTakenDamage(PlayerRef skillOwner, float damageValue, NetworkObject? damageOwner)
+        public void OnTakenDamage(float damageValue, NetworkObject? damageOwner)
         {
             foreach (var skillController in skillControllersMap[PassiveSkillTriggerType.OnTakenDamage])
             {
                 if (skillController.PassiveSkillTrigger is DamagePassiveSkillTrigger damageTrigger
                     && damageValue >= damageTrigger.MinDamageValue)
                 {
-                    ActivateSkill(skillController, skillOwner, damageOwner);
+                    ActivateSkill(skillController, damageOwner);
                 }
             }
         }
@@ -118,18 +110,18 @@ namespace Main.Scripts.Skills.PassiveSkills
                 if (skillController.PassiveSkillTrigger is HealPassiveSkillTrigger healTrigger
                     && healValue >= healTrigger.MinHealValue)
                 {
-                    ActivateSkill(skillController, skillOwner, healOwner);
+                    ActivateSkill(skillController, healOwner);
                 }
             }
         }
 
-        private void ActivateSkill(SkillController skillController, PlayerRef skillOwner,
+        private void ActivateSkill(SkillController skillController,
             NetworkObject? selectedTarget = null)
         {
             switch (skillController.ActivationType)
             {
                 case SkillActivationType.WithUnitTarget when selectedTarget != null:
-                    skillController.Activate(skillOwner);
+                    skillController.Activate();
                     skillController.ApplyUnitTarget(selectedTarget);
                     skillController.Execute();
                     break;
@@ -137,7 +129,7 @@ namespace Main.Scripts.Skills.PassiveSkills
                     Debug.LogError("PassiveSkillController: ActivationType is UnitTarget and SelectedTarget is null");
                     break;
                 case SkillActivationType.Instantly:
-                    skillController.Activate(skillOwner);
+                    skillController.Activate();
                     break;
                 case SkillActivationType.WithMapPointTarget:
                     Debug.LogWarning("PassiveSkillController: ActivationType MapPointTarget is not supported");

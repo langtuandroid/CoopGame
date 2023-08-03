@@ -140,7 +140,7 @@ namespace Main.Scripts.Connection
             {
                 SetConnectionStatus(ConnectionStatus.Connected);
 
-                if (runner.IsServer)
+                if (runner.IsSharedModeMasterClient)
                 {
                     InitServer(runner);
                 }
@@ -177,21 +177,24 @@ namespace Main.Scripts.Connection
          */
         private void InitServer(NetworkRunner runner)
         {
-            Debug.Log("Spawning PlayerDataManager");
-            runner.Spawn(
-                prefab: playerDataManagerPrefab,
-                position: Vector3.zero,
-                rotation: Quaternion.identity,
-                inputAuthority: null
-            );
+            if (runner.IsSharedModeMasterClient)
+            {
+                Debug.Log("Spawning PlayerDataManager");
+                runner.Spawn(
+                    prefab: playerDataManagerPrefab,
+                    position: Vector3.zero,
+                    rotation: Quaternion.identity,
+                    inputAuthority: null
+                );
 
-            Debug.Log("Spawning RoomManager");
-            runner.Spawn(
-                prefab: roomManagerPrefab,
-                position: Vector3.zero,
-                rotation: Quaternion.identity,
-                inputAuthority: null
-            );
+                Debug.Log("Spawning RoomManager");
+                runner.Spawn(
+                    prefab: roomManagerPrefab,
+                    position: Vector3.zero,
+                    rotation: Quaternion.identity,
+                    inputAuthority: null
+                );
+            }
         }
     }
 }

@@ -38,9 +38,9 @@ namespace Main.Scripts.Tasks
             OnTaskCheckChangedEvent.RemoveAllListeners();
         }
 
-        public override void OnBeforePhysicsSteps()
+        public override void OnBeforePhysics()
         {
-            if (!Runner.IsServer) return;
+            if (!Runner.IsSharedModeMasterClient) return;
             
             Runner.LagCompensation.OverlapBox(
                 center: transform.position,
@@ -57,7 +57,7 @@ namespace Main.Scripts.Tasks
                 var playerController = hit.GameObject.GetComponent<PlayerController>();
                 if (playerController != null)
                 {
-                    playersInPlace.Add(playerController.GetOwnerRef(), true);
+                    playersInPlace.Add(playerController.Object.StateAuthority, true);
                 }
             }
 

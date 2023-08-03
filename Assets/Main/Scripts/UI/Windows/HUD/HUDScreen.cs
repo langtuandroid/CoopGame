@@ -1,6 +1,7 @@
 ﻿using Main.Scripts.Core.Mvp;
 using Main.Scripts.Core.Resources;
 using Main.Scripts.Levels;
+using Main.Scripts.Room;
 using Main.Scripts.Skills;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.UI.Windows.HUD.HotBar;
@@ -18,6 +19,7 @@ namespace Main.Scripts.UI.Windows.HUD
         private void Awake()
         {
             hotBarView = new HotBarView(GetComponent<UIDocument>());
+            SetVisibility(false);
         }
 
         public void Open()
@@ -25,10 +27,11 @@ namespace Main.Scripts.UI.Windows.HUD
             if (presenter == null)
             {
                 var hotBarIconDataHolder = GlobalResources.Instance.ThrowWhenNull().HotBarIconDataHolder;
+                var runner = RoomManager.Instance.ThrowWhenNull().Runner;
                 var playersHolder = LevelContext.Instance.ThrowWhenNull().PlayersHolder;
-                var skillOwner = playersHolder.Get(playersHolder.Runner.LocalPlayer)
+                var skillOwner = playersHolder.Get(runner.LocalPlayer)
                     .GetInterface<SkillsOwner>().ThrowWhenNull();
-                var tickRate = playersHolder.Runner.Config.Simulation.TickRate;
+                var tickRate = runner.Config.Simulation.TickRate;
 
                 presenter = new HUDPresenterImpl(this, hotBarIconDataHolder, skillOwner, tickRate);
             }

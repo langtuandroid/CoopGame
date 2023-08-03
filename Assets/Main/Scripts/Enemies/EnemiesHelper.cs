@@ -36,10 +36,12 @@ namespace Main.Scripts.Enemies
         {
             targetPosition = Vector3.zero;
             var targetRef = (PlayerRef?)null;
+            //todo allocating in Map
             playerRefs ??= playersHolder.GetKeys().Map(it => it.PlayerId);
             if (cachedTick != runner.Tick)
             {
                 cachedTick = runner.Tick;
+                //todo allocating in Map
                 playerPositions = playerRefs.Map(playerRef => playersHolder.Get(playerRef).transform.position);
             }
 

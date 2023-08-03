@@ -69,7 +69,7 @@ namespace Main.Scripts.Player.Interaction
             var allowedInteractableObject = GetClosestInteractable();
             if (allowedInteractableObject != null)
             {
-                allowedInteractableObject.Interact(owner);
+                allowedInteractableObject.AddInteract(owner);
                 return true;
             }
 

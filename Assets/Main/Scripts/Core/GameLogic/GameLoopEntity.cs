@@ -28,7 +28,15 @@ namespace Main.Scripts.Core.GameLogic
             }
         }
 
-        public virtual void OnBeforePhysicsSteps()
+        public virtual void OnSyncTransformBeforeAll()
+        {
+        }
+
+        public virtual void OnInputPhase()
+        {
+        }
+
+        public virtual void OnBeforePhysics()
         {
         }
 
@@ -41,6 +49,10 @@ namespace Main.Scripts.Core.GameLogic
         }
 
         public virtual void OnAfterPhysicsSteps()
+        {
+        }
+        
+        public virtual void OnSyncTransformAfterAll()
         {
         }
     }

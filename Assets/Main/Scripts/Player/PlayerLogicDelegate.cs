@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Fusion;
 using Main.Scripts.Actions;
+using Main.Scripts.Actions.Data;
 using Main.Scripts.Actions.Health;
 using Main.Scripts.Actions.Interaction;
 using Main.Scripts.Core.CustomPhysics;
@@ -72,6 +73,11 @@ namespace Main.Scripts.Player
 
         private PlayerState lastState = PlayerState.None;
 
+        private List<DamageActionData> damageActions = new();
+        private List<HealActionData> healActions = new();
+        private List<EffectsCombination> effectActions = new();
+        private List<DashActionData> dashActions = new();
+
         public PlayerLogicDelegate(
             ref PlayerConfig config,
             DataHolder dataHolder,
@@ -123,20 +129,6 @@ namespace Main.Scripts.Player
             PassiveSkillsManager.OnValidate(gameObject, ref config.PassiveSkillsConfig);
         }
 
-        public void SetOwnerRef(PlayerRef ownerRef)
-        {
-            ref var data = ref dataHolder.GetPlayerLogicData();
-
-            data.ownerRef = ownerRef;
-        }
-
-        public PlayerRef GetOwnerRef()
-        {
-            ref var data = ref dataHolder.GetPlayerLogicData();
-
-            return data.ownerRef;
-        }
-
         public void Spawned(NetworkObject objectContext)
         {
             this.objectContext = objectContext;
@@ -152,7 +144,7 @@ namespace Main.Scripts.Player
             playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
             playerDataManager.OnPlayerDataChangedEvent.AddListener(OnPlayerDataChanged);
 
-            var playerData = playerDataManager.GetPlayerData(data.ownerRef).ThrowWhenNull();
+            var playerData = playerDataManager.GetPlayerData(objectContext.StateAuthority).ThrowWhenNull();
             ApplyCustomization(playerData.Customization);
 
             healthBar.SetMaxHealth((uint)Math.Max(0, data.maxHealth));
@@ -160,7 +152,7 @@ namespace Main.Scripts.Player
 
             interactionInfoView = new InteractionInfoView(interactionInfoDoc, "F", "Resurrect");
 
-            if (HasInputAuthority(ref data))
+            if (objectContext.HasInputAuthority)
             {
                 findTargetManager = FindTargetManager.Instance.ThrowWhenNull();
             }
@@ -173,12 +165,14 @@ namespace Main.Scripts.Player
 
         private void ResetState()
         {
+            damageActions.Clear();
+            healActions.Clear();
+            effectActions.Clear();
+            dashActions.Clear();
+            
             if (!objectContext.HasStateAuthority) return;
 
             ref var data = ref dataHolder.GetPlayerLogicData();
-
-            activeSkillsManager.SetOwnerRef(data.ownerRef);
-            passiveSkillsManager.SetOwnerRef(data.ownerRef);
 
             data.maxHealth = config.DefaultMaxHealth;
             data.speed = config.DefaultSpeed;
@@ -214,7 +208,7 @@ namespace Main.Scripts.Player
                     if (findTargetManager.State != FindTargetState.SELECTED)
                     {
                         var targetMask = activeSkillsManager.GetSelectionTargetType();
-                        if (findTargetManager.TryActivate(data.ownerRef, targetMask, out var unitTarget))
+                        if (findTargetManager.TryActivate(objectContext.StateAuthority, targetMask, out var unitTarget))
                         {
                             activeSkillsManager.ApplyUnitTarget(unitTarget);
                         }
@@ -237,7 +231,7 @@ namespace Main.Scripts.Player
             ref var data = ref dataHolder.GetPlayerLogicData();
 
             UpdateState(ref data, PlayerState.Active);
-            passiveSkillsManager.OnSpawn(data.ownerRef);
+            passiveSkillsManager.OnSpawn();
         }
 
         public PlayerState GetPlayerState()
@@ -256,12 +250,9 @@ namespace Main.Scripts.Player
                 OnStateChanged(ref data);
             }
 
-            if (objectContext.Runner.IsServer)
-            {
-                objectContext.Runner.AddPlayerAreaOfInterest(data.ownerRef, transform.position + Vector3.forward * 5,
-                    25);
-            }
-
+            //todo move to phase after skill actions
+            ApplyEffects();
+            ApplyDashActions(ref data);
             effectsManager.UpdateEffects();
         }
 
@@ -289,6 +280,17 @@ namespace Main.Scripts.Player
         {
             ref var data = ref dataHolder.GetPlayerLogicData();
 
+            if (objectContext.HasStateAuthority)
+            {
+                objectContext.Runner.AddPlayerAreaOfInterest(objectContext.StateAuthority, transform.position + Vector3.forward * 5,
+                    25);
+            }
+
+            ApplyHealActions(ref data);
+            ApplyDamageActions(ref data);
+            
+            CheckIsDead(ref data);
+
             UpdateAnimationState(ref data);
             
             healthChangeDisplayManager?.OnAfterPhysicsSteps();
@@ -309,18 +311,31 @@ namespace Main.Scripts.Player
             return new Vector3(data.moveDirection.x, 0, data.moveDirection.y);
         }
 
-        public void Move(ref Vector3 velocity)
+        private void Move(ref Vector3 velocity)
         {
             rigidbody.velocity = velocity;
         }
 
-        public void Dash(ref Vector3 direction, float speed, float durationSec)
+        public void AddDash(ref DashActionData data)
         {
-            ref var data = ref dataHolder.GetPlayerLogicData();
+            dashActions.Add(data);
+        }
 
-            data.dashTimer = TickTimer.CreateFromSeconds(objectContext.Runner, durationSec);
-            data.dashDirection = direction;
-            data.dashSpeed = speed;
+        private void ApplyDashActions(ref PlayerLogicData playerLogicData)
+        {
+            for (var i = 0; i < dashActions.Count; i++)
+            {
+                var actionData = dashActions[i];
+                ApplyDash(ref playerLogicData, ref actionData);
+            }
+            dashActions.Clear();
+        }
+
+        private void ApplyDash(ref PlayerLogicData playerLogicData, ref DashActionData actionData)
+        {
+            playerLogicData.dashTimer = TickTimer.CreateFromSeconds(objectContext.Runner, actionData.durationSec);
+            playerLogicData.dashDirection = actionData.direction;
+            playerLogicData.dashSpeed = actionData.speed;
         }
 
         private void ApplyDirections(ref PlayerLogicData data)
@@ -345,9 +360,7 @@ namespace Main.Scripts.Player
 
         private void OnPlayerDataChanged(UserId userId, PlayerData playerData, PlayerData oldPlayerData)
         {
-            ref var data = ref dataHolder.GetPlayerLogicData();
-
-            if (playerDataManager.GetPlayerRef(userId) == data.ownerRef)
+            if (playerDataManager.GetPlayerRef(userId) == objectContext.StateAuthority)
             {
                 ApplyCustomization(playerData.Customization);
             }
@@ -356,11 +369,6 @@ namespace Main.Scripts.Player
         private void ApplyCustomization(CustomizationData customizationData)
         {
             characterCustomization.ApplyCustomizationData(customizationData);
-        }
-
-        private bool HasInputAuthority(ref PlayerLogicData data)
-        {
-            return objectContext.Runner.LocalPlayer == data.ownerRef;
         }
 
         private bool IsActivated(ref PlayerLogicData data)
@@ -372,6 +380,21 @@ namespace Main.Scripts.Player
         {
             return !activeSkillsManager.IsCurrentSkillDisableMove() &&
                    data.dashTimer.ExpiredOrNotRunning(objectContext.Runner);
+        }
+        
+        
+        private void CheckIsDead(ref PlayerLogicData playerLogicData)
+        {
+            if (playerLogicData.health < HEALTH_THRESHOLD)
+            {
+                if (objectContext.HasStateAuthority)
+                {
+                    //todo Вынести проверку в отдельную фазу (как у врагов)
+                    UpdateState(ref playerLogicData, PlayerState.Dead);
+                    //todo мы не можем гарантировать порядок нанесения урона, поэтому не можем определить кто именно нанёс смертельный удар
+                    passiveSkillsManager.OnDead(null);
+                }
+            }
         }
 
         private void UpdateState(ref PlayerLogicData data, PlayerState newState)
@@ -394,14 +417,14 @@ namespace Main.Scripts.Player
                 collider.enabled = true;
             }
 
-            eventListener.OnPlayerStateChanged(data.ownerRef, data.state);
+            eventListener.OnPlayerStateChanged(objectContext.StateAuthority, data.state);
         }
 
         public bool IsInteractionEnabled(PlayerRef playerRef)
         {
             ref var data = ref dataHolder.GetPlayerLogicData();
 
-            if (data.ownerRef == playerRef)
+            if (objectContext.StateAuthority == playerRef)
             {
                 return false;
             }
@@ -409,27 +432,26 @@ namespace Main.Scripts.Player
             return data.state == PlayerState.Dead;
         }
 
-        public void SetInteractionInfoVisibility(PlayerRef player, bool isVisible)
+        public void SetInteractionInfoVisibility(PlayerRef playerRef, bool isVisible)
         {
             interactionInfoView.SetVisibility(isVisible);
         }
 
-        public bool Interact(PlayerRef playerRef)
+        public void AddInteract(PlayerRef playerRef)
         {
             ref var data = ref dataHolder.GetPlayerLogicData();
 
-            if (data.ownerRef == playerRef)
+            if (objectContext.InputAuthority == playerRef)
             {
                 throw new Exception("Invalid state interact");
             }
 
             if (data.state != PlayerState.Dead)
             {
-                return false;
+                return;
             }
 
             Respawn();
-            return true;
         }
 
         public void ActivateSkill(ActiveSkillType type)
@@ -585,52 +607,89 @@ namespace Main.Scripts.Player
             return data.health;
         }
 
-        public void ApplyDamage(float damage, NetworkObject? damageOwner)
+        public void AddDamage(ref DamageActionData data)
         {
-            ref var data = ref dataHolder.GetPlayerLogicData();
+            damageActions.Add(data);
+        }
 
-            if (!IsActivated(ref data)) return;
-
-            passiveSkillsManager.OnTakenDamage(data.ownerRef, damage, damageOwner);
-
-            if (data.health - damage < HEALTH_THRESHOLD)
+        private void ApplyDamageActions(ref PlayerLogicData playerLogicData)
+        {
+            if (!IsActivated(ref playerLogicData) || playerLogicData.state == PlayerState.Dead)
             {
-                data.health = 0;
-                if (objectContext.HasStateAuthority)
-                {
-                    UpdateState(ref data, PlayerState.Dead);
-                    passiveSkillsManager.OnDead(data.ownerRef, damageOwner);
-                }
+                damageActions.Clear();
+                return;
+            }
+            
+            for (var i = 0; i < damageActions.Count; i++)
+            {
+                var actionData = damageActions[i];
+                ApplyDamage(ref playerLogicData, ref actionData);
+            }
+            damageActions.Clear();
+        }
+
+        private void ApplyDamage(ref PlayerLogicData playerLogicData, ref DamageActionData actionData)
+        {
+            passiveSkillsManager.OnTakenDamage(actionData.damageValue, actionData.damageOwner);
+
+            if (playerLogicData.health - actionData.damageValue < HEALTH_THRESHOLD)
+            {
+                playerLogicData.health = 0;
             }
             else
             {
-                data.health -= damage;
+                playerLogicData.health -= actionData.damageValue;
             }
 
             if (healthChangeDisplayManager != null)
             {
-                healthChangeDisplayManager.ApplyDamage(damage);
+                healthChangeDisplayManager.ApplyDamage(actionData.damageValue);
             }
         }
 
-        public void ApplyHeal(float healValue, NetworkObject? healOwner)
+        public void AddHeal(ref HealActionData data)
         {
-            ref var data = ref dataHolder.GetPlayerLogicData();
+            healActions.Add(data);
+        }
 
-            if (!IsActivated(ref data) || data.state == PlayerState.Dead) return;
+        private void ApplyHealActions(ref PlayerLogicData playerLogicData)
+        {
+            if (!IsActivated(ref playerLogicData) || playerLogicData.state == PlayerState.Dead)
+            {
+                healActions.Clear();
+                return;
+            }
 
-            data.health = Math.Min(data.health + healValue, data.maxHealth);
+            for (var i = 0; i < healActions.Count; i++)
+            {
+                var actionData = healActions[i];
+                ApplyHeal(ref playerLogicData, ref actionData);
+            }
+            healActions.Clear();
+        }
 
-            passiveSkillsManager.OnTakenHeal(data.ownerRef, healValue, healOwner);
+        private void ApplyHeal(ref PlayerLogicData playerLogicData, ref HealActionData actionData)
+        {
+            playerLogicData.health = Math.Min(playerLogicData.health + actionData.healValue, playerLogicData.maxHealth);
+
+            passiveSkillsManager.OnTakenHeal(objectContext.StateAuthority, actionData.healValue, actionData.healOwner);
             if (healthChangeDisplayManager != null)
             {
-                healthChangeDisplayManager.ApplyHeal(healValue);
+                healthChangeDisplayManager.ApplyHeal(actionData.healValue);
             }
         }
 
-        public void ApplyEffects(EffectsCombination effectsCombination)
+        public void AddEffects(EffectsCombination effectsCombination)
         {
-            effectsManager.AddEffects(effectsCombination.Effects);
+            effectActions.Add(effectsCombination);
+        }
+
+        private void ApplyEffects()
+        {
+            foreach (var effectsCombination in effectActions)
+            {
+                effectsManager.AddEffects(effectsCombination.Effects);
+            }
         }
 
         public void OnPickUp(DropType dropType)

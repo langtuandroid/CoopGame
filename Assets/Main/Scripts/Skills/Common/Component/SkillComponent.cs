@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Actions;
+using Main.Scripts.Actions.Data;
 using Main.Scripts.Actions.Health;
 using Main.Scripts.Core.CustomPhysics;
 using Main.Scripts.Core.GameLogic;
@@ -161,8 +162,10 @@ namespace Main.Scripts.Skills.Common.Component
 
         }
 
-        public override void OnBeforePhysicsSteps()
+        public override void OnBeforePhysics()
         {
+            if (!HasStateAuthority) return;
+            
             if (isFinished)
             {
                 if (destroyAfterFinishTimer.Expired(Runner))
@@ -194,6 +197,7 @@ namespace Main.Scripts.Skills.Common.Component
                 var shouldDontDestroyIfNeed = !shouldStop || skillConfig.DontDestroyAfterStopAction;
                 if (shouldDontDestroyIfNeed)
                 {
+                    //todo вынести в Render проверку стейта
                     OnFinishEvent.Invoke();
                 }
 
@@ -363,6 +367,8 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void CheckCollisionTrigger()
         {
+            if (!HasStateAuthority) return;
+            
             if (actionTrigger is CollisionSkillActionTrigger collisionTrigger)
             {
                 Runner.LagCompensation.OverlapSphere(
@@ -383,6 +389,7 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void ExecuteActions()
         {
+            //todo вынести в Render проверку стейта
             OnActionEvent.Invoke();
 
             activatedTriggersCount++;
@@ -404,44 +411,58 @@ namespace Main.Scripts.Skills.Common.Component
 
                         foreach (var effectsCombination in applyEffectsAction.EffectsCombinations)
                         {
-                            affectable.ApplyEffects(effectsCombination);
+                            affectable.AddEffects(effectsCombination);
                         }
 
                         break;
                     case DamageSkillAction damageAction
                         when actionTarget.TryGetInterface<Damageable>(out var damageable):
-
-                        damageable.ApplyDamage(damageAction.DamageValue, selfUnit);
+                        var damageActionData = new DamageActionData
+                        {
+                            damageOwner = selfUnit,
+                            damageValue = damageAction.DamageValue
+                        };
+                        damageable.AddDamage(ref damageActionData);
 
                         break;
                     case ForceSkillAction forceAction
                         when actionTarget.TryGetInterface(out ObjectWithGettingKnockBack knockable):
 
                         var direction = actionTarget.transform.position - transform.position;
-                        knockable.ApplyKnockBack(direction.normalized * forceAction.ForceValue);
+                        var knockBackActionData = new KnockBackActionData { direction = direction.normalized * forceAction.ForceValue };
+                        knockable.AddKnockBack(ref knockBackActionData);
 
                         break;
                     case HealSkillAction healAction
                         when actionTarget.TryGetInterface<Healable>(out var healable):
-
-                        healable.ApplyHeal(healAction.HealValue, selfUnit);
+                        var healActionData = new HealActionData
+                        {
+                            healOwner = selfUnit,
+                            healValue = healAction.HealValue
+                        };
+                        healable.AddHeal(ref healActionData);
 
                         break;
                     case DashSkillAction dashAction
                         when actionTarget.TryGetInterface<Dashable>(out var dashable):
 
                         var directionByType = GetDirectionByType(dashAction.DirectionType);
-                        dashable.Dash(
-                            direction: ref directionByType,
-                            speed: dashAction.Speed,
-                            durationSec: dashAction.DurationSec
-                        );
+                        var dashActionData = new DashActionData
+                        {
+                            direction = directionByType,
+                            speed = dashAction.Speed,
+                            durationSec = dashAction.DurationSec
+                        };
+                        dashable.AddDash(ref dashActionData);
 
                         break;
                     case StunSkillAction stunAction
                         when actionTarget.TryGetInterface(out ObjectWithGettingStun stunnable):
-
-                        stunnable.ApplyStun(stunAction.DurationSec);
+                        var stunActionData = new StunActionData
+                        {
+                            durationSec = stunAction.DurationSec
+                        };
+                        stunnable.AddStun(ref stunActionData);
 
                         break;
                 }

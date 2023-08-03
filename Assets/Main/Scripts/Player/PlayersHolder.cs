@@ -1,78 +1,49 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Fusion;
-using Main.Scripts.Utils;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace Main.Scripts.Player
 {
-    public class PlayersHolder : NetworkBehaviour
+    public class PlayersHolder : MonoBehaviour
     {
-        [Networked(OnChanged = nameof(OnPlayerObjectsChanged)), Capacity(16)]
-        private NetworkDictionary<PlayerRef, NetworkObject> playerObjects => default;
-
-        private Dictionary<int, PlayerController> cachedPlayerControllers = new();
+        private Dictionary<PlayerRef, PlayerController> playerControllers = new();
 
         public UnityEvent OnChangedEvent = default!;
 
         public void Add(PlayerRef playerRef, PlayerController playerController)
         {
-            if (playerObjects.ContainsKey(playerRef))
+            if (playerControllers.ContainsKey(playerRef))
             {
                 throw new Exception("Player controller is already cashed");
             }
 
-            playerObjects.Add(playerRef, playerController.Object);
-            cachedPlayerControllers.Add(playerRef, playerController);
+            playerControllers.Add(playerRef, playerController);
+            OnChangedEvent.Invoke();
         }
 
         public bool Contains(PlayerRef playerRef)
         {
-            return playerObjects.ContainsKey(playerRef) && playerObjects[playerRef] != null;
+            return playerControllers.ContainsKey(playerRef);
         }
 
         public PlayerController Get(PlayerRef playerRef)
         {
-            return Get(playerRef.PlayerId);
-        }
-
-        public PlayerController Get(int playerRef)
-        {
-            if (!cachedPlayerControllers.ContainsKey(playerRef))
-            {
-                var networkObject = playerObjects[playerRef].ThrowWhenNull();
-                cachedPlayerControllers[playerRef] = networkObject.GetComponent<PlayerController>().ThrowWhenNull();
-            }
-
-            return cachedPlayerControllers[playerRef];
+            return playerControllers[playerRef];
         }
 
         public void Remove(PlayerRef playerRef)
         {
-            playerObjects.Remove(playerRef);
-            cachedPlayerControllers.Remove(playerRef.PlayerId);
+            playerControllers.Remove(playerRef);
+            OnChangedEvent.Invoke();
         }
 
-        public List<PlayerRef> GetKeys(bool isValueContains = true)
+        public List<PlayerRef> GetKeys()
         {
-            var list = new List<PlayerRef>();
-            foreach (var (playerRef, _) in playerObjects)
-            {
-                if (!isValueContains || Contains(playerRef))
-                {
-                    list.Add(playerRef);
-                }
-            }
-
-            return list;
-        }
-
-        public static void OnPlayerObjectsChanged(Changed<PlayersHolder> changed)
-        {
-            if (changed.Behaviour)
-            {
-                changed.Behaviour.OnChangedEvent.Invoke();
-            }
+            //todo allocating
+            return playerControllers.Keys.ToList();
         }
     }
 }

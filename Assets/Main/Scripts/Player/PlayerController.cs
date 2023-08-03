@@ -1,13 +1,21 @@
 using System;
 using System.Collections.Generic;
 using Fusion;
+using Main.Scripts.Actions;
+using Main.Scripts.Actions.Data;
+using Main.Scripts.Actions.Health;
+using Main.Scripts.Actions.Interaction;
 using Main.Scripts.Core.Architecture;
 using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Core.Resources;
+using Main.Scripts.Core.Simulation;
 using Main.Scripts.Customization;
+using Main.Scripts.Drop;
 using Main.Scripts.Effects;
 using Main.Scripts.Gui.HealthChangeDisplay;
+using Main.Scripts.Levels;
 using Main.Scripts.Skills.ActiveSkills;
+using Main.Scripts.UI.Windows.HUD;
 using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.Events;
@@ -17,14 +25,26 @@ namespace Main.Scripts.Player
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(Animator))]
     public class PlayerController : GameLoopEntity,
+        IAfterSpawned,
         InterfacesHolder,
         PlayerLogicDelegate.DataHolder,
-        PlayerLogicDelegate.EventListener
+        PlayerLogicDelegate.EventListener,
+        Damageable,
+        Healable,
+        Affectable,
+        ObjectWithPickUp,
+        Interactable,
+        Dashable
     {
         private Dictionary<Type, Component> cachedComponents = new();
 
         [SerializeField]
         private PlayerConfig playerConfig = PlayerConfig.GetDefault();
+
+        private ReceiveTicksManager receiveTicksManager = default!;
+        private EffectsBank effectsBank = default!;
+        private PlayersHolder playersHolder = default!;
+        private HUDScreen hudScreen = default!;
 
         [Networked]
         private ref PlayerLogicData playerLogicData => ref MakeRef<PlayerLogicData>();
@@ -55,6 +75,8 @@ namespace Main.Scripts.Player
 
         void Awake()
         {
+            receiveTicksManager = GetComponent<ReceiveTicksManager>();
+            
             cachedComponents[typeof(Transform)] = GetComponent<Transform>();
             cachedComponents[typeof(Rigidbody)] = GetComponent<Rigidbody>();
             cachedComponents[typeof(Collider)] = GetComponent<Collider>();
@@ -82,18 +104,21 @@ namespace Main.Scripts.Player
         public override void Spawned()
         {
             base.Spawned();
-            cachedComponents[typeof(EffectsBank)] = GlobalResources.Instance.ThrowWhenNull().EffectsBank;
+            effectsBank = GlobalResources.Instance.ThrowWhenNull().EffectsBank;
+            cachedComponents[typeof(EffectsBank)] = effectsBank;
             playerLogicDelegate.Spawned(Object);
+            
+            playersHolder = levelContext.PlayersHolder;
+            hudScreen = levelContext.HudScreen;
         }
 
-        public void SetOwnerRef(PlayerRef ownerRef)
+        public void AfterSpawned()
         {
-            playerLogicDelegate.SetOwnerRef(ownerRef);
-        }
-
-        public PlayerRef GetOwnerRef()
-        {
-            return playerLogicDelegate.GetOwnerRef();
+            playersHolder.Add(Object.StateAuthority, this);
+            if (HasStateAuthority)
+            {
+                hudScreen.Open();
+            }
         }
 
         public void Respawn()
@@ -104,10 +129,18 @@ namespace Main.Scripts.Player
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
             base.Despawned(runner, hasState);
+            effectsBank = default!;
             cachedComponents.Remove(typeof(EffectsBank));
 
             OnPlayerStateChangedEvent.RemoveAllListeners();
             playerLogicDelegate.Despawned(runner, hasState);
+            
+            playersHolder.Remove(Object.StateAuthority);
+
+            if (HasStateAuthority && hudScreen != null)
+            {
+                hudScreen.Close();
+            }
         }
 
         public override void Render()
@@ -125,7 +158,7 @@ namespace Main.Scripts.Player
             return playerLogicDelegate.GetPlayerState();
         }
 
-        public override void OnBeforePhysicsSteps()
+        public override void OnBeforePhysics()
         {
             playerLogicDelegate.OnBeforePhysicsSteps();
         }
@@ -197,9 +230,19 @@ namespace Main.Scripts.Player
 
         public T? GetInterface<T>()
         {
+            if (this is T typedThis)
+            {
+                return typedThis;
+            }
+            
             if (playerLogicDelegate is T typed)
             {
                 return typed;
+            }
+
+            if (receiveTicksManager is T receiveTicksManagerTyped)
+            {
+                return receiveTicksManagerTyped;
             }
 
             return default;
@@ -207,14 +250,129 @@ namespace Main.Scripts.Player
 
         public bool TryGetInterface<T>(out T typed)
         {
+            if (this is T typedThis)
+            {
+                typed = typedThis;
+                return true;
+            }
+            
             if (playerLogicDelegate is T typedDelegate)
             {
                 typed = typedDelegate;
                 return true;
             }
+            
+            if (receiveTicksManager is T receiveTicksManagerTyped)
+            {
+                typed = receiveTicksManagerTyped;
+                return true;
+            }
 
             typed = default!;
             return false;
+        }
+
+        public float GetMaxHealth()
+        {
+            return playerLogicDelegate.GetMaxHealth();
+        }
+
+        public float GetCurrentHealth()
+        {
+            return playerLogicDelegate.GetCurrentHealth();
+        }
+        
+        public void AddDamage(ref DamageActionData data)
+        {
+            RPC_AddDamage(data.damageOwner, data.damageValue);
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        private void RPC_AddDamage(NetworkId damageOwnerId, float damageValue)
+        {
+            //todo NetworkId and get from registered <NetworkId, NetworkObject> map
+            var data = new DamageActionData
+            {
+                damageOwner = Runner.FindObject(damageOwnerId),
+                damageValue = damageValue
+            };
+            playerLogicDelegate.AddDamage(ref data);
+        }
+
+        public void AddHeal(ref HealActionData data)
+        {
+            RPC_AddHeal(data.healOwner, data.healValue);
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        private void RPC_AddHeal(NetworkId healOwner, float healValue)
+        {
+            var data = new HealActionData
+            {
+                healOwner = Runner.FindObject(healOwner),
+                healValue = healValue
+            };
+            playerLogicDelegate.AddHeal(ref data);
+        }
+
+        public void AddEffects(EffectsCombination effectsCombination)
+        {
+            RPC_AddEffects(effectsBank.GetEffectsCombinationId(effectsCombination));
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        private void RPC_AddEffects(int effectsCombinationId)
+        {
+            playerLogicDelegate.AddEffects(effectsBank.GetEffectsCombination(effectsCombinationId));
+        }
+
+        public void OnPickUp(DropType dropType)
+        {
+           RPC_OnPickUp(dropType);
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        private void RPC_OnPickUp(DropType dropType)
+        {
+            playerLogicDelegate.OnPickUp(dropType);
+        }
+
+        public bool IsInteractionEnabled(PlayerRef playerRef)
+        {
+            return playerLogicDelegate.IsInteractionEnabled(playerRef);
+        }
+
+        public void SetInteractionInfoVisibility(PlayerRef playerRef, bool isVisible)
+        {
+            playerLogicDelegate.SetInteractionInfoVisibility(playerRef, isVisible);
+        }
+
+        public void AddInteract(PlayerRef playerRef)
+        {
+            RPC_AddInteract(playerRef);
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        private void RPC_AddInteract(PlayerRef playerRef)
+        {
+            playerLogicDelegate.AddInteract(playerRef);
+        }
+
+        public void AddDash(ref DashActionData data)
+        {
+            RPC_AddDash(data.direction, data.speed, data.durationSec);
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        private void RPC_AddDash(Vector3 direction, float speed, float durationSec)
+        {
+            var data = new DashActionData
+            {
+                direction = direction,
+                speed = speed,
+                durationSec = durationSec
+            };
+            playerLogicDelegate.AddDash(ref data);
         }
     }
 }

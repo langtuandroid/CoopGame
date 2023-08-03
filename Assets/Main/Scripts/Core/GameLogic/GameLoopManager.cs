@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Core.CustomPhysics;
 using Main.Scripts.Utils;
+using UnityEngine;
 using UnityEngine.Profiling;
 
 namespace Main.Scripts.Core.GameLogic
@@ -29,60 +30,21 @@ namespace Main.Scripts.Core.GameLogic
 
         public override void FixedUpdateNetwork()
         {
+            //todo Выключать симуляцию при переходах между сценами
             Profiler.BeginSample("GameLoopManager::FUN");
-            UpdateListeners();
+
+            SyncTransformBeforeAllPhase();
+
+            InputPhase();
+
+            BeforePhysicsPhase();
             
-            Profiler.BeginSample("GameLoopManager::OnBeforePhysicsSteps");
-            foreach (var listener in listenersSet)
-            {
-                if (!removedListenersSet.Contains(listener))
-                {
-                    listener.OnBeforePhysicsSteps();
-                }
-            }
-            Profiler.EndSample();
+            PhysicsPhase();
+
+            AfterPhysicsPhase();
+
+            SyncTransformAfterAllPhase();
             
-            UpdateListeners();
-            for (var i = 0; i < physicsManager.StepsByTick; i++)
-            {
-                UpdateListeners();
-                Profiler.BeginSample("GameLoopManager::OnBeforePhysicsStep");
-                foreach (var listener in listenersSet)
-                {
-                    if (!removedListenersSet.Contains(listener))
-                    {
-                        listener.OnBeforePhysicsStep();
-                    }
-                }
-                Profiler.EndSample();
-
-
-                Profiler.BeginSample("GameLoopManager::Simulate");
-                physicsManager.Simulate();
-                Profiler.EndSample();
-                
-                UpdateListeners();
-                Profiler.BeginSample("GameLoopManager::OnAfterPhysicsStep");
-                foreach (var listener in listenersSet)
-                {
-                    if (!removedListenersSet.Contains(listener))
-                    {
-                        listener.OnAfterPhysicsStep();
-                    }
-                }
-                Profiler.EndSample();
-            }
-
-            UpdateListeners();
-            Profiler.BeginSample("GameLoopManager::OnAfterPhysicsSteps");
-            foreach (var listener in listenersSet)
-            {
-                if (!removedListenersSet.Contains(listener))
-                {
-                    listener.OnAfterPhysicsSteps();
-                }
-            }
-            Profiler.EndSample();
             Profiler.EndSample();
         }
 
@@ -109,6 +71,125 @@ namespace Main.Scripts.Core.GameLogic
                 listenersSet.Add(listener);
             }
             addedListenersSet.Clear();
+        }
+
+        private void InputPhase()
+        {
+            UpdateListeners();
+            
+            Profiler.BeginSample("GameLoopManager::InputPhase");
+            foreach (var listener in listenersSet)
+            {
+                if (!removedListenersSet.Contains(listener))
+                {
+                    listener.OnInputPhase();
+                }
+            }
+            Profiler.EndSample();
+        }
+
+        private void SyncTransformBeforeAllPhase()
+        {
+            UpdateListeners();
+            
+            Profiler.BeginSample("GameLoopManager::SyncTransformBeforeAllPhase");
+            foreach (var listener in listenersSet)
+            {
+                if (!removedListenersSet.Contains(listener))
+                {
+                    listener.OnSyncTransformBeforeAll();
+                }
+            }
+            Profiler.EndSample();
+        }
+
+        private void SyncTransformAfterAllPhase()
+        {
+            UpdateListeners();
+            
+            Profiler.BeginSample("GameLoopManager::SyncTransformAfterAllPhase");
+            foreach (var listener in listenersSet)
+            {
+                if (!removedListenersSet.Contains(listener))
+                {
+                    listener.OnSyncTransformAfterAll();
+                }
+            }
+            Profiler.EndSample();
+        }
+
+        private void BeforePhysicsPhase()
+        {
+            UpdateListeners();
+            
+            Profiler.BeginSample("GameLoopManager::BeforePhysicsPhase");
+            foreach (var listener in listenersSet)
+            {
+                if (!removedListenersSet.Contains(listener))
+                {
+                    listener.OnBeforePhysics();
+                }
+            }
+            Profiler.EndSample();
+        }
+
+        private void PhysicsPhase()
+        {
+            UpdateListeners();
+            for (var i = 0; i < physicsManager.StepsByTick; i++)
+            {
+                BeforePhysicsStepPhase();
+
+                // Debug.Log($"Physics step simulation: LocalTick={Runner.Tick}");
+                Profiler.BeginSample("GameLoopManager::Simulate");
+                Physics.SyncTransforms(); //todo поресёрчить что именно синкает и в какую сторону (rigidbody.position в ransform.position или наоборот)
+                physicsManager.Simulate();
+                Profiler.EndSample();
+                
+                AfterPhysicsStepPhase();
+            }
+        }
+
+        private void BeforePhysicsStepPhase()
+        {
+            UpdateListeners();
+            Profiler.BeginSample("GameLoopManager::BeforePhysicsStepPhase");
+            foreach (var listener in listenersSet)
+            {
+                if (!removedListenersSet.Contains(listener))
+                {
+                    listener.OnBeforePhysicsStep();
+                }
+            }
+            Profiler.EndSample();
+        }
+
+        private void AfterPhysicsStepPhase()
+        {
+            UpdateListeners();
+            Profiler.BeginSample("GameLoopManager::AfterPhysicsStepPhase");
+            foreach (var listener in listenersSet)
+            {
+                if (!removedListenersSet.Contains(listener))
+                {
+                    listener.OnAfterPhysicsStep();
+                }
+            }
+            Profiler.EndSample();
+        }
+
+        private void AfterPhysicsPhase()
+        {
+            UpdateListeners();
+            Profiler.BeginSample("GameLoopManager::AfterPhysicsPhase");
+            foreach (var listener in listenersSet)
+            {
+                if (!removedListenersSet.Contains(listener))
+                {
+                    listener.OnAfterPhysicsSteps();
+                }
+            }
+            Profiler.EndSample();
         }
     }
 }

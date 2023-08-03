@@ -65,12 +65,12 @@ namespace Main.Scripts.UI.MainMenu
 
         private void OnCreateServerClicked()
         {
-            OnEnterRoom(GameMode.Host);
+            OnEnterRoom(GameMode.Shared);
         }
 
         private void OnConnectClientClicked()
         {
-            OnEnterRoom(GameMode.Client);
+            OnEnterRoom(GameMode.Shared);
         }
 
         private void OnEnterRoom(GameMode gameMode)

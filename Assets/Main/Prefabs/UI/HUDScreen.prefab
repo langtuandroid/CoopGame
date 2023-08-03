@@ -31,7 +31,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6667076347346972803
 MonoBehaviour:
@@ -60,4 +60,4 @@ MonoBehaviour:
   m_PanelSettings: {fileID: 11400000, guid: ff5d13696078d1a419dd813d0bcdedd1, type: 2}
   m_ParentUI: {fileID: 0}
   sourceAsset: {fileID: 9197481963319205126, guid: bc3492ae89129fc48b14d5392eb66c88, type: 3}
-  m_SortingOrder: 0
+  m_SortingOrder: -99

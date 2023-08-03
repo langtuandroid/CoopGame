@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Actions;
+using Main.Scripts.Actions.Data;
 using Main.Scripts.Actions.Health;
 using Main.Scripts.Core.CustomPhysics;
 using Main.Scripts.Effects;
@@ -56,6 +58,12 @@ namespace Main.Scripts.Enemies
 
         private int nextNavPathCornerIndex;
         private float sqrAttackDistance;
+
+        private List<KnockBackActionData> knockBackActions = new();
+        private List<StunActionData> stunActions = new();
+        private List<DamageActionData> damageActions = new();
+        private List<HealActionData> healActions = new();
+        private List<EffectsCombination> effectActions = new();
 
         public EnemyLogicDelegate(
             ref EnemyConfig config,
@@ -117,9 +125,6 @@ namespace Main.Scripts.Enemies
             effectsManager.Spawned(objectContext);
             activeSkillsManager.Spawned(objectContext);
             healthChangeDisplayManager?.Spawned(objectContext);
-
-            activeSkillsManager.SetOwnerRef(objectContext.InputAuthority);
-            passiveSkillsManager.SetOwnerRef(objectContext.InputAuthority);
         }
 
         public void Despawned(NetworkRunner runner, bool hasState)
@@ -147,6 +152,12 @@ namespace Main.Scripts.Enemies
 
             enemyData.isDead = false;
             currentAnimationState = EnemyAnimationState.None;
+
+            knockBackActions.Clear();
+            stunActions.Clear();
+            damageActions.Clear();
+            healActions.Clear();
+            effectActions.Clear();
         }
 
         public void Render()
@@ -155,7 +166,7 @@ namespace Main.Scripts.Enemies
 
             healthBar.SetMaxHealth((uint)enemyData.maxHealth);
             healthBar.SetHealth((uint)enemyData.health);
-            
+
             healthChangeDisplayManager?.Render();
         }
 
@@ -163,41 +174,18 @@ namespace Main.Scripts.Enemies
         {
             ref var enemyData = ref dataHolder.GetEnemyData();
 
-            if (CheckIsDead(ref enemyData)) return;
             Profiler.BeginSample("EnemyLogicDelegate::OnBeforePhysicsSteps");
 
-            Profiler.BeginSample("UpdateEffects");
-            effectsManager.UpdateEffects();
-            Profiler.EndSample();
-
             Profiler.BeginSample("Enemy logic");
-            if (!CheckIsDead(ref enemyData) && objectContext.HasStateAuthority && CanMoveByController(ref enemyData))
-            {
-                var targetRef =
-                    enemiesHelper.FindPlayerTarget(objectContext.Runner, transform.position, out var targetPosition);
-                if (targetRef != null)
-                {
-                    enemyData.targetPlayerRef = targetRef.Value;
-                    var sqrDistanceToTarget = Vector3.SqrMagnitude(transform.position - targetPosition);
-
-                    if (sqrDistanceToTarget > sqrAttackDistance)
-                    {
-                        UpdateDestination(ref enemyData, targetPosition);
-                    }
-                    else
-                    {
-                        UpdateDestination(ref enemyData, null);
-                        transform.LookAt(targetPosition);
-                        FireWeapon();
-                    }
-                }
-                else
-                {
-                    UpdateDestination(ref enemyData, null);
-                }
-            }
+            UpdateTickLogic(ref enemyData);
 
             Profiler.EndSample();
+
+            Profiler.BeginSample("UpdateEffects");
+            ApplyEffects(ref enemyData);
+
+            Profiler.EndSample();
+
 
             Profiler.EndSample();
         }
@@ -206,50 +194,11 @@ namespace Main.Scripts.Enemies
         {
             ref var enemyData = ref dataHolder.GetEnemyData();
 
-            if (CheckIsDead(ref enemyData) || !objectContext.HasStateAuthority ||
-                !CanMoveByController(ref enemyData)) return;
             Profiler.BeginSample("EnemyController::OnBeforePhysicsStep");
-
-            var curPosition = transform.position;
-            var curNavigationTarget = enemyData.navigationTarget;
-
-            enemiesHelper.StartCalculatePath(ref objectContext.Id, curPosition, curNavigationTarget);
-
-            //Can allocate on calculate corners internal
-            var newPathCorners = enemiesHelper.GetPathCorners(ref objectContext.Id);
-            if (newPathCorners.Length > 0)
-            {
-                pathCorners = newPathCorners;
-                nextNavPathCornerIndex = 1;
-            }
-
-            if (nextNavPathCornerIndex < pathCorners.Length)
-            {
-                if (Vector3.SqrMagnitude(pathCorners[nextNavPathCornerIndex] - transform.position) <
-                    0.04f) //threshold delta
-                {
-                    nextNavPathCornerIndex++;
-                }
-            }
-
-
-            var direction = (nextNavPathCornerIndex < pathCorners.Length
-                    ? pathCorners[nextNavPathCornerIndex]
-                    : curNavigationTarget
-                ) - curPosition;
-
-            direction = new Vector3(direction.x, 0, direction.z);
-            transform.LookAt(curPosition + direction);
-            var currentVelocity = rigidbody.velocity;
-            if (currentVelocity.sqrMagnitude < enemyData.speed * enemyData.speed)
-            {
-                var deltaVelocity = enemyData.speed * direction.normalized - currentVelocity;
-                var deltaVelocityMagnitude = deltaVelocity.magnitude;
-                rigidbody.velocity = currentVelocity +
-                                     Mathf.Min(moveAcceleration * PhysicsManager.DeltaTime / deltaVelocityMagnitude,
-                                         1f) *
-                                     deltaVelocity;
-            }
+            ApplyKnockBackActions(ref enemyData);
+            ApplyStunActions(ref enemyData);
+            //todo заменить velocity на AddForce и переместить просчёт пути в конец
+            ApplyPathMoving(ref enemyData);
 
             Profiler.EndSample();
         }
@@ -258,22 +207,56 @@ namespace Main.Scripts.Enemies
         {
             ref var enemyData = ref dataHolder.GetEnemyData();
 
+            ApplyHealActions(ref enemyData);
+            ApplyDamageActions(ref enemyData);
+
+            var runner = objectContext.Runner;
+            var localPlayerInterestPoints = enemyData.playerInterestPoints[runner.LocalPlayer];
+
+            if (!objectContext.HasStateAuthority)
+            {
+                if (!objectContext.StateAuthority.IsValid ||
+                    localPlayerInterestPoints > enemyData.playerInterestPoints[objectContext.StateAuthority.PlayerId])
+                {
+                    // objectContext.RequestStateAuthority();
+                }
+
+                return;
+            }
+
             if (CheckIsDead(ref enemyData))
             {
                 return;
             }
 
             UpdateAnimationState(ref enemyData);
-            
+
             healthChangeDisplayManager?.OnAfterPhysicsSteps();
+
+            foreach (var playerRef in runner.ActivePlayers)
+            {
+                if (enemyData.playerInterestPoints[playerRef.PlayerId] >
+                    localPlayerInterestPoints)
+                {
+                    // objectContext.ReleaseStateAuthority();
+                    break;
+                }
+            }
         }
 
+        /**
+         * Must be called only one time
+         */
         private bool CheckIsDead(ref EnemyData enemyData)
         {
             if (enemyData.isDead)
             {
-                eventListener.OnEnemyDead();
-                objectContext.Runner.Despawn(objectContext);
+                if (objectContext.HasStateAuthority)
+                {
+                    eventListener.OnEnemyDead();
+                    objectContext.Runner.Despawn(objectContext);
+                }
+
                 return true;
             }
 
@@ -329,6 +312,79 @@ namespace Main.Scripts.Enemies
             }
         }
 
+        private void UpdateTickLogic(ref EnemyData enemyData)
+        {
+            if (!objectContext.HasStateAuthority || enemyData.isDead || !CanMoveByController(ref enemyData)) return;
+
+            var targetRef =
+                enemiesHelper.FindPlayerTarget(objectContext.Runner, transform.position, out var targetPosition);
+            if (targetRef != null)
+            {
+                enemyData.targetPlayerRef = targetRef.Value;
+                var sqrDistanceToTarget = Vector3.SqrMagnitude(transform.position - targetPosition);
+
+                if (sqrDistanceToTarget > sqrAttackDistance)
+                {
+                    UpdateDestination(ref enemyData, targetPosition);
+                }
+                else
+                {
+                    UpdateDestination(ref enemyData, null);
+                    transform.LookAt(targetPosition);
+                    FireWeapon();
+                }
+            }
+            else
+            {
+                UpdateDestination(ref enemyData, null);
+            }
+        }
+
+        private void ApplyPathMoving(ref EnemyData enemyData)
+        {
+            if (!objectContext.HasStateAuthority || enemyData.isDead || !CanMoveByController(ref enemyData)) return;
+
+            var curPosition = transform.position;
+            var curNavigationTarget = enemyData.navigationTarget;
+
+            enemiesHelper.StartCalculatePath(ref objectContext.Id, curPosition, curNavigationTarget);
+
+            //Can allocate on calculate corners internal
+            var newPathCorners = enemiesHelper.GetPathCorners(ref objectContext.Id);
+            if (newPathCorners.Length > 0)
+            {
+                pathCorners = newPathCorners;
+                nextNavPathCornerIndex = 1;
+            }
+
+            if (nextNavPathCornerIndex < pathCorners.Length)
+            {
+                if (Vector3.SqrMagnitude(pathCorners[nextNavPathCornerIndex] - transform.position) <
+                    0.04f) //threshold delta
+                {
+                    nextNavPathCornerIndex++;
+                }
+            }
+
+            var direction = (nextNavPathCornerIndex < pathCorners.Length
+                    ? pathCorners[nextNavPathCornerIndex]
+                    : curNavigationTarget
+                ) - curPosition;
+
+            direction = new Vector3(direction.x, 0, direction.z);
+            transform.LookAt(curPosition + direction);
+            var currentVelocity = rigidbody.velocity;
+            if (currentVelocity.sqrMagnitude < enemyData.speed * enemyData.speed)
+            {
+                var deltaVelocity = enemyData.speed * direction.normalized - currentVelocity;
+                var deltaVelocityMagnitude = deltaVelocity.magnitude;
+                rigidbody.velocity = currentVelocity +
+                                     Mathf.Min(moveAcceleration * PhysicsManager.DeltaTime / deltaVelocityMagnitude,
+                                         1f) *
+                                     deltaVelocity;
+            }
+        }
+
         private void UpdateDestination(ref EnemyData enemyData, Vector3? destination)
         {
             enemyData.navigationTarget = destination ?? transform.position;
@@ -363,55 +419,161 @@ namespace Main.Scripts.Enemies
             return enemyData.health;
         }
 
-        public void ApplyHeal(float healValue, NetworkObject? healOwner)
+        public void AddHeal(ref HealActionData data)
         {
-            ref var enemyData = ref dataHolder.GetEnemyData();
-            if (enemyData.isDead) return;
+            healActions.Add(data);
+        }
 
-            enemyData.health = Math.Min(enemyData.health + healValue, enemyData.maxHealth);
+        private void ApplyHealActions(ref EnemyData enemyData)
+        {
+            if (enemyData.isDead)
+            {
+                healActions.Clear();
+                return;
+            }
+
+            for (var i = 0; i < healActions.Count; i++)
+            {
+                var actionData = healActions[i];
+                ApplyHeal(ref enemyData, ref actionData);
+            }
+
+            healActions.Clear();
+        }
+
+        private void ApplyHeal(ref EnemyData enemyData, ref HealActionData actionData)
+        {
+            enemyData.health = Math.Min(enemyData.health + actionData.healValue, enemyData.maxHealth);
             if (healthChangeDisplayManager != null)
             {
-                healthChangeDisplayManager.ApplyHeal(healValue);
+                healthChangeDisplayManager.ApplyHeal(actionData.healValue);
             }
         }
 
-        public void ApplyDamage(float damage, NetworkObject? damageOwner)
+        public void AddDamage(ref DamageActionData data)
         {
-            ref var enemyData = ref dataHolder.GetEnemyData();
-            if (enemyData.isDead) return;
+            damageActions.Add(data);
+        }
 
-            if (enemyData.health - damage < HEALTH_THRESHOLD)
+        private void ApplyDamageActions(ref EnemyData enemyData)
+        {
+            if (enemyData.isDead)
+            {
+                damageActions.Clear();
+                return;
+            }
+
+            for (var i = 0; i < damageActions.Count; i++)
+            {
+                var actionData = damageActions[i];
+                ApplyDamage(ref enemyData, ref actionData);
+            }
+
+            damageActions.Clear();
+        }
+
+        private void ApplyDamage(ref EnemyData enemyData, ref DamageActionData actionData)
+        {
+            if (actionData.damageOwner != null)
+            {
+                var index = actionData.damageOwner.StateAuthority;
+                enemyData.playerInterestPoints.Set(index,
+                    enemyData.playerInterestPoints[index] + (int)actionData.damageValue);
+            }
+
+            if (enemyData.health - actionData.damageValue < HEALTH_THRESHOLD)
             {
                 enemyData.health = 0;
                 enemyData.isDead = true;
             }
             else
             {
-                enemyData.health -= damage;
+                enemyData.health -= actionData.damageValue;
             }
 
             if (healthChangeDisplayManager != null)
             {
-                healthChangeDisplayManager.ApplyDamage(damage);
+                healthChangeDisplayManager.ApplyDamage(actionData.damageValue);
             }
         }
 
-        public void ApplyKnockBack(Vector3 direction)
+        public void AddKnockBack(ref KnockBackActionData data)
         {
-            ref var enemyData = ref dataHolder.GetEnemyData();
-            if (enemyData.isDead) return;
+            knockBackActions.Add(data);
+        }
 
+        private void ApplyKnockBackActions(ref EnemyData enemyData)
+        {
+            if (enemyData.isDead)
+            {
+                knockBackActions.Clear();
+                return;
+            }
+
+            for (var i = 0; i < knockBackActions.Count; i++)
+            {
+                var actionData = knockBackActions[i];
+                ApplyKnockBack(ref enemyData, ref actionData);
+            }
+
+            knockBackActions.Clear();
+        }
+
+        private void ApplyKnockBack(ref EnemyData enemyData, ref KnockBackActionData actionData)
+        {
             enemyData.knockBackTimer = TickTimer.CreateFromSeconds(objectContext.Runner, knockBackDuration);
-            enemyData.knockBackDirection = direction;
+            enemyData.knockBackDirection = actionData.direction;
             rigidbody.AddForce(knockBackForce * enemyData.knockBackDirection, ForceMode.Impulse);
         }
 
-        public void ApplyStun(float durationSec)
+        public void AddStun(ref StunActionData data)
         {
-            ref var enemyData = ref dataHolder.GetEnemyData();
-            if (enemyData.isDead) return;
+            stunActions.Add(data);
+        }
 
-            enemyData.stunTimer = TickTimer.CreateFromSeconds(objectContext.Runner, durationSec);
+        private void ApplyStunActions(ref EnemyData enemyData)
+        {
+            if (enemyData.isDead)
+            {
+                stunActions.Clear();
+                return;
+            }
+
+            for (var i = 0; i < stunActions.Count; i++)
+            {
+                var actionData = stunActions[i];
+                ApplyStun(ref enemyData, ref actionData);
+            }
+
+            stunActions.Clear();
+        }
+
+        private void ApplyStun(ref EnemyData enemyData, ref StunActionData actionData)
+        {
+            enemyData.stunTimer = TickTimer.CreateFromSeconds(objectContext.Runner, actionData.durationSec);
+        }
+
+        public void AddEffects(EffectsCombination effectsCombination)
+        {
+            effectActions.Add(effectsCombination);
+        }
+
+        private void ApplyEffects(ref EnemyData enemyData)
+        {
+            if (enemyData.isDead)
+            {
+                effectActions.Clear();
+                return;
+            }
+
+            foreach (var effectsCombination in effectActions)
+            {
+                effectsManager.AddEffects(effectsCombination.Effects);
+            }
+
+            effectActions.Clear();
+
+            effectsManager.UpdateEffects();
         }
 
         private void UpdateAnimationState(ref EnemyData enemyData)
@@ -473,11 +635,6 @@ namespace Main.Scripts.Enemies
             return enemyData.knockBackTimer.ExpiredOrNotRunning(objectContext.Runner)
                    && enemyData.stunTimer.ExpiredOrNotRunning(objectContext.Runner)
                    && !IsAttacking();
-        }
-
-        public void ApplyEffects(EffectsCombination effectsCombination)
-        {
-            effectsManager.AddEffects(effectsCombination.Effects);
         }
 
         public interface DataHolder :

@@ -4,6 +4,6 @@ namespace Main.Scripts.Actions
 {
     public interface Affectable
     {
-        void ApplyEffects(EffectsCombination effectsCombination);
+        void AddEffects(EffectsCombination effectsCombination);
     }
 }

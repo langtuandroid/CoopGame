@@ -8,6 +8,7 @@ using Main.Scripts.Effects.PeriodicEffects.Handlers.Damage;
 using Main.Scripts.Effects.PeriodicEffects.Handlers.Heal;
 using Main.Scripts.Effects.Stats;
 using Main.Scripts.Effects.Stats.Modifiers;
+using Main.Scripts.Utils;
 
 namespace Main.Scripts.Effects
 {
@@ -95,7 +96,7 @@ namespace Main.Scripts.Effects
                 {
                     if (effectsBank.GetEffect(data.EffectId) is PeriodicEffectBase periodicEffect)
                     {
-                        HandlePeriodicEffect(periodicEffect, data.StackCount);
+                        HandlePeriodicEffect(periodicEffect, data.StartTick, data.StackCount);
                     }
                 }
             }
@@ -149,24 +150,26 @@ namespace Main.Scripts.Effects
             }
         }
 
-        private void HandlePeriodicEffect(PeriodicEffectBase periodicEffect, int stackCount)
+        private void HandlePeriodicEffect(PeriodicEffectBase periodicEffect, int startTick, int stackCount)
         {
             var tick = objectContext.Runner.Tick;
             var tickRate = objectContext.Runner.Config.Simulation.TickRate;
 
-            if (tick % (int)(tickRate / periodicEffect.Frequency) != 0) return; //todo учесть выремя старта эффекта
-
-            periodicEffectsHandlers[periodicEffect.PeriodicEffectType].HandleEffect(periodicEffect, stackCount);
+            if (TickHelper.CheckFrequency(tick - startTick, tickRate, periodicEffect.Frequency))
+            {
+                periodicEffectsHandlers[periodicEffect.PeriodicEffectType].HandleEffect(periodicEffect, stackCount);
+            }
         }
 
         private void AddEffect(ref EffectsData effectsData, EffectBase effect)
         {
+            var startTick = objectContext.Runner.Tick;
             var endTick = 0;
             var effectId = effectsBank.GetEffectId(effect);
             ActiveEffectData? currentData = null;
             if (effect.DurationSec > 0)
             {
-                endTick = (int)(objectContext.Runner.Tick +
+                endTick = (int)(startTick +
                                 effect.DurationSec * objectContext.Runner.Config.Simulation.TickRate);
                 if (effectsData.limitedEffectDataMap.ContainsKey(effectId))
                 {
@@ -184,6 +187,7 @@ namespace Main.Scripts.Effects
 
             var newData = new ActiveEffectData(
                 effectId: effectId,
+                startTick: startTick,
                 endTick: endTick,
                 stackCount: Math.Min(currentData?.StackCount ?? 0 + 1, effect.MaxStackCount)
             );

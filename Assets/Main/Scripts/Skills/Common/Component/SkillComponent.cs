@@ -359,7 +359,7 @@ namespace Main.Scripts.Skills.Common.Component
         private void CheckPeriodicTrigger()
         {
             if (actionTrigger is PeriodicSkillActionTrigger periodicTrigger
-                && TickHelper.CheckFrequency(startSkillTick + Runner.Tick, Runner.Simulation.Config.TickRate, periodicTrigger.Frequency))
+                && TickHelper.CheckFrequency(Runner.Tick - startSkillTick, Runner.Simulation.Config.TickRate, periodicTrigger.Frequency))
             {
                 ExecuteActions();
             }

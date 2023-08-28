@@ -6,6 +6,7 @@ using Main.Scripts.Actions.Data;
 using Main.Scripts.Actions.Health;
 using Main.Scripts.Core.CustomPhysics;
 using Main.Scripts.Core.GameLogic;
+using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Core.Resources;
 using Main.Scripts.Modifiers;
 using Main.Scripts.Player.Data;
@@ -74,9 +75,24 @@ namespace Main.Scripts.Skills.Common.Component
         private List<LagCompensatedHit> findTargetHitsList = new();
         private HashSet<NetworkObject> findTargetHitObjectsSet = new();
 
+        private List<SpawnSkillActionBase> spawnActions = new();
+        private bool isCollisionTriggered;
+        private bool shouldDespawn;
+
         private Action<SkillComponent>? onSpawnNewSkillComponent;
 
         private bool isFinished => destroyAfterFinishTimer.IsRunning;
+        private GameLoopPhase[] gameLoopPhases =
+        {
+            GameLoopPhase.SkillSpawnPhase,
+            GameLoopPhase.SkillUpdatePhase,
+            GameLoopPhase.DespawnPhase,
+            GameLoopPhase.PhysicsSkillMovementPhase,
+            GameLoopPhase.PhysicsCheckCollisionsPhase,
+            GameLoopPhase.PhysicsSkillLookPhase,
+            GameLoopPhase.ObjectsSpawnPhase,
+        };
+
 
         public UnityEvent OnFinishEvent = new();
         public UnityEvent OnActionEvent = new();
@@ -123,6 +139,10 @@ namespace Main.Scripts.Skills.Common.Component
         public override void Spawned()
         {
             base.Spawned();
+            spawnActions.Clear();
+            shouldDespawn = false;
+            isCollisionTriggered = false;
+            
             var resources = GlobalResources.Instance.ThrowWhenNull();
             skillConfigsBank = resources.SkillConfigsBank;
             modifierIdsBank = resources.ModifierIdsBank;
@@ -162,15 +182,63 @@ namespace Main.Scripts.Skills.Common.Component
 
         }
 
-        public override void OnBeforePhysics()
+        public override void OnGameLoopPhase(GameLoopPhase phase)
+        {
+            switch (phase)
+            {
+                case GameLoopPhase.SkillSpawnPhase:
+                    OnSpawnPhase();
+                    break;
+                case GameLoopPhase.SkillUpdatePhase:
+                    OnSkillUpdatePhase();
+                    break;
+                case GameLoopPhase.DespawnPhase:
+                    OnDespawnPhase();
+                    break;
+                case GameLoopPhase.PhysicsSkillMovementPhase:
+                    OnPhysicsSkillMovementPhase();
+                    break;
+                case GameLoopPhase.PhysicsCheckCollisionsPhase:
+                    OnPhysicsCheckCollisionsPhase();
+                    break;
+                case GameLoopPhase.PhysicsSkillLookPhase:
+                    OnPhysicsSkillsLookPhase();
+                    break;
+                case GameLoopPhase.ObjectsSpawnPhase:
+                    //todo спавнить обычные объекты, но учесть очередь деспавна
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(phase), phase, null);
+            }
+        }
+
+        public override IEnumerable<GameLoopPhase> GetSubscribePhases()
+        {
+            return gameLoopPhases;
+        }
+
+        private void OnPhysicsSkillMovementPhase()
+        {
+            if (shouldStop) return;
+            
+            UpdatePosition();
+        }
+
+        private void OnSkillUpdatePhase()
         {
             if (!HasStateAuthority) return;
+
+            if (isCollisionTriggered)
+            {
+                isCollisionTriggered = false;
+                ExecuteActions();
+            }
             
             if (isFinished)
             {
                 if (destroyAfterFinishTimer.Expired(Runner))
                 {
-                    Runner.Despawn(Object);
+                    shouldDespawn = true;
                 }
                 return;
             }
@@ -214,7 +282,7 @@ namespace Main.Scripts.Skills.Common.Component
                 }
                 else
                 {
-                    Runner.Despawn(Object);
+                    shouldDespawn = true;
                 }
                 return;
             }
@@ -228,14 +296,28 @@ namespace Main.Scripts.Skills.Common.Component
             CheckPeriodicTrigger();
         }
 
-        public override void OnBeforePhysicsStep()
+        private void OnPhysicsCheckCollisionsPhase()
         {
             if (shouldStop) return;
             
-            UpdatePosition();
-            UpdateRotation();
-            
             CheckCollisionTrigger();
+        }
+
+        private void OnPhysicsSkillsLookPhase()
+        {
+            if (shouldStop) return;
+            
+            UpdateRotation();
+        }
+
+        private void OnDespawnPhase()
+        {
+            if (shouldDespawn)
+            {
+                Runner.Despawn(Object);
+            }
+
+            shouldDespawn = false;
         }
 
         public void UpdateMapPoint(Vector3 mapPoint)
@@ -382,7 +464,7 @@ namespace Main.Scripts.Skills.Common.Component
 
                 if (findTargetHitsList.Count > 0)
                 {
-                    ExecuteActions();
+                    isCollisionTriggered = true;
                 }
             }
         }
@@ -470,6 +552,19 @@ namespace Main.Scripts.Skills.Common.Component
 
             if (action is SpawnSkillActionBase spawnAction)
             {
+                spawnActions.Add(spawnAction);
+            }
+
+            if (action is StopSkillAction stopAction && activatedTriggersCount >= stopAction.LiveUntilTriggersCount)
+            {
+                shouldStop = true;
+            }
+        }
+
+        private void OnSpawnPhase()
+        {
+            foreach (var spawnAction in spawnActions)
+            {
                 var position = GetPointByType(spawnAction.SpawnPointType);
                 var rotation = Quaternion.LookRotation(GetDirectionByType(spawnAction.SpawnDirectionType));
 
@@ -508,13 +603,9 @@ namespace Main.Scripts.Skills.Common.Component
                         );
                         break;
                 }
-
             }
-
-            if (action is StopSkillAction stopAction && activatedTriggersCount >= stopAction.LiveUntilTriggersCount)
-            {
-                shouldStop = true;
-            }
+            
+            spawnActions.Clear();
         }
 
         private Vector3 GetPointByType(SkillPointType pointType)

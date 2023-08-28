@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Core.GameLogic;
+using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Core.Resources;
 using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills.Common.Component;
@@ -45,6 +46,15 @@ namespace Main.Scripts.Skills.Common.Controller
         private LayerMask alliesLayerMask;
         private LayerMask opponentsLayerMask;
 
+        private List<SkillConfig> spawnActions = new();
+
+        private GameLoopPhase[] gameLoopPhases =
+        {
+            GameLoopPhase.SkillUpdatePhase,
+            GameLoopPhase.SkillSpawnPhase,
+            GameLoopPhase.VisualStateUpdatePhase
+        };
+
         public bool IsSkillExecuting => executionTimer.IsRunning;
         public SkillActivationType ActivationType => skillControllerConfig.ActivationType;
         public UnitTargetType SelectionTargetType => skillControllerConfig.SelectionTargetType;
@@ -68,6 +78,7 @@ namespace Main.Scripts.Skills.Common.Controller
         public override void Spawned()
         {
             base.Spawned();
+            spawnActions.Clear();
             skillConfigsBank = GlobalResources.Instance.ThrowWhenNull().SkillConfigsBank;
         }
 
@@ -179,12 +190,35 @@ namespace Main.Scripts.Skills.Common.Controller
 
             listener?.OnSkillExecuted(this);
 
-            SpawnSkills(skillControllerConfig.RunOnStartSkillConfigs);
+            AddSpawnActions(skillControllerConfig.RunOnStartSkillConfigs);
 
             CheckCastFinished();
         }
 
-        public override void OnBeforePhysics()
+        public override void OnGameLoopPhase(GameLoopPhase phase)
+        {
+            switch (phase)
+            {
+                case GameLoopPhase.SkillSpawnPhase:
+                    OnSpawnPhase();
+                    break;
+                case GameLoopPhase.SkillUpdatePhase:
+                    OnSkillUpdatePhase();
+                    break;
+                case GameLoopPhase.VisualStateUpdatePhase:
+                    OnVisualStateUpdatePhase();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(phase), phase, null);
+            }
+        }
+
+        public override IEnumerable<GameLoopPhase> GetSubscribePhases()
+        {
+            return gameLoopPhases;
+        }
+
+        private void OnSkillUpdatePhase()
         {
             CheckCastFinished();
 
@@ -196,7 +230,13 @@ namespace Main.Scripts.Skills.Common.Controller
             }
         }
 
-        public override void OnAfterPhysicsSteps()
+        private void OnSpawnPhase()
+        {
+            SpawnSkills(spawnActions);
+            spawnActions.Clear();
+        }
+
+        private void OnVisualStateUpdatePhase()
         {
             if (cooldownTimer.IsRunning)
             {
@@ -215,7 +255,7 @@ namespace Main.Scripts.Skills.Common.Controller
             {
                 castTimer = default;
                 cooldownTimer = TickTimer.CreateFromSeconds(Runner, skillControllerConfig.CooldownSec);
-                SpawnSkills(skillControllerConfig.RunAfterCastSkillConfigs);
+                AddSpawnActions(skillControllerConfig.RunAfterCastSkillConfigs);
             }
         }
 
@@ -286,7 +326,7 @@ namespace Main.Scripts.Skills.Common.Controller
             skillComponents.Clear();
         }
 
-        public void AddListener(SkillController.Listener listener)
+        public void AddListener(Listener listener)
         {
             this.listener = listener;
         }
@@ -294,6 +334,11 @@ namespace Main.Scripts.Skills.Common.Controller
         public void RemoveListener()
         {
             listener = null;
+        }
+
+        private void AddSpawnActions(IEnumerable<SkillConfig> skillConfigs)
+        {
+            spawnActions.AddRange(skillConfigs);
         }
 
         private void SpawnSkills(List<SkillConfig> skillConfigs)

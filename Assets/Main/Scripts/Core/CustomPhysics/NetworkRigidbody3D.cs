@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Core.GameLogic;
+using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Core.Simulation;
 using Main.Scripts.Levels;
 using Main.Scripts.Player;
@@ -31,6 +33,12 @@ namespace Main.Scripts.Core.CustomPhysics
         private Vector3 interpolationTargetPosition;
 
         private Vector3 positionBeforeSimulation;
+
+        private GameLoopPhase[] gameLoopPhases =
+        {
+            GameLoopPhase.SyncTransformBeforeAllPhase,
+            GameLoopPhase.SyncTransformAfterAllPhase
+        };
 
         protected override Vector3 DefaultTeleportInterpolationVelocity => rigidbody.velocity;
 
@@ -113,7 +121,27 @@ namespace Main.Scripts.Core.CustomPhysics
             }
         }
 
-        public void OnSyncTransformBeforeAll()
+        public void OnGameLoopPhase(GameLoopPhase phase)
+        {
+            switch (phase)
+            {
+                case GameLoopPhase.SyncTransformBeforeAllPhase:
+                    OnSyncTransformBeforeAllPhase();
+                    break;
+                case GameLoopPhase.SyncTransformAfterAllPhase:
+                    OnSyncTransformAfterAllPhase();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(phase), phase, null);
+            }
+        }
+
+        public IEnumerable<GameLoopPhase> GetSubscribePhases()
+        {
+            return gameLoopPhases;
+        }
+
+        private void OnSyncTransformBeforeAllPhase()
         {
             if (HasStateAuthority) return;
 
@@ -123,7 +151,7 @@ namespace Main.Scripts.Core.CustomPhysics
             positionBeforeSimulation = transform.position;
         }
 
-        public void OnSyncTransformAfterAll()
+        private void OnSyncTransformAfterAllPhase()
         {
             if (HasStateAuthority)
             {

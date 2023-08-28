@@ -22,9 +22,13 @@ namespace Main.Scripts.Levels.Missions
 
         private PlayerCamera playerCamera = default!;
 
+        private List<PlayerRef> spawnActions = new();
+
         public override void Spawned()
         {
             base.Spawned();
+            spawnActions.Clear();
+            
             playerCamera = PlayerCamera.Instance.ThrowWhenNull();
 
             if (HasStateAuthority)
@@ -54,12 +58,21 @@ namespace Main.Scripts.Levels.Missions
             if (!HasStateAuthority) return;
             //todo добавить спавн поинты
             
-            RPC_SpawnLocalPlayer(playerRef);
+            RPC_AddSpawnPlayerAction(playerRef);
         }
 
         protected override void OnPlayerDisconnected(PlayerRef playerRef)
         {
             
+        }
+
+        protected override void OnSpawnPhase()
+        {
+            foreach (var playerRef in spawnActions)
+            {
+                SpawnLocalPlayer(playerRef);
+            }
+            spawnActions.Clear();
         }
 
         private void OnLocalPlayerStateChanged(
@@ -131,7 +144,12 @@ namespace Main.Scripts.Levels.Missions
         }
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_SpawnLocalPlayer([RpcTarget] PlayerRef playerRef)
+        private void RPC_AddSpawnPlayerAction([RpcTarget] PlayerRef playerRef)
+        {
+            spawnActions.Add(playerRef);
+        }
+
+        private void SpawnLocalPlayer(PlayerRef playerRef)
         {
             Runner.Spawn(
                 prefab: playerPrefab,

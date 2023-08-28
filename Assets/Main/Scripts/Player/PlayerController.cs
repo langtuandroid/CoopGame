@@ -7,13 +7,13 @@ using Main.Scripts.Actions.Health;
 using Main.Scripts.Actions.Interaction;
 using Main.Scripts.Core.Architecture;
 using Main.Scripts.Core.GameLogic;
+using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Core.Resources;
 using Main.Scripts.Core.Simulation;
 using Main.Scripts.Customization;
 using Main.Scripts.Drop;
 using Main.Scripts.Effects;
 using Main.Scripts.Gui.HealthChangeDisplay;
-using Main.Scripts.Levels;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.UI.Windows.HUD;
 using Main.Scripts.Utils;
@@ -56,6 +56,20 @@ namespace Main.Scripts.Player
         private ref HealthChangeDisplayData healthChangeDisplayData => ref MakeRef<HealthChangeDisplayData>();
 
         private PlayerLogicDelegate playerLogicDelegate = default!;
+
+        private GameLoopPhase[] gameLoopPhases =
+        {
+            GameLoopPhase.EffectsRemoveFinishedPhase,
+            GameLoopPhase.PlayerInputPhase,
+            GameLoopPhase.SkillActivationPhase,
+            GameLoopPhase.EffectsApplyPhase,
+            GameLoopPhase.EffectsUpdatePhase,
+            GameLoopPhase.ApplyActionsPhase,
+            GameLoopPhase.PhysicsUpdatePhase,
+            GameLoopPhase.PhysicsUnitsLookPhase,
+            GameLoopPhase.AOIUpdatePhase,
+            GameLoopPhase.VisualStateUpdatePhase,
+        };
 
         public UnityEvent<PlayerRef, PlayerController, PlayerState> OnPlayerStateChangedEvent = default!;
 
@@ -158,19 +172,14 @@ namespace Main.Scripts.Player
             return playerLogicDelegate.GetPlayerState();
         }
 
-        public override void OnBeforePhysics()
+        public override void OnGameLoopPhase(GameLoopPhase phase)
         {
-            playerLogicDelegate.OnBeforePhysicsSteps();
+            playerLogicDelegate.OnGameLoopPhase(phase);
         }
 
-        public override void OnBeforePhysicsStep()
+        public override IEnumerable<GameLoopPhase> GetSubscribePhases()
         {
-            playerLogicDelegate.OnBeforePhysicsStep();
-        }
-
-        public override void OnAfterPhysicsSteps()
-        {
-            playerLogicDelegate.OnAfterPhysicsSteps();
+            return gameLoopPhases;
         }
 
         public void SetDirections(ref Vector2 moveDirection, ref Vector2 aimDirection)

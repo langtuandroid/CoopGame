@@ -375,7 +375,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   enemyConfig:
-    DefaultMaxHealth: 1000
+    DefaultMaxHealth: 100
     DefaultSpeed: 10
     AttackDistance: 3
     HealthBar: {fileID: 3557311698061425522}

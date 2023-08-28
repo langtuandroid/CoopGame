@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Actions.Interaction;
 using Main.Scripts.Core.GameLogic;
+using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Utils;
 using UnityEngine;
 
@@ -19,7 +20,12 @@ namespace Main.Scripts.Player.Interaction
 
         private PlayerRef owner;
 
-        public override void OnAfterPhysicsSteps()
+        private GameLoopPhase[] gameLoopPhases =
+        {
+            GameLoopPhase.VisualStateUpdatePhase
+        };
+
+        public override void OnGameLoopPhase(GameLoopPhase phase)
         {
             if ((Runner.LocalPlayer != owner) || !Runner.IsLastTick) return;
 
@@ -30,7 +36,12 @@ namespace Main.Scripts.Player.Interaction
 
             allowedInteractableObject?.SetInteractionInfoVisibility(owner, true);
         }
-        
+
+        public override IEnumerable<GameLoopPhase> GetSubscribePhases()
+        {
+            return gameLoopPhases;
+        }
+
         public void SetOwner(PlayerRef owner)
         {
             this.owner = owner;

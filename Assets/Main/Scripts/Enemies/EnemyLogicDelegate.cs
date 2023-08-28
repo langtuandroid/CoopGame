@@ -5,6 +5,7 @@ using Main.Scripts.Actions;
 using Main.Scripts.Actions.Data;
 using Main.Scripts.Actions.Health;
 using Main.Scripts.Core.CustomPhysics;
+using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Effects;
 using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui;
@@ -36,7 +37,6 @@ namespace Main.Scripts.Enemies
 
         private Transform transform;
         private Rigidbody rigidbody;
-        private NetworkTransform networkTransform;
         private NetworkMecanimAnimator networkAnimator;
         private HealthBar healthBar;
 
@@ -64,6 +64,22 @@ namespace Main.Scripts.Enemies
         private List<DamageActionData> damageActions = new();
         private List<HealActionData> healActions = new();
         private List<EffectsCombination> effectActions = new();
+        private bool shouldDespawn;
+
+        public readonly GameLoopPhase[] gameLoopPhases =
+        {
+            GameLoopPhase.EffectsRemoveFinishedPhase,
+            GameLoopPhase.StrategyPhase,
+            GameLoopPhase.SkillActivationPhase,
+            GameLoopPhase.EffectsApplyPhase,
+            GameLoopPhase.EffectsUpdatePhase,
+            GameLoopPhase.ApplyActionsPhase,
+            GameLoopPhase.DespawnPhase,
+            GameLoopPhase.MovementStrategyPhase,
+            GameLoopPhase.PhysicsUpdatePhase,
+            GameLoopPhase.PhysicsUnitsLookPhase,
+            GameLoopPhase.VisualStateUpdatePhase
+        };
 
         public EnemyLogicDelegate(
             ref EnemyConfig config,
@@ -76,7 +92,6 @@ namespace Main.Scripts.Enemies
             this.eventListener = eventListener;
 
             rigidbody = dataHolder.GetCachedComponent<Rigidbody>();
-            networkTransform = dataHolder.GetCachedComponent<NetworkTransform>();
             networkAnimator = dataHolder.GetCachedComponent<NetworkMecanimAnimator>();
             transform = dataHolder.GetCachedComponent<Transform>();
 
@@ -140,6 +155,13 @@ namespace Main.Scripts.Enemies
         private void ResetState()
         {
             ref var enemyData = ref dataHolder.GetEnemyData();
+            
+            knockBackActions.Clear();
+            stunActions.Clear();
+            damageActions.Clear();
+            healActions.Clear();
+            effectActions.Clear();
+            shouldDespawn = false;
 
             enemyData.maxHealth = config.DefaultMaxHealth;
             enemyData.speed = config.DefaultSpeed;
@@ -152,12 +174,6 @@ namespace Main.Scripts.Enemies
 
             enemyData.isDead = false;
             currentAnimationState = EnemyAnimationState.None;
-
-            knockBackActions.Clear();
-            stunActions.Clear();
-            damageActions.Clear();
-            healActions.Clear();
-            effectActions.Clear();
         }
 
         public void Render()
@@ -170,45 +186,90 @@ namespace Main.Scripts.Enemies
             healthChangeDisplayManager?.Render();
         }
 
-        public void OnBeforePhysicsSteps()
+        public void OnGameLoopPhase(GameLoopPhase phase)
         {
-            ref var enemyData = ref dataHolder.GetEnemyData();
-
-            Profiler.BeginSample("EnemyLogicDelegate::OnBeforePhysicsSteps");
-
-            Profiler.BeginSample("Enemy logic");
-            UpdateTickLogic(ref enemyData);
-
-            Profiler.EndSample();
-
-            Profiler.BeginSample("UpdateEffects");
-            ApplyEffects(ref enemyData);
-
-            Profiler.EndSample();
-
-
-            Profiler.EndSample();
+            switch (phase)
+            {
+                case GameLoopPhase.EffectsRemoveFinishedPhase:
+                    effectsManager.RemoveFinishedEffects();
+                    break;
+                case GameLoopPhase.StrategyPhase:
+                    OnStrategyPhase();
+                    break;
+                case GameLoopPhase.SkillActivationPhase:
+                    activeSkillsManager.OnGameLoopPhase(phase);
+                    passiveSkillsManager.OnGameLoopPhase(phase);
+                    break;
+                case GameLoopPhase.EffectsApplyPhase:
+                    ApplyEffects();
+                    break;
+                case GameLoopPhase.EffectsUpdatePhase:
+                    effectsManager.UpdateEffects();
+                    break;
+                case GameLoopPhase.ApplyActionsPhase:
+                    OnApplyActionsPhase();
+                    break;
+                case GameLoopPhase.DespawnPhase:
+                    OnDespawnPhase();
+                    break;
+                case GameLoopPhase.MovementStrategyPhase:
+                    OnMovementStrategyPhase();
+                    break;
+                case GameLoopPhase.PhysicsUpdatePhase:
+                    OnPhysicsUpdatePhase();
+                    break;
+                case GameLoopPhase.PhysicsUnitsLookPhase:
+                    OnPhysicsUnitsLookPhase();
+                    break;
+                case GameLoopPhase.VisualStateUpdatePhase:
+                    OnVisualStateUpdatePhase();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(phase), phase, null);
+            }
         }
 
-        public void OnBeforePhysicsStep()
+        private void OnStrategyPhase()
         {
             ref var enemyData = ref dataHolder.GetEnemyData();
 
-            Profiler.BeginSample("EnemyController::OnBeforePhysicsStep");
+            UpdateTickLogic(ref enemyData);
+        }
+
+        private void OnApplyActionsPhase()
+        {
+            ref var enemyData = ref dataHolder.GetEnemyData();
+            
             ApplyKnockBackActions(ref enemyData);
             ApplyStunActions(ref enemyData);
-            //todo заменить velocity на AddForce и переместить просчёт пути в конец
-            ApplyPathMoving(ref enemyData);
+            
+            ApplyHealActions(ref enemyData);
+            ApplyDamageActions(ref enemyData);
 
-            Profiler.EndSample();
+            CheckIsDead(ref enemyData);
         }
 
-        public void OnAfterPhysicsSteps()
+        private void OnMovementStrategyPhase()
+        {
+            //todo мб вынести сюда перевыбор таргета (если выбранный умер)
+        }
+
+        private void OnPhysicsUpdatePhase()
         {
             ref var enemyData = ref dataHolder.GetEnemyData();
 
-            ApplyHealActions(ref enemyData);
-            ApplyDamageActions(ref enemyData);
+            ApplyPathMoving(ref enemyData);
+        }
+
+        private void OnPhysicsUnitsLookPhase()
+        {
+            //todo вынести сюда обновление взгляда
+        }
+
+        private void OnAfterPhysics()
+        {
+            //todo переделать логику передачи ответственности
+            ref var enemyData = ref dataHolder.GetEnemyData();
 
             var runner = objectContext.Runner;
             var localPlayerInterestPoints = enemyData.playerInterestPoints[runner.LocalPlayer];
@@ -224,15 +285,6 @@ namespace Main.Scripts.Enemies
                 return;
             }
 
-            if (CheckIsDead(ref enemyData))
-            {
-                return;
-            }
-
-            UpdateAnimationState(ref enemyData);
-
-            healthChangeDisplayManager?.OnAfterPhysicsSteps();
-
             foreach (var playerRef in runner.ActivePlayers)
             {
                 if (enemyData.playerInterestPoints[playerRef.PlayerId] >
@@ -242,6 +294,25 @@ namespace Main.Scripts.Enemies
                     break;
                 }
             }
+        }
+
+        private void OnDespawnPhase()
+        {
+            if (shouldDespawn)
+            {
+                objectContext.Runner.Despawn(objectContext);
+            }
+
+            shouldDespawn = false;
+        }
+
+        private void OnVisualStateUpdatePhase()
+        {
+            ref var enemyData = ref dataHolder.GetEnemyData();
+
+            UpdateAnimationState(ref enemyData);
+
+            healthChangeDisplayManager?.OnAfterPhysicsSteps();
         }
 
         /**
@@ -254,7 +325,7 @@ namespace Main.Scripts.Enemies
                 if (objectContext.HasStateAuthority)
                 {
                     eventListener.OnEnemyDead();
-                    objectContext.Runner.Despawn(objectContext);
+                    shouldDespawn = true;
                 }
 
                 return true;
@@ -372,12 +443,13 @@ namespace Main.Scripts.Enemies
                 ) - curPosition;
 
             direction = new Vector3(direction.x, 0, direction.z);
-            transform.LookAt(curPosition + direction);
+            transform.LookAt(curPosition + direction); //todo вынести в отдельную фазу
             var currentVelocity = rigidbody.velocity;
             if (currentVelocity.sqrMagnitude < enemyData.speed * enemyData.speed)
             {
                 var deltaVelocity = enemyData.speed * direction.normalized - currentVelocity;
                 var deltaVelocityMagnitude = deltaVelocity.magnitude;
+                //todo заменить velocity на AddForce и переместить просчёт пути в конец
                 rigidbody.velocity = currentVelocity +
                                      Mathf.Min(moveAcceleration * PhysicsManager.DeltaTime / deltaVelocityMagnitude,
                                          1f) *
@@ -392,14 +464,14 @@ namespace Main.Scripts.Enemies
             if (destination == null)
             {
                 pathCorners = Array.Empty<Vector3>();
-                rigidbody.velocity = Vector3.zero;
+                rigidbody.velocity = Vector3.zero; //todo мб вынести в фазу стратегии движения
                 nextNavPathCornerIndex = 1;
             }
         }
 
         private void FireWeapon()
         {
-            activeSkillsManager.ActivateSkill(ActiveSkillType.PRIMARY);
+            activeSkillsManager.AddActivateSkill(ActiveSkillType.PRIMARY);
         }
 
         private bool IsAttacking()
@@ -558,13 +630,13 @@ namespace Main.Scripts.Enemies
             effectActions.Add(effectsCombination);
         }
 
-        private void ApplyEffects(ref EnemyData enemyData)
+        private void ApplyEffects()
         {
-            if (enemyData.isDead)
-            {
-                effectActions.Clear();
-                return;
-            }
+            // if (enemyData.isDead)
+            // {
+            //     effectActions.Clear();
+            //     return;
+            // } //todo далить, если не падает
 
             foreach (var effectsCombination in effectActions)
             {
@@ -572,8 +644,6 @@ namespace Main.Scripts.Enemies
             }
 
             effectActions.Clear();
-
-            effectsManager.UpdateEffects();
         }
 
         private void UpdateAnimationState(ref EnemyData enemyData)

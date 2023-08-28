@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Core.GameLogic;
+using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Player;
 using Main.Scripts.Player.Data;
 using Main.Scripts.Room;
@@ -16,6 +19,11 @@ namespace Main.Scripts.Levels
         [Networked]
         private NetworkBool isInitialized { get; set; }
 
+        private GameLoopPhase[] gameLoopPhases =
+        {
+            GameLoopPhase.ObjectsSpawnPhase
+        };
+
         public void AfterSpawned()
         {
             roomManager = RoomManager.Instance.ThrowWhenNull();
@@ -26,10 +34,37 @@ namespace Main.Scripts.Levels
             roomManager.OnPlayerDisconnectedEvent.AddListener(OnPlayerDisconnected);
         }
 
-        public override void OnBeforePhysics()
+        public override void OnGameLoopPhase(GameLoopPhase phase)
         {
-            if (!HasStateAuthority) return;
+            switch (phase)
+            {
+                case GameLoopPhase.ObjectsSpawnPhase:
+                    OnSpawnPhase();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(phase), phase, null);
+            }
             
+        }
+
+        public override IEnumerable<GameLoopPhase> GetSubscribePhases()
+        {
+            return gameLoopPhases;
+        }
+
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            base.Despawned(runner, hasState);
+            roomManager.OnPlayerInitializedEvent.RemoveListener(OnPlayerInitialized);
+        }
+
+        protected abstract void OnPlayerInitialized(PlayerRef playerRef);
+
+        protected abstract void OnPlayerDisconnected(PlayerRef playerRef);
+        
+        
+        public override void FixedUpdateNetwork()
+        {
             if (!isInitialized)
             {
                 var connectedPlayers = Runner.ActivePlayers;
@@ -45,14 +80,6 @@ namespace Main.Scripts.Levels
             }
         }
 
-        public override void Despawned(NetworkRunner runner, bool hasState)
-        {
-            base.Despawned(runner, hasState);
-            roomManager.OnPlayerInitializedEvent.RemoveListener(OnPlayerInitialized);
-        }
-
-        protected abstract void OnPlayerInitialized(PlayerRef playerRef);
-
-        protected abstract void OnPlayerDisconnected(PlayerRef playerRef);
+        protected abstract void OnSpawnPhase();
     }
 }

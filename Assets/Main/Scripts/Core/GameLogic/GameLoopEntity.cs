@@ -1,10 +1,12 @@
+using System.Collections.Generic;
 using Fusion;
+using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Levels;
 using Main.Scripts.Utils;
 
 namespace Main.Scripts.Core.GameLogic
 {
-    public class GameLoopEntity : NetworkBehaviour, GameLoopListener
+    public abstract class GameLoopEntity : NetworkBehaviour, GameLoopListener
     {
         protected LevelContext levelContext { get; private set; } = default!;
 
@@ -28,32 +30,7 @@ namespace Main.Scripts.Core.GameLogic
             }
         }
 
-        public virtual void OnSyncTransformBeforeAll()
-        {
-        }
-
-        public virtual void OnInputPhase()
-        {
-        }
-
-        public virtual void OnBeforePhysics()
-        {
-        }
-
-        public virtual void OnBeforePhysicsStep()
-        {
-        }
-
-        public virtual void OnAfterPhysicsStep()
-        {
-        }
-
-        public virtual void OnAfterPhysicsSteps()
-        {
-        }
-        
-        public virtual void OnSyncTransformAfterAll()
-        {
-        }
+        public abstract void OnGameLoopPhase(GameLoopPhase phase);
+        public abstract IEnumerable<GameLoopPhase> GetSubscribePhases();
     }
 }

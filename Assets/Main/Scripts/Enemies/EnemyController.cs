@@ -6,6 +6,7 @@ using Main.Scripts.Actions.Data;
 using Main.Scripts.Actions.Health;
 using Main.Scripts.Core.Architecture;
 using Main.Scripts.Core.GameLogic;
+using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Core.Resources;
 using Main.Scripts.Effects;
 using Main.Scripts.Gui.HealthChangeDisplay;
@@ -103,19 +104,14 @@ namespace Main.Scripts.Enemies
             enemyLogicDelegate.Render();
         }
 
-        public override void OnBeforePhysics()
+        public override void OnGameLoopPhase(GameLoopPhase phase)
         {
-            enemyLogicDelegate.OnBeforePhysicsSteps();
+            enemyLogicDelegate.OnGameLoopPhase(phase);
         }
 
-        public override void OnBeforePhysicsStep()
+        public override IEnumerable<GameLoopPhase> GetSubscribePhases()
         {
-            enemyLogicDelegate.OnBeforePhysicsStep();
-        }
-
-        public override void OnAfterPhysicsSteps()
-        {
-            enemyLogicDelegate.OnAfterPhysicsSteps();
+            return enemyLogicDelegate.gameLoopPhases;
         }
 
         public T GetCachedComponent<T>() where T : Component

@@ -5,6 +5,7 @@ using Main.Scripts.Connection;
 using Main.Scripts.Core.Resources;
 using Main.Scripts.Levels.Results;
 using Main.Scripts.Player.Experience;
+using Main.Scripts.Room;
 using Main.Scripts.Skills;
 using Main.Scripts.Utils;
 using Main.Scripts.Utils.Save;
@@ -14,6 +15,7 @@ using WebSocketSharp;
 
 namespace Main.Scripts.Player.Data
 {
+    [OrderAfter(typeof(RoomManager))]
     public class PlayerDataManager : NetworkBehaviour
     {
         public static PlayerDataManager? Instance { get; private set; }

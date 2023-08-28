@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Core.GameLogic;
+using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Player;
 using UnityEngine;
 using UnityEngine.Events;
@@ -24,6 +25,11 @@ namespace Main.Scripts.Tasks
         private List<LagCompensatedHit> hits = new();
         private Vector3 placeExtents;
 
+        private GameLoopPhase[] gameLoopPhases =
+        {
+            GameLoopPhase.PhysicsCheckCollisionsPhase
+        };
+
         public bool IsTargetChecked => isTargetChecked;
 
         public override void Spawned()
@@ -38,7 +44,7 @@ namespace Main.Scripts.Tasks
             OnTaskCheckChangedEvent.RemoveAllListeners();
         }
 
-        public override void OnBeforePhysics()
+        public override void OnGameLoopPhase(GameLoopPhase phase)
         {
             if (!Runner.IsSharedModeMasterClient) return;
             
@@ -81,6 +87,11 @@ namespace Main.Scripts.Tasks
             }
 
             UpdateTaskStatus(hasAllAlivePlayersInPlace);
+        }
+
+        public override IEnumerable<GameLoopPhase> GetSubscribePhases()
+        {
+            return gameLoopPhases;
         }
 
         private void UpdateTaskStatus(bool isCompleted)

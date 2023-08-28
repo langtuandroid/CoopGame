@@ -7,6 +7,7 @@ using Main.Scripts.Actions.Data;
 using Main.Scripts.Actions.Health;
 using Main.Scripts.Actions.Interaction;
 using Main.Scripts.Core.CustomPhysics;
+using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Customization;
 using Main.Scripts.Drop;
 using Main.Scripts.Effects;
@@ -241,55 +242,141 @@ namespace Main.Scripts.Player
             return data.state;
         }
 
-        public void OnBeforePhysicsSteps()
+        public void OnGameLoopPhase(GameLoopPhase phase)
         {
-            ref var data = ref dataHolder.GetPlayerLogicData();
-
-            if (lastState != data.state)
+            switch (phase)
             {
-                OnStateChanged(ref data);
+                case GameLoopPhase.PlayerInputPhase:
+                    break;
+                case GameLoopPhase.EffectsRemoveFinishedPhase:
+                    OnEffectsRemoveFinishedPhase();
+                    break;
+                case GameLoopPhase.SkillActivationPhase:
+                    activeSkillsManager.OnGameLoopPhase(phase);
+                    passiveSkillsManager.OnGameLoopPhase(phase);
+                    break;
+                case GameLoopPhase.EffectsApplyPhase:
+                    OnEffectsApplyPhase();
+                    break;
+                case GameLoopPhase.EffectsUpdatePhase:
+                    OnEffectsUpdatePhase();
+                    break;
+                case GameLoopPhase.ApplyActionsPhase:
+                    OnApplyActionsPhase();
+                    break;
+                case GameLoopPhase.PhysicsUpdatePhase:
+                    OnPhysicsUpdatePhase();
+                    break;
+                case GameLoopPhase.PhysicsUnitsLookPhase:
+                    OnPhysicsUnitsLookPhase();
+                    break;
+                case GameLoopPhase.AOIUpdatePhase:
+                    OnAOIUpdatePhase();
+                    break;
+                case GameLoopPhase.VisualStateUpdatePhase:
+                    OnVisualStateUpdatePhase();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(phase), phase, null);
             }
+        }
 
-            //todo move to phase after skill actions
-            ApplyEffects();
-            ApplyDashActions(ref data);
+        private void OnEffectsRemoveFinishedPhase()
+        {
+            effectsManager.RemoveFinishedEffects();
+        }
+
+        private void OnEffectsApplyPhase()
+        {
+            foreach (var effectsCombination in effectActions)
+            {
+                effectsManager.AddEffects(effectsCombination.Effects); //todo effectActions внутрь effectsManager-а
+            }
+            effectActions.Clear();
+        }
+
+        private void OnEffectsUpdatePhase()
+        {
             effectsManager.UpdateEffects();
         }
 
-        public void OnBeforePhysicsStep()
+        private void OnApplyActionsPhase()
         {
             ref var data = ref dataHolder.GetPlayerLogicData();
+
+            ApplyDashActions(ref data);
+            
+            ApplyHealActions(ref data);
+            ApplyDamageActions(ref data);
+            
+            CheckIsDead(ref data); //todo проверить как ведёт себя смена статуса
+        }
+
+        private void OnPhysicsUpdatePhase()
+        {
+            ref var data = ref dataHolder.GetPlayerLogicData();
+            
+            if (!IsActivated(ref data))
+                return;
 
             if (!data.dashTimer.ExpiredOrNotRunning(objectContext.Runner))
             {
                 var dashDirection = data.dashSpeed * data.dashDirection;
                 Move(ref dashDirection);
             }
-            else if (!CanMoveByController(ref data))
+            else if (CanMoveByController(ref data))
+            {
+                var currentVelocity = rigidbody.velocity.magnitude;
+                if (currentVelocity < data.speed) //todo баг, когда условие не выполняется, то направление движения не меняется
+                {
+                    var deltaVelocity = data.speed * GetMovingDirection().normalized - rigidbody.velocity;
+                    rigidbody.velocity +=
+                        Mathf.Min(moveAcceleration * PhysicsManager.DeltaTime, deltaVelocity.magnitude) *
+                        deltaVelocity.normalized;
+                }
+            }
+            else
             {
                 var velocity = Vector3.zero;
                 Move(ref velocity);
             }
-            else
+        }
+
+        private void OnPhysicsUnitsLookPhase()
+        {
+            ref var data = ref dataHolder.GetPlayerLogicData();
+            
+            if (!IsActivated(ref data))
+                return;
+            
+            if (CanMoveByController(ref data))
             {
                 ApplyDirections(ref data);
             }
         }
 
-        public void OnAfterPhysicsSteps()
+        private void OnAOIUpdatePhase()
         {
-            ref var data = ref dataHolder.GetPlayerLogicData();
-
             if (objectContext.HasStateAuthority)
             {
                 objectContext.Runner.AddPlayerAreaOfInterest(objectContext.StateAuthority, transform.position + Vector3.forward * 5,
                     25);
             }
+        }
 
-            ApplyHealActions(ref data);
-            ApplyDamageActions(ref data);
-            
-            CheckIsDead(ref data);
+        private void OnBeforePhysics()
+        {
+            //todo проверить нужно это или удалить
+            ref var data = ref dataHolder.GetPlayerLogicData();
+            if (lastState != data.state)
+            {
+                OnStateChanged(ref data);
+            }
+        }
+
+        private void OnVisualStateUpdatePhase()
+        {
+            ref var data = ref dataHolder.GetPlayerLogicData();
 
             UpdateAnimationState(ref data);
             
@@ -340,22 +427,7 @@ namespace Main.Scripts.Player
 
         private void ApplyDirections(ref PlayerLogicData data)
         {
-            if (!IsActivated(ref data))
-                return;
-
             transform.LookAt(transform.position + new Vector3(data.aimDirection.x, 0, data.aimDirection.y));
-
-            if (CanMoveByController(ref data))
-            {
-                var currentVelocity = rigidbody.velocity.magnitude;
-                if (currentVelocity < data.speed)
-                {
-                    var deltaVelocity = data.speed * GetMovingDirection().normalized - rigidbody.velocity;
-                    rigidbody.velocity +=
-                        Mathf.Min(moveAcceleration * PhysicsManager.DeltaTime, deltaVelocity.magnitude) *
-                        deltaVelocity.normalized;
-                }
-            }
         }
 
         private void OnPlayerDataChanged(UserId userId, PlayerData playerData, PlayerData oldPlayerData)
@@ -459,11 +531,11 @@ namespace Main.Scripts.Player
             switch (activeSkillsManager.GetCurrentSkillState())
             {
                 case ActiveSkillState.NotAttacking:
-                    activeSkillsManager.ActivateSkill(type);
+                    activeSkillsManager.AddActivateSkill(type);
                     break;
                 case ActiveSkillState.WaitingForPoint:
                 case ActiveSkillState.WaitingForTarget:
-                    activeSkillsManager.CancelCurrentSkill();
+                    activeSkillsManager.AddCancelCurrentSkill();
                     break;
             }
         }
@@ -474,7 +546,7 @@ namespace Main.Scripts.Player
             {
                 case ActiveSkillState.WaitingForPoint:
                 case ActiveSkillState.WaitingForTarget:
-                    activeSkillsManager.ExecuteCurrentSkill();
+                    activeSkillsManager.AddExecuteCurrentSkill();
                     break;
                 case ActiveSkillState.NotAttacking:
                     ActivateSkill(ActiveSkillType.PRIMARY);
@@ -682,14 +754,6 @@ namespace Main.Scripts.Player
         public void AddEffects(EffectsCombination effectsCombination)
         {
             effectActions.Add(effectsCombination);
-        }
-
-        private void ApplyEffects()
-        {
-            foreach (var effectsCombination in effectActions)
-            {
-                effectsManager.AddEffects(effectsCombination.Effects);
-            }
         }
 
         public void OnPickUp(DropType dropType)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion;
+using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills.Common.Controller;
 using UnityEngine;
@@ -17,6 +18,10 @@ namespace Main.Scripts.Skills.ActiveSkills
 
         private List<SkillController> allSkillControllers = new();
         private PlayerRef ownerRef;
+
+        private ActiveSkillType skillToActivate;
+        private bool shouldExecuteCurrentSkill;
+        private bool shouldCancelCurrentSkill;
 
         public ActiveSkillsManager(
             ref ActiveSkillsConfig config,
@@ -68,6 +73,10 @@ namespace Main.Scripts.Skills.ActiveSkills
         {
             this.objectContext = objectContext;
 
+            skillToActivate = ActiveSkillType.NONE;
+            shouldExecuteCurrentSkill = false;
+            shouldCancelCurrentSkill = false;
+
             foreach (var skillType in Enum.GetValues(typeof(ActiveSkillType)).Cast<ActiveSkillType>())
             {
                 var skill = getSkillByType(skillType);
@@ -96,27 +105,64 @@ namespace Main.Scripts.Skills.ActiveSkills
             objectContext = default!;
         }
 
-        public bool ActivateSkill(ActiveSkillType skillType)
+        public void AddActivateSkill(ActiveSkillType skillType)
         {
+            skillToActivate = skillType;
+        }
+
+        public void AddExecuteCurrentSkill()
+        {
+            shouldExecuteCurrentSkill = true;
+        }
+
+        public void AddCancelCurrentSkill()
+        {
+            shouldCancelCurrentSkill = true;
+        }
+
+        public void OnGameLoopPhase(GameLoopPhase phase)
+        {
+            switch (phase)
+            {
+                case GameLoopPhase.SkillActivationPhase:
+                    CancelCurrentSkill();
+                    ExecuteCurrentSkill();
+                    ActivateSkill();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(phase), phase, null);
+            }
+        }
+
+        private void ActivateSkill()
+        {
+            var skillType = skillToActivate;
+            skillToActivate = ActiveSkillType.NONE;
+
+            if (skillType == ActiveSkillType.NONE) return;
+
             ref var data = ref dataHolder.GetActiveSkillsData();
 
             if (data.currentSkillState != ActiveSkillState.NotAttacking)
             {
-                return false;
+                return;
             }
 
             var skill = getSkillByType(skillType);
             if (skill == null)
             {
-                return false;
+                return;
             }
 
             data.currentSkillType = skillType;
-            return skill.Activate();
+            skill.Activate();
         }
 
-        public void ExecuteCurrentSkill()
+        private void ExecuteCurrentSkill()
         {
+            if (!shouldExecuteCurrentSkill) return;
+            shouldExecuteCurrentSkill = false;
+            
             ref var data = ref dataHolder.GetActiveSkillsData();
 
             var skill = getSkillByType(data.currentSkillType);
@@ -137,8 +183,11 @@ namespace Main.Scripts.Skills.ActiveSkills
             skill.Execute();
         }
 
-        public void CancelCurrentSkill()
+        private void CancelCurrentSkill()
         {
+            if (!shouldCancelCurrentSkill) return;
+            shouldCancelCurrentSkill = false;
+            
             ref var data = ref dataHolder.GetActiveSkillsData();
 
             var skill = getSkillByType(data.currentSkillType);

@@ -67,8 +67,6 @@ namespace Main.Scripts.Effects
         {
             ref var effectsData = ref dataHolder.GetEffectsData();
 
-            RemoveEndedEffects(ref effectsData, objectContext.Runner.Tick);
-
             foreach (var periodicEffectsList in periodicEffectsDataToHandle)
             {
                 periodicEffectsList.Clear();
@@ -218,14 +216,15 @@ namespace Main.Scripts.Effects
                 effectsData.statPercentAdditiveSums[(int)statType] + modifierEffect.PercentAdditive);
         }
 
-        private void RemoveEndedEffects(ref EffectsData effectsData, int tick)
+        public void RemoveFinishedEffects()
         {
+            ref var effectsData = ref dataHolder.GetEffectsData();
             updatedStatTypes.Clear();
 
             endedEffectIds.Clear();
             foreach (var (id, effectData) in effectsData.limitedEffectDataMap)
             {
-                if (tick > effectData.EndTick)
+                if (objectContext.Runner.Tick > effectData.EndTick)
                 {
                     endedEffectIds.Add(id);
                     if (effectsBank.GetEffect(effectData.EffectId) is StatModifierEffect modifier)

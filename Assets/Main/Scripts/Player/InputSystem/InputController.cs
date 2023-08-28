@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using Fusion;
 using Fusion.Sockets;
 using Main.Scripts.Core.GameLogic;
+using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Enemies;
 using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Player.Interaction;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.UI.Windows;
-using Main.Scripts.UI.Windows.HUD;
 using Main.Scripts.Utils;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -52,6 +52,11 @@ namespace Main.Scripts.Player.InputSystem
         private bool spawnEnemy;
         private bool spawnMine;
         private bool interact;
+
+        private GameLoopPhase[] gameLoopPhases =
+        {
+            GameLoopPhase.PlayerInputPhase
+        };
 
         /// <summary>
         /// Hook up to the Fusion callbacks so we can handle the input polling
@@ -199,11 +204,7 @@ namespace Main.Scripts.Player.InputSystem
             playerController.ApplyUnitTarget(unitTarget);
         }
 
-        /// <summary>
-        /// FixedUpdateNetwork is the main Fusion simulation callback - this is where
-        /// we modify network state.
-        /// </summary>
-        public override void OnInputPhase()
+        public override void OnGameLoopPhase(GameLoopPhase phase)
         {
             if (playerController == null) return;
             
@@ -263,6 +264,11 @@ namespace Main.Scripts.Player.InputSystem
                 var aimDirectionNormalized = input.aimDirection.normalized;
                 playerController.SetDirections(ref moveDirectionNormalized, ref aimDirectionNormalized);
             }
+        }
+        
+        public override IEnumerable<GameLoopPhase> GetSubscribePhases()
+        {
+            return gameLoopPhases;
         }
 
         public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }

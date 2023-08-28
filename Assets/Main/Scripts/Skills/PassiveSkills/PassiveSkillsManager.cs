@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Fusion;
 using Main.Scripts.Actions;
+using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Skills.Common.Controller;
 using Main.Scripts.Skills.PassiveSkills.Triggers;
 using UnityEngine;
@@ -15,6 +16,8 @@ namespace Main.Scripts.Skills.PassiveSkills
         private Affectable affectable;
 
         private Dictionary<PassiveSkillTriggerType, List<PassiveSkillController>> skillControllersMap = new();
+
+        private List<KeyValuePair<SkillController, NetworkObject?>> activateSkillActions = new();
 
         public PassiveSkillsManager(
             ref PassiveSkillsConfig config,
@@ -69,9 +72,27 @@ namespace Main.Scripts.Skills.PassiveSkills
 
         public void Init()
         {
+            activateSkillActions.Clear();
+            
             foreach (var effectsCombination in config.InitialEffects)
             {
                 affectable.AddEffects(effectsCombination);
+            }
+        }
+
+        public void OnGameLoopPhase(GameLoopPhase phase)
+        {
+            switch (phase)
+            {
+                case GameLoopPhase.SkillActivationPhase:
+                    foreach (var (skillController, selectedTarget) in activateSkillActions)
+                    {
+                        ActivateSkill(skillController, selectedTarget);
+                    }
+                    activateSkillActions.Clear();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(phase), phase, null);
             }
         }
 
@@ -79,7 +100,7 @@ namespace Main.Scripts.Skills.PassiveSkills
         {
             foreach (var skillController in skillControllersMap[PassiveSkillTriggerType.OnSpawn])
             {
-                ActivateSkill(skillController);
+                AddActivateSkillAction(skillController);
             }
         }
 
@@ -87,7 +108,7 @@ namespace Main.Scripts.Skills.PassiveSkills
         {
             foreach (var skillController in skillControllersMap[PassiveSkillTriggerType.OnDead])
             {
-                ActivateSkill(skillController, damageOwner);
+                AddActivateSkillAction(skillController, damageOwner);
             }
         }
 
@@ -98,7 +119,7 @@ namespace Main.Scripts.Skills.PassiveSkills
                 if (skillController.PassiveSkillTrigger is DamagePassiveSkillTrigger damageTrigger
                     && damageValue >= damageTrigger.MinDamageValue)
                 {
-                    ActivateSkill(skillController, damageOwner);
+                    AddActivateSkillAction(skillController, damageOwner);
                 }
             }
         }
@@ -110,9 +131,14 @@ namespace Main.Scripts.Skills.PassiveSkills
                 if (skillController.PassiveSkillTrigger is HealPassiveSkillTrigger healTrigger
                     && healValue >= healTrigger.MinHealValue)
                 {
-                    ActivateSkill(skillController, healOwner);
+                    AddActivateSkillAction(skillController, healOwner);
                 }
             }
+        }
+
+        private void AddActivateSkillAction(SkillController skillController, NetworkObject? selectedTarget = null)
+        {
+            activateSkillActions.Add(new KeyValuePair<SkillController, NetworkObject?>(skillController, selectedTarget));
         }
 
         private void ActivateSkill(SkillController skillController,

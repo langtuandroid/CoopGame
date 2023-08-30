@@ -52,6 +52,7 @@ MonoBehaviour:
   mainMenuWindow: {fileID: 7533214652079331084}
   profileSettingsWindow: {fileID: 4947767043877153769}
   connectionStatusWindow: {fileID: 7080177202690098723}
+  levelTransitionManagerPrefab: {fileID: 5487589214431771249, guid: 46782cb37bb2b9c4a8c3023cbd87b670, type: 3}
 --- !u!1 &3211370370598096155
 GameObject:
   m_ObjectHideFlags: 0
@@ -181,6 +182,7 @@ VideoPlayer:
   m_RenderMode: 2
   m_AspectRatio: 2
   m_DataSource: 0
+  m_TimeUpdateMode: 2
   m_PlaybackSpeed: 1
   m_AudioOutputMode: 2
   m_TargetAudioSources: []

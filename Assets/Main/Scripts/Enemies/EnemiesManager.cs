@@ -15,10 +15,9 @@ namespace Main.Scripts.Enemies
         [SerializeField]
         private EnemyController enemyPrefab = default!;
 
-        public UnityEvent<EnemyController> OnEnemySpawnedEvent = default!;
         public UnityEvent<EnemyController> OnEnemyDeadEvent = default!;
 
-        private Dictionary<NetworkId, NetworkObject> localEnemiesMap = new();
+        private Dictionary<NetworkId, EnemyController> localEnemiesMap = new();
 
         private List<Vector3> spawnActions = new();
 
@@ -55,7 +54,6 @@ namespace Main.Scripts.Enemies
                     {
                         var enemyController = networkObject.GetComponent<EnemyController>();
                         enemyController.OnDeadEvent.AddListener(OnEnemyDead);
-                        OnEnemySpawnedEvent.Invoke(enemyController);
                     }
                 );
             }
@@ -72,25 +70,33 @@ namespace Main.Scripts.Enemies
             spawnActions.Add(targetPosition);
         }
 
-        public IEnumerable<NetworkObject> GetEnemies()
+        public IEnumerable<EnemyController> GetEnemies()
         {
             return localEnemiesMap.Values;
         }
 
-        public void RegisterEnemy(NetworkObject enemy)
+        public void RegisterEnemy(EnemyController enemy)
         {
-            localEnemiesMap.Add(enemy.Id, enemy);
+            localEnemiesMap.Add(enemy.Object.Id, enemy);
         }
 
-        public void UnregisterEnemy(NetworkObject enemy)
+        public void UnregisterEnemy(EnemyController enemy)
         {
-            localEnemiesMap.Remove(enemy.Id);
+            localEnemiesMap.Remove(enemy.Object.Id);
         }
 
         private void OnEnemyDead(EnemyController enemyController)
         {
             enemyController.OnDeadEvent.RemoveListener(OnEnemyDead);
-            OnEnemyDeadEvent.Invoke(enemyController);
+            RPC_OnEnemyDead(enemyController.Object.Id);
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        private void RPC_OnEnemyDead(NetworkId enemyId)
+        {
+            if (!localEnemiesMap.ContainsKey(enemyId)) return;
+            
+            OnEnemyDeadEvent.Invoke(localEnemiesMap[enemyId]);
         }
     }
 }

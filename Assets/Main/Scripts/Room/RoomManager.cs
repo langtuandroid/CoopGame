@@ -22,8 +22,6 @@ namespace Main.Scripts.Room
 
         private bool isGameAlreadyRunning;
 
-        [Networked]
-        private SceneState sceneState { get; set; }
         [Networked, Capacity(16)]
         private NetworkDictionary<UserId, LevelResultsData> levelResults => default;
 
@@ -67,7 +65,7 @@ namespace Main.Scripts.Room
             
             if (playerDataManager.IsReady())
             {
-                InitLocalPlayerData();
+                OnLocalPlayerDataReady();
             }
         }
 
@@ -94,7 +92,7 @@ namespace Main.Scripts.Room
             OnPlayerDisconnectedEvent.Invoke(playerRef);
             if (playerDataManager.HasPlayer(playerRef))
             {
-                var clearPlayerData = sceneState != SceneState.LEVEL;
+                var clearPlayerData = levelTransitionManager.CurrentSceneState != SceneState.LEVEL;
                 var userId = playerDataManager.GetUserId(playerRef);
                 
                 playerDataManager.RemovePlayer(playerRef, clearPlayerData);
@@ -107,12 +105,7 @@ namespace Main.Scripts.Room
 
         private void OnLocalPlayerDataReady()
         {
-            InitLocalPlayerData();
-        }
-        
-        private void InitLocalPlayerData()
-        {
-            RPC_InitPlayerData(
+            RPC_OnPlayerDataReady(
                 playerRef: Runner.LocalPlayer,
                 userId: playerDataManager.LocalUserId,
                 playerData: playerDataManager.LocalPlayerData
@@ -180,7 +173,6 @@ namespace Main.Scripts.Room
         {
             if (!HasStateAuthority) return;
             
-            this.sceneState = sceneState;
             playerDataManager.ClearAllKeepedPlayerData();
         }
 
@@ -192,32 +184,42 @@ namespace Main.Scripts.Room
         }
 
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-        private void RPC_InitPlayerData(PlayerRef playerRef, UserId userId, PlayerData playerData)
+        private void RPC_OnPlayerDataReady(PlayerRef playerRef, UserId userId, PlayerData playerData)
         {
             var keepedPlayerData = playerDataManager.GetPlayerData(userId);
             if (playerDataManager.HasPlayer(userId))
             {
-                Runner.Disconnect(playerRef);
+                Debug.Log("Kick player by userId is in game");
+                RPC_KickPlayer(playerRef);
                 return;
             }
-
+            
             if (keepedPlayerData != null)
             {
                 if (!keepedPlayerData.Equals(playerData))
                 {
-                    Runner.Disconnect(playerRef);
+                    Debug.Log("Kick player by player data is not equals");
+                    RPC_KickPlayer(playerRef);
                     return;
                 }
             }
             else if (levelTransitionManager.CurrentSceneState is SceneState.LEVEL)
             {
-                Runner.Disconnect(playerRef);
+                Debug.Log("Kick player by mission is started");
+                RPC_KickPlayer(playerRef);
                 return;
             }
 
             playerDataManager.AddPlayerData(playerRef, userId, playerData);
 
             OnPlayerInitializedEvent.Invoke(playerRef);
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_KickPlayer([RpcTarget] PlayerRef playerRef)
+        {
+            Debug.Log("RPC_KickPlayer");
+            ShutdownRoomConnection(ShutdownReason.GameIsFull);
         }
     }
 }

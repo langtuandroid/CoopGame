@@ -95,7 +95,7 @@ namespace Main.Scripts.Core.CustomPhysics
         protected override void CopyFromBufferToEngine()
         {
             base.CopyFromBufferToEngine();
-            if (HasStateAuthority || playersHolder == null) return;
+            if (HasStateAuthority || playersHolder == null || !playersHolder.Contains(Object.StateAuthority)) return;
 
             var receiveTickManager = playersHolder.Get(Object.StateAuthority).GetInterface<ReceiveTicksManager>();
             if (receiveTickManager == null) return;

@@ -16,19 +16,23 @@ namespace Main.Scripts.Levels
         protected PlayerDataManager playerDataManager = default!;
         protected PlayersHolder playersHolder = default!;
 
-        [Networked]
-        private NetworkBool isInitialized { get; set; }
+        private bool isLocalInitializedAfterSceneReady;
+
 
         private GameLoopPhase[] gameLoopPhases =
         {
-            GameLoopPhase.ObjectsSpawnPhase
+            GameLoopPhase.ObjectsSpawnPhase,
+            GameLoopPhase.LevelStrategyPhase
         };
 
         public void AfterSpawned()
         {
+            isLocalInitializedAfterSceneReady = false;
+            
             roomManager = RoomManager.Instance.ThrowWhenNull();
             playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
             playersHolder = LevelContext.Instance.ThrowWhenNull().PlayersHolder;
+            levelContext.GameLoopManager.Init(Runner.Config.Simulation.TickRate);
 
             roomManager.OnPlayerInitializedEvent.AddListener(OnPlayerInitialized);
             roomManager.OnPlayerDisconnectedEvent.AddListener(OnPlayerDisconnected);
@@ -40,6 +44,9 @@ namespace Main.Scripts.Levels
             {
                 case GameLoopPhase.ObjectsSpawnPhase:
                     OnSpawnPhase();
+                    break;
+                case GameLoopPhase.LevelStrategyPhase:
+                    OnLevelStrategyPhase();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(phase), phase, null);
@@ -61,25 +68,30 @@ namespace Main.Scripts.Levels
         protected abstract void OnPlayerInitialized(PlayerRef playerRef);
 
         protected abstract void OnPlayerDisconnected(PlayerRef playerRef);
+
+        protected abstract void OnLocalPlayerLoaded(PlayerRef playerRef);
         
         
         public override void FixedUpdateNetwork()
         {
-            if (!isInitialized)
+            if (!isLocalInitializedAfterSceneReady
+                && roomManager.IsPlayerInitialized(Runner.LocalPlayer)
+                && Runner.IsSceneReady())
             {
-                var connectedPlayers = Runner.ActivePlayers;
-                foreach (var playerRef in connectedPlayers)
-                {
-                    if (roomManager.IsPlayerInitialized(playerRef))
-                    {
-                        OnPlayerInitialized(playerRef);
-                    }
-                }
-
-                isInitialized = true;
+                isLocalInitializedAfterSceneReady = true;
+                
+                OnLocalPlayerLoaded(Runner.LocalPlayer);
+            }
+            if (IsLevelReady())
+            {
+                levelContext.GameLoopManager.SimulateLoop();
             }
         }
 
+        protected abstract bool IsLevelReady();
+
         protected abstract void OnSpawnPhase();
+
+        protected abstract void OnLevelStrategyPhase();
     }
 }

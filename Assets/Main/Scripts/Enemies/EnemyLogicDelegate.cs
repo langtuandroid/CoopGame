@@ -13,7 +13,6 @@ using Main.Scripts.Gui.HealthChangeDisplay;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.Skills.PassiveSkills;
 using UnityEngine;
-using UnityEngine.Profiling;
 
 namespace Main.Scripts.Enemies
 {
@@ -58,6 +57,7 @@ namespace Main.Scripts.Enemies
 
         private int nextNavPathCornerIndex;
         private float sqrAttackDistance;
+        private Vector3 lookDirection;
 
         private List<KnockBackActionData> knockBackActions = new();
         private List<StunActionData> stunActions = new();
@@ -75,9 +75,9 @@ namespace Main.Scripts.Enemies
             GameLoopPhase.EffectsUpdatePhase,
             GameLoopPhase.ApplyActionsPhase,
             GameLoopPhase.DespawnPhase,
-            GameLoopPhase.MovementStrategyPhase,
             GameLoopPhase.PhysicsUpdatePhase,
             GameLoopPhase.PhysicsUnitsLookPhase,
+            GameLoopPhase.NavigationPhase,
             GameLoopPhase.VisualStateUpdatePhase
         };
 
@@ -162,6 +162,7 @@ namespace Main.Scripts.Enemies
             healActions.Clear();
             effectActions.Clear();
             shouldDespawn = false;
+            lookDirection = Vector3.zero;
 
             enemyData.maxHealth = config.DefaultMaxHealth;
             enemyData.speed = config.DefaultSpeed;
@@ -212,14 +213,14 @@ namespace Main.Scripts.Enemies
                 case GameLoopPhase.DespawnPhase:
                     OnDespawnPhase();
                     break;
-                case GameLoopPhase.MovementStrategyPhase:
-                    OnMovementStrategyPhase();
-                    break;
                 case GameLoopPhase.PhysicsUpdatePhase:
                     OnPhysicsUpdatePhase();
                     break;
                 case GameLoopPhase.PhysicsUnitsLookPhase:
                     OnPhysicsUnitsLookPhase();
+                    break;
+                case GameLoopPhase.NavigationPhase:
+                    OnNavigationPhase();
                     break;
                 case GameLoopPhase.VisualStateUpdatePhase:
                     OnVisualStateUpdatePhase();
@@ -249,21 +250,68 @@ namespace Main.Scripts.Enemies
             CheckIsDead(ref enemyData);
         }
 
-        private void OnMovementStrategyPhase()
+        private void OnNavigationPhase()
         {
-            //todo мб вынести сюда перевыбор таргета (если выбранный умер)
+            ref var enemyData = ref dataHolder.GetEnemyData();
+            
+            if (!objectContext.HasStateAuthority || enemyData.isDead) return;
+
+            var curPosition = transform.position;
+            var curNavigationTarget = enemyData.navigationTarget;
+
+            enemiesHelper.StartCalculatePath(ref objectContext.Id, curPosition, curNavigationTarget);
         }
 
         private void OnPhysicsUpdatePhase()
         {
             ref var enemyData = ref dataHolder.GetEnemyData();
 
-            ApplyPathMoving(ref enemyData);
+            //todo в последний тик атаки не просчитывается стратегия, но срабатывает логика передвижения (меняется значение IsAttacking())
+            if (!objectContext.HasStateAuthority || enemyData.isDead || !CanMoveByController(ref enemyData)) return;
+
+            var curPosition = transform.position;
+            var curNavigationTarget = enemyData.navigationTarget;
+
+            //Can allocate on calculate corners internal
+            var newPathCorners = enemiesHelper.GetPathCorners(ref objectContext.Id);
+            if (newPathCorners.Length > 0)
+            {
+                pathCorners = newPathCorners;
+                nextNavPathCornerIndex = 1;
+            }
+
+            if (nextNavPathCornerIndex < pathCorners.Length)
+            {
+                if (Vector3.SqrMagnitude(pathCorners[nextNavPathCornerIndex] - transform.position) <
+                    0.04f) //todo fix using threshold delta
+                {
+                    nextNavPathCornerIndex++;
+                }
+            }
+
+            var direction = (nextNavPathCornerIndex < pathCorners.Length
+                    ? pathCorners[nextNavPathCornerIndex]
+                    : curNavigationTarget
+                ) - curPosition;
+
+            direction = new Vector3(direction.x, 0, direction.z);
+            lookDirection = direction;
+            var currentVelocity = rigidbody.velocity;
+            if (currentVelocity.sqrMagnitude < enemyData.speed * enemyData.speed) //todo поправить баг с превышением скорости в другом направлении
+            {
+                var deltaVelocity = enemyData.speed * direction.normalized - currentVelocity;
+                var deltaVelocityMagnitude = deltaVelocity.magnitude;
+                //todo заменить velocity на AddForce и переместить просчёт пути в конец
+                rigidbody.velocity = currentVelocity +
+                                     Mathf.Min(moveAcceleration * PhysicsManager.DeltaTime / deltaVelocityMagnitude,
+                                         1f) *
+                                     deltaVelocity;
+            }
         }
 
         private void OnPhysicsUnitsLookPhase()
         {
-            //todo вынести сюда обновление взгляда
+            transform.LookAt(transform.position + lookDirection);
         }
 
         private void OnAfterPhysics()
@@ -401,59 +449,13 @@ namespace Main.Scripts.Enemies
                 else
                 {
                     UpdateDestination(ref enemyData, null);
-                    transform.LookAt(targetPosition);
+                    lookDirection = targetPosition - transform.position;
                     FireWeapon();
                 }
             }
             else
             {
                 UpdateDestination(ref enemyData, null);
-            }
-        }
-
-        private void ApplyPathMoving(ref EnemyData enemyData)
-        {
-            if (!objectContext.HasStateAuthority || enemyData.isDead || !CanMoveByController(ref enemyData)) return;
-
-            var curPosition = transform.position;
-            var curNavigationTarget = enemyData.navigationTarget;
-
-            enemiesHelper.StartCalculatePath(ref objectContext.Id, curPosition, curNavigationTarget);
-
-            //Can allocate on calculate corners internal
-            var newPathCorners = enemiesHelper.GetPathCorners(ref objectContext.Id);
-            if (newPathCorners.Length > 0)
-            {
-                pathCorners = newPathCorners;
-                nextNavPathCornerIndex = 1;
-            }
-
-            if (nextNavPathCornerIndex < pathCorners.Length)
-            {
-                if (Vector3.SqrMagnitude(pathCorners[nextNavPathCornerIndex] - transform.position) <
-                    0.04f) //threshold delta
-                {
-                    nextNavPathCornerIndex++;
-                }
-            }
-
-            var direction = (nextNavPathCornerIndex < pathCorners.Length
-                    ? pathCorners[nextNavPathCornerIndex]
-                    : curNavigationTarget
-                ) - curPosition;
-
-            direction = new Vector3(direction.x, 0, direction.z);
-            transform.LookAt(curPosition + direction); //todo вынести в отдельную фазу
-            var currentVelocity = rigidbody.velocity;
-            if (currentVelocity.sqrMagnitude < enemyData.speed * enemyData.speed)
-            {
-                var deltaVelocity = enemyData.speed * direction.normalized - currentVelocity;
-                var deltaVelocityMagnitude = deltaVelocity.magnitude;
-                //todo заменить velocity на AddForce и переместить просчёт пути в конец
-                rigidbody.velocity = currentVelocity +
-                                     Mathf.Min(moveAcceleration * PhysicsManager.DeltaTime / deltaVelocityMagnitude,
-                                         1f) *
-                                     deltaVelocity;
             }
         }
 
@@ -464,7 +466,6 @@ namespace Main.Scripts.Enemies
             if (destination == null)
             {
                 pathCorners = Array.Empty<Vector3>();
-                rigidbody.velocity = Vector3.zero; //todo мб вынести в фазу стратегии движения
                 nextNavPathCornerIndex = 1;
             }
         }

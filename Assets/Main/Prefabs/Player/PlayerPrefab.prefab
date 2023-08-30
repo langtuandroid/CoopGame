@@ -117,8 +117,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ObjectInterest: 0
   DefaultInterestGroups: []
-  DestroyWhenStateAuthorityLeaves: 0
-  AllowStateAuthorityOverride: 1
+  DestroyWhenStateAuthorityLeaves: 1
+  AllowStateAuthorityOverride: 0
   AoiPositionSource: {fileID: 0}
   Flags: 2305
   NetworkGuid:
@@ -439,21 +439,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   skillControllerConfig: {fileID: 11400000, guid: 975a24afc35ee8a4fb750463e96c92dd, type: 2}
-  OnWaitingForPointTargetEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnWaitingForUnitTargetEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillExecutedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillFinishedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillCanceledEvent:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!1 &2568025199333725882
 GameObject:
   m_ObjectHideFlags: 0
@@ -582,21 +567,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   skillControllerConfig: {fileID: 11400000, guid: 485b2ddd4a8aa094290e1cd78ad6e84b, type: 2}
-  OnWaitingForPointTargetEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnWaitingForUnitTargetEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillExecutedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillFinishedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillCanceledEvent:
-    m_PersistentCalls:
-      m_Calls: []
   passiveSkillTrigger: {fileID: 11400000, guid: 4028be693e3571c4d876f3a9ed1fc15f, type: 2}
 --- !u!1 &4120791218847530302
 GameObject:
@@ -727,21 +697,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   skillControllerConfig: {fileID: 11400000, guid: 9c45539eb9b82db4c882f02f7cc493b1, type: 2}
-  OnWaitingForPointTargetEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnWaitingForUnitTargetEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillExecutedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillFinishedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillCanceledEvent:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!1 &5254026874539038413
 GameObject:
   m_ObjectHideFlags: 0
@@ -850,21 +805,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   skillControllerConfig: {fileID: 11400000, guid: 17c8584b985740441a6039183415b6c6, type: 2}
-  OnWaitingForPointTargetEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnWaitingForUnitTargetEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillExecutedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillFinishedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillCanceledEvent:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!1 &7189976963573442407
 GameObject:
   m_ObjectHideFlags: 0
@@ -911,21 +851,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   skillControllerConfig: {fileID: 11400000, guid: fc8209fbf7f947049b68101db58b5d8c, type: 2}
-  OnWaitingForPointTargetEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnWaitingForUnitTargetEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillExecutedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillFinishedEvent:
-    m_PersistentCalls:
-      m_Calls: []
-  OnSkillCanceledEvent:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!1 &8135453517894082578
 GameObject:
   m_ObjectHideFlags: 0

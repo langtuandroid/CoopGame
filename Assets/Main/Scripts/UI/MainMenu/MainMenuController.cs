@@ -20,16 +20,16 @@ namespace Main.Scripts.UI.MainMenu
         private ProfileSettingsWindow profileSettingsWindow = default!;
         [SerializeField]
         private ConnectionStatusWindow connectionStatusWindow = default!;
+        [SerializeField]
+        private LevelTransitionManager levelTransitionManagerPrefab = default!;
 
         private SessionManager? sessionManager;
-        private LevelTransitionManager levelTransitionManager = default!;
 
         private string roomName = "Room";
         private string userId = "Player";
 
         private void Start()
         {
-            levelTransitionManager = LevelTransitionManager.Instance.ThrowWhenNull();
             sessionManager = SessionManager.Instance;
 
             mainMenuWindow.OnRoomNameChanged = OnRoomNameChanged;
@@ -85,7 +85,7 @@ namespace Main.Scripts.UI.MainMenu
                 mode: gameMode,
                 room: roomName,
                 userId: new UserId(userId),
-                sceneManager: levelTransitionManager
+                sceneManager: Instantiate(levelTransitionManagerPrefab)
             );
         }
 

@@ -35,6 +35,7 @@ namespace Main.Scripts.Room.Transition
         {
             Assert.Check(Instance == null);
             Instance = this;
+            DontDestroyOnLoad(this);
         }
 
         private void OnDestroy()
@@ -69,10 +70,7 @@ namespace Main.Scripts.Room.Transition
                 yield break;
             }
 
-            if (Runner.IsSharedModeMasterClient)
-            {
-                UpdateSceneState(SceneState.TRANSITION);
-            }
+            UpdateSceneState(SceneState.TRANSITION);
 
             yield return null;
             Debug.Log($"Start loading scene {newScene} in single peer mode");
@@ -92,7 +90,7 @@ namespace Main.Scripts.Room.Transition
             SceneManager.SetActiveScene(loadedScene);
 
             Debug.Log($"Loaded scene {newScene}: {loadedScene}");
-            var sceneObjects = FindNetworkObjects(loadedScene, disable: false);
+            var sceneObjects = FindNetworkObjects(loadedScene, disable: true);
 
             StartCoroutine(HideLoadingScene());
 
@@ -107,10 +105,7 @@ namespace Main.Scripts.Room.Transition
 
         private void SwitchScenePostFadeIn(SceneRef prevScene, SceneRef newScene)
         {
-            if (Runner.IsSharedModeMasterClient)
-            {
-                UpdateSceneState(activeScene.buildIndex == lobby ? SceneState.LOBBY : SceneState.LEVEL);
-            }
+            UpdateSceneState(activeScene.buildIndex == lobby ? SceneState.LOBBY : SceneState.LEVEL);
 
             Debug.Log($"Switched Scene from {prevScene} to {newScene}");
         }
@@ -140,6 +135,8 @@ namespace Main.Scripts.Room.Transition
             SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex(mainMenuScene));
 
             yield return HideLoadingScene();
+            
+            Destroy(this);
         }
 
         private IEnumerator ShowLoadingScene()

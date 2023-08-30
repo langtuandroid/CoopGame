@@ -13,15 +13,16 @@ namespace Main.Scripts.Core.GameLogic.Phases
         EffectsUpdatePhase,
         ApplyActionsPhase,
         DespawnPhase,
-        MovementStrategyPhase,
         PhysicsUpdatePhase,
         PhysicsSkillMovementPhase,
         PhysicsCheckCollisionsPhase,
         PhysicsUnitsLookPhase,
         PhysicsSkillLookPhase,
+        NavigationPhase,
         AOIUpdatePhase,
         ObjectsSpawnPhase,
         VisualStateUpdatePhase,
-        SyncTransformAfterAllPhase
+        SyncTransformAfterAllPhase,
+        LevelStrategyPhase,
     }
 }

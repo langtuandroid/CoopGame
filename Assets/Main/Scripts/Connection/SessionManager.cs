@@ -57,6 +57,8 @@ namespace Main.Scripts.Connection
             runner.ProvideInput = mode != GameMode.Server;
 
             LocalUserId = userId;
+            
+            Debug.Log($"StartGame with room: {room}, userId: {userId}");
 
             await runner.StartGame(new StartGameArgs
             {

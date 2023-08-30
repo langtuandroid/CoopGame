@@ -20,11 +20,13 @@ namespace Main.Scripts.Levels.Lobby
         private UIScreenManager uiScreenManager = default!;
 
         private List<PlayerRef> spawnActions = new();
+        private bool shouldStartMission;
 
         public override void Spawned()
         {
             base.Spawned();
             spawnActions.Clear();
+            shouldStartMission = false;
             
             playerCamera = PlayerCamera.Instance.ThrowWhenNull();
             uiScreenManager = UIScreenManager.Instance.ThrowWhenNull();
@@ -47,14 +49,17 @@ namespace Main.Scripts.Levels.Lobby
 
         protected override void OnPlayerInitialized(PlayerRef playerRef)
         {
-            if (!HasStateAuthority) return;
-            //todo добавить спавн поинты
-            RPC_AddSpawnPlayerAction(playerRef);
+            
         }
 
         protected override void OnPlayerDisconnected(PlayerRef playerRef)
         {
             
+        }
+
+        protected override void OnLocalPlayerLoaded(PlayerRef playerRef)
+        {
+            RPC_OnPlayerReady(playerRef);
         }
 
         protected override void OnSpawnPhase()
@@ -65,6 +70,20 @@ namespace Main.Scripts.Levels.Lobby
                 SpawnLocalPlayer(playerRef);
             }
             spawnActions.Clear();
+        }
+
+        protected override void OnLevelStrategyPhase()
+        {
+            if (shouldStartMission)
+            {
+                shouldStartMission = false;
+                roomManager.OnAllPlayersReady();
+            }
+        }
+
+        protected override bool IsLevelReady()
+        {
+            return Runner.IsSceneReady();
         }
 
         private void OnLocalPlayerStateChanged(
@@ -99,7 +118,7 @@ namespace Main.Scripts.Levels.Lobby
             if (isChecked)
             {
                 readyToStartTask.OnTaskCheckChangedEvent.RemoveListener(OnReadyTargetStatusChanged);
-                roomManager.OnAllPlayersReady();
+                shouldStartMission = true;
             }
         }
 
@@ -141,6 +160,12 @@ namespace Main.Scripts.Levels.Lobby
             );
 
             TryShowLevelResults();
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        private void RPC_OnPlayerReady(PlayerRef playerRefReady)
+        {
+            RPC_AddSpawnPlayerAction(playerRefReady);
         }
     }
 }

@@ -23,11 +23,19 @@ namespace Main.Scripts.Levels.Missions
         private PlayerCamera playerCamera = default!;
 
         private List<PlayerRef> spawnActions = new();
+        private MissionState missionState;
+
+        private HashSet<PlayerRef> playersReady = new();
+
+        [Networked]
+        private NetworkBool isPlayersReady { get; set; }
 
         public override void Spawned()
         {
             base.Spawned();
             spawnActions.Clear();
+            missionState = MissionState.Loading;
+            playersReady.Clear();
             
             playerCamera = PlayerCamera.Instance.ThrowWhenNull();
 
@@ -55,15 +63,17 @@ namespace Main.Scripts.Levels.Missions
 
         protected override void OnPlayerInitialized(PlayerRef playerRef)
         {
-            if (!HasStateAuthority) return;
-            //todo добавить спавн поинты
             
-            RPC_AddSpawnPlayerAction(playerRef);
         }
 
         protected override void OnPlayerDisconnected(PlayerRef playerRef)
         {
             
+        }
+
+        protected override void OnLocalPlayerLoaded(PlayerRef playerRef)
+        {
+            RPC_OnPlayerReady(Runner.LocalPlayer);
         }
 
         protected override void OnSpawnPhase()
@@ -73,6 +83,41 @@ namespace Main.Scripts.Levels.Missions
                 SpawnLocalPlayer(playerRef);
             }
             spawnActions.Clear();
+        }
+
+        protected override void OnLevelStrategyPhase()
+        {
+            if (!HasStateAuthority) return;
+            
+            switch (missionState)
+            {
+                case MissionState.Loading:
+                    if (isPlayersReady)
+                    {
+                        missionState = MissionState.Active;
+                        
+                        foreach (var playerRef in Runner.ActivePlayers)
+                        {
+                            RPC_AddSpawnPlayerAction(playerRef);
+                        }
+                    }
+                    break;
+                case MissionState.Active:
+                    break;
+                case MissionState.Failed:
+                    OnMissionFailed();
+                    break;
+                case MissionState.Success:
+                    OnMissionSuccess();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        protected override bool IsLevelReady()
+        {
+            return Runner.IsSceneReady() && isPlayersReady;
         }
 
         private void OnLocalPlayerStateChanged(
@@ -98,6 +143,20 @@ namespace Main.Scripts.Levels.Missions
                 default:
                     throw new ArgumentOutOfRangeException(nameof(playerState), playerState, null);
             }
+        }
+
+        private void OnMissionSuccess()
+        {
+            var levelResults = new Dictionary<UserId, LevelResultsData>();
+            foreach (var playerRef in playersHolder.GetKeys())
+            {
+                levelResults.Add(playerDataManager.GetUserId(playerRef), new LevelResultsData
+                {
+                    IsSuccess = true
+                });
+            }
+
+            roomManager.OnLevelFinished(levelResults);
         }
 
         private void OnMissionFailed()
@@ -130,16 +189,11 @@ namespace Main.Scripts.Levels.Missions
             {
                 placeTargetTask.OnTaskCheckChangedEvent.RemoveListener(OnFinishTaskStatus);
 
-                var levelResults = new Dictionary<UserId, LevelResultsData>();
-                foreach (var playerRef in playersHolder.GetKeys())
+                if (missionState == MissionState.Active)
                 {
-                    levelResults.Add(playerDataManager.GetUserId(playerRef), new LevelResultsData
-                    {
-                        IsSuccess = true
-                    });
+                    //todo переделать логику, чтобы не было конфликтов состояний
+                    missionState = MissionState.Success;
                 }
-
-                roomManager.OnLevelFinished(levelResults);
             }
         }
 
@@ -177,7 +231,35 @@ namespace Main.Scripts.Levels.Missions
                 }
             }
 
-            OnMissionFailed();
+            if (missionState == MissionState.Active)
+            {
+                //todo переделать логику, чтобы не было конфликтов состояний
+                missionState = MissionState.Failed;
+            }
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        private void RPC_OnPlayerReady(PlayerRef playerRefReady)
+        {
+            if (!HasStateAuthority) return;
+            
+            playersReady.Add(playerRefReady);
+
+            if (isPlayersReady)
+            {
+                RPC_AddSpawnPlayerAction(playerRefReady);
+                return;
+            }
+            
+            foreach (var playerRef in Runner.ActivePlayers)
+            {
+                if (!playersReady.Contains(playerRef))
+                {
+                    return;
+                }
+            }
+
+            isPlayersReady = true;
         }
     }
 }

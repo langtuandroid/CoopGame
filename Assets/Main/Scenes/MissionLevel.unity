@@ -153,7 +153,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d40271f259c450784ff9b8726c4f1ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
 --- !u!4 &15558136
 Transform:
   m_ObjectHideFlags: 0
@@ -2198,7 +2197,6 @@ MonoBehaviour:
   - {fileID: 909003566}
   - {fileID: 909003565}
   - {fileID: 909003564}
-  - {fileID: 15558135}
   SimulationBehaviours: []
 --- !u!114 &909003568
 MonoBehaviour:

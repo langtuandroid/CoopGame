@@ -168,7 +168,7 @@ namespace Main.Scripts.Player.InputSystem.Target
 
                     if (distance < snapDistance && (nearestTarget == null || targetDistance > distance))
                     {
-                        nearestTarget = enemy;
+                        nearestTarget = enemy.Object;
                         targetDistance = distance;
                     }
                 }

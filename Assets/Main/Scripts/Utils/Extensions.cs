@@ -77,5 +77,10 @@ namespace Main.Scripts.Utils
             typed = default!;
             return false;
         }
+
+        public static bool IsSceneReady(this NetworkRunner runner)
+        {
+            return runner.SceneManager.IsReady(runner);
+        } 
     }
 }

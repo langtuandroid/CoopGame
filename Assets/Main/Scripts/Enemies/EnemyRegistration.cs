@@ -10,16 +10,18 @@ namespace Main.Scripts.Enemies
     public class EnemyRegistration : NetworkBehaviour
     {
         private EnemiesManager enemiesManager = default!;
+        private EnemyController enemyController = default!;
 
         public override void Spawned()
         {
+            enemyController = GetComponent<EnemyController>();
             enemiesManager = EnemiesManager.Instance.ThrowWhenNull();
-            enemiesManager.RegisterEnemy(Object);
+            enemiesManager.RegisterEnemy(enemyController);
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
-            enemiesManager.UnregisterEnemy(Object);
+            enemiesManager.UnregisterEnemy(enemyController);
             enemiesManager = default!;
         }
     }

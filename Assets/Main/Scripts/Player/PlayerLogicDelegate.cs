@@ -314,6 +314,8 @@ namespace Main.Scripts.Player
 
         private void OnPhysicsUpdatePhase()
         {
+            if (!objectContext.HasStateAuthority) return;
+            
             ref var data = ref dataHolder.GetPlayerLogicData();
             
             if (!IsActivated(ref data))
@@ -321,24 +323,23 @@ namespace Main.Scripts.Player
 
             if (!data.dashTimer.ExpiredOrNotRunning(objectContext.Runner))
             {
-                var dashDirection = data.dashSpeed * data.dashDirection;
-                Move(ref dashDirection);
+                var dashVelocity = data.dashSpeed * data.dashDirection;
+                Move(ref dashVelocity);
             }
             else if (CanMoveByController(ref data))
             {
-                var currentVelocity = rigidbody.velocity.magnitude;
-                if (currentVelocity < data.speed) //todo баг, когда условие не выполняется, то направление движения не меняется
+                var moveDirection = GetMovingDirection().normalized;
+                var currentToMoveVelocityDot = Vector3.Dot(rigidbody.velocity, moveDirection);
+
+                if (currentToMoveVelocityDot < 0 || currentToMoveVelocityDot < data.speed)
                 {
-                    var deltaVelocity = data.speed * GetMovingDirection().normalized - rigidbody.velocity;
-                    rigidbody.velocity +=
-                        Mathf.Min(moveAcceleration * PhysicsManager.DeltaTime, deltaVelocity.magnitude) *
-                        deltaVelocity.normalized;
+                    rigidbody.velocity += Math.Min(moveAcceleration, data.speed - currentToMoveVelocityDot) * moveDirection;
                 }
             }
             else
             {
                 var velocity = Vector3.zero;
-                Move(ref velocity);
+                Move(ref velocity); //todo продумать логику остановки персонажа при условиях в CanMoveByController
             }
         }
 
@@ -461,7 +462,6 @@ namespace Main.Scripts.Player
             {
                 if (objectContext.HasStateAuthority)
                 {
-                    //todo Вынести проверку в отдельную фазу (как у врагов)
                     UpdateState(ref playerLogicData, PlayerState.Dead);
                     //todo мы не можем гарантировать порядок нанесения урона, поэтому не можем определить кто именно нанёс смертельный удар
                     passiveSkillsManager.OnDead(null);
@@ -479,6 +479,7 @@ namespace Main.Scripts.Player
         {
             lastState = data.state;
 
+            //todo переделать обновление статуса под фазы
             if (data.state == PlayerState.Dead)
             {
                 collider.enabled = false;

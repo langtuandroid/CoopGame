@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Fusion;
 using Main.Scripts.Core.CustomPhysics;
 using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Utils;
@@ -10,7 +9,7 @@ using UnityEngine.Profiling;
 
 namespace Main.Scripts.Core.GameLogic
 {
-    public class GameLoopManager : NetworkBehaviour
+    public class GameLoopManager : MonoBehaviour
     {
         private PhysicsManager physicsManager = default!;
 
@@ -36,7 +35,6 @@ namespace Main.Scripts.Core.GameLogic
             GameLoopPhase.EffectsUpdatePhase,
             GameLoopPhase.ApplyActionsPhase,
             GameLoopPhase.DespawnPhase,
-            GameLoopPhase.MovementStrategyPhase,
         };
         private GameLoopPhase[] physicsPhases =
         {
@@ -48,10 +46,12 @@ namespace Main.Scripts.Core.GameLogic
         };
         private GameLoopPhase[] afterPhysicsPhases =
         {
+            GameLoopPhase.NavigationPhase,
             GameLoopPhase.AOIUpdatePhase,
             GameLoopPhase.ObjectsSpawnPhase,
             GameLoopPhase.VisualStateUpdatePhase,
-            GameLoopPhase.SyncTransformAfterAllPhase
+            GameLoopPhase.SyncTransformAfterAllPhase,
+            GameLoopPhase.LevelStrategyPhase
         };
 
         private void Awake()
@@ -62,28 +62,25 @@ namespace Main.Scripts.Core.GameLogic
             }
         }
 
-        public override void Spawned()
+        public void Init(int tickRate)
         {
-            base.Spawned();
             physicsManager = PhysicsManager.Instance.ThrowWhenNull();
-            physicsManager.Init(Runner.Config.Simulation.TickRate);
+            physicsManager.Init(tickRate);
         }
 
-        public override void Despawned(NetworkRunner runner, bool hasState)
+        public void OnDestroy()
         {
-            base.Despawned(runner, hasState);
             physicsManager = default!;
         }
 
-        public override void FixedUpdateNetwork()
+        public void SimulateLoop()
         {
-            //todo Выключать симуляцию при переходах между сценами
             Profiler.BeginSample("GameLoopManager::FUN");
 
             UpdateListeners();
 
             RunPhases(beforePhysicsPhases);
-            PhysicsPhase();
+            PhysicsPhases();
             RunPhases(afterPhysicsPhases);
 
             Profiler.EndSample();
@@ -91,11 +88,13 @@ namespace Main.Scripts.Core.GameLogic
 
         public void AddListener(GameLoopListener listener)
         {
+            removedListenersSet.Remove(listener);
             addedListenersSet.Add(listener);
         }
 
         public void RemoveListener(GameLoopListener listener)
         {
+            addedListenersSet.Remove(listener);
             removedListenersSet.Add(listener);
         }
 
@@ -122,7 +121,7 @@ namespace Main.Scripts.Core.GameLogic
             addedListenersSet.Clear();
         }
 
-        private void PhysicsPhase()
+        private void PhysicsPhases()
         {
             Profiler.BeginSample("GameLoopManager::PhysicsPhase");
             for (var i = 0; i < physicsManager.StepsByTick; i++)

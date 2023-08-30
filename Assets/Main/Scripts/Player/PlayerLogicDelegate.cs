@@ -497,7 +497,7 @@ namespace Main.Scripts.Player
         {
             ref var data = ref dataHolder.GetPlayerLogicData();
 
-            if (objectContext.StateAuthority == playerRef)
+            if (objectContext.StateAuthority == playerRef || !objectContext.IsValid)
             {
                 return false;
             }

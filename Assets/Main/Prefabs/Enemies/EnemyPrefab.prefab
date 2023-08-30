@@ -326,8 +326,6 @@ GameObject:
   - component: {fileID: 4425180859500658918}
   - component: {fileID: 8873510702002083441}
   - component: {fileID: 9073458150845485142}
-  - component: {fileID: 6044222759912593869}
-  - component: {fileID: 5679383200209599701}
   - component: {fileID: 1700861747982785219}
   - component: {fileID: 7333310170445118865}
   - component: {fileID: 3500822120214239212}
@@ -433,50 +431,12 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 8873510702002083441}
-  - {fileID: 6044222759912593869}
   - {fileID: 2458895777973677290}
   - {fileID: 4001094843522750303}
   - {fileID: 8179695836968032014}
   - {fileID: 1842437096344751781}
   - {fileID: 4259800226060212002}
   SimulationBehaviours: []
---- !u!114 &6044222759912593869
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8793831724621115318}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 1039544458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  Config: 0
-  BroadRadius: 0.6
-  Offset: {x: 0, y: 0, z: 0}
-  GizmosColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  Hitboxes:
-  - {fileID: 5679383200209599701}
---- !u!114 &5679383200209599701
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8793831724621115318}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Type: 2
-  SphereRadius: 0.6
-  BoxExtents: {x: 0, y: 0, z: 0}
-  Offset: {x: 0, y: 0, z: 0}
-  Root: {fileID: 6044222759912593869}
-  GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!135 &1700861747982785219
 SphereCollider:
   m_ObjectHideFlags: 0

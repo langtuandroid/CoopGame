@@ -892,9 +892,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   enemyPrefab: {fileID: 8873510702002083441, guid: fb6430ba47924404495b48284fc38986, type: 3}
-  OnEnemySpawnedEvent:
-    m_PersistentCalls:
-      m_Calls: []
   OnEnemyDeadEvent:
     m_PersistentCalls:
       m_Calls: []

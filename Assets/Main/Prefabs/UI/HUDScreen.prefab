@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5770480701064122346}
   - component: {fileID: 6667076347346972803}
-  - component: {fileID: 7205668909440237940}
+  - component: {fileID: 1555442082398054901}
   m_Layer: 0
   m_Name: HUDScreen
   m_TagString: Untagged
@@ -31,7 +31,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6667076347346972803
 MonoBehaviour:
@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dbb3e7c612e84dc29df10892410c0c46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &7205668909440237940
+--- !u!114 &1555442082398054901
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

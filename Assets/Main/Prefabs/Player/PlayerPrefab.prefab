@@ -12,8 +12,6 @@ GameObject:
   - component: {fileID: 8621184440868273307}
   - component: {fileID: 8372486524937162354}
   - component: {fileID: 1425333410987082642}
-  - component: {fileID: 369425252353374699}
-  - component: {fileID: 1449973077223096642}
   - component: {fileID: 4825706826286820419}
   - component: {fileID: 6164899338393413305}
   - component: {fileID: 8579873468137742767}
@@ -126,7 +124,6 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 8621184440868273307}
-  - {fileID: 369425252353374699}
   - {fileID: 8579873468137742767}
   - {fileID: 2275087920604004606}
   - {fileID: 776021329174559332}
@@ -160,43 +157,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &369425252353374699
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 618333773993329091}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 1039544458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  Config: 1
-  BroadRadius: 0.6
-  Offset: {x: 0, y: 0, z: 0}
-  GizmosColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  Hitboxes:
-  - {fileID: 1449973077223096642}
---- !u!114 &1449973077223096642
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 618333773993329091}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 1014831617, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Type: 2
-  SphereRadius: 0.6
-  BoxExtents: {x: 1, y: 1, z: 1}
-  Offset: {x: 0, y: 0, z: 0}
-  Root: {fileID: 0}
-  GizmosColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!54 &4825706826286820419
 Rigidbody:
   m_ObjectHideFlags: 0

@@ -75,7 +75,7 @@ namespace Main.Scripts.Core.GameLogic
 
         public void SimulateLoop()
         {
-            Profiler.BeginSample("GameLoopManager::FUN");
+            Profiler.BeginSample("GameLoopManager::SimulateLoop");
 
             UpdateListeners();
 
@@ -129,6 +129,7 @@ namespace Main.Scripts.Core.GameLogic
                 foreach (var phase in physicsPhases)
                 {
                     // Debug.Log($"Physics step simulation: LocalTick={Runner.Tick}");
+                    Profiler.BeginSample($"Phase={Enum.GetName(typeof(GameLoopPhase), phase)}");
                     foreach (var listener in listeners[phase])
                     {
                         listener.OnGameLoopPhase(phase);
@@ -141,6 +142,7 @@ namespace Main.Scripts.Core.GameLogic
                         physicsManager.Simulate();
                         Profiler.EndSample();
                     }
+                    Profiler.EndSample();
                 }
             }
             Profiler.EndSample();

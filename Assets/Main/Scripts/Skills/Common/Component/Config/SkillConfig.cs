@@ -22,7 +22,7 @@ namespace Main.Scripts.Skills.Common.Component.Config
         private SkillActionTriggerBase actionTrigger = default!;
         [SerializeField]
         private List<SkillFindTargetsStrategyBase> findTargetsStrategies = new();
-        [SerializeField]
+        [SerializeField, Tooltip("Enable 'Destroy when state authority leaves'")]
         private bool isAffectTargetsOnlyOneTime;
         [SerializeField]
         private List<SkillActionBase> actions = default!;

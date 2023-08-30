@@ -90,7 +90,7 @@ namespace Main.Scripts.Room.Transition
             SceneManager.SetActiveScene(loadedScene);
 
             Debug.Log($"Loaded scene {newScene}: {loadedScene}");
-            var sceneObjects = FindNetworkObjects(loadedScene, disable: true);
+            var sceneObjects = FindNetworkObjects(loadedScene, disable: false);
 
             StartCoroutine(HideLoadingScene());
 

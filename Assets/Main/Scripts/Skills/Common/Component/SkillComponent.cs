@@ -63,19 +63,19 @@ namespace Main.Scripts.Skills.Common.Component
         [Networked]
         private int opponentsLayerMask { get; set; }
 
-        [Networked]
-        [Capacity(20)]
-        private NetworkLinkedList<NetworkObject> affectedTargets => default;
+        private List<GameObject> affectedTargets = new();
 
         private SkillFollowStrategyBase followStrategy = default!;
         private SkillActionTriggerBase actionTrigger = default!;
         private List<SkillFindTargetsStrategyBase> findTargetStrategiesList = new();
         private List<SkillActionBase> actionsList = new();
 
-        private List<LagCompensatedHit> findTargetHitsList = new();
-        private HashSet<NetworkObject> findTargetHitObjectsSet = new();
+        private HashSet<GameObject> findTargetHitObjectsSet = new();
 
         private List<SpawnSkillActionBase> spawnActions = new();
+        private RaycastHit[] raycasts = new RaycastHit[100];
+        private Collider[] colliders = new Collider[100];
+        private Vector3 skillPositionOnCollisionTriggered;
         private bool isCollisionTriggered;
         private bool shouldDespawn;
 
@@ -117,6 +117,7 @@ namespace Main.Scripts.Skills.Common.Component
             activatedTriggersCount = 0;
             shouldStop = false;
             startSkillTick = 0;
+            skillPositionOnCollisionTriggered = default;
 
             this.initialMapPoint = initialMapPoint;
             this.dynamicMapPoint = dynamicMapPoint;
@@ -130,9 +131,6 @@ namespace Main.Scripts.Skills.Common.Component
             this.onSpawnNewSkillComponent = onSpawnNewSkillComponent;
             
             affectedTargets.Clear();
-
-            
-            findTargetHitsList.Clear();
             findTargetHitObjectsSet.Clear();
         }
 
@@ -219,19 +217,19 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void OnPhysicsSkillMovementPhase()
         {
-            if (shouldStop) return;
+            if (shouldStop || shouldDespawn) return;
             
             UpdatePosition();
         }
 
         private void OnSkillUpdatePhase()
         {
-            if (!HasStateAuthority) return;
+            if (!HasStateAuthority || shouldDespawn) return;
 
             if (isCollisionTriggered)
             {
-                isCollisionTriggered = false;
                 ExecuteActions();
+                isCollisionTriggered = false;
             }
             
             if (isFinished)
@@ -298,26 +296,24 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void OnPhysicsCheckCollisionsPhase()
         {
-            if (shouldStop) return;
+            if (shouldStop || shouldDespawn) return;
             
             CheckCollisionTrigger();
         }
 
         private void OnPhysicsSkillsLookPhase()
         {
-            if (shouldStop) return;
+            if (shouldStop || shouldDespawn) return;
             
             UpdateRotation();
         }
 
         private void OnDespawnPhase()
         {
-            if (shouldDespawn)
+            if (shouldDespawn && spawnActions.Count == 0)
             {
                 Runner.Despawn(Object);
             }
-
-            shouldDespawn = false;
         }
 
         public void UpdateMapPoint(Vector3 mapPoint)
@@ -385,7 +381,7 @@ namespace Main.Scripts.Skills.Common.Component
             transform.rotation = Quaternion.LookRotation(GetDirectionByType(skillConfig.FollowDirectionType));
         }
 
-        private IEnumerable<NetworkObject> FindActionTargets()
+        private IEnumerable<GameObject> FindActionTargets()
         {
             findTargetHitObjectsSet.Clear();
             foreach (var findTargetStrategy in findTargetStrategiesList)
@@ -407,7 +403,7 @@ namespace Main.Scripts.Skills.Common.Component
                     case SelectedUnitSkillFindTargetsStrategy:
                         if (selectedUnit != null)
                         {
-                            findTargetHitObjectsSet.Add(selectedUnit);
+                            findTargetHitObjectsSet.Add(selectedUnit.gameObject);
                         }
 
                         break;
@@ -415,7 +411,7 @@ namespace Main.Scripts.Skills.Common.Component
                     case SelfUnitSkillFindTargetsStrategy:
                         if (selfUnit != null)
                         {
-                            findTargetHitObjectsSet.Add(selfUnit);
+                            findTargetHitObjectsSet.Add(selfUnit.gameObject);
                         }
 
                         break;
@@ -426,7 +422,7 @@ namespace Main.Scripts.Skills.Common.Component
             {
                 foreach (var affectedTarget in affectedTargets)
                 {
-                    findTargetHitObjectsSet.Remove(affectedTarget);
+                    findTargetHitObjectsSet.Remove(affectedTarget.gameObject);
                 }
 
                 foreach (var hitTarget in findTargetHitObjectsSet)
@@ -453,17 +449,16 @@ namespace Main.Scripts.Skills.Common.Component
             
             if (actionTrigger is CollisionSkillActionTrigger collisionTrigger)
             {
-                Runner.LagCompensation.OverlapSphere(
-                    origin: transform.position,
+                var hitsCount = Physics.OverlapSphereNonAlloc(
+                    position: transform.position,
                     radius: collisionTrigger.Radius,
-                    player: ownerId,
-                    hits: findTargetHitsList,
-                    layerMask: GetLayerMaskByType(collisionTrigger.TargetType),
-                    options: HitOptions.IgnoreInputAuthority & HitOptions.SubtickAccuracy
+                    results: colliders,
+                    layerMask: GetLayerMaskByType(collisionTrigger.TargetType)
                 );
 
-                if (findTargetHitsList.Count > 0)
+                if (!isCollisionTriggered && (hitsCount >= 2 || (hitsCount > 0 && colliders[0].gameObject != gameObject)))
                 {
+                    skillPositionOnCollisionTriggered = transform.position;
                     isCollisionTriggered = true;
                 }
             }
@@ -482,7 +477,7 @@ namespace Main.Scripts.Skills.Common.Component
             }
         }
 
-        private void ApplyAction(SkillActionBase action, IEnumerable<NetworkObject> actionTargets)
+        private void ApplyAction(SkillActionBase action, IEnumerable<GameObject> actionTargets)
         {
             foreach (var actionTarget in actionTargets)
             {
@@ -510,7 +505,9 @@ namespace Main.Scripts.Skills.Common.Component
                     case ForceSkillAction forceAction
                         when actionTarget.TryGetInterface(out ObjectWithGettingKnockBack knockable):
 
-                        var direction = actionTarget.transform.position - transform.position;
+                        var skillPosition =
+                            isCollisionTriggered ? skillPositionOnCollisionTriggered : transform.position;
+                        var direction = actionTarget.transform.position - skillPosition;
                         var knockBackActionData = new KnockBackActionData { direction = direction.normalized * forceAction.ForceValue };
                         knockable.AddKnockBack(ref knockBackActionData);
 
@@ -689,29 +686,31 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void FindTargetsAroundPoint(
             AroundPointSkillFindTargetsStrategy strategyConfig,
-            ISet<NetworkObject> targetsSet
+            ISet<GameObject> targetsSet
         )
         {
             var origin = GetPointByType(strategyConfig.OriginPoint);
 
-            Runner.LagCompensation.OverlapSphere(
-                origin: origin,
+            var hitsCount = Physics.OverlapSphereNonAlloc(
+                position: origin,
                 radius: strategyConfig.Radius,
-                player: ownerId,
-                hits: findTargetHitsList,
+                results: colliders,
                 layerMask: GetLayerMaskByType(strategyConfig.TargetType),
-                options: HitOptions.IgnoreInputAuthority & HitOptions.SubtickAccuracy
+                queryTriggerInteraction: QueryTriggerInteraction.Ignore
             );
 
-            foreach (var hit in findTargetHitsList)
+            for (var i = 0; i < hitsCount; i++)
             {
-                targetsSet.Add(hit.Hitbox.Root.Object);
+                var hit = colliders[i];
+                if (hit.gameObject == gameObject) continue;
+
+                targetsSet.Add(hit.gameObject);
             }
         }
 
         private void FindTargetsCircleSector(
             CircleSectorSkillFindTargetsStrategy strategyConfig,
-            ISet<NetworkObject> targetsSet
+            ISet<GameObject> targetsSet
         )
         {
             var ANGLE_STEP = 20f;
@@ -730,26 +729,28 @@ namespace Main.Scripts.Skills.Common.Component
                 var rotateAngle = -strategyConfig.Angle / 2f + i * strategyConfig.Angle / raycastsCount;
                 var raycastDirection = Quaternion.AngleAxis(rotateAngle, Vector3.up) * direction;
 
-                Runner.LagCompensation.RaycastAll(
+                var hitsCount = Physics.RaycastNonAlloc(
                     origin: origin,
                     direction: raycastDirection,
-                    length: strategyConfig.Radius,
-                    player: ownerId,
-                    hits: findTargetHitsList,
+                    results: raycasts,
+                    maxDistance: strategyConfig.Radius,
                     layerMask: GetLayerMaskByType(strategyConfig.TargetType),
-                    options: HitOptions.IgnoreInputAuthority & HitOptions.SubtickAccuracy
+                    queryTriggerInteraction: QueryTriggerInteraction.Ignore
                 );
 
-                foreach (var hit in findTargetHitsList)
+                for (var j = 0; j < hitsCount; j++)
                 {
-                    targetsSet.Add(hit.Hitbox.Root.Object);
+                    var hit = raycasts[j].collider;
+                    if (hit.gameObject == gameObject) continue;
+
+                    targetsSet.Add(hit.gameObject);
                 }
             }
         }
 
         private void FindTargetsRectangle(
             RectangleSkillFindTargetsStrategy strategyConfig,
-            ISet<NetworkObject> targetsSet
+            ISet<GameObject> targetsSet
         )
         {
             var origin = GetPointByType(strategyConfig.OriginPoint);
@@ -762,19 +763,21 @@ namespace Main.Scripts.Skills.Common.Component
 
             var extents = new Vector3(strategyConfig.Width / 2f, 1f, strategyConfig.Length / 2f);
 
-            Runner.LagCompensation.OverlapBox(
+            var hitsCount = Physics.OverlapBoxNonAlloc(
                 center: center,
-                extents: extents,
+                halfExtents: extents,
+                results: colliders,
                 orientation: Quaternion.LookRotation(direction),
-                player: ownerId,
-                hits: findTargetHitsList,
-                layerMask: GetLayerMaskByType(strategyConfig.TargetType),
-                options: HitOptions.IgnoreInputAuthority & HitOptions.SubtickAccuracy
+                mask: GetLayerMaskByType(strategyConfig.TargetType),
+                queryTriggerInteraction: QueryTriggerInteraction.Ignore
             );
 
-            foreach (var hit in findTargetHitsList)
+            for (var i = 0; i < hitsCount; i++)
             {
-                targetsSet.Add(hit.Hitbox.Root.Object);
+                var hit = colliders[i];
+                if (hit.gameObject == gameObject) continue;
+
+                targetsSet.Add(hit.gameObject);
             }
         }
     }

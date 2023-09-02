@@ -18,6 +18,7 @@ using Main.Scripts.Gui.HealthChangeDisplay;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.UI.Windows.HUD;
 using Main.Scripts.Utils;
+using Pathfinding.RVO;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -94,6 +95,7 @@ namespace Main.Scripts.Player
             
             cachedComponents[typeof(Transform)] = GetComponent<Transform>();
             cachedComponents[typeof(Rigidbody)] = GetComponent<Rigidbody>();
+            cachedComponents[typeof(RVOController)] = GetComponent<RVOController>();
             cachedComponents[typeof(Collider)] = GetComponent<Collider>();
             cachedComponents[typeof(NetworkMecanimAnimator)] = GetComponent<NetworkMecanimAnimator>();
 

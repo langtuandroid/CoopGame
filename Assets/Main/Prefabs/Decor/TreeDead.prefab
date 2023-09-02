@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3868464933090562080}
   - component: {fileID: 818521904307553529}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: TreeDead
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -65,7 +65,7 @@ GameObject:
   - component: {fileID: 4458484942537892216}
   - component: {fileID: 1515627518823241778}
   - component: {fileID: 2606789321795517606}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: default
   m_TagString: Untagged
   m_Icon: {fileID: 0}

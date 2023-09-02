@@ -13,6 +13,8 @@ using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui.HealthChangeDisplay;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.Utils;
+using Pathfinding;
+using Pathfinding.RVO;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -54,8 +56,6 @@ namespace Main.Scripts.Enemies
 
         public void OnValidate()
         {
-            if (GetComponent<Rigidbody>() == null)
-                throw new MissingComponentException("Rigidbody component is required in EnemyController");
             if (GetComponent<NetworkTransform>() == null)
                 throw new MissingComponentException("NetworkTransform component is required in EnemyController");
             if (GetComponent<Animator>() == null)
@@ -67,7 +67,9 @@ namespace Main.Scripts.Enemies
         void Awake()
         {
             cachedComponents[typeof(Transform)] = transform;
-            cachedComponents[typeof(Rigidbody)] = GetComponent<Rigidbody>();
+            cachedComponents[typeof(Seeker)] = GetComponent<Seeker>();
+            cachedComponents[typeof(RVOController)] = GetComponent<RVOController>();
+            cachedComponents[typeof(RichAI)] = GetComponent<RichAI>();
             cachedComponents[typeof(NetworkTransform)] = GetComponent<NetworkTransform>();
             cachedComponents[typeof(NetworkMecanimAnimator)] = GetComponent<NetworkMecanimAnimator>();
 
@@ -274,6 +276,7 @@ namespace Main.Scripts.Enemies
 
         public void UpdateEffectData(int effectId, ref ActiveEffectData activeEffectData, bool isUnlimitedEffect)
         {
+            if (!HasStateAuthority) return;
             RPC_UpdateEffectData(effectId, activeEffectData, isUnlimitedEffect);
         }
 
@@ -285,6 +288,7 @@ namespace Main.Scripts.Enemies
 
         public void RemoveLimitedEffectData(int effectId)
         {
+            if (!HasStateAuthority) return;
             RPC_RemoveLimitedEffectData(effectId);
         }
 
@@ -296,6 +300,7 @@ namespace Main.Scripts.Enemies
 
         public void UpdateStatAdditiveSum(StatType statType, float constValue, float percentValue)
         {
+            if (!HasStateAuthority) return;
             RPC_UpdateStatAdditiveSum(statType, constValue, percentValue);
         }
 
@@ -307,6 +312,7 @@ namespace Main.Scripts.Enemies
 
         public void ResetAllEffectData()
         {
+            if (!HasStateAuthority) return;
             RPC_ResetAllEffectData();
         }
 

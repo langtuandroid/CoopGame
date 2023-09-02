@@ -4,7 +4,6 @@ using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Data;
 using Main.Scripts.Actions.Health;
-using Main.Scripts.Core.CustomPhysics;
 using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Effects;
 using Main.Scripts.Effects.Stats;
@@ -12,6 +11,8 @@ using Main.Scripts.Gui;
 using Main.Scripts.Gui.HealthChangeDisplay;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.Skills.PassiveSkills;
+using Pathfinding;
+using Pathfinding.RVO;
 using UnityEngine;
 
 namespace Main.Scripts.Enemies
@@ -35,13 +36,14 @@ namespace Main.Scripts.Enemies
         private NetworkObject objectContext = default!;
 
         private Transform transform;
-        private Rigidbody rigidbody;
+        private RVOController rvoController;
+        private RichAI richAI;
         private NetworkMecanimAnimator networkAnimator;
         private HealthBar healthBar;
 
         private EnemiesHelper enemiesHelper = default!;
 
-        private float knockBackForce = 30f; //todo get from ApplyKnockBack
+        private float knockBackForce = 10f; //todo get from ApplyKnockBack
         private float knockBackDuration = 0.1f; //todo можно высчитать из knockBackForce и rigidbody.drag
         private float moveAcceleration = 200f;
 
@@ -52,7 +54,6 @@ namespace Main.Scripts.Enemies
 
         private int lastAnimationTriggerId;
 
-        private Vector3[] pathCorners = Array.Empty<Vector3>();
         private EnemyAnimationState currentAnimationState;
 
         private int nextNavPathCornerIndex;
@@ -91,7 +92,8 @@ namespace Main.Scripts.Enemies
             this.dataHolder = dataHolder;
             this.eventListener = eventListener;
 
-            rigidbody = dataHolder.GetCachedComponent<Rigidbody>();
+            rvoController = dataHolder.GetCachedComponent<RVOController>();
+            richAI = dataHolder.GetCachedComponent<RichAI>();
             networkAnimator = dataHolder.GetCachedComponent<NetworkMecanimAnimator>();
             transform = dataHolder.GetCachedComponent<Transform>();
 
@@ -256,10 +258,7 @@ namespace Main.Scripts.Enemies
             
             if (!objectContext.HasStateAuthority || enemyData.isDead) return;
 
-            var curPosition = transform.position;
-            var curNavigationTarget = enemyData.navigationTarget;
-
-            enemiesHelper.StartCalculatePath(ref objectContext.Id, curPosition, curNavigationTarget);
+            richAI.destination = enemyData.navigationTarget;
         }
 
         private void OnPhysicsUpdatePhase()
@@ -267,45 +266,19 @@ namespace Main.Scripts.Enemies
             ref var enemyData = ref dataHolder.GetEnemyData();
 
             //todo в последний тик атаки не просчитывается стратегия, но срабатывает логика передвижения (меняется значение IsAttacking())
-            if (!objectContext.HasStateAuthority || enemyData.isDead || !CanMoveByController(ref enemyData)) return;
+            if (!objectContext.HasStateAuthority || enemyData.isDead) return;
 
-            var curPosition = transform.position;
-            var curNavigationTarget = enemyData.navigationTarget;
-
-            //Can allocate on calculate corners internal
-            var newPathCorners = enemiesHelper.GetPathCorners(ref objectContext.Id);
-            if (newPathCorners.Length > 0)
+            if (!enemyData.knockBackTimer.ExpiredOrNotRunning(objectContext.Runner))
             {
-                pathCorners = newPathCorners;
-                nextNavPathCornerIndex = 1;
+                var velocity = objectContext.Runner.DeltaTime * knockBackForce * enemyData.knockBackDirection;
+                rvoController.velocity = velocity;
+                transform.position += velocity;
             }
-
-            if (nextNavPathCornerIndex < pathCorners.Length)
+            else if (CanMoveByController(ref enemyData))
             {
-                if (Vector3.SqrMagnitude(pathCorners[nextNavPathCornerIndex] - transform.position) <
-                    0.04f) //todo fix using threshold delta
-                {
-                    nextNavPathCornerIndex++;
-                }
-            }
-
-            var direction = (nextNavPathCornerIndex < pathCorners.Length
-                    ? pathCorners[nextNavPathCornerIndex]
-                    : curNavigationTarget
-                ) - curPosition;
-
-            direction = new Vector3(direction.x, 0, direction.z);
-            lookDirection = direction;
-            var currentVelocity = rigidbody.velocity;
-            if (currentVelocity.sqrMagnitude < enemyData.speed * enemyData.speed) //todo поправить баг с превышением скорости в другом направлении
-            {
-                var deltaVelocity = enemyData.speed * direction.normalized - currentVelocity;
-                var deltaVelocityMagnitude = deltaVelocity.magnitude;
-                //todo заменить velocity на AddForce и переместить просчёт пути в конец
-                rigidbody.velocity = currentVelocity +
-                                     Mathf.Min(moveAcceleration * PhysicsManager.DeltaTime / deltaVelocityMagnitude,
-                                         1f) *
-                                     deltaVelocity;
+                richAI.MovementUpdate(objectContext.Runner.DeltaTime, out var nextPosition, out var nextRotation);
+                lookDirection = nextPosition - transform.position;
+                richAI.FinalizeMovement(nextPosition, nextRotation);
             }
         }
 
@@ -435,7 +408,6 @@ namespace Main.Scripts.Enemies
 
             if (destination == null)
             {
-                pathCorners = Array.Empty<Vector3>();
                 nextNavPathCornerIndex = 1;
             }
         }
@@ -559,7 +531,7 @@ namespace Main.Scripts.Enemies
         {
             enemyData.knockBackTimer = TickTimer.CreateFromSeconds(objectContext.Runner, knockBackDuration);
             enemyData.knockBackDirection = actionData.direction;
-            rigidbody.AddForce(knockBackForce * enemyData.knockBackDirection, ForceMode.Impulse);
+            // rigidbody.AddForce(knockBackForce * enemyData.knockBackDirection, ForceMode.Impulse);
         }
 
         public void AddStun(ref StunActionData data)
@@ -656,7 +628,7 @@ namespace Main.Scripts.Enemies
                 return EnemyAnimationState.Attacking;
             }
 
-            if (CanMoveByController(ref enemyData) && rigidbody.velocity.magnitude > 0.01f)
+            if (CanMoveByController(ref enemyData) && richAI.velocity.magnitude > 0.01f)
             {
                 return EnemyAnimationState.Walking;
             }

@@ -21,6 +21,7 @@ using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.Skills.PassiveSkills;
 using Main.Scripts.UI.Gui;
 using Main.Scripts.Utils;
+using Pathfinding.RVO;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -51,6 +52,7 @@ namespace Main.Scripts.Player
 
         private Transform transform;
         private Rigidbody rigidbody;
+        private RVOController rvoController;
         private Collider collider;
         private NetworkMecanimAnimator networkAnimator;
 
@@ -91,6 +93,7 @@ namespace Main.Scripts.Player
 
             transform = dataHolder.GetCachedComponent<Transform>();
             rigidbody = dataHolder.GetCachedComponent<Rigidbody>();
+            rvoController = dataHolder.GetCachedComponent<RVOController>();
             collider = dataHolder.GetCachedComponent<Collider>();
             networkAnimator = dataHolder.GetCachedComponent<NetworkMecanimAnimator>();
 
@@ -335,6 +338,7 @@ namespace Main.Scripts.Player
                 if (currentToMoveVelocityDot < 0 || currentToMoveVelocityDot < data.speed)
                 {
                     rigidbody.velocity += Math.Min(moveAcceleration, data.speed - currentToMoveVelocityDot) * moveDirection;
+                    rvoController.velocity = rigidbody.velocity;
                 }
             }
             else

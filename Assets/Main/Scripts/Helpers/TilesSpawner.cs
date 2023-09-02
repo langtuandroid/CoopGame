@@ -7,7 +7,9 @@ namespace Main.Scripts.Helpers
     public class TilesSpawner : MonoBehaviour
     {
         [SerializeField]
-        private NavMeshSurface navMeshSurface = default!;
+        private AstarPath pathfinder = default!;
+        [SerializeField]
+        private Transform navigationGeometryParent = default!;
         
         [SerializeField]
         private List<Object> decorationPrefabs = new();
@@ -44,7 +46,7 @@ namespace Main.Scripts.Helpers
                         original: decorationPrefabs[Random.Range(0, decorationPrefabs.Count)],
                         position: new Vector3(leftDownX + Random.Range(0f, width), 0f, leftDownZ + Random.Range(0f, height)),
                         rotation: Quaternion.Euler(0f, Random.Range(0f, 360f), 0f),
-                        parent: navMeshSurface.transform
+                        parent: navigationGeometryParent
                     );
                 }
             }
@@ -64,9 +66,9 @@ namespace Main.Scripts.Helpers
                 }
             }
 
-            navMeshSurface.BuildNavMesh();
+            pathfinder.Scan();
             
-            StaticBatchingUtility.Combine(navMeshSurface.gameObject);
+            StaticBatchingUtility.Combine(navigationGeometryParent.gameObject);
         }
     }
 }

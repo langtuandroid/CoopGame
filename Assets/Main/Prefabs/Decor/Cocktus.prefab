@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3460238989962496937}
   - component: {fileID: 5137284982057504706}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Cocktus
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -65,7 +65,7 @@ GameObject:
   - component: {fileID: 4068167963988392689}
   - component: {fileID: 1198562686854808507}
   - component: {fileID: 2416071561408145199}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: default
   m_TagString: Untagged
   m_Icon: {fileID: 0}

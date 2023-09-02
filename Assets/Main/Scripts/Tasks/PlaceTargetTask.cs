@@ -15,7 +15,7 @@ namespace Main.Scripts.Tasks
         [SerializeField]
         private LayerMask layerMask;
 
-        [Networked, Capacity(16)]
+        [Networked, Capacity(4)]
         private NetworkDictionary<PlayerRef, bool> playersInPlace => default;
         [Networked]
         private bool isTargetChecked { get; set; }

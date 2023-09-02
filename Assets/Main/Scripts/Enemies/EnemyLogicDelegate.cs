@@ -314,36 +314,6 @@ namespace Main.Scripts.Enemies
             transform.LookAt(transform.position + lookDirection);
         }
 
-        private void OnAfterPhysics()
-        {
-            //todo переделать логику передачи ответственности
-            ref var enemyData = ref dataHolder.GetEnemyData();
-
-            var runner = objectContext.Runner;
-            var localPlayerInterestPoints = enemyData.playerInterestPoints[runner.LocalPlayer];
-
-            if (!objectContext.HasStateAuthority)
-            {
-                if (!objectContext.StateAuthority.IsValid ||
-                    localPlayerInterestPoints > enemyData.playerInterestPoints[objectContext.StateAuthority.PlayerId])
-                {
-                    // objectContext.RequestStateAuthority();
-                }
-
-                return;
-            }
-
-            foreach (var playerRef in runner.ActivePlayers)
-            {
-                if (enemyData.playerInterestPoints[playerRef.PlayerId] >
-                    localPlayerInterestPoints)
-                {
-                    // objectContext.ReleaseStateAuthority();
-                    break;
-                }
-            }
-        }
-
         private void OnDespawnPhase()
         {
             if (shouldDespawn)
@@ -547,13 +517,6 @@ namespace Main.Scripts.Enemies
 
         private void ApplyDamage(ref EnemyData enemyData, ref DamageActionData actionData)
         {
-            if (actionData.damageOwner != null)
-            {
-                var index = actionData.damageOwner.StateAuthority;
-                enemyData.playerInterestPoints.Set(index,
-                    enemyData.playerInterestPoints[index] + (int)actionData.damageValue);
-            }
-
             if (enemyData.health - actionData.damageValue < HEALTH_THRESHOLD)
             {
                 enemyData.health = 0;

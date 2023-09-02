@@ -9,6 +9,9 @@ using Main.Scripts.Utils;
 
 namespace Main.Scripts.Player.Data
 {
+    /**
+     * Don't use as Networked field
+     */
     public struct PlayerData : INetworkStruct
     {
         public uint Level;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Fusion;
 using Main.Scripts.Connection;
@@ -22,12 +23,9 @@ namespace Main.Scripts.Player.Data
         
         private GlobalResources resources = default!;
         
-        [Networked, Capacity(16)]
-        private NetworkDictionary<UserId, PlayerRef> playerRefsMap => default;
-        [Networked, Capacity(16)]
-        private NetworkDictionary<PlayerRef, UserId> userIdsMap => default;
-        [Networked, Capacity(16)]
-        private NetworkDictionary<UserId, PlayerData> playersDataMap => default;
+        private Dictionary<UserId, PlayerRef> playerRefsMap = new();
+        private Dictionary<PlayerRef, UserId> userIdsMap = new();
+        private Dictionary<UserId, PlayerData> playersDataMap = new();
 
         public UserId LocalUserId { get; private set; }
         public PlayerData LocalPlayerData { get; private set; }
@@ -76,20 +74,20 @@ namespace Main.Scripts.Player.Data
 
         public UserId GetUserId(PlayerRef playerRef)
         {
-            return userIdsMap.Get(playerRef);
+            return userIdsMap[playerRef];
         }
 
         public PlayerRef GetPlayerRef(UserId userId)
         {
-            return playerRefsMap.Get(userId);
+            return playerRefsMap[userId];
         }
 
-        public void RemovePlayer(PlayerRef playerRef, bool keepPlayerData)
+        public void RemovePlayer(PlayerRef playerRef, bool clearPlayerData)
         {
             userIdsMap.Remove(playerRef, out var userId);
             playerRefsMap.Remove(userId);
 
-            if (keepPlayerData)
+            if (clearPlayerData)
             {
                 playersDataMap.Remove(userId);
             }
@@ -116,11 +114,17 @@ namespace Main.Scripts.Player.Data
             return playersDataMap.ContainsKey(userId) ? playersDataMap[userId] : null;
         }
 
-        public void AddPlayerData(PlayerRef playerRef, UserId userId, PlayerData playerData)
+        public void AddPlayerData(PlayerRef playerRef, ref UserId userId, ref PlayerData playerData)
         {
-            playerRefsMap.Set(userId, playerRef);
-            userIdsMap.Set(playerRef, userId);
-            playersDataMap.Set(userId, playerData);
+            RPC_AddPlayerData(playerRef, userId, playerData);
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        private void RPC_AddPlayerData(PlayerRef playerRef, UserId userId, PlayerData playerData)
+        {
+            playerRefsMap[userId] = playerRef;
+            userIdsMap[playerRef] = userId;
+            playersDataMap[userId] = playerData;
         }
 
         public void ResetSkillPoints()
@@ -229,7 +233,7 @@ namespace Main.Scripts.Player.Data
                 throw new Exception("playerData is not exist");
             }
             var oldPlayerData = playersDataMap[userId];
-            playersDataMap.Set(userId, playerData);
+            playersDataMap[userId] = playerData;
             OnPlayerDataChangedEvent.Invoke(userId, playerData, oldPlayerData);
         }
     }

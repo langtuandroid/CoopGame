@@ -145,6 +145,7 @@ namespace Main.Scripts.Player
             playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
             playerDataManager.OnPlayerDataChangedEvent.AddListener(OnPlayerDataChanged);
 
+            //todo сделать ожидание получения PlayerData, и до этого не показывать модельку персонажа (либо сделать Customozation Networked)
             var playerData = playerDataManager.GetPlayerData(objectContext.StateAuthority).ThrowWhenNull();
             ApplyCustomization(playerData.Customization);
 

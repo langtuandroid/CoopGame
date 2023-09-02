@@ -19,6 +19,8 @@ namespace Main.Scripts.UI.Windows.SkillTree
 
         private void OnPlayerDataChanged(UserId userId, PlayerData playerData, PlayerData oldPlayerData)
         {
+            if (!userId.Equals(playerDataManager.LocalUserId)) return;
+            
             view.Bind(playerData);
         }
 

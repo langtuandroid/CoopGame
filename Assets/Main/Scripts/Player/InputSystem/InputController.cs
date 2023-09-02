@@ -30,8 +30,7 @@ namespace Main.Scripts.Player.InputSystem
         private FindTargetManager? findTargetSystem;
         private EnemiesManager enemiesManager = default!;
 
-        [Networked]
-        private NetworkButtons ButtonsPrevious { get; set; }
+        private NetworkButtons ButtonsPrevious;
         
         public bool fetchInput = true;
 

@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Profiling;
 
 namespace Main.Scripts.Enemies
 {
     public class NavigationManager : MonoBehaviour
     {
+        [SerializeField]
+        private int iterationsCount = 3;
         private Dictionary<uint, NavMeshPath> pathMap = new();
         private Dictionary<uint, TaskData> taskMap = new();
         private Queue<uint> taskQueue = new();
@@ -15,10 +18,12 @@ namespace Main.Scripts.Enemies
         
         private void Update()
         {
-            for (var i = 0; i < 10; i++)
+            Profiler.BeginSample("NavigationManager::Update");
+            for (var i = 0; i < iterationsCount; i++)
             {
                 Process();
             }
+            Profiler.EndSample();
         }
 
         public void StartCalculatePath(ref NetworkId id, Vector3 fromPosition, Vector3 toPosition)

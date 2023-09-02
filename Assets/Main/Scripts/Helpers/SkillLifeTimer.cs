@@ -7,19 +7,26 @@ using UnityEngine;
 
 namespace Main.Scripts.Helpers
 {
-    public class LifeTimer : GameLoopEntity
+    public class SkillLifeTimer : GameLoopEntity
     {
         [SerializeField]
         private float lifeDurationSec;
-        
-        [Networked]
-        private TickTimer lifeTimer { get; set; }
 
+        private TickTimer lifeTimer;
+
+        private GameLoopPhase[] localGameLoopPhases;
         private GameLoopPhase[] gameLoopPhases =
         {
             GameLoopPhase.ApplyActionsPhase,
             GameLoopPhase.DespawnPhase
         };
+
+        public override void Spawned()
+        {
+            base.Spawned();
+            lifeTimer = default;
+            localGameLoopPhases = HasStateAuthority ? gameLoopPhases : Array.Empty<GameLoopPhase>();
+        }
 
         public override void OnGameLoopPhase(GameLoopPhase phase)
         {
@@ -44,7 +51,7 @@ namespace Main.Scripts.Helpers
 
         public override IEnumerable<GameLoopPhase> GetSubscribePhases()
         {
-            return gameLoopPhases;
+            return localGameLoopPhases;
         }
 
         public void SetLifeDuration(float durationSec)

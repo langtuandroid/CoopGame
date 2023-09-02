@@ -22,7 +22,7 @@ namespace Main.Scripts.Room
 
         private bool isGameAlreadyRunning;
 
-        [Networked, Capacity(16)]
+        [Networked, Capacity(4)]
         private NetworkDictionary<UserId, LevelResultsData> levelResults => default;
 
         public UnityEvent<PlayerRef> OnPlayerInitializedEvent = default!;
@@ -86,9 +86,6 @@ namespace Main.Scripts.Room
 
         private void OnPlayerDisconnected(PlayerRef playerRef)
         {
-            //todo request StateAuthority to all host managers
-            if (!HasStateAuthority) return;
-
             OnPlayerDisconnectedEvent.Invoke(playerRef);
             if (playerDataManager.HasPlayer(playerRef))
             {
@@ -171,8 +168,6 @@ namespace Main.Scripts.Room
 
         private void OnSceneStateChanged(SceneState sceneState)
         {
-            if (!HasStateAuthority) return;
-            
             playerDataManager.ClearAllKeepedPlayerData();
         }
 
@@ -209,8 +204,9 @@ namespace Main.Scripts.Room
                 RPC_KickPlayer(playerRef);
                 return;
             }
-
-            playerDataManager.AddPlayerData(playerRef, userId, playerData);
+            
+            //todo можно попробовать отправлять playerData сразу от локального клиента другим клиентам, а подтверждение от сервера получать отдельно
+            playerDataManager.AddPlayerData(playerRef, ref userId, ref playerData);
 
             OnPlayerInitializedEvent.Invoke(playerRef);
         }

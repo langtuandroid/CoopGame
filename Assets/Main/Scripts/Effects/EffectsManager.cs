@@ -12,13 +12,18 @@ using Main.Scripts.Utils;
 
 namespace Main.Scripts.Effects
 {
-    public class EffectsManager
+    public class EffectsManager: EffectDataChangeListener
     {
         private DataHolder dataHolder;
         private EventListener eventListener;
         private NetworkObject objectContext = default!;
 
         private EffectsBank effectsBank = default!;
+        
+        private Dictionary<int, ActiveEffectData> unlimitedEffectDataMap = new();
+        private Dictionary<int, ActiveEffectData> limitedEffectDataMap = new();
+        private float[] statConstAdditiveSums = new float[(int)StatType.ReservedDoNotUse];
+        private float[] statPercentAdditiveSums = new float[(int)StatType.ReservedDoNotUse];
 
         private Dictionary<PeriodicEffectType, PeriodicEffectsHandler> periodicEffectsHandlers = new();
         private List<List<ActiveEffectData>> periodicEffectsDataToHandle = new();
@@ -41,38 +46,33 @@ namespace Main.Scripts.Effects
         {
             this.objectContext = objectContext;
             effectsBank = dataHolder.GetCachedComponent<EffectsBank>();
+            dataHolder.SetEffectDataChangeListener(this);
         }
 
         public void Despawned(NetworkRunner runner, bool hasState)
         {
             objectContext = default!;
             effectsBank = default!;
+
+            dataHolder.SetEffectDataChangeListener(null);
         }
 
         public void ResetState()
         {
-            ref var effectsData = ref dataHolder.GetEffectsData();
-
-            effectsData.unlimitedEffectDataMap.Clear();
-            effectsData.limitedEffectDataMap.Clear();
-
-            for (var i = 0; i < (int)StatType.ReservedDoNotUse; i++)
-            {
-                effectsData.statConstAdditiveSums.Set(i, 0f);
-                effectsData.statPercentAdditiveSums.Set(i, 0f);
-            }
+            endedEffectIds.Clear();
+            updatedStatTypes.Clear();
+            
+            dataHolder.ResetAllEffectData();
         }
 
         public void UpdateEffects()
         {
-            ref var effectsData = ref dataHolder.GetEffectsData();
-
             foreach (var periodicEffectsList in periodicEffectsDataToHandle)
             {
                 periodicEffectsList.Clear();
             }
 
-            foreach (var (_, data) in effectsData.unlimitedEffectDataMap)
+            foreach (var (_, data) in unlimitedEffectDataMap)
             {
                 if (effectsBank.GetEffect(data.EffectId) is PeriodicEffectBase periodicEffect)
                 {
@@ -80,7 +80,7 @@ namespace Main.Scripts.Effects
                 }
             }
 
-            foreach (var (_, data) in effectsData.limitedEffectDataMap)
+            foreach (var (_, data) in limitedEffectDataMap)
             {
                 if (effectsBank.GetEffect(data.EffectId) is PeriodicEffectBase periodicEffect)
                 {
@@ -102,12 +102,10 @@ namespace Main.Scripts.Effects
 
         public void AddEffects(IEnumerable<EffectBase> effects)
         {
-            ref var effectsData = ref dataHolder.GetEffectsData();
-
             updatedStatTypes.Clear();
             foreach (var effect in effects)
             {
-                AddEffect(ref effectsData, effect);
+                AddEffect(effect);
                 if (effect is StatModifierEffect modifier)
                 {
                     updatedStatTypes.Add(modifier.StatType);
@@ -122,13 +120,42 @@ namespace Main.Scripts.Effects
 
         public float GetModifiedValue(StatType statType, float defaultStatValue)
         {
-            ref var effectsData = ref dataHolder.GetEffectsData();
+            var constAdditive = statConstAdditiveSums[(int)statType];
 
-            var constAdditive = effectsData.statConstAdditiveSums[(int)statType];
-
-            var percentAdditive = effectsData.statPercentAdditiveSums[(int)statType];
+            var percentAdditive = statPercentAdditiveSums[(int)statType];
 
             return (defaultStatValue + constAdditive) * (percentAdditive + 100) * 0.01f;
+        }
+        
+        public void OnUpdateEffectData(int effectId, ref ActiveEffectData activeEffectData, bool isUnlimitedEffect)
+        {
+            if (isUnlimitedEffect)
+            {
+                unlimitedEffectDataMap[effectId] = activeEffectData;
+            }
+            else
+            {
+                limitedEffectDataMap[effectId] = activeEffectData;
+            }
+        }
+
+        public void OnRemoveLimitedEffectData(int effectId)
+        {
+            limitedEffectDataMap.Remove(effectId);
+        }
+
+        public void OnUpdateStatAdditiveSum(StatType statType, float constValue, float percentValue)
+        {
+            statConstAdditiveSums[(int)statType] = constValue;
+            statPercentAdditiveSums[(int)statType] = percentValue;
+        }
+
+        public void OnResetAllEffectData()
+        {
+            unlimitedEffectDataMap.Clear();
+            limitedEffectDataMap.Clear();
+            Array.Fill(statConstAdditiveSums, 0f);
+            Array.Fill(statPercentAdditiveSums, 0f);
         }
 
         private void InitEffectsHandlers(object effectsTarget)
@@ -159,7 +186,7 @@ namespace Main.Scripts.Effects
             }
         }
 
-        private void AddEffect(ref EffectsData effectsData, EffectBase effect)
+        private void AddEffect(EffectBase effect)
         {
             var startTick = objectContext.Runner.Tick;
             var endTick = 0;
@@ -169,16 +196,16 @@ namespace Main.Scripts.Effects
             {
                 endTick = (int)(startTick +
                                 effect.DurationSec * objectContext.Runner.Config.Simulation.TickRate);
-                if (effectsData.limitedEffectDataMap.ContainsKey(effectId))
+                if (limitedEffectDataMap.ContainsKey(effectId))
                 {
-                    currentData = effectsData.limitedEffectDataMap.Get(effectId);
+                    currentData = limitedEffectDataMap[effectId];
                 }
             }
             else
             {
-                if (effectsData.unlimitedEffectDataMap.ContainsKey(effectId))
+                if (unlimitedEffectDataMap.ContainsKey(effectId))
                 {
-                    currentData = effectsData.unlimitedEffectDataMap.Get(effectId);
+                    currentData = unlimitedEffectDataMap[effectId];
                 }
             }
 
@@ -192,44 +219,43 @@ namespace Main.Scripts.Effects
 
             if (newData.EndTick > 0)
             {
-                effectsData.limitedEffectDataMap.Set(newData.EffectId, newData);
+                dataHolder.UpdateEffectData(newData.EffectId, ref newData, false);
             }
             else
             {
-                effectsData.unlimitedEffectDataMap.Set(newData.EffectId, newData);
+                dataHolder.UpdateEffectData(newData.EffectId, ref newData, true);
             }
 
             if (currentData?.StackCount != newData.StackCount && effect is StatModifierEffect modifier)
             {
-                ApplyNewStatModifier(ref effectsData, modifier);
+                ApplyNewStatModifier(modifier);
             }
         }
 
-        private void ApplyNewStatModifier(ref EffectsData effectsData, StatModifierEffect modifierEffect)
+        private void ApplyNewStatModifier(StatModifierEffect modifierEffect)
         {
             var statType = modifierEffect.StatType;
 
-            effectsData.statConstAdditiveSums.Set((int)statType,
-                effectsData.statConstAdditiveSums[(int)statType] + modifierEffect.ConstAdditive);
-
-            effectsData.statPercentAdditiveSums.Set((int)statType,
-                effectsData.statPercentAdditiveSums[(int)statType] + modifierEffect.PercentAdditive);
+            dataHolder.UpdateStatAdditiveSum(
+                statType: statType,
+                constValue: statConstAdditiveSums[(int)statType] + modifierEffect.ConstAdditive,
+                percentValue: statPercentAdditiveSums[(int)statType] + modifierEffect.PercentAdditive
+            );
         }
 
         public void RemoveFinishedEffects()
         {
-            ref var effectsData = ref dataHolder.GetEffectsData();
             updatedStatTypes.Clear();
 
             endedEffectIds.Clear();
-            foreach (var (id, effectData) in effectsData.limitedEffectDataMap)
+            foreach (var (id, effectData) in limitedEffectDataMap)
             {
                 if (objectContext.Runner.Tick > effectData.EndTick)
                 {
                     endedEffectIds.Add(id);
                     if (effectsBank.GetEffect(effectData.EffectId) is StatModifierEffect modifier)
                     {
-                        RemoveStatModifier(ref effectsData, modifier, effectData.StackCount);
+                        RemoveStatModifier(modifier, effectData.StackCount);
                         updatedStatTypes.Add(modifier.StatType);
                     }
                 }
@@ -237,7 +263,7 @@ namespace Main.Scripts.Effects
 
             foreach (var id in endedEffectIds)
             {
-                effectsData.limitedEffectDataMap.Remove(id);
+                dataHolder.RemoveLimitedEffectData(id);
             }
 
             foreach (var statType in updatedStatTypes)
@@ -246,27 +272,18 @@ namespace Main.Scripts.Effects
             }
         }
 
-        private void RemoveStatModifier(ref EffectsData effectsData, StatModifierEffect modifierEffect, int stackCount)
+        private void RemoveStatModifier(StatModifierEffect modifierEffect, int stackCount)
         {
             var statType = modifierEffect.StatType;
-
-            effectsData.statConstAdditiveSums.Set(
-                index: (int)statType,
-                value: Math.Max(0,
-                    effectsData.statConstAdditiveSums[(int)statType] - modifierEffect.ConstAdditive * stackCount)
-            );
-
-            effectsData.statPercentAdditiveSums.Set(
-                index: (int)statType,
-                value: Math.Max(0,
-                    effectsData.statPercentAdditiveSums[(int)statType] - modifierEffect.PercentAdditive * stackCount)
+            
+            dataHolder.UpdateStatAdditiveSum(
+                statType: statType,
+                constValue: Math.Max(0, statConstAdditiveSums[(int)statType] - modifierEffect.ConstAdditive * stackCount),
+                percentValue: Math.Max(0, statPercentAdditiveSums[(int)statType] - modifierEffect.PercentAdditive * stackCount)
             );
         }
 
-        public interface DataHolder : ComponentsHolder
-        {
-            public ref EffectsData GetEffectsData();
-        }
+        public interface DataHolder : ComponentsHolder, EffectDataChanger {}
 
         public interface EventListener
         {

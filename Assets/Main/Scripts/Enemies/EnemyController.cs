@@ -9,6 +9,7 @@ using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Core.Resources;
 using Main.Scripts.Effects;
+using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui.HealthChangeDisplay;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.Utils;
@@ -41,11 +42,11 @@ namespace Main.Scripts.Enemies
         [Networked]
         private ref EnemyData enemyData => ref MakeRef<EnemyData>();
         [Networked]
-        private ref EffectsData effectsData => ref MakeRef<EffectsData>();
-        [Networked]
         private ref ActiveSkillsData activeSkillsData => ref MakeRef<ActiveSkillsData>();
         [Networked]
         private ref HealthChangeDisplayData healthChangeDisplayData => ref MakeRef<HealthChangeDisplayData>();
+
+        private EffectDataChangeListener? effectDataChangeListener;
 
         private EnemyLogicDelegate enemyLogicDelegate = default!;
 
@@ -124,9 +125,9 @@ namespace Main.Scripts.Enemies
             return ref enemyData;
         }
 
-        public ref EffectsData GetEffectsData()
+        public void SetEffectDataChangeListener(EffectDataChangeListener? effectDataChangeListener)
         {
-            return ref effectsData;
+            this.effectDataChangeListener = effectDataChangeListener;
         }
         
         public ref ActiveSkillsData GetActiveSkillsData()
@@ -269,6 +270,50 @@ namespace Main.Scripts.Enemies
                 durationSec = durationSec
             };
             enemyLogicDelegate.AddStun(ref data);
+        }
+
+        public void UpdateEffectData(int effectId, ref ActiveEffectData activeEffectData, bool isUnlimitedEffect)
+        {
+            RPC_UpdateEffectData(effectId, activeEffectData, isUnlimitedEffect);
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_UpdateEffectData(int effectId, ActiveEffectData activeEffectData, NetworkBool isUnlimitedEffect)
+        {
+            effectDataChangeListener?.OnUpdateEffectData(effectId, ref activeEffectData, isUnlimitedEffect);
+        }
+
+        public void RemoveLimitedEffectData(int effectId)
+        {
+            RPC_RemoveLimitedEffectData(effectId);
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_RemoveLimitedEffectData(int effectId)
+        {
+            effectDataChangeListener?.OnRemoveLimitedEffectData(effectId);
+        }
+
+        public void UpdateStatAdditiveSum(StatType statType, float constValue, float percentValue)
+        {
+            RPC_UpdateStatAdditiveSum(statType, constValue, percentValue);
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_UpdateStatAdditiveSum(StatType statType, float constValue, float percentValue)
+        {
+            effectDataChangeListener?.OnUpdateStatAdditiveSum(statType, constValue, percentValue);
+        }
+
+        public void ResetAllEffectData()
+        {
+            RPC_ResetAllEffectData();
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_ResetAllEffectData()
+        {
+            effectDataChangeListener?.OnResetAllEffectData();
         }
     }
 }

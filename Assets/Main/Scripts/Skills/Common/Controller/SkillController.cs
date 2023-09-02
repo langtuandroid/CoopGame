@@ -22,25 +22,16 @@ namespace Main.Scripts.Skills.Common.Controller
         private GameObject? marker;
         private SkillConfigsBank skillConfigsBank = default!;
 
-        [Networked]
         private Vector3 initialMapPoint { get; set; }
-        [Networked]
         private Vector3 dynamicMapPoint { get; set; }
-        [Networked]
         private NetworkObject? selectedUnit { get; set; }
 
-        [Networked]
         private TickTimer executionTimer { get; set; }
-        [Networked]
         private TickTimer castTimer { get; set; }
-        [Networked]
         private TickTimer cooldownTimer { get; set; }
-        [Networked]
         private bool isActivating { get; set; }
-
-        [Networked]
-        [Capacity(10)]
-        private NetworkLinkedList<SkillComponent?> skillComponents => default;
+        
+        private List<SkillComponent?> skillComponents = new();
         
         private Transform selfUnitTransform = default!;
         private LayerMask alliesLayerMask;
@@ -78,6 +69,7 @@ namespace Main.Scripts.Skills.Common.Controller
         public override void Spawned()
         {
             base.Spawned();
+            skillComponents.Clear();
             spawnActions.Clear();
             skillConfigsBank = GlobalResources.Instance.ThrowWhenNull().SkillConfigsBank;
         }
@@ -418,10 +410,7 @@ namespace Main.Scripts.Skills.Common.Controller
                             selectedUnit: selectedUnit,
                             alliesLayerMask: alliesLayerMask,
                             opponentsLayerMask: opponentsLayerMask,
-                            onSpawnNewSkillComponent: spawnedSkillComponent =>
-                            {
-                                skillComponents.Add(spawnedSkillComponent);
-                            } 
+                            onSpawnNewSkillComponent: OnSpawnNewSkillComponent
                         );
                     }
                 );
@@ -430,6 +419,11 @@ namespace Main.Scripts.Skills.Common.Controller
                     skillComponents.Add(spawnedSkill);
                 }
             }
+        }
+
+        private void OnSpawnNewSkillComponent(SkillComponent spawnedSkillComponent)
+        {
+            skillComponents.Add(spawnedSkillComponent);
         }
 
         public interface Listener

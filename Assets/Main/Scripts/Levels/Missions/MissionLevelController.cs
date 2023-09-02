@@ -27,8 +27,7 @@ namespace Main.Scripts.Levels.Missions
 
         private HashSet<PlayerRef> playersReady = new();
 
-        [Networked]
-        private NetworkBool isPlayersReady { get; set; }
+        private bool isPlayersReady;
 
         public override void Spawned()
         {
@@ -36,6 +35,7 @@ namespace Main.Scripts.Levels.Missions
             spawnActions.Clear();
             missionState = MissionState.Loading;
             playersReady.Clear();
+            isPlayersReady = false;
             
             playerCamera = PlayerCamera.Instance.ThrowWhenNull();
 
@@ -259,6 +259,12 @@ namespace Main.Scripts.Levels.Missions
                 }
             }
 
+            RPC_OnPlayersReady();
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_OnPlayersReady()
+        {
             isPlayersReady = true;
         }
     }

@@ -30,37 +30,23 @@ namespace Main.Scripts.Skills.Common.Component
         private SkillConfig skillConfig = default!;
         private PlayerData? playerData;
 
-        [Networked]
         private int skillConfigId { get; set; }
-        [Networked]
         private PlayerRef ownerId { get; set; }
 
-        [Networked]
         private int startSkillTick { get; set; }
-        [Networked]
         private TickTimer lifeTimer { get; set; }
-        [Networked]
         private TickTimer destroyAfterFinishTimer { get; set; }
-        [Networked]
         private TickTimer triggerTimer { get; set; }
-        [Networked]
         private int activatedTriggersCount { get; set; }
-        [Networked]
         private bool shouldStop { get; set; }
 
-        [Networked]
         private Vector3 initialMapPoint { get; set; }
-        [Networked]
         private Vector3 dynamicMapPoint { get; set; }
 
-        [Networked]
         private NetworkObject? selfUnit { get; set; }
-        [Networked]
         private NetworkObject? selectedUnit { get; set; }
 
-        [Networked]
         private int alliesLayerMask { get; set; }
-        [Networked]
         private int opponentsLayerMask { get; set; }
 
         private List<GameObject> affectedTargets = new();
@@ -82,6 +68,7 @@ namespace Main.Scripts.Skills.Common.Component
         private Action<SkillComponent>? onSpawnNewSkillComponent;
 
         private bool isFinished => destroyAfterFinishTimer.IsRunning;
+        private GameLoopPhase[] localGameLoopPhases = default!;
         private GameLoopPhase[] gameLoopPhases =
         {
             GameLoopPhase.SkillSpawnPhase,
@@ -140,6 +127,8 @@ namespace Main.Scripts.Skills.Common.Component
             spawnActions.Clear();
             shouldDespawn = false;
             isCollisionTriggered = false;
+
+            localGameLoopPhases = HasStateAuthority ? gameLoopPhases : Array.Empty<GameLoopPhase>();
             
             var resources = GlobalResources.Instance.ThrowWhenNull();
             skillConfigsBank = resources.SkillConfigsBank;
@@ -212,7 +201,7 @@ namespace Main.Scripts.Skills.Common.Component
 
         public override IEnumerable<GameLoopPhase> GetSubscribePhases()
         {
-            return gameLoopPhases;
+            return localGameLoopPhases;
         }
 
         private void OnPhysicsSkillMovementPhase()
@@ -224,7 +213,7 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void OnSkillUpdatePhase()
         {
-            if (!HasStateAuthority || shouldDespawn) return;
+            if (shouldDespawn) return;
 
             if (isCollisionTriggered)
             {
@@ -445,8 +434,6 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void CheckCollisionTrigger()
         {
-            if (!HasStateAuthority) return;
-            
             if (actionTrigger is CollisionSkillActionTrigger collisionTrigger)
             {
                 var hitsCount = Physics.OverlapSphereNonAlloc(

@@ -63,6 +63,7 @@ namespace Main.Scripts.Levels
         {
             base.Despawned(runner, hasState);
             roomManager.OnPlayerInitializedEvent.RemoveListener(OnPlayerInitialized);
+            roomManager.OnPlayerDisconnectedEvent.RemoveListener(OnPlayerDisconnected);
         }
 
         protected abstract void OnPlayerInitialized(PlayerRef playerRef);

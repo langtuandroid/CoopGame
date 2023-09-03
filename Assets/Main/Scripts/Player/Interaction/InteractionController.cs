@@ -15,7 +15,7 @@ namespace Main.Scripts.Player.Interaction
         [SerializeField]
         private LayerMask layerMask;
 
-        private List<LagCompensatedHit> hits = new();
+        private Collider[] colliders = new Collider[10];
         private Interactable? lastInteractableObject;
 
         private PlayerRef owner;
@@ -49,23 +49,24 @@ namespace Main.Scripts.Player.Interaction
 
         private Interactable? GetClosestInteractable()
         {
-            Runner.LagCompensation.OverlapSphere(
-                origin: transform.position,
+            var hitsCount = Physics.OverlapSphereNonAlloc( 
+                position: transform.position,
                 radius: interactionRadius,
-                player: owner,
-                hits: hits,
+                results: colliders,
                 layerMask: layerMask
             );
 
             Interactable? closestInteractableObject = null;
             var minDistance = float.MaxValue;
-            foreach (var hit in hits)
+            for (var i = 0; i < hitsCount; i++)
             {
-                if (hit.Distance < minDistance && hit.GameObject.TryGetInterface<Interactable>(out var interactableObject))
+                var hit = colliders[i];
+                var distance = Vector3.Distance(transform.position, hit.ClosestPoint(transform.position));
+                if (distance < minDistance && hit.gameObject.TryGetInterface<Interactable>(out var interactableObject))
                 {
                     if (interactableObject.IsInteractionEnabled(owner))
                     {
-                        minDistance = hit.Distance;
+                        minDistance = distance;
                         closestInteractableObject = interactableObject;
                     }
                 }

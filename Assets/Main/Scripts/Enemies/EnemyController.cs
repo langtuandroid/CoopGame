@@ -276,6 +276,7 @@ namespace Main.Scripts.Enemies
 
         public void UpdateEffectData(int effectId, ref ActiveEffectData activeEffectData, bool isUnlimitedEffect)
         {
+            //todo при переподключении клиента у него не будет изначальных данных об эффектах
             if (!HasStateAuthority) return;
             RPC_UpdateEffectData(effectId, activeEffectData, isUnlimitedEffect);
         }

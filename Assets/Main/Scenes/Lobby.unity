@@ -1293,7 +1293,7 @@ MonoBehaviour:
   doubleBuffering: 1
   symmetryBreakingBias: 0.1
   movementPlane: 0
-  drawObstacles: 1
+  drawObstacles: 0
 --- !u!114 &563542466
 MonoBehaviour:
   m_ObjectHideFlags: 0

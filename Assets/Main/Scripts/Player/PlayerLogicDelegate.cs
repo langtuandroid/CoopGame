@@ -149,8 +149,10 @@ namespace Main.Scripts.Player
             playerDataManager.OnPlayerDataChangedEvent.AddListener(OnPlayerDataChanged);
 
             //todo сделать ожидание получения PlayerData, и до этого не показывать модельку персонажа (либо сделать Customozation Networked)
-            var playerData = playerDataManager.GetPlayerData(objectContext.StateAuthority).ThrowWhenNull();
-            ApplyCustomization(playerData.Customization);
+            if (playerDataManager.HasPlayer(objectContext.StateAuthority))
+            {
+                ApplyCustomization(playerDataManager.GetPlayerData(objectContext.StateAuthority).ThrowWhenNull().Customization);
+            }
 
             healthBar.SetMaxHealth((uint)Math.Max(0, data.maxHealth));
 

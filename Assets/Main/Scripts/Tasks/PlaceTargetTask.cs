@@ -22,7 +22,7 @@ namespace Main.Scripts.Tasks
 
         public UnityEvent<bool> OnTaskCheckChangedEvent = default!;
 
-        private List<LagCompensatedHit> hits = new();
+        private Collider[] colliders = new Collider[4];
         private Vector3 placeExtents;
 
         private GameLoopPhase[] gameLoopPhases =
@@ -48,19 +48,18 @@ namespace Main.Scripts.Tasks
         {
             if (!Runner.IsSharedModeMasterClient) return;
             
-            Runner.LagCompensation.OverlapBox(
+            var hitsCount = Physics.OverlapBoxNonAlloc(
                 center: transform.position,
-                extents: placeExtents,
+                halfExtents: placeExtents,
+                results: colliders,
                 orientation: transform.rotation,
-                player: Object.StateAuthority,
-                hits: hits,
-                layerMask: layerMask
+                mask: layerMask
             );
 
             playersInPlace.Clear();
-            foreach (var hit in hits)
+            for(var i = 0; i < hitsCount; i++)
             {
-                var playerController = hit.GameObject.GetComponent<PlayerController>();
+                var playerController = colliders[i].GetComponent<PlayerController>();
                 if (playerController != null)
                 {
                     playersInPlace.Add(playerController.Object.StateAuthority, true);

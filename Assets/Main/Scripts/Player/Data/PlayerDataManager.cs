@@ -122,9 +122,32 @@ namespace Main.Scripts.Player.Data
         [Rpc(RpcSources.All, RpcTargets.All)]
         private void RPC_AddPlayerData(PlayerRef playerRef, UserId userId, PlayerData playerData)
         {
+            OnAddPlayerData(playerRef, ref userId, ref playerData);
+        }
+        
+        public void SendAllPlayersDataToClient(PlayerRef target)
+        {
+            foreach (var (userId, playerRef) in playerRefsMap)
+            {
+                if (playerRef != target)
+                {
+                    RPC_AddPlayerDataToClient(target, playerRef, userId, playersDataMap[userId]);
+                }
+            }
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        private void RPC_AddPlayerDataToClient([RpcTarget] PlayerRef target, PlayerRef playerRef, UserId userId, PlayerData playerData)
+        {
+            OnAddPlayerData(playerRef, ref userId, ref playerData);
+        }
+
+        private void OnAddPlayerData(PlayerRef playerRef, ref UserId userId, ref PlayerData playerData)
+        {
             playerRefsMap[userId] = playerRef;
             userIdsMap[playerRef] = userId;
             playersDataMap[userId] = playerData;
+            OnPlayerDataChangedEvent.Invoke(userId, playerData, default); //todo сделать отдельный интерфейс
         }
 
         public void ResetSkillPoints()

@@ -207,6 +207,7 @@ namespace Main.Scripts.Room
             
             //todo можно попробовать отправлять playerData сразу от локального клиента другим клиентам, а подтверждение от сервера получать отдельно
             playerDataManager.AddPlayerData(playerRef, ref userId, ref playerData);
+            playerDataManager.SendAllPlayersDataToClient(playerRef);
 
             OnPlayerInitializedEvent.Invoke(playerRef);
         }

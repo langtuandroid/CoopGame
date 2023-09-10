@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4054128355429322614}
-  - component: {fileID: 4862623596542920450}
   - component: {fileID: 2906586781799732466}
   m_Layer: 0
   m_Name: GrassInteractorPainter
@@ -26,29 +25,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3261311326252371697}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.7231227, y: -55.58395, z: 23.70467}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4862623596542920450
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3261311326252371697}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_PanelSettings: {fileID: 11400000, guid: 68b92dc2efa2f774f94c2306b6b72e4c, type: 2}
-  m_ParentUI: {fileID: 0}
-  sourceAsset: {fileID: 9197481963319205126, guid: 67354f1b5e7e79d439448b4bd33d0eac, type: 3}
-  m_SortingOrder: 0
 --- !u!114 &2906586781799732466
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -61,12 +44,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6af4b4d51394abea6446a203ccef24b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  doc: {fileID: 4862623596542920450}
   painterTextureF1: {fileID: 8600000, guid: 28483010a6df08648b5cd1fc790b6537, type: 2}
   painterTextureF2: {fileID: 8600000, guid: abe1d9031d105c5468ff725995a5e6bf, type: 2}
   painterTextureF3: {fileID: 8600000, guid: a361cb20dcbac2847a66784f6741df00, type: 2}
   painterTextureF4: {fileID: 8600000, guid: 28de88ff9f25f3e459906ec5cf8a5656, type: 2}
   painterTextureF5: {fileID: 8600000, guid: d301b78dd63b8d64c8f1ced51ad8fc69, type: 2}
+  painterShader: {fileID: 7200000, guid: 9a64f5642e2ce114ca9ec42a699cb285, type: 3}
+  painterTexture: {fileID: 8400000, guid: 9ec0712078547854c9a4d4616e8e5695, type: 2}
   painterTextureSize: 32
   targetTextureSize: 512
   size: 100

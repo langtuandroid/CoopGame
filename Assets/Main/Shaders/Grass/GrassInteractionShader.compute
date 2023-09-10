@@ -1,0 +1,55 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+struct Painter
+{
+    float2 position;
+    float radius;
+    float force;
+};
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> resultTexture;
+RWStructuredBuffer<Painter> painters;
+int paintersCount;
+float deltaTime;
+
+
+float4 GetPainterColor (int painterIndex, float2 pos)
+{
+    const float2 deltaPos = pos - painters[painterIndex].position;
+    const float radiusPx = length(deltaPos);
+    if (radiusPx > painters[painterIndex].radius)
+    {
+        return 0.0;
+    }
+
+    const float fraction = radiusPx / painters[painterIndex].radius;
+        
+    float2 direction = normalize(deltaPos) * 0.5 + 0.5;
+    float force = max((1.0 - fraction * 2.0) * max(painters[painterIndex].force, 1.0), 0.0) * 0.5;
+
+    return float4(direction.x, direction.y, force, 1.0);
+}
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    resultTexture[id.xy] = resultTexture[id.xy] - float4(0.0, 0.0, deltaTime * 3.0, 0.0);
+    
+    for (int i = 0; i < paintersCount; i++)
+    {
+        float4 painterColor = GetPainterColor(i, id.xy);
+
+        float paitnerForce = painterColor.z;
+        float2 painterDirection = (painterColor.xy - 0.5) * paitnerForce;
+
+        float bufferForce = resultTexture[id.xy].z;
+        float2 bufferDirection = (resultTexture[id.xy].xy - 0.5) * bufferForce;
+
+        float2 resultDirection = normalize(bufferDirection + painterDirection) * 0.5 + 0.5;
+
+        resultTexture[id.xy] = float4(resultDirection, max(bufferForce, paitnerForce), 1.0);
+    }
+}

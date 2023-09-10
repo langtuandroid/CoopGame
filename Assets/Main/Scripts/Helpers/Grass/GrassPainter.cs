@@ -1,24 +1,22 @@
 using Fusion;
 using Main.Scripts.Utils;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Main.Scripts.Helpers.Grass
 {
-    public class GrassPainterRegistration : NetworkBehaviour
+    public class GrassPainter : NetworkBehaviour
     {
-        [FormerlySerializedAs("painterType")]
         [SerializeField]
-        private GrassPainterForce painterForce;
+        private GrassPainterConfig painterConfig = default!;
         
         public override void Spawned()
         {
-            GrassInteractHelper.Instance.ThrowWhenNull().AddPainter(transform, painterForce);
+            GrassInteractManager.Instance.ThrowWhenNull().AddPainter(transform, painterConfig);
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
-            var grassInteractHelper = GrassInteractHelper.Instance;
+            var grassInteractHelper = GrassInteractManager.Instance;
             if (grassInteractHelper != null)
             {
                 grassInteractHelper.RemovePainter(transform);

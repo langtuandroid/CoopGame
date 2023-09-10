@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GrassInteractorPanelSettings
   m_EditorClassIdentifier: 
   themeUss: {fileID: -4733365628477956816, guid: aba563149870c5c4e812bb35826897a5, type: 3}
-  m_TargetTexture: {fileID: 8400000, guid: 9ec0712078547854c9a4d4616e8e5695, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_ScaleMode: 1
   m_ReferenceSpritePixelsPerUnit: 100
   m_Scale: 1

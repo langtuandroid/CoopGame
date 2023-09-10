@@ -180,7 +180,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  painterForce: 4
+  painterConfig: {fileID: 11400000, guid: fe4da51703ebc4e45b3ad1b163a64719, type: 2}
 --- !u!1 &9001174500103642667
 GameObject:
   m_ObjectHideFlags: 0

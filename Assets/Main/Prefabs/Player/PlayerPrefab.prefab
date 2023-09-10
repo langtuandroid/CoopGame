@@ -922,7 +922,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  painterForce: 1
+  painterConfig: {fileID: 11400000, guid: b69cd606437d2ff45b933720b3f30bb6, type: 2}
 --- !u!1001 &2587958281309583874
 PrefabInstance:
   m_ObjectHideFlags: 0

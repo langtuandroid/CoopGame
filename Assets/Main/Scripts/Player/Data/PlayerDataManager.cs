@@ -10,6 +10,7 @@ using Main.Scripts.Room;
 using Main.Scripts.Skills;
 using Main.Scripts.Utils;
 using Main.Scripts.Utils.Save;
+using UniRx;
 using UnityEngine;
 using UnityEngine.Events;
 using WebSocketSharp;
@@ -26,6 +27,8 @@ namespace Main.Scripts.Player.Data
         private Dictionary<UserId, PlayerRef> playerRefsMap = new();
         private Dictionary<PlayerRef, UserId> userIdsMap = new();
         private Dictionary<UserId, PlayerData> playersDataMap = new();
+
+        private CompositeDisposable compositeDisposable = new();
 
         public UserId LocalUserId { get; private set; }
         public PlayerData LocalPlayerData { get; private set; }
@@ -49,12 +52,41 @@ namespace Main.Scripts.Player.Data
         {
             Debug.Log("PlayerDataManager is spawned");
             DontDestroyOnLoad(this);
-            LocalUserId = SessionManager.Instance.ThrowWhenNull().LocalUserId;
             resources = GlobalResources.Instance.ThrowWhenNull();
-            
-            //todo вынести загрузку в отдельный поток
-            LocalPlayerData = SaveLoadUtils.Load(GlobalResources.Instance.ThrowWhenNull(), LocalUserId.Id.Value);
-            OnLocalPlayerDataReadyEvent.Invoke();
+            var localUserId = SessionManager.Instance.ThrowWhenNull().LocalUserId;
+
+            SaveLoadUtils.Load(GlobalResources.Instance.ThrowWhenNull(), localUserId.Id.Value)
+                .ObserveOnMainThread()
+                .Do(result =>
+                {
+                    LocalPlayerData = result.playerData;
+                    if (result.IsCreatedNew)
+                    {
+                        SaveLoadUtils.Save(resources, LocalUserId.Id.Value, result.playerData)
+                            .ObserveOnMainThread()
+                            .DoOnCompleted(() =>
+                            {
+                                LocalUserId = localUserId;
+                                OnLocalPlayerDataReadyEvent.Invoke();
+                            })
+                            .DoOnError(Debug.LogError)
+                            .Subscribe()
+                            .AddTo(compositeDisposable);
+                    }
+                    else
+                    {
+                        LocalUserId = localUserId;
+                        OnLocalPlayerDataReadyEvent.Invoke();
+                    }
+                })
+                .Subscribe()
+                .AddTo(compositeDisposable);
+        }
+
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            base.Despawned(runner, hasState);
+            compositeDisposable.Clear();
         }
 
         public bool IsReady()
@@ -244,8 +276,13 @@ namespace Main.Scripts.Player.Data
         private void UpdatePlayerData(PlayerData playerData)
         {
             LocalPlayerData = playerData;
-            SaveLoadUtils.Save(resources, LocalUserId.Id.Value, playerData);
-            RPC_OnPlayerDataChanged(LocalUserId, LocalPlayerData);
+            SaveLoadUtils.Save(resources, LocalUserId.Id.Value, playerData)
+                .DoOnCompleted(() => {
+                    RPC_OnPlayerDataChanged(LocalUserId, LocalPlayerData);
+                })
+                .DoOnError(Debug.LogError)
+                .Subscribe()
+                .AddTo(compositeDisposable);
         }
 
         [Rpc(RpcSources.All, RpcTargets.All)]

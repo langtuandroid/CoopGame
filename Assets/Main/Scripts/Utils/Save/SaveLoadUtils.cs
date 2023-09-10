@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Main.Scripts.Core.Resources;
 using Main.Scripts.Player.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using UniRx;
 using UnityEngine;
 using WebSocketSharp;
 
@@ -26,34 +28,46 @@ namespace Main.Scripts.Utils.Save
             return list;
         }
 
-        public static void Save(GlobalResources resources, string userId, PlayerData playerData)
+        public static IObservable<Unit> Save(GlobalResources resources, string userId, PlayerData playerData)
         {
-            var jObject = playerData.ToJSON(resources);
             var filePath = GetFilePath(userId);
-            if (filePath.IsNullOrEmpty())
+            return Observable.Start(() =>
             {
-                return;
-            }
+                var jObject = playerData.ToJSON(resources);
+                if (filePath.IsNullOrEmpty())
+                {
+                    throw new Exception("File path is null or empty");
+                }
 
-            Directory.CreateDirectory(Path.GetDirectoryName(filePath).ThrowWhenNull());
-            using var streamWriter = File.CreateText(filePath);
-            using var jsonWriter = new JsonTextWriter(streamWriter);
-            jObject.WriteTo(jsonWriter);
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath).ThrowWhenNull());
+                using var streamWriter = File.CreateText(filePath);
+                using var jsonWriter = new JsonTextWriter(streamWriter);
+                jObject.WriteTo(jsonWriter);
+            });
         }
 
-        public static PlayerData Load(GlobalResources resources, string userId)
+        public static IObservable<LoadResult> Load(GlobalResources resources, string userId)
         {
             var filePath = GetFilePath(userId);
-            if (File.Exists(filePath))
+            return Observable.Start(() =>
             {
-                using var streamReader = File.OpenText(filePath);
-                using var jsonReader = new JsonTextReader(streamReader);
-                return PlayerData.ParseJSON(resources, (JObject)JToken.ReadFrom(jsonReader));
-            }
+                if (File.Exists(filePath))
+                {
+                    using var streamReader = File.OpenText(filePath);
+                    using var jsonReader = new JsonTextReader(streamReader);
+                    return new LoadResult
+                    {
+                        playerData = PlayerData.ParseJSON(resources, (JObject)JToken.ReadFrom(jsonReader)),
+                        IsCreatedNew = false
+                    };
+                }
 
-            var initialPlayerData = PlayerData.GetInitialPlayerData();
-            Save(resources, userId, initialPlayerData);
-            return initialPlayerData;
+                return new LoadResult
+                {
+                    playerData = PlayerData.GetInitialPlayerData(),
+                    IsCreatedNew = true
+                };
+            });
         }
 
         public static void DeleteSave(string userId)
@@ -89,6 +103,12 @@ namespace Main.Scripts.Utils.Save
         private static string GetFilePath(string playerName)
         {
             return Application.persistentDataPath + string.Format(FILE_PATH_FORMAT, playerName);
+        }
+
+        public class LoadResult
+        {
+            public PlayerData playerData;
+            public bool IsCreatedNew;
         }
     }
 }

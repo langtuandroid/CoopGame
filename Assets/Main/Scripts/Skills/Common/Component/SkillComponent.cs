@@ -495,7 +495,7 @@ namespace Main.Scripts.Skills.Common.Component
                         var skillPosition =
                             isCollisionTriggered ? skillPositionOnCollisionTriggered : transform.position;
                         var direction = actionTarget.transform.position - skillPosition;
-                        var knockBackActionData = new KnockBackActionData { direction = direction.normalized * forceAction.ForceValue };
+                        var knockBackActionData = new KnockBackActionData { force = direction.normalized * forceAction.ForceValue };
                         knockable.AddKnockBack(ref knockBackActionData);
 
                         break;

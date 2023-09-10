@@ -4,6 +4,6 @@ namespace Main.Scripts.Actions.Data
 {
     public struct KnockBackActionData
     {
-        public Vector3 direction;
+        public Vector3 force;
     }
 }

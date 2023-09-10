@@ -7,6 +7,7 @@ using Main.Scripts.Core.Simulation;
 using Main.Scripts.Levels;
 using Main.Scripts.Player;
 using Main.Scripts.Utils;
+using Pathfinding;
 using UnityEngine;
 
 namespace Main.Scripts.Core.CustomPhysics
@@ -15,14 +16,21 @@ namespace Main.Scripts.Core.CustomPhysics
     public class NetworkRigidbody3D : NetworkTransform, IAfterSpawned, GameLoopListener
     {
         private const float DECREASE_PREDICTED_DELTA_ON_TICK = 0.02f;
+        private const float MIN_VELOCITY_FOR_DISABLE_PHYSICS = 0.3f;
+
+        [SerializeField]
+        private bool isSimulatePhysicsAlwaysForOwner;
 
         private new Rigidbody rigidbody = default!;
         private PlayersHolder playersHolder = default!;
         private GameLoopManager gameLoopManager = default!;
         private NetworkRigidbody3DInterpolator interpolator = default!;
+        private RichAI? richAI;
 
         [Networked]
         private Vector3 currentNetworkedPosition { get; set; }
+        [Networked]
+        private int networkedSimulationIndex { get; set; }
 
         private Tick lastStateAuthorityReceivedTick;
         private Vector3 lastNetworkedPosition;
@@ -33,6 +41,10 @@ namespace Main.Scripts.Core.CustomPhysics
         private Vector3 interpolationTargetPosition;
 
         private Vector3 positionBeforeSimulation;
+
+        private int localSimulationIndex;
+        private Tick startPhysicsSimulationTick;
+        private int simulationTicksCount;
 
         private GameLoopPhase[] gameLoopPhases =
         {
@@ -46,6 +58,7 @@ namespace Main.Scripts.Core.CustomPhysics
         {
             rigidbody = GetComponent<Rigidbody>();
             rigidbody.interpolation = RigidbodyInterpolation.None;
+            richAI = GetComponent<RichAI>();
 
             interpolator = new NetworkRigidbody3DInterpolator(InterpolatedErrorCorrectionSettings);
 
@@ -54,6 +67,8 @@ namespace Main.Scripts.Core.CustomPhysics
 
         public void AfterSpawned()
         {
+            rigidbody.isKinematic = !IsSimulatePhysicsAlways();
+            
             lastStateAuthorityReceivedTick = default;
             lastNetworkedPosition = transform.position;
 
@@ -104,6 +119,13 @@ namespace Main.Scripts.Core.CustomPhysics
 
             if (lastStateAuthorityReceivedTick < curStateAuthorityReceivedTick)
             {
+                if (networkedSimulationIndex >= localSimulationIndex)
+                {
+                    localSimulationIndex = networkedSimulationIndex;
+                    rigidbody.isKinematic = true;
+                    predictedPositionDelta = Vector3.zero;
+                }
+                
                 var networkedPositionDelta = currentNetworkedPosition - lastNetworkedPosition;
 
                 if (predictedPositionDelta.magnitude > DECREASE_PREDICTED_DELTA_ON_TICK)
@@ -141,11 +163,33 @@ namespace Main.Scripts.Core.CustomPhysics
             return gameLoopPhases;
         }
 
+        public void AddForce(Vector3 force)
+        {
+            if (HasStateAuthority)
+            {
+                networkedSimulationIndex = localSimulationIndex;
+                startPhysicsSimulationTick = Runner.Tick;
+                var velocity = force.magnitude / rigidbody.mass;
+                simulationTicksCount = (int)Math.Ceiling(
+                    (Math.Log(MIN_VELOCITY_FOR_DISABLE_PHYSICS, Math.E) - Math.Log(velocity, Math.E)) /
+                    Math.Log(1 - Runner.DeltaTime * rigidbody.drag, Math.E)
+                );
+            }
+            
+            localSimulationIndex++;
+            
+            rigidbody.isKinematic = false;
+            rigidbody.AddForce(force, ForceMode.Impulse);
+        }
+
+        private bool IsSimulatePhysicsAlways()
+        {
+            return HasStateAuthority && isSimulatePhysicsAlwaysForOwner;
+        }
+
         private void OnSyncTransformBeforeAllPhase()
         {
             if (HasStateAuthority) return;
-
-            DecreasePredictedDelta(DECREASE_PREDICTED_DELTA_ON_TICK);
 
             transform.position = currentNetworkedPosition + predictedPositionDelta;
             positionBeforeSimulation = transform.position;
@@ -153,14 +197,36 @@ namespace Main.Scripts.Core.CustomPhysics
 
         private void OnSyncTransformAfterAllPhase()
         {
+            var isLocalSimulation = IsForceRunning();
+            
             if (HasStateAuthority)
             {
                 currentNetworkedPosition = transform.position;
+
+                if (isLocalSimulation && Runner.Tick - startPhysicsSimulationTick >= simulationTicksCount)
+                {
+                    networkedSimulationIndex = localSimulationIndex;
+                    rigidbody.isKinematic = !IsSimulatePhysicsAlways();
+                    
+                    if (richAI != null)
+                    {
+                        richAI.Teleport(transform.position);
+                    }
+                }
                 return;
             }
 
-            predictedPositionDelta += transform.position - positionBeforeSimulation;
+            if (isLocalSimulation)
+            {
+                predictedPositionDelta += transform.position - positionBeforeSimulation;
+            }
+
             lastPredictedPosition = transform.position;
+        }
+
+        public bool IsForceRunning()
+        {
+            return localSimulationIndex > networkedSimulationIndex;
         }
 
         private void DecreasePredictedDelta(float decreaseValue)

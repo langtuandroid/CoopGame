@@ -18,10 +18,6 @@ namespace Main.Scripts.Enemies
         [Networked]
         public TickTimer stunTimer { get; set; }
         [Networked]
-        public TickTimer knockBackTimer { get; set; }
-        [Networked]
-        public Vector3 knockBackDirection { get; set; }
-        [Networked]
         public PlayerRef targetPlayerRef { get; set; }
         [Networked]
         public int animationTriggerId { get; set; }

@@ -4,6 +4,7 @@ using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Data;
 using Main.Scripts.Actions.Health;
+using Main.Scripts.Core.CustomPhysics;
 using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Effects;
 using Main.Scripts.Effects.Stats;
@@ -36,16 +37,12 @@ namespace Main.Scripts.Enemies
         private NetworkObject objectContext = default!;
 
         private Transform transform;
-        private RVOController rvoController;
+        private NetworkRigidbody3D rigidbody3D;
         private RichAI richAI;
         private NetworkMecanimAnimator networkAnimator;
         private HealthBar healthBar;
 
         private EnemiesHelper enemiesHelper = default!;
-
-        private float knockBackForce = 10f; //todo get from ApplyKnockBack
-        private float knockBackDuration = 0.1f; //todo можно высчитать из knockBackForce и rigidbody.drag
-        private float moveAcceleration = 200f;
 
         private ActiveSkillsManager activeSkillsManager;
         private PassiveSkillsManager passiveSkillsManager;
@@ -56,7 +53,6 @@ namespace Main.Scripts.Enemies
 
         private EnemyAnimationState currentAnimationState;
 
-        private int nextNavPathCornerIndex;
         private float sqrAttackDistance;
         private Vector3 lookDirection;
 
@@ -92,10 +88,12 @@ namespace Main.Scripts.Enemies
             this.dataHolder = dataHolder;
             this.eventListener = eventListener;
 
-            rvoController = dataHolder.GetCachedComponent<RVOController>();
+            rigidbody3D = dataHolder.GetCachedComponent<NetworkRigidbody3D>();
             richAI = dataHolder.GetCachedComponent<RichAI>();
             networkAnimator = dataHolder.GetCachedComponent<NetworkMecanimAnimator>();
             transform = dataHolder.GetCachedComponent<Transform>();
+
+            richAI.updatePosition = false;
 
             healthBar = config.HealthBar;
 
@@ -138,7 +136,12 @@ namespace Main.Scripts.Enemies
             ResetState();
 
             enemiesHelper = dataHolder.GetCachedComponent<EnemiesHelper>();
-
+            richAI.enabled = objectContext.HasStateAuthority;
+            if (this.objectContext.HasStateAuthority)
+            {
+                richAI.Teleport(transform.position);
+            }
+            
             effectsManager.Spawned(objectContext);
             activeSkillsManager.Spawned(objectContext);
             healthChangeDisplayManager?.Spawned(objectContext);
@@ -268,17 +271,12 @@ namespace Main.Scripts.Enemies
             //todo в последний тик атаки не просчитывается стратегия, но срабатывает логика передвижения (меняется значение IsAttacking())
             if (!objectContext.HasStateAuthority || enemyData.isDead) return;
 
-            if (!enemyData.knockBackTimer.ExpiredOrNotRunning(objectContext.Runner))
-            {
-                var velocity = objectContext.Runner.DeltaTime * knockBackForce * enemyData.knockBackDirection;
-                rvoController.velocity = velocity;
-                transform.position += velocity;
-            }
-            else if (CanMoveByController(ref enemyData))
+            if (CanMoveByController(ref enemyData))
             {
                 richAI.MovementUpdate(objectContext.Runner.DeltaTime, out var nextPosition, out var nextRotation);
                 lookDirection = nextPosition - transform.position;
                 richAI.FinalizeMovement(nextPosition, nextRotation);
+                transform.position = richAI.position;
             }
         }
 
@@ -405,11 +403,6 @@ namespace Main.Scripts.Enemies
         private void UpdateDestination(ref EnemyData enemyData, Vector3? destination)
         {
             enemyData.navigationTarget = destination ?? transform.position;
-
-            if (destination == null)
-            {
-                nextNavPathCornerIndex = 1;
-            }
         }
 
         private void FireWeapon()
@@ -521,17 +514,15 @@ namespace Main.Scripts.Enemies
             for (var i = 0; i < knockBackActions.Count; i++)
             {
                 var actionData = knockBackActions[i];
-                ApplyKnockBack(ref enemyData, ref actionData);
+                ApplyKnockBack(ref actionData);
             }
 
             knockBackActions.Clear();
         }
 
-        private void ApplyKnockBack(ref EnemyData enemyData, ref KnockBackActionData actionData)
+        private void ApplyKnockBack(ref KnockBackActionData actionData)
         {
-            enemyData.knockBackTimer = TickTimer.CreateFromSeconds(objectContext.Runner, knockBackDuration);
-            enemyData.knockBackDirection = actionData.direction;
-            // rigidbody.AddForce(knockBackForce * enemyData.knockBackDirection, ForceMode.Impulse);
+            rigidbody3D.AddForce(actionData.force);
         }
 
         public void AddStun(ref StunActionData data)
@@ -638,9 +629,9 @@ namespace Main.Scripts.Enemies
 
         private bool CanMoveByController(ref EnemyData enemyData)
         {
-            return enemyData.knockBackTimer.ExpiredOrNotRunning(objectContext.Runner)
-                   && enemyData.stunTimer.ExpiredOrNotRunning(objectContext.Runner)
-                   && !IsAttacking();
+            return enemyData.stunTimer.ExpiredOrNotRunning(objectContext.Runner)
+                   && !IsAttacking()
+                   && !rigidbody3D.IsForceRunning();
         }
 
         public interface DataHolder :

@@ -5,6 +5,7 @@ using Main.Scripts.Actions;
 using Main.Scripts.Actions.Data;
 using Main.Scripts.Actions.Health;
 using Main.Scripts.Core.Architecture;
+using Main.Scripts.Core.CustomPhysics;
 using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Core.Resources;
@@ -67,8 +68,8 @@ namespace Main.Scripts.Enemies
         void Awake()
         {
             cachedComponents[typeof(Transform)] = transform;
+            cachedComponents[typeof(NetworkRigidbody3D)] = GetComponent<NetworkRigidbody3D>();
             cachedComponents[typeof(Seeker)] = GetComponent<Seeker>();
-            cachedComponents[typeof(RVOController)] = GetComponent<RVOController>();
             cachedComponents[typeof(RichAI)] = GetComponent<RichAI>();
             cachedComponents[typeof(NetworkTransform)] = GetComponent<NetworkTransform>();
             cachedComponents[typeof(NetworkMecanimAnimator)] = GetComponent<NetworkMecanimAnimator>();
@@ -240,7 +241,7 @@ namespace Main.Scripts.Enemies
 
             if (!HasStateAuthority)
             {
-                RPC_AddKnockBack(data.direction);
+                RPC_AddKnockBack(data.force);
             }
         }
 
@@ -249,7 +250,7 @@ namespace Main.Scripts.Enemies
         {
             var data = new KnockBackActionData
             {
-                direction = direction
+                force = direction
             };
             enemyLogicDelegate.AddKnockBack(ref data);
         }

@@ -10,8 +10,6 @@ namespace Main.Scripts.Enemies
 {
     public class EnemiesManager : GameLoopEntity
     {
-        public static EnemiesManager? Instance { get; private set; }
-
         [SerializeField]
         private EnemyController enemyPrefab = default!;
 
@@ -26,22 +24,12 @@ namespace Main.Scripts.Enemies
             GameLoopPhase.ObjectsSpawnPhase
         };
 
-        private void Awake()
-        {
-            Assert.Check(Instance == null);
-            Instance = this;
-        }
-
         public override void Spawned()
         {
             base.Spawned();
             spawnActions.Clear();
         }
 
-        private void OnDestroy()
-        {
-            Instance = null;
-        }
 
         public override void OnGameLoopPhase(GameLoopPhase phase)
         {

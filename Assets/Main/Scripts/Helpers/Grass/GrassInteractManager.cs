@@ -16,6 +16,8 @@ namespace Main.Scripts.Helpers.Grass
         private int targetTextureSize = 1024;
         [SerializeField]
         private float mapSize = 100;
+        [SerializeField]
+        private int initialPaintersCount = 256;
 
         private GrassInteractionPainter grassInteractionPainter = default!;
 
@@ -31,7 +33,7 @@ namespace Main.Scripts.Helpers.Grass
                 renderTexture: painterTexture,
                 targetTextureSize: targetTextureSize,
                 mapSize: mapSize,
-                initialCapacity: 64
+                initialCapacity: initialPaintersCount
             );
         }
 

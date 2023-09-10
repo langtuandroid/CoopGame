@@ -11,8 +11,11 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
         private float radius;
         [SerializeField]
         private UnitTargetType targetType;
+        [SerializeField]
+        private LayerMask triggerByDecorationsLayer;
 
         public float Radius => radius;
         public UnitTargetType TargetType => targetType;
+        public LayerMask TriggerByDecorationsLayer => triggerByDecorationsLayer;
     }
 }

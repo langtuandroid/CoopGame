@@ -1,4 +1,5 @@
 using Fusion;
+using Main.Scripts.Levels;
 using Main.Scripts.Utils;
 
 namespace Main.Scripts.Enemies
@@ -15,7 +16,7 @@ namespace Main.Scripts.Enemies
         public override void Spawned()
         {
             enemyController = GetComponent<EnemyController>();
-            enemiesManager = EnemiesManager.Instance.ThrowWhenNull();
+            enemiesManager = LevelContext.Instance.ThrowWhenNull().EnemiesManager;
             enemiesManager.RegisterEnemy(enemyController);
         }
 

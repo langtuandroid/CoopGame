@@ -2059,7 +2059,6 @@ GameObject:
   - component: {fileID: 909003567}
   - component: {fileID: 909003566}
   - component: {fileID: 909003565}
-  - component: {fileID: 909003564}
   - component: {fileID: 909003563}
   - component: {fileID: 909003562}
   - component: {fileID: 909003568}
@@ -2121,23 +2120,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playersHolder: {fileID: 909003562}
   navigationManager: {fileID: 909003569}
---- !u!114 &909003564
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 909003560}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6bb5a412690241d89a94bc0aead4413e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  enemyPrefab: {fileID: 4027122293951560233, guid: fb6430ba47924404495b48284fc38986, type: 3}
-  OnEnemyDeadEvent:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!114 &909003565
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2195,7 +2177,6 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 909003566}
   - {fileID: 909003565}
-  - {fileID: 909003564}
   - {fileID: 1586872993}
   SimulationBehaviours: []
 --- !u!114 &909003568
@@ -2211,7 +2192,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playersHolder: {fileID: 909003562}
-  enemiesManager: {fileID: 909003564}
+  enemiesManager: {fileID: 1586872993}
   gameLoopManager: {fileID: 15558135}
   hudScreen: {fileID: 2017917603}
 --- !u!114 &909003569

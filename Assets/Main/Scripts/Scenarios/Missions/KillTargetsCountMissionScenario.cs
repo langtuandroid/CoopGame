@@ -1,5 +1,6 @@
 using Fusion;
 using Main.Scripts.Enemies;
+using Main.Scripts.Levels;
 using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.Events;
@@ -22,7 +23,7 @@ namespace Main.Scripts.Scenarios.Missions
 
         public override void Spawned()
         {
-            enemiesManager = EnemiesManager.Instance.ThrowWhenNull();
+            enemiesManager = LevelContext.Instance.ThrowWhenNull().EnemiesManager;
             enemiesManager.OnEnemyDeadEvent.AddListener(OnEnemyDead);
         }
 

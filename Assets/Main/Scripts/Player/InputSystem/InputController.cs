@@ -85,7 +85,7 @@ namespace Main.Scripts.Player.InputSystem
                 findTargetSystem = FindTargetManager.Instance.ThrowWhenNull();
             }
 
-            enemiesManager = EnemiesManager.Instance.ThrowWhenNull();
+            enemiesManager = levelContext.EnemiesManager;
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)

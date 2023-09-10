@@ -440,7 +440,7 @@ namespace Main.Scripts.Skills.Common.Component
                     position: transform.position,
                     radius: collisionTrigger.Radius,
                     results: colliders,
-                    layerMask: GetLayerMaskByType(collisionTrigger.TargetType)
+                    layerMask: GetLayerMaskByType(collisionTrigger.TargetType) | collisionTrigger.TriggerByDecorationsLayer
                 );
 
                 if (!isCollisionTriggered && (hitsCount >= 2 || (hitsCount > 0 && colliders[0].gameObject != gameObject)))

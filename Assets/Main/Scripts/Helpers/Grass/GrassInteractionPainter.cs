@@ -27,7 +27,6 @@ namespace Main.Scripts.Helpers.Grass
             this.mapSize = mapSize;
 
             paintersData = new Painter[initialCapacity];
-
             paintersBuffer = new ComputeBuffer(initialCapacity, sizeof(float) * 4);
 
             renderTexture.Release();
@@ -41,6 +40,8 @@ namespace Main.Scripts.Helpers.Grass
             if (paintersData.Length < activePainters.Count)
             {
                 paintersData = new Painter[paintersData.Length * 2];
+                paintersBuffer.Release();
+                paintersBuffer = new ComputeBuffer(paintersData.Length, sizeof(float) * 4);
             }
 
             var painterIndex = 0;

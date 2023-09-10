@@ -8,18 +8,20 @@ namespace Main.Scripts.Helpers.Grass
     {
         [SerializeField]
         private GrassPainterConfig painterConfig = default!;
+
+        private GrassInteractManager grassInteractManager = default!;
         
         public override void Spawned()
         {
-            GrassInteractManager.Instance.ThrowWhenNull().AddPainter(transform, painterConfig);
+            grassInteractManager = GrassInteractManager.Instance.ThrowWhenNull();
+            grassInteractManager.AddPainter(transform, painterConfig);
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
-            var grassInteractHelper = GrassInteractManager.Instance;
-            if (grassInteractHelper != null)
+            if (grassInteractManager != null)
             {
-                grassInteractHelper.RemovePainter(transform);
+                grassInteractManager.RemovePainter(transform);
             }
         }
     }

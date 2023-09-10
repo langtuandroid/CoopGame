@@ -14,3 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   radius: 0.5
   targetType: 0
+  triggerByDecorationsLayer:
+    serializedVersion: 2
+    m_Bits: 8

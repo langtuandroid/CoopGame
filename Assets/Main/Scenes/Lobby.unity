@@ -1062,7 +1062,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playersHolder: {fileID: 504426375}
-  enemiesManager: {fileID: 0}
+  enemiesManager: {fileID: 1501385039}
   gameLoopManager: {fileID: 1210559671}
   hudScreen: {fileID: 2034418547}
 --- !u!114 &504426378

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using FSG.MeshAnimator;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Data;
@@ -39,6 +40,8 @@ namespace Main.Scripts.Enemies
 
         [SerializeField]
         private EnemyConfig enemyConfig = EnemyConfig.GetDefault();
+        [SerializeField]
+        private MeshAnimatorBase meshAnimator = default!;
 
         private EffectsBank effectsBank = default!;
 
@@ -72,7 +75,7 @@ namespace Main.Scripts.Enemies
             cachedComponents[typeof(Seeker)] = GetComponent<Seeker>();
             cachedComponents[typeof(RichAI)] = GetComponent<RichAI>();
             cachedComponents[typeof(NetworkTransform)] = GetComponent<NetworkTransform>();
-            cachedComponents[typeof(NetworkMecanimAnimator)] = GetComponent<NetworkMecanimAnimator>();
+            cachedComponents[typeof(MeshAnimatorBase)] = meshAnimator;
 
             enemyLogicDelegate = new EnemyLogicDelegate(
                 config: ref enemyConfig,

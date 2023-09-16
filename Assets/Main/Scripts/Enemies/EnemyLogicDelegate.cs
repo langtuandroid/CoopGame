@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using FSG.MeshAnimator;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Data;
@@ -39,7 +40,7 @@ namespace Main.Scripts.Enemies
         private Transform transform;
         private NetworkRigidbody3D rigidbody3D;
         private RichAI richAI;
-        private NetworkMecanimAnimator networkAnimator;
+        private MeshAnimatorBase meshAnimator;
         private HealthBar healthBar;
 
         private EnemiesHelper enemiesHelper = default!;
@@ -90,7 +91,7 @@ namespace Main.Scripts.Enemies
 
             rigidbody3D = dataHolder.GetCachedComponent<NetworkRigidbody3D>();
             richAI = dataHolder.GetCachedComponent<RichAI>();
-            networkAnimator = dataHolder.GetCachedComponent<NetworkMecanimAnimator>();
+            meshAnimator = dataHolder.GetCachedComponent<MeshAnimatorBase>();
             transform = dataHolder.GetCachedComponent<Transform>();
 
             richAI.updatePosition = false;
@@ -588,8 +589,7 @@ namespace Main.Scripts.Enemies
                 switch (newAnimationState)
                 {
                     case EnemyAnimationState.Attacking:
-                        networkAnimator.SetTrigger(ATTACK_ANIM, true);
-                        networkAnimator.Animator.SetBool(IS_MOVING_ANIM, false);
+                        meshAnimator.Play(2);
                         break;
                 }
             }
@@ -601,10 +601,10 @@ namespace Main.Scripts.Enemies
                 switch (newAnimationState)
                 {
                     case EnemyAnimationState.Walking:
-                        networkAnimator.Animator.SetBool(IS_MOVING_ANIM, true);
+                        meshAnimator.Play(1);
                         break;
                     case EnemyAnimationState.Idle:
-                        networkAnimator.Animator.SetBool(IS_MOVING_ANIM, false);
+                        meshAnimator.Play(0);
                         break;
                 }
             }

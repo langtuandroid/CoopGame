@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Controller
 {
-    public class SkillController : GameLoopEntity
+    public class SkillController : GameLoopEntityNetworked
     {
         [SerializeField]
         private SkillControllerConfig skillControllerConfig = default!;

@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Main.Scripts.Player.Interaction
 {
-    public class InteractionController : GameLoopEntity
+    public class InteractionController : GameLoopEntityNetworked
     {
         [SerializeField]
         private float interactionRadius = 3f;

@@ -8,7 +8,7 @@ using UnityEngine.Events;
 
 namespace Main.Scripts.Tasks
 {
-    public class PlaceTargetTask : GameLoopEntity
+    public class PlaceTargetTask : GameLoopEntityNetworked
     {
         [SerializeField]
         private PlayersHolder playersHolder = default!;

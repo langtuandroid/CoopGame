@@ -8,10 +8,12 @@ using Random = UnityEngine.Random;
 
 namespace Main.Scripts.Enemies
 {
-    public class EnemiesManager : GameLoopEntity
+    public class EnemiesManager : GameLoopEntityNetworked
     {
         [SerializeField]
         private EnemyController enemyPrefab = default!;
+
+        private NavigationManager navigationManager = default!;
 
         public UnityEvent<EnemyController> OnEnemyDeadEvent = default!;
 
@@ -28,6 +30,8 @@ namespace Main.Scripts.Enemies
         {
             base.Spawned();
             spawnActions.Clear();
+
+            navigationManager = levelContext.NavigationManager;
         }
 
 
@@ -66,11 +70,13 @@ namespace Main.Scripts.Enemies
         public void RegisterEnemy(EnemyController enemy)
         {
             localEnemiesMap.Add(enemy.Object.Id, enemy);
+            navigationManager.Add(enemy.Object);
         }
 
         public void UnregisterEnemy(EnemyController enemy)
         {
             localEnemiesMap.Remove(enemy.Object.Id);
+            navigationManager.Remove(enemy.Object);
         }
 
         private void OnEnemyDead(EnemyController enemyController)

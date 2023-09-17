@@ -1,7 +1,6 @@
 using Fusion;
 using Main.Scripts.Player;
 using UnityEngine;
-using UnityEngine.Profiling;
 
 namespace Main.Scripts.Enemies
 {
@@ -11,8 +10,6 @@ namespace Main.Scripts.Enemies
         
         [SerializeField]
         private PlayersHolder playersHolder = default!;
-        [SerializeField]
-        private NavigationManager navigationManager = default!;
 
         private int[]? playerRefs;
         private Vector3[]? playerPositions;
@@ -59,21 +56,6 @@ namespace Main.Scripts.Enemies
             }
 
             return targetRef;
-        }
-
-        public void StartCalculatePath(ref NetworkId id, Vector3 fromPosition, Vector3 toPosition)
-        {
-            navigationManager.StartCalculatePath(ref id, fromPosition, toPosition);
-        }
-
-        public Vector3[] GetPathCorners(ref NetworkId id)
-        {
-            return navigationManager.GetPathCorners(ref id);
-        }
-
-        public void StopCalculatePath(NetworkId id)
-        {
-            navigationManager.StopCalculatePath(ref id);
         }
 
         private void OnPlayerHolderChanged()

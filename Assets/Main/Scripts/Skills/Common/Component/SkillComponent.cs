@@ -22,7 +22,7 @@ using UnityEngine.Events;
 
 namespace Main.Scripts.Skills.Common.Component
 {
-    public class SkillComponent : GameLoopEntity
+    public class SkillComponent : GameLoopEntityNetworked
     {
         private SkillConfigsBank skillConfigsBank = default!;
         private ModifierIdsBank modifierIdsBank = default!;

@@ -19,7 +19,7 @@ namespace Main.Scripts.Player.InputSystem
     /// Handle player input by responding to Fusion input polling, filling an input struct and then working with
     /// that input struct in the Fusion Simulation loop.
     /// </summary>
-    public class InputController : GameLoopEntity, INetworkRunnerCallbacks, IAfterSpawned
+    public class InputController : GameLoopEntityNetworked, INetworkRunnerCallbacks, IAfterSpawned
     {
         [SerializeField]
         private LayerMask mouseRayMask;

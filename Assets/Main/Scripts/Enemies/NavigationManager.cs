@@ -1,104 +1,93 @@
-using System;
 using System.Collections.Generic;
-using Fusion;
+using Main.Scripts.Core.GameLogic;
+using Main.Scripts.Core.GameLogic.Phases;
 using UnityEngine;
-using UnityEngine.AI;
-using UnityEngine.Profiling;
 
 namespace Main.Scripts.Enemies
 {
-    public class NavigationManager : MonoBehaviour
+    public class NavigationManager : GameLoopEntity
     {
         [SerializeField]
-        private int iterationsCount = 3;
-        private Dictionary<uint, NavMeshPath> pathMap = new();
-        private Dictionary<uint, TaskData> taskMap = new();
-        private Queue<uint> taskQueue = new();
-        private Stack<NavMeshPath> navMeshPool = new();
+        private int simulatingObjectsCountByTick;
         
-        private void Update()
+        private HashSet<Object> navObjects = new();
+        private Dictionary<Object, int> currentSimulatingObjects = new();
+        private Queue<NavObjectData> queue = new();
+
+        private int currentTick;
+
+        private GameLoopPhase[] gameLoopPhases =
         {
-            Profiler.BeginSample("NavigationManager::Update");
-            for (var i = 0; i < iterationsCount; i++)
+            GameLoopPhase.StrategyPhase
+        };
+
+        public override void OnGameLoopPhase(GameLoopPhase phase)
+        {
+            foreach (var (navObject, _) in currentSimulatingObjects)
             {
-                Process();
+                if (navObjects.Contains(navObject))
+                {
+                    queue.Enqueue(new NavObjectData
+                    {
+                        NavObject = navObject,
+                        Tick = currentTick
+                    });
+                }
             }
-            Profiler.EndSample();
+
+            currentTick++;
+            currentSimulatingObjects.Clear();
+
+            while (currentSimulatingObjects.Count < simulatingObjectsCountByTick && queue.Count > 0)
+            {
+                var navObjectData = queue.Dequeue();
+                if (navObjects.Contains(navObjectData.NavObject))
+                {
+                    currentSimulatingObjects.Add(navObjectData.NavObject, currentTick - navObjectData.Tick);
+                }
+            }
         }
 
-        public void StartCalculatePath(ref NetworkId id, Vector3 fromPosition, Vector3 toPosition)
+        public override IEnumerable<GameLoopPhase> GetSubscribePhases()
         {
-            var taskData = new TaskData();
-
-            taskData.fromPosition = fromPosition;
-            taskData.toPosition = toPosition;
-
-            var idRaw = id.Raw;
-
-            if (!taskMap.ContainsKey(idRaw))
-            {
-                taskQueue.Enqueue(idRaw);
-                taskData.navMeshPath = GetNavMeshPath();
-                taskMap.Add(idRaw, taskData);
-            }
-            else
-            {
-                taskData.navMeshPath = taskMap[idRaw].navMeshPath;
-                taskMap[idRaw] = taskData;
-            }
+            return gameLoopPhases;
         }
 
-        public Vector3[] GetPathCorners(ref NetworkId id)
+        public void Add(Object navObject)
         {
-            return pathMap.Remove(id.Raw, out var navMeshPath) ? navMeshPath.corners : Array.Empty<Vector3>();
+            var navObjectData = new NavObjectData
+            {
+                NavObject = navObject,
+                Tick = currentTick
+            };
+            queue.Enqueue(navObjectData);
+            navObjects.Add(navObject);
         }
 
-        public void StopCalculatePath(ref NetworkId id)
+        public void Remove(Object navObject)
         {
-            var idRaw = id.Raw;
-            if (pathMap.Remove(idRaw, out var navMeshPath))
+            if (navObjects.Contains(navObject))
             {
-                navMeshPool.Push(navMeshPath);
+                navObjects.Remove(navObject);
+            }
+        }
+        
+        public bool IsSimulateOnCurrentTick(Object navObject, out int deltaTicks)
+        {
+            if (currentSimulatingObjects.ContainsKey(navObject))
+            {
+                deltaTicks = currentSimulatingObjects[navObject];
+                return true;
             }
 
-            taskMap.Remove(idRaw);
+            deltaTicks = 0;
+            return false;
         }
 
-        private void Process()
+        private struct NavObjectData
         {
-            if (taskQueue.Count == 0)
-            {
-                return;
-            }
-
-            var id = taskQueue.Dequeue();
-            if (!taskMap.Remove(id, out var taskData))
-            {
-                return;
-            }
-
-            var navMeshPath = taskData.navMeshPath;
-
-            NavMesh.CalculatePath(taskData.fromPosition, taskData.toPosition, NavMesh.AllAreas, navMeshPath);
-
-
-            if (pathMap.ContainsKey(id))
-            {
-                navMeshPool.Push(pathMap[id]);
-            }
-            pathMap[id] = navMeshPath;
+            public Object NavObject;
+            public int Tick;
         }
-
-        private NavMeshPath GetNavMeshPath()
-        {
-            return navMeshPool.Count > 0 ? navMeshPool.Pop() : new NavMeshPath();
-        }
-    }
-
-    internal struct TaskData
-    {
-        public Vector3 fromPosition;
-        public Vector3 toPosition;
-        public NavMeshPath navMeshPath;
     }
 }

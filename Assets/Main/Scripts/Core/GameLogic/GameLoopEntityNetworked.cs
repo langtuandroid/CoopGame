@@ -1,24 +1,28 @@
 using System.Collections.Generic;
+using Fusion;
 using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Levels;
 using Main.Scripts.Utils;
-using UnityEngine;
 
 namespace Main.Scripts.Core.GameLogic
 {
-    public abstract class GameLoopEntity : MonoBehaviour, GameLoopListener
+    public abstract class GameLoopEntityNetworked : NetworkBehaviour, GameLoopListener
     {
         protected LevelContext levelContext { get; private set; } = default!;
 
-        public void Start()
+        public override void Spawned()
         {
+            base.Spawned();
+            
             levelContext = LevelContext.Instance.ThrowWhenNull();
 
             levelContext.GameLoopManager.AddListener(this);
         }
 
-        public void OnDestroy()
+        public override void Despawned(NetworkRunner runner, bool hasState)
         {
+            base.Despawned(runner, hasState);
+
             if (levelContext != null)
             {
                 levelContext.GameLoopManager.RemoveListener(this);

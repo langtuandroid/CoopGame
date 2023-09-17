@@ -44,6 +44,7 @@ namespace Main.Scripts.Enemies
         private HealthBar healthBar;
 
         private EnemiesHelper enemiesHelper = default!;
+        private NavigationManager navigationManager = default!;
 
         private ActiveSkillsManager activeSkillsManager;
         private PassiveSkillsManager passiveSkillsManager;
@@ -56,6 +57,7 @@ namespace Main.Scripts.Enemies
 
         private float sqrAttackDistance;
         private Vector3 lookDirection;
+        private int movementDeltaTicks;
 
         private List<KnockBackActionData> knockBackActions = new();
         private List<StunActionData> stunActions = new();
@@ -137,6 +139,7 @@ namespace Main.Scripts.Enemies
             ResetState();
 
             enemiesHelper = dataHolder.GetCachedComponent<EnemiesHelper>();
+            navigationManager = dataHolder.GetCachedComponent<NavigationManager>();
             richAI.enabled = objectContext.HasStateAuthority;
             if (this.objectContext.HasStateAuthority)
             {
@@ -169,6 +172,7 @@ namespace Main.Scripts.Enemies
             effectActions.Clear();
             shouldDespawn = false;
             lookDirection = Vector3.zero;
+            movementDeltaTicks = 0;
 
             enemyData.maxHealth = config.DefaultMaxHealth;
             enemyData.speed = config.DefaultSpeed;
@@ -274,10 +278,24 @@ namespace Main.Scripts.Enemies
 
             if (CanMoveByController(ref enemyData))
             {
-                richAI.MovementUpdate(objectContext.Runner.DeltaTime, out var nextPosition, out var nextRotation);
-                lookDirection = nextPosition - transform.position;
-                richAI.FinalizeMovement(nextPosition, nextRotation);
-                transform.position = richAI.position;
+                if (navigationManager.IsSimulateOnCurrentTick(objectContext, out var deltaTicks))
+                {
+                    richAI.MovementUpdate(objectContext.Runner.DeltaTime * deltaTicks, out var nextPosition, out var nextRotation);
+                    lookDirection = nextPosition - transform.position;
+                    richAI.FinalizeMovement(nextPosition, nextRotation);
+                    movementDeltaTicks = deltaTicks + 1; //сглаживаем возможное увеличение deltaTicks
+                }
+
+                if (movementDeltaTicks > 0)
+                {
+                    transform.position += (richAI.position - transform.position) / movementDeltaTicks;
+                    movementDeltaTicks--;
+                }
+            }
+            else if (movementDeltaTicks > 0)
+            {
+                movementDeltaTicks = 0;
+                richAI.FinalizeMovement(transform.position, transform.rotation);
             }
         }
 

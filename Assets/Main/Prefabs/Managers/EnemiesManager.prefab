@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  enemyPrefab: {fileID: 4293428473241161281, guid: fb6430ba47924404495b48284fc38986, type: 3}
+  enemyPrefab: {fileID: 6534187366776731960, guid: fb6430ba47924404495b48284fc38986, type: 3}
   OnEnemyDeadEvent:
     m_PersistentCalls:
       m_Calls: []

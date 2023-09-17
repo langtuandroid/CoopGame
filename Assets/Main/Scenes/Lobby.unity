@@ -571,7 +571,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playersHolder: {fileID: 504426375}
-  navigationManager: {fileID: 504426378}
 --- !u!114 &504426375
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -602,6 +601,7 @@ MonoBehaviour:
   playersHolder: {fileID: 504426375}
   enemiesManager: {fileID: 1501385039}
   gameLoopManager: {fileID: 1210559671}
+  navigationManager: {fileID: 504426378}
   hudScreen: {fileID: 2034418547}
 --- !u!114 &504426378
 MonoBehaviour:
@@ -615,7 +615,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2dcaf1f0d4241b591bae7bf004680a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  iterationsCount: 3
+  simulatingObjectsCountByTick: 30
 --- !u!1 &537468163
 GameObject:
   m_ObjectHideFlags: 0
@@ -633,7 +633,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &537468164
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -669,7 +669,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1.42
+  m_Intensity: 2
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -712,7 +712,7 @@ Light:
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
-  m_ColorTemperature: 6233
+  m_ColorTemperature: 4570
   m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
@@ -854,7 +854,7 @@ MonoBehaviour:
   manualDebugFloorRoof: 0
   showSearchTree: 0
   unwalkableNodeDebugSize: 0.3
-  logPathResults: 1
+  logPathResults: 0
   maxNearestNodeDistance: 100
   scanOnStartup: 0
   fullGetNearestSearch: 0
@@ -1099,14 +1099,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 238440623081696795, guid: 3672ff2704fd23b4fb8e37038771f36d, type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1396719350555925166, guid: 3672ff2704fd23b4fb8e37038771f36d, type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: a18d497006067e84f978e5755df9847a, type: 2}
     - target: {fileID: 3487271328284368394, guid: 3672ff2704fd23b4fb8e37038771f36d, type: 3}
       propertyPath: m_RootOrder
       value: 11
@@ -1154,26 +1146,6 @@ PrefabInstance:
     - target: {fileID: 3799011573757095425, guid: 3672ff2704fd23b4fb8e37038771f36d, type: 3}
       propertyPath: m_Name
       value: Fire
-      objectReference: {fileID: 0}
-    - target: {fileID: 3799011573757095425, guid: 3672ff2704fd23b4fb8e37038771f36d, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4899239290309147189, guid: 3672ff2704fd23b4fb8e37038771f36d, type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6019038875358741888, guid: 3672ff2704fd23b4fb8e37038771f36d, type: 3}
-      propertyPath: m_Intensity
-      value: 350.14087
-      objectReference: {fileID: 0}
-    - target: {fileID: 6019038875358741888, guid: 3672ff2704fd23b4fb8e37038771f36d, type: 3}
-      propertyPath: m_ShadowRadius
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 6668279421364624419, guid: 3672ff2704fd23b4fb8e37038771f36d, type: 3}
-      propertyPath: m_Enabled
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1948,7 +1920,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1458433290
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1984,7 +1956,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 4.07
+  m_Intensity: 0.25
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -2027,7 +1999,7 @@ Light:
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
-  m_ColorTemperature: 1500
+  m_ColorTemperature: 11515
   m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0

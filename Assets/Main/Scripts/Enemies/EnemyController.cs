@@ -26,7 +26,7 @@ namespace Main.Scripts.Enemies
         Stages = (SimulationStages)8,
         Modes = (SimulationModes)8
     )]
-    public class EnemyController : GameLoopEntity,
+    public class EnemyController : GameLoopEntityNetworked,
         InterfacesHolder,
         EnemyLogicDelegate.DataHolder,
         EnemyLogicDelegate.EventListener,
@@ -90,6 +90,7 @@ namespace Main.Scripts.Enemies
             effectsBank = GlobalResources.Instance.ThrowWhenNull().EffectsBank;
             
             cachedComponents[typeof(EnemiesHelper)] = EnemiesHelper.Instance.ThrowWhenNull();
+            cachedComponents[typeof(NavigationManager)] = levelContext.NavigationManager;
             cachedComponents[typeof(EffectsBank)] = effectsBank;
 
             enemyLogicDelegate.Spawned(Object);
@@ -100,6 +101,7 @@ namespace Main.Scripts.Enemies
             base.Despawned(runner, hasState);
             effectsBank = default!;
             cachedComponents.Remove(typeof(EnemiesHelper));
+            cachedComponents.Remove(typeof(NavigationManager));
             cachedComponents.Remove(typeof(EffectsBank));
             OnDeadEvent.RemoveAllListeners();
 

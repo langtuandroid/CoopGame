@@ -26,7 +26,7 @@ namespace Main.Scripts.Player
 {
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(Animator))]
-    public class PlayerController : GameLoopEntity,
+    public class PlayerController : GameLoopEntityNetworked,
         IAfterSpawned,
         InterfacesHolder,
         PlayerLogicDelegate.DataHolder,

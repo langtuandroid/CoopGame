@@ -10,7 +10,7 @@ using Main.Scripts.Utils;
 
 namespace Main.Scripts.Levels
 {
-    public abstract class LevelControllerBase : GameLoopEntity, IAfterSpawned
+    public abstract class LevelControllerBase : GameLoopEntityNetworked, IAfterSpawned
     {
         protected RoomManager roomManager = default!;
         protected PlayerDataManager playerDataManager = default!;

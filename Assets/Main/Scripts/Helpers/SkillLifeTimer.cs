@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Main.Scripts.Helpers
 {
-    public class SkillLifeTimer : GameLoopEntity
+    public class SkillLifeTimer : GameLoopEntityNetworked
     {
         [SerializeField]
         private float lifeDurationSec;

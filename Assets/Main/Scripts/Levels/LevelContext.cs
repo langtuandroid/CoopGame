@@ -18,11 +18,14 @@ namespace Main.Scripts.Levels
         [SerializeField]
         private GameLoopManager gameLoopManager = default!;
         [SerializeField]
+        private NavigationManager navigationManager = default!;
+        [SerializeField]
         private HUDScreen hudScreen = default!;
 
         public PlayersHolder PlayersHolder => playersHolder;
         public EnemiesManager EnemiesManager => enemiesManager;
         public GameLoopManager GameLoopManager => gameLoopManager;
+        public NavigationManager NavigationManager => navigationManager;
         public HUDScreen HudScreen => hudScreen;
 
         private void Awake()

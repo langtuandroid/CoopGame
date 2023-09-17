@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using Main.Scripts.Enemies;
 using Main.Scripts.Modifiers;
 using Main.Scripts.Player.Data;
 using Main.Scripts.UI.Windows.DebugPanel.Data;
+using UnityEngine;
 
 namespace Main.Scripts.UI.Windows.DebugPanel
 {
@@ -10,16 +12,19 @@ namespace Main.Scripts.UI.Windows.DebugPanel
         private DebugContract.DebugView view;
         private ModifierIdsBank modifiersBank;
         private PlayerDataManager playerDataManager;
+        private EnemiesManager enemiesManager;
 
         public DebugPresenterImpl(
             DebugContract.DebugView view,
             ModifierIdsBank modifiersBank,
-            PlayerDataManager playerDataManager
+            PlayerDataManager playerDataManager,
+            EnemiesManager enemiesManager
         )
         {
             this.view = view;
             this.modifiersBank = modifiersBank;
             this.playerDataManager = playerDataManager;
+            this.enemiesManager = enemiesManager;
         }
 
         public void OnOpen()
@@ -37,6 +42,14 @@ namespace Main.Scripts.UI.Windows.DebugPanel
         public void OnItemChangeValue(int itemIndex, bool value)
         {
             playerDataManager.SetModifierEnable(itemIndex, value);
+        }
+
+        public void OnSpawnEnemiesClicked(int count)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                enemiesManager.SpawnEnemy(Vector3.zero);
+            }
         }
 
         private void SelectTab(DebugTab tab)

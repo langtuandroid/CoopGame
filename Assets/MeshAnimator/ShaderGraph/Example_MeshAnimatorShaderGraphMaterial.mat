@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 1
+  version: 7
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -24,10 +24,10 @@ Material:
   m_Shader: {fileID: -6465566751694194690, guid: c70608bcf7beb4b41b1b1940e5caf0d9, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
+  m_ValidKeywords: []
+  m_InvalidKeywords:
   - _DISABLE_DECALS
   - _DISABLE_SSR_TRANSPARENT
-  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -123,6 +123,7 @@ Material:
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _OpaqueCullMode: 2
+    - _QueueControl: 1
     - _QueueOffset: 0
     - _RayTracing: 0
     - _ReceiveShadows: 1

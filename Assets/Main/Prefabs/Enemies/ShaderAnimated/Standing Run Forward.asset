@@ -62,7 +62,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   animationName: Standing Run Forward
   playbackSpeed: 1
-  wrapMode: 1
+  wrapMode: 2
   events: []
   length: 0.73333335
   frameSkip: 1

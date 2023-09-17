@@ -248,7 +248,7 @@ namespace Main.Scripts.Player.InputSystem
 
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_SPAWN_ENEMY))
                 {
-                    for (var i = 0; i < 2; i++)
+                    for (var i = 0; i < 1; i++)
                     {
                         enemiesManager.SpawnEnemy(transform.position);
                     }

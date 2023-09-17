@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Main.Scripts.Core.Mvp;
 using Main.Scripts.Core.Resources;
+using Main.Scripts.Enemies;
+using Main.Scripts.Levels;
 using Main.Scripts.Player.Data;
 using Main.Scripts.UI.Windows.DebugPanel.Data;
 using Main.Scripts.Utils;
@@ -20,18 +22,21 @@ namespace Main.Scripts.UI.Windows.DebugPanel
 
         private UIDocument doc = default!;
         private ListView modifiersListView = default!;
+        
+        private Button spawnEnemiesBtn = default!;
+        private IntegerField spawnEnemiesCountField = default!; 
 
         private List<ModifierItemData> itemsDataList = new();
 
         private void Awake()
         {
-            
             doc = GetComponent<UIDocument>();
             doc.SetVisibility(false);
 
             var root = doc.rootVisualElement;
             modifiersListView = root.Q<ListView>("ModifiersList");
-
+            spawnEnemiesBtn = root.Q<Button>("SpawnEnemiesBtn");
+            spawnEnemiesCountField = root.Q<IntegerField>("SpawnEnemiesCount");
 
             modifiersListView.makeItem = () =>
             {
@@ -50,6 +55,11 @@ namespace Main.Scripts.UI.Windows.DebugPanel
             };
 
             modifiersListView.itemsSource = itemsDataList;
+
+            spawnEnemiesBtn.clicked += () =>
+            {
+                presenter?.OnSpawnEnemiesClicked(spawnEnemiesCountField.value);
+            };
         }
 
         public void Open()
@@ -57,7 +67,8 @@ namespace Main.Scripts.UI.Windows.DebugPanel
             presenter ??= new DebugPresenterImpl(
                 view: this,
                 modifiersBank: GlobalResources.Instance.ThrowWhenNull().ModifierIdsBank,
-                playerDataManager: PlayerDataManager.Instance.ThrowWhenNull()
+                playerDataManager: PlayerDataManager.Instance.ThrowWhenNull(),
+                enemiesManager: LevelContext.Instance.ThrowWhenNull().EnemiesManager
             );
             doc.SetVisibility(true);
             presenter?.OnOpen();

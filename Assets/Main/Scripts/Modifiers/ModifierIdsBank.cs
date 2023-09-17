@@ -22,14 +22,16 @@ namespace Main.Scripts.Modifiers
             for (var i = 0; i < modifierIds.Count; i++)
             {
                 var modifierId = modifierIds[i];
-                if (modifierTokens.ContainsKey(modifierId.name))
+                modifierId.Init();
+                
+                if (modifierTokens.ContainsKey(modifierId.Id))
                 {
                     throw new ArgumentException(
-                        $"ModifierId {modifierId.name} is already exist");
+                        $"ModifierId {modifierId.Id} is already exist");
                 }
 
                 modifiersMap.Add(i, modifierId);
-                modifierTokens.Add(modifierId.name, i);
+                modifierTokens.Add(modifierId.Id, i);
             }
         }
 
@@ -43,14 +45,15 @@ namespace Main.Scripts.Modifiers
             {
                 if (modifierIdObject is ModifierId modifierId)
                 {
-                    if (ids.Contains(modifierId.name))
+                    modifierId.Init();
+                    if (ids.Contains(modifierId.Id))
                     {
                         throw new ArgumentException(
-                            $"{modifierId.name}: ModifierId {modifierId.name} is already exist");
+                            $"{modifierId.Id}: ModifierId {modifierId.Id} is already exist");
                     }
 
                     modifierIds.Add(modifierId);
-                    ids.Add(modifierId.name);
+                    ids.Add(modifierId.Id);
                 }
             }
 
@@ -78,13 +81,13 @@ namespace Main.Scripts.Modifiers
 
         public int GetModifierIdToken(ModifierId modifierId)
         {
-            if (!modifierTokens.ContainsKey(modifierId.name))
+            if (!modifierTokens.ContainsKey(modifierId.Id))
             {
                 throw new ArgumentException(
-                    $"ModifierId {modifierId.name} is not registered in ModifierIdsBank. Check ModifierId file path.");
+                    $"ModifierId {modifierId.Id} is not registered in ModifierIdsBank. Check ModifierId file path.");
             }
 
-            return modifierTokens[modifierId.name];
+            return modifierTokens[modifierId.Id];
         }
 
         public int GetModifierIdToken(string modifierId)

@@ -277,6 +277,7 @@ namespace Main.Scripts.Player.Data
         {
             LocalPlayerData = playerData;
             SaveLoadUtils.Save(resources, LocalUserId.Id.Value, playerData)
+                .ObserveOnMainThread()
                 .DoOnCompleted(() => {
                     RPC_OnPlayerDataChanged(LocalUserId, LocalPlayerData);
                 })

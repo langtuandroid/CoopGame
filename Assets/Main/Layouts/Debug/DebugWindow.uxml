@@ -1,5 +1,12 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:VisualElement name="ModifiersList" style="width: 40%; height: 40%; background-color: rgba(0, 0, 0, 0.45); border-bottom-right-radius: 16px;">
-        <ui:ListView focusable="true" name="ModifiersList" />
+    <ui:VisualElement style="background-color: rgba(0, 0, 0, 0.45); width: 40%; height: 40%; padding-left: 16px; padding-right: 16px; padding-top: 16px; padding-bottom: 16px;">
+        <ui:VisualElement name="VisualElement" style="background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: flex-start; flex-grow: 0;">
+            <ui:Label tabindex="-1" text="Количество мобов" display-tooltip-when-elided="true" style="align-self: stretch; font-size: 18px; -unity-text-align: middle-left; color: rgb(255, 255, 255); -unity-font-style: bold; flex-grow: 1;" />
+            <ui:IntegerField value="50" name="SpawnEnemiesCount" style="width: 50px; margin-left: 4px; margin-right: 4px;" />
+            <ui:Button text="Создать" display-tooltip-when-elided="true" name="SpawnEnemiesBtn" />
+        </ui:VisualElement>
+        <ui:VisualElement name="ModifiersList" style="border-bottom-right-radius: 16px; flex-grow: 1; margin-top: 8px;">
+            <ui:ListView focusable="true" name="ModifiersList" />
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

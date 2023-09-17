@@ -46,7 +46,7 @@ namespace Main.Scripts.Player.Data
             for (var token = 0; token < modifiersCount; token++)
             {
                 var modifierJ = new JObject();
-                modifierJ.Add(KEY_ID, bank.GetModifierId(token).name);
+                modifierJ.Add(KEY_ID, bank.GetModifierId(token).Id);
                 modifierJ.Add(KEY_VALUE, (bool) Values[token]);
                 jArray.Add(modifierJ);
             }

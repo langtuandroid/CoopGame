@@ -347,6 +347,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SettingsManager
       objectReference: {fileID: 0}
+    - target: {fileID: 4539526613396828170, guid: c580432ae37db81418482287ea687f37, type: 3}
+      propertyPath: lockFPS
+      value: 300
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

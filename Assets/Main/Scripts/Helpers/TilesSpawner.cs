@@ -45,7 +45,7 @@ namespace Main.Scripts.Helpers
                     Instantiate(
                         original: decorationPrefabs[Random.Range(0, decorationPrefabs.Count)],
                         position: new Vector3(leftDownX + Random.Range(0f, width), 0f, leftDownZ + Random.Range(0f, height)),
-                        rotation: Quaternion.Euler(0f, Random.Range(0f, 360f), 0f),
+                        rotation: Quaternion.Euler(0f, Random.Range(0, 4) * 90f + 45f, 0f),
                         parent: navigationGeometryParent
                     );
                 }

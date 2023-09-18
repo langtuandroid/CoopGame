@@ -14,7 +14,6 @@ using Main.Scripts.Gui.HealthChangeDisplay;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.Skills.PassiveSkills;
 using Pathfinding;
-using Pathfinding.RVO;
 using UnityEngine;
 
 namespace Main.Scripts.Enemies
@@ -190,6 +189,14 @@ namespace Main.Scripts.Enemies
         public void Render()
         {
             ref var enemyData = ref dataHolder.GetEnemyData();
+
+            switch (currentAnimationState)
+            {
+                case EnemyAnimationState.Walking:
+                    var velocity = rigidbody3D.VelocityInterpolated.magnitude / config.DefaultSpeed;
+                    meshAnimator.speed = velocity;
+                    break;
+            }
 
             healthBar.SetMaxHealth((uint)enemyData.maxHealth);
             healthBar.SetHealth((uint)enemyData.health);
@@ -594,12 +601,6 @@ namespace Main.Scripts.Enemies
 
         private void UpdateAnimationState(ref EnemyData enemyData)
         {
-            if (objectContext.IsProxy || !objectContext.Runner.IsForward)
-            {
-                return;
-            }
-
-
             var newAnimationState = GetActualAnimationState(ref enemyData);
 
             if (lastAnimationTriggerId < enemyData.animationTriggerId)
@@ -607,7 +608,9 @@ namespace Main.Scripts.Enemies
                 switch (newAnimationState)
                 {
                     case EnemyAnimationState.Attacking:
+                        Debug.Log("Start Attacking animation");
                         meshAnimator.Play(2);
+                        meshAnimator.speed = 1f;
                         break;
                 }
             }
@@ -619,10 +622,13 @@ namespace Main.Scripts.Enemies
                 switch (newAnimationState)
                 {
                     case EnemyAnimationState.Walking:
+                        Debug.Log("Start Walking animation");
                         meshAnimator.Play(1);
                         break;
                     case EnemyAnimationState.Idle:
+                        Debug.Log("Start Idle animation");
                         meshAnimator.Play(0);
+                        meshAnimator.speed = 1f;
                         break;
                 }
             }
@@ -637,12 +643,7 @@ namespace Main.Scripts.Enemies
                 return EnemyAnimationState.Attacking;
             }
 
-            if (CanMoveByController(ref enemyData) && richAI.velocity.magnitude > 0.01f)
-            {
-                return EnemyAnimationState.Walking;
-            }
-
-            return EnemyAnimationState.Idle;
+            return CanMoveByController(ref enemyData) ? EnemyAnimationState.Walking : EnemyAnimationState.Idle;
         }
 
         private bool CanMoveByController(ref EnemyData enemyData)

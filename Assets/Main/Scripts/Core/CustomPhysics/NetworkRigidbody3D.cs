@@ -46,13 +46,15 @@ namespace Main.Scripts.Core.CustomPhysics
         private Tick startPhysicsSimulationTick;
         private int simulationTicksCount;
 
+        public Vector3 VelocityInterpolated { get; private set; }
+
         private GameLoopPhase[] gameLoopPhases =
         {
             GameLoopPhase.SyncTransformBeforeAllPhase,
             GameLoopPhase.SyncTransformAfterAllPhase
         };
 
-        protected override Vector3 DefaultTeleportInterpolationVelocity => rigidbody.velocity;
+        protected override Vector3 DefaultTeleportInterpolationVelocity => VelocityInterpolated;
 
         protected override void Awake()
         {
@@ -68,6 +70,14 @@ namespace Main.Scripts.Core.CustomPhysics
         public void AfterSpawned()
         {
             rigidbody.isKinematic = !IsSimulatePhysicsAlways();
+
+            VelocityInterpolated = Vector3.zero;
+            
+            localSimulationIndex = networkedSimulationIndex;
+            startPhysicsSimulationTick = 0;
+            simulationTicksCount = 0;
+
+            positionBeforeSimulation = Vector3.zero;
             
             lastStateAuthorityReceivedTick = default;
             lastNetworkedPosition = transform.position;
@@ -90,19 +100,31 @@ namespace Main.Scripts.Core.CustomPhysics
         {
             base.Despawned(runner, hasState);
             gameLoopManager.RemoveListener(this);
+            gameLoopManager = default!;
+            playersHolder = default!;
         }
 
         public override void Render()
         {
             base.Render();
-            if (HasStateAuthority) return;
+
+            if (HasStateAuthority)
+            {
+                VelocityInterpolated = (InterpolationTarget.position - interpolationTargetPosition) / Time.deltaTime;
+                interpolationTargetPosition = InterpolationTarget.position;
+                return;
+            }
 
             if (InterpolationTarget != null)
             {
                 var targetInterpolationDelta = transform.position - interpolationTargetPosition;
                 interpolator.ApplyNewInterpolationDelta(ref targetInterpolationDelta);
 
+                var lastInterpolationTargetPosition = interpolationTargetPosition;
                 interpolationTargetPosition = transform.position - targetInterpolationDelta;
+                
+                VelocityInterpolated = (interpolationTargetPosition - lastInterpolationTargetPosition) / Time.deltaTime;
+                
                 InterpolationTarget.position = interpolationTargetPosition;
             }
         }

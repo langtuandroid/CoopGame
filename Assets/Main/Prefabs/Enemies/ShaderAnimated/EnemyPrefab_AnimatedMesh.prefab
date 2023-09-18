@@ -32,7 +32,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 16
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &5474900078959392815
 MeshFilter:
@@ -57,7 +57,7 @@ MonoBehaviour:
   baseMesh: {fileID: 4300000, guid: c87f931c019431d4c91e00fc95b2c781, type: 2}
   speed: 1
   updateWhenOffscreen: 0
-  playAutomatically: 1
+  playAutomatically: 0
   resetOnEnable: 1
   eventReciever: {fileID: 0}
   FPS: 30

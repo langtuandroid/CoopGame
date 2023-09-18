@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4fb25e07cada4f41b403b62b07856cca, type: 3}
   m_Name: BonkForceAction
   m_EditorClassIdentifier: 
-  forceValue: 2
+  forceValue: 20

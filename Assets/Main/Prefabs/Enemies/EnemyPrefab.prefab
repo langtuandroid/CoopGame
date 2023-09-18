@@ -290,7 +290,7 @@ MonoBehaviour:
   _interpolationDataSource: 0
   enemyConfig:
     DefaultMaxHealth: 100
-    DefaultSpeed: 10
+    DefaultSpeed: 5
     AttackDistance: 3
     HealthBar: {fileID: 4955950532734111756}
     ActiveSkillsConfig:
@@ -569,10 +569,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3053674644394487279}
     m_Modifications:
-    - target: {fileID: 4586116528163590380, guid: df41795b25f305540964508c049d4758, type: 3}
-      propertyPath: m_CastShadows
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 5557582918429997248, guid: df41795b25f305540964508c049d4758, type: 3}
       propertyPath: m_Name
       value: EnemyPrefab_AnimatedMesh

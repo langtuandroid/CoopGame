@@ -13,6 +13,7 @@ namespace Main.Scripts.Enemies
         private HashSet<Object> navObjects = new();
         private Dictionary<Object, int> currentSimulatingObjects = new();
         private Queue<NavObjectData> queue = new();
+        private HashSet<Object> shouldDeleteObjects = new();
 
         private int currentTick;
 
@@ -41,7 +42,11 @@ namespace Main.Scripts.Enemies
             while (currentSimulatingObjects.Count < simulatingObjectsCountByTick && queue.Count > 0)
             {
                 var navObjectData = queue.Dequeue();
-                if (navObjects.Contains(navObjectData.NavObject))
+                if (shouldDeleteObjects.Contains(navObjectData.NavObject))
+                {
+                    shouldDeleteObjects.Remove(navObjectData.NavObject);
+                }
+                else if (navObjects.Contains(navObjectData.NavObject))
                 {
                     currentSimulatingObjects.Add(navObjectData.NavObject, currentTick - navObjectData.Tick);
                 }
@@ -60,7 +65,14 @@ namespace Main.Scripts.Enemies
                 NavObject = navObject,
                 Tick = currentTick
             };
-            queue.Enqueue(navObjectData);
+            if (shouldDeleteObjects.Contains(navObject))
+            {
+                shouldDeleteObjects.Remove(navObject);
+            }
+            else
+            {
+                queue.Enqueue(navObjectData);
+            }
             navObjects.Add(navObject);
         }
 
@@ -69,6 +81,14 @@ namespace Main.Scripts.Enemies
             if (navObjects.Contains(navObject))
             {
                 navObjects.Remove(navObject);
+                if (currentSimulatingObjects.ContainsKey(navObject))
+                {
+                    currentSimulatingObjects.Remove(navObject);
+                }
+                else
+                {
+                    shouldDeleteObjects.Add(navObject);
+                }
             }
         }
         

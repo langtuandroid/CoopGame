@@ -22,7 +22,6 @@ namespace Main.Scripts.Modifiers
             for (var i = 0; i < modifierIds.Count; i++)
             {
                 var modifierId = modifierIds[i];
-                modifierId.Init();
                 
                 if (modifierTokens.ContainsKey(modifierId.Id))
                 {
@@ -45,7 +44,7 @@ namespace Main.Scripts.Modifiers
             {
                 if (modifierIdObject is ModifierId modifierId)
                 {
-                    modifierId.Init();
+                    modifierId.OnEnable();
                     if (ids.Contains(modifierId.Id))
                     {
                         throw new ArgumentException(

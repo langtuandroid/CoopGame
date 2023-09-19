@@ -143,6 +143,14 @@ namespace Main.Scripts.Player
             playerLogicDelegate.Respawn();
         }
 
+        public void OnDisable()
+        {
+            if (HasStateAuthority && hudScreen != null)
+            {
+                hudScreen.Close();
+            }
+        }
+
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
             base.Despawned(runner, hasState);
@@ -153,11 +161,6 @@ namespace Main.Scripts.Player
             playerLogicDelegate.Despawned(runner, hasState);
             
             playersHolder.Remove(Object.StateAuthority);
-
-            if (HasStateAuthority && hudScreen != null)
-            {
-                hudScreen.Close();
-            }
         }
 
         public override void Render()

@@ -8,7 +8,7 @@ namespace Main.Scripts.Modifiers
         private string id = "";
         public string Id => id;
 
-        public void Init()
+        public void OnEnable()
         {
             id = name;
         }

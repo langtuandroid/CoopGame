@@ -43,7 +43,6 @@ namespace Main.Scripts.UI.Windows.HUD.HotBar.HotBarIcons
 
         public void SetVisibility(bool isVisible)
         {
-            //todo ругается NPE при ручной остановке игры
             doc.rootVisualElement.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 

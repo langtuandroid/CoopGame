@@ -14,13 +14,14 @@ namespace Main.Scripts.Player
         // camera target
         Transform? _target;
 
-        // current camera distance
-        private float distance = 15f;
-        private float pitch = -40;
-        private float cameraStretch = 0.1f;
-
         [SerializeField]
         Transform cam = default!;
+        [SerializeField]
+        private float distance = 15f;
+        [SerializeField]
+        private float pitch = -40;
+        [SerializeField]
+        private float cameraStretch = 0.1f;
 
         [SerializeField]
         float runningSmoothTime = 0.95f;

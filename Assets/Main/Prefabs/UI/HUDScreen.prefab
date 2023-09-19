@@ -45,6 +45,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dbb3e7c612e84dc29df10892410c0c46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  controlsTextList:
+  - ControlKeyName: WASD
+    ControlKeyDescription: Move
+  - ControlKeyName: LMB
+    ControlKeyDescription: Primary skill
+  - ControlKeyName: 1
+    ControlKeyDescription: First skill
+  - ControlKeyName: 2
+    ControlKeyDescription: Second skill
+  - ControlKeyName: 3
+    ControlKeyDescription: Third skill
+  - ControlKeyName: LShift
+    ControlKeyDescription: Dash
+  - ControlKeyName: K
+    ControlKeyDescription: Skill tree
+  - ControlKeyName: H
+    ControlKeyDescription: Customization
+  - ControlKeyName: T
+    ControlKeyDescription: Spawn enemies
+  - ControlKeyName: P
+    ControlKeyDescription: Skill modifiers
+  - ControlKeyName: ESC
+    ControlKeyDescription: Close window
+  controlsTextLayout: {fileID: 9197481963319205126, guid: f7ff5acde68943a4fb85bbd2ff3c202c, type: 3}
 --- !u!114 &1555442082398054901
 MonoBehaviour:
   m_ObjectHideFlags: 0

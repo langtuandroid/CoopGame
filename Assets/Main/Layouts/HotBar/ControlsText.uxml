@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="ControlsText" style="flex-direction: row; align-self: flex-end; background-color: rgba(0, 0, 0, 0.38); padding-left: 4px; padding-right: 4px; color: rgb(198, 198, 198);">
+        <ui:Label tabindex="-1" text="Name:" display-tooltip-when-elided="true" name="ControlsTextName" style="margin-right: 12px; width: 60px; -unity-text-align: upper-right;" />
+        <ui:Label tabindex="-1" text="Description" display-tooltip-when-elided="true" name="ControlsTextDescriptions" style="width: 120px; -unity-text-align: upper-left;" />
+    </ui:VisualElement>
+</ui:UXML>

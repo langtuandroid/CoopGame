@@ -1,12 +1,15 @@
-﻿using Main.Scripts.Core.Mvp;
+﻿using System.Collections.Generic;
+using Main.Scripts.Core.Mvp;
 using Main.Scripts.Core.Resources;
 using Main.Scripts.Levels;
 using Main.Scripts.Room;
 using Main.Scripts.Skills;
 using Main.Scripts.Skills.ActiveSkills;
+using Main.Scripts.UI.Windows.HUD.ControlsTextWindow;
 using Main.Scripts.UI.Windows.HUD.HotBar;
 using Main.Scripts.UI.Windows.HUD.HotBar.HotBarIcons;
 using Main.Scripts.Utils;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Main.Scripts.UI.Windows.HUD
@@ -14,11 +17,18 @@ namespace Main.Scripts.UI.Windows.HUD
     public class HUDScreen : MvpMonoBehavior<HUDContract.HotBarPresenter>, HUDContract.HotBarView, UIScreen
     {
         private HotBarView hotBarView = default!;
+        private ControlsTextView controlsTextView = default!;
         protected override HUDContract.HotBarPresenter? presenter { get; set; }
+        
+        [SerializeField]
+        private List<ControlsTextData> controlsTextList = new();
+        [SerializeField]
+        private VisualTreeAsset controlsTextLayout = default!;
 
         private void Awake()
         {
             hotBarView = new HotBarView(GetComponent<UIDocument>());
+            controlsTextView = new ControlsTextView(GetComponent<UIDocument>(), controlsTextLayout);
             SetVisibility(false);
         }
 
@@ -52,6 +62,7 @@ namespace Main.Scripts.UI.Windows.HUD
         public void Bind(ref HotBarData hotBarData)
         {
             hotBarView.Bind(ref hotBarData);
+            controlsTextView.Bind(controlsTextList);
         }
 
         public void SetVisibility(bool isVisible)

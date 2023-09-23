@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using Main.Scripts.Skills.Common.Component.Config.Action;
+using Main.Scripts.Skills.Common.Component.Config.ActionsPack;
 using Main.Scripts.Skills.Common.Component.Config.FindTargets;
 using Main.Scripts.Skills.Common.Component.Config.Follow;
 using Main.Scripts.Skills.Common.Component.Config.Trigger;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Main.Scripts.Skills.Common.Component.Config
 {
@@ -18,14 +20,11 @@ namespace Main.Scripts.Skills.Common.Component.Config
         private SkillDirectionType followDirectionType;
         [SerializeField]
         private SkillFollowStrategyBase followStrategy = default!;
+        [FormerlySerializedAs("skillActionsPacks")]
         [SerializeField]
-        private SkillActionTriggerBase actionTrigger = default!;
-        [SerializeField]
-        private List<SkillFindTargetsStrategyBase> findTargetsStrategies = new();
+        private List<SkillActionsPack> actionsPacks = new();
         [SerializeField, Tooltip("Enable 'Destroy when state authority leaves'")]
         private bool isAffectTargetsOnlyOneTime;
-        [SerializeField]
-        private List<SkillActionBase> actions = default!;
         [SerializeField]
         [Min(0f)]
         private float durationSec;
@@ -43,10 +42,8 @@ namespace Main.Scripts.Skills.Common.Component.Config
         public SkillSpawnDirectionType SpawnDirectionType => spawnDirectionType;
         public SkillDirectionType FollowDirectionType => followDirectionType;
         public SkillFollowStrategyBase FollowStrategy => followStrategy;
-        public SkillActionTriggerBase ActionTrigger => actionTrigger;
-        public List<SkillFindTargetsStrategyBase> FindTargetsStrategies => findTargetsStrategies;
+        public List<SkillActionsPack> ActionsPacks => actionsPacks;
         public bool IsAffectTargetsOnlyOneTime => isAffectTargetsOnlyOneTime;
-        public List<SkillActionBase> Actions => actions;
         public float DurationSec => durationSec;
         public SkillInterruptStrategy InterruptStrategy => interruptStrategy;
         public float DontDestroyAfterFinishDurationSec => dontDestroyAfterFinishDurationSec;

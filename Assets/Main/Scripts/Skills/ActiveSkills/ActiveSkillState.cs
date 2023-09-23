@@ -3,6 +3,7 @@
     public enum ActiveSkillState
     {
         NotAttacking,
+        Casting,
         Attacking,
         WaitingForPoint,
         WaitingForTarget,

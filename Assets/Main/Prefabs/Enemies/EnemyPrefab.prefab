@@ -173,7 +173,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffeafd87202b4ff99e096d54820f675e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
   painterConfig: {fileID: 11400000, guid: b69cd606437d2ff45b933720b3f30bb6, type: 2}
 --- !u!1 &5623649819187700682
 GameObject:
@@ -436,7 +435,6 @@ MonoBehaviour:
   - {fileID: 4739822872436178127}
   - {fileID: 3734176867321401527}
   - {fileID: 4376424458798373671}
-  - {fileID: 1150838193675917073}
   SimulationBehaviours: []
 --- !u!135 &5598048174663406685
 SphereCollider:

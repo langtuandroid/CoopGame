@@ -54,7 +54,7 @@ namespace Main.Scripts.Player
         private Rigidbody rigidbody;
         private RVOController rvoController;
         private Collider collider;
-        private NetworkMecanimAnimator networkAnimator;
+        private Animator animator;
 
         private ActiveSkillsManager activeSkillsManager;
         private PassiveSkillsManager passiveSkillsManager;
@@ -95,7 +95,7 @@ namespace Main.Scripts.Player
             rigidbody = dataHolder.GetCachedComponent<Rigidbody>();
             rvoController = dataHolder.GetCachedComponent<RVOController>();
             collider = dataHolder.GetCachedComponent<Collider>();
-            networkAnimator = dataHolder.GetCachedComponent<NetworkMecanimAnimator>();
+            animator = dataHolder.GetCachedComponent<Animator>();
 
             characterCustomization = dataHolder.GetCachedComponent<CharacterCustomizationSkinned>();
 
@@ -140,6 +140,8 @@ namespace Main.Scripts.Player
             effectsManager.Spawned(objectContext);
             activeSkillsManager.Spawned(objectContext);
             healthChangeDisplayManager?.Spawned(objectContext);
+
+            lastAnimationTriggerId = 0;
 
             ResetState();
 
@@ -576,53 +578,29 @@ namespace Main.Scripts.Player
         {
             ref var data = ref dataHolder.GetPlayerLogicData();
 
-            if (state == ActiveSkillState.Attacking)
+            //todo распилить анимацию каста фаербола на каст и моментальную атаку 
+            if (state is ActiveSkillState.Casting && type != ActiveSkillType.DASH)
             {
+                data.lastAnimationState = PlayerAnimationState.PrimaryCasting;
                 data.animationTriggerId++;
             }
         }
 
         private void UpdateAnimationState(ref PlayerLogicData data)
         {
-            if (objectContext.IsProxy || !objectContext.Runner.IsForward)
-            {
-                return;
-            }
-
-            var newAnimationState = GetActualAnimationState(ref data);
-
             if (lastAnimationTriggerId < data.animationTriggerId)
             {
-                switch (newAnimationState)
+                switch (data.lastAnimationState)
                 {
-                    case PlayerAnimationState.Attacking:
-                        networkAnimator.SetTrigger(ATTACK_ANIM, true);
+                    case PlayerAnimationState.PrimaryCasting:
+                        animator.SetTrigger(ATTACK_ANIM);
                         break;
                 }
             }
 
             lastAnimationTriggerId = data.animationTriggerId;
-            currentAnimationState = newAnimationState;
 
-            if (currentAnimationState == PlayerAnimationState.None)
-            {
-                AnimateMoving(ref data);
-            }
-        }
-
-        private PlayerAnimationState GetActualAnimationState(ref PlayerLogicData data)
-        {
-            if (data.state != PlayerState.Active)
-            {
-                return PlayerAnimationState.None;
-            }
-
-            if (activeSkillsManager.GetCurrentSkillState() == ActiveSkillState.Attacking)
-            {
-                return PlayerAnimationState.Attacking;
-            }
-
-            return PlayerAnimationState.None;
+            AnimateMoving(ref data);
         }
 
         public void OnUpdatedStatModifiers(StatType statType)
@@ -669,8 +647,8 @@ namespace Main.Scripts.Player
                 moveX = (float)Math.Sin(animationAngle);
             }
 
-            networkAnimator.Animator.SetFloat(MOVE_X_ANIM, moveX);
-            networkAnimator.Animator.SetFloat(MOVE_Z_ANIM, moveZ);
+            animator.SetFloat(MOVE_X_ANIM, moveX);
+            animator.SetFloat(MOVE_Z_ANIM, moveZ);
         }
 
         public float GetMaxHealth()

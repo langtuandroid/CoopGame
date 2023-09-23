@@ -28,7 +28,7 @@ namespace Main.Scripts.Utils
         {
             if (instance)
             {
-                Destroy(this);
+                Destroy(gameObject);
                 return;
             }
 

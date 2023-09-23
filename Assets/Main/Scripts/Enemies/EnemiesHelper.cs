@@ -15,18 +15,22 @@ namespace Main.Scripts.Enemies
         private Vector3[]? playerPositions;
         private Tick cachedTick;
 
+        private PlayersHolderListener playersHolderListener = default!;
+
         private void Awake()
         {
             Assert.Check(Instance == null);
             Instance = this;
             
-            playersHolder.OnChangedEvent.AddListener(OnPlayerHolderChanged);
+            playersHolderListener = new PlayersHolderListener(this);
+            
+            playersHolder.AddListener(playersHolderListener);
         }
 
         private void OnDestroy()
         {
             Instance = null;
-            playersHolder.OnChangedEvent.RemoveListener(OnPlayerHolderChanged);
+            playersHolder.RemoveListener(playersHolderListener);
         }
 
         public PlayerRef? FindPlayerTarget(NetworkRunner runner, Vector3 fromPosition, out Vector3 targetPosition)
@@ -58,9 +62,24 @@ namespace Main.Scripts.Enemies
             return targetRef;
         }
 
-        private void OnPlayerHolderChanged()
+        private class PlayersHolderListener : PlayersHolder.Listener
         {
-            playerRefs = null;
+            private EnemiesHelper enemiesHelper;
+
+            public PlayersHolderListener(EnemiesHelper enemiesHelper)
+            {
+                this.enemiesHelper = enemiesHelper;
+            }
+
+            public void OnAdded(PlayerRef playerRef)
+            {
+                enemiesHelper.playerRefs = null;
+            }
+
+            public void OnRemoved(PlayerRef playerRef)
+            {
+                enemiesHelper.playerRefs = null;
+            }
         }
     }
 }

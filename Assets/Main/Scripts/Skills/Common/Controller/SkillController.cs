@@ -180,7 +180,7 @@ namespace Main.Scripts.Skills.Common.Controller
             executionTimer = TickTimer.CreateFromSeconds(Runner, skillControllerConfig.ExecutionDurationSec);
             castTimer = TickTimer.CreateFromSeconds(Runner, skillControllerConfig.CastDurationSec);
 
-            listener?.OnSkillExecuted(this);
+            listener?.OnSkillStartCasting(this);
 
             AddSpawnActions(skillControllerConfig.RunOnStartSkillConfigs);
 
@@ -248,6 +248,8 @@ namespace Main.Scripts.Skills.Common.Controller
                 castTimer = default;
                 cooldownTimer = TickTimer.CreateFromSeconds(Runner, skillControllerConfig.CooldownSec);
                 AddSpawnActions(skillControllerConfig.RunAfterCastSkillConfigs);
+                
+                listener?.OnSkillFinishedCasting(this);
             }
         }
 
@@ -431,7 +433,8 @@ namespace Main.Scripts.Skills.Common.Controller
             public void OnSkillCooldownChanged(SkillController skill);
             public void OnSkillWaitingForPointTarget(SkillController skill);
             public void OnSkillWaitingForUnitTarget(SkillController skill);
-            public void OnSkillExecuted(SkillController skill);
+            public void OnSkillStartCasting(SkillController skill);
+            public void OnSkillFinishedCasting(SkillController skill);
             public void OnSkillFinished(SkillController skill);
             public void OnSkillCanceled(SkillController skill);
         }

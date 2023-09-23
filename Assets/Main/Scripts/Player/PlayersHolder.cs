@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Fusion;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Main.Scripts.Player
 {
@@ -11,7 +10,7 @@ namespace Main.Scripts.Player
     {
         private Dictionary<PlayerRef, PlayerController> playerControllers = new();
 
-        public UnityEvent OnChangedEvent = default!;
+        private List<Listener> listeners = new();
 
         public void Add(PlayerRef playerRef, PlayerController playerController)
         {
@@ -21,7 +20,10 @@ namespace Main.Scripts.Player
             }
 
             playerControllers.Add(playerRef, playerController);
-            OnChangedEvent.Invoke();
+            foreach (var listener in listeners)
+            {
+                listener.OnAdded(playerRef);
+            }
         }
 
         public bool Contains(PlayerRef playerRef)
@@ -37,13 +39,32 @@ namespace Main.Scripts.Player
         public void Remove(PlayerRef playerRef)
         {
             playerControllers.Remove(playerRef);
-            OnChangedEvent.Invoke();
+            foreach (var listener in listeners)
+            {
+                listener.OnRemoved(playerRef);
+            }
         }
 
         public List<PlayerRef> GetKeys()
         {
             //todo allocating
             return playerControllers.Keys.ToList();
+        }
+
+        public void AddListener(Listener listener)
+        {
+            listeners.Add(listener);
+        }
+
+        public void RemoveListener(Listener listener)
+        {
+            listeners.Remove(listener);
+        }
+
+        public interface Listener
+        {
+            void OnAdded(PlayerRef playerRef);
+            void OnRemoved(PlayerRef playerRef);
         }
     }
 }

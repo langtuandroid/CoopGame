@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Main.Scripts.Skills.Common.Component.Config;
+using Main.Scripts.Skills.Common.Component.Config.Action;
 using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component
@@ -9,32 +10,54 @@ namespace Main.Scripts.Skills.Common.Component
     {
         [SerializeField]
         private List<SkillConfig> skillConfigs = new();
+        [SerializeField]
+        private List<SpawnSkillVisualAction> skillVisualConfigs = new();
 
         private Dictionary<int, SkillConfig> skillsMap = default!;
-        private Dictionary<string, int> skillsIds = default!;
+        private Dictionary<string, int> skillsKeys = default!;
+
+        private Dictionary<int, SpawnSkillVisualAction> skillVisualConfigsMap = default!;
+        private Dictionary<string, int> skillVisualConfigsKeys = default!;
 
         private void Awake()
         {
             skillsMap = new Dictionary<int, SkillConfig>(skillConfigs.Count);
-            skillsIds = new Dictionary<string, int>(skillConfigs.Count);
+            skillsKeys = new Dictionary<string, int>(skillConfigs.Count);
 
             for (var i = 0; i < skillConfigs.Count; i++)
             {
                 var skillConfig = skillConfigs[i];
-                if (skillsIds.ContainsKey(skillConfig.name))
+                if (skillsKeys.ContainsKey(skillConfig.name))
                 {
                     throw new ArgumentException(
                         $"SkillConfig name {skillConfig.name} is using by more then one SkillConfigs");
                 }
 
                 skillsMap.Add(i, skillConfig);
-                skillsIds.Add(skillConfig.name, i);
+                skillsKeys.Add(skillConfig.name, i);
+            }
+            
+            
+            skillVisualConfigsMap = new Dictionary<int, SpawnSkillVisualAction>();
+            skillVisualConfigsKeys = new Dictionary<string, int>();
+            
+            for (var i = 0; i < skillVisualConfigs.Count; i++)
+            {
+                var skillConfig = skillVisualConfigs[i];
+                if (skillVisualConfigsKeys.ContainsKey(skillConfig.name))
+                {
+                    throw new ArgumentException(
+                        $"SkillVisualConfig name {skillConfig.name} is using by more then one SkillVisualConfig");
+                }
+
+                skillVisualConfigsMap.Add(i, skillConfig);
+                skillVisualConfigsKeys.Add(skillConfig.name, i);
             }
         }
 
         private void OnValidate()
         {
-            var ids = new HashSet<string>();
+            var keys = new HashSet<string>();
             skillConfigs.Clear();
 
             var skillConfigsObjects = Resources.LoadAll("Scriptable/Skills", typeof(SkillConfig));
@@ -42,37 +65,77 @@ namespace Main.Scripts.Skills.Common.Component
             {
                 if (skillConfig is SkillConfig config)
                 {
-                    if (ids.Contains(config.name))
+                    if (keys.Contains(config.name))
                     {
                         throw new ArgumentException(
                             $"{config.name}: SkillConfig name {config.name} is using in more then one SkillConfigs");
                     }
 
                     skillConfigs.Add(config);
-                    ids.Add(config.name);
+                    keys.Add(config.name);
+                }
+            }
+            
+            keys.Clear();
+            skillVisualConfigs.Clear();
+
+            var skillVisualConfigsObjects = Resources.LoadAll("Scriptable/Skills", typeof(SpawnSkillVisualAction));
+            foreach (var skillVisualConfig in skillVisualConfigsObjects)
+            {
+                if (skillVisualConfig is SpawnSkillVisualAction config)
+                {
+                    if (keys.Contains(config.name))
+                    {
+                        throw new ArgumentException(
+                            $"{config.name}: SpawnSkillVisualAction name {config.name} is using in more then one SpawnSkillVisualAction");
+                    }
+
+                    skillVisualConfigs.Add(config);
+                    keys.Add(config.name);
                 }
             }
         }
 
-        public SkillConfig GetSkillConfig(int id)
+        public SkillConfig GetSkillConfig(int key)
         {
-            if (!skillsMap.ContainsKey(id))
+            if (!skillsMap.ContainsKey(key))
             {
-                throw new ArgumentException($"SkillConfig Id {id} is not registered in SkillConfigsBank");
+                throw new ArgumentException($"SkillConfig Key {key} is not registered in SkillConfigsBank");
             }
 
-            return skillsMap[id];
+            return skillsMap[key];
         }
 
         public int GetSkillConfigId(SkillConfig skillConfig)
         {
-            if (!skillsIds.ContainsKey(skillConfig.name))
+            if (!skillsKeys.ContainsKey(skillConfig.name))
             {
                 throw new ArgumentException(
                     $"{skillConfig.name}: SkillConfig is not registered in SkillConfigsBank. Check SkillConfig file path.");
             }
 
-            return skillsIds[skillConfig.name];
+            return skillsKeys[skillConfig.name];
+        }
+
+        public SpawnSkillVisualAction GetSkillVisualConfig(int key)
+        {
+            if (!skillVisualConfigsMap.ContainsKey(key))
+            {
+                throw new ArgumentException($"SpawnSkillVisualAction Key {key} is not registered in SkillConfigsBank");
+            }
+
+            return skillVisualConfigsMap[key];
+        }
+
+        public int GetSkillVisualConfigKey(SpawnSkillVisualAction skillVisualConfig)
+        {
+            if (!skillVisualConfigsKeys.ContainsKey(skillVisualConfig.name))
+            {
+                throw new ArgumentException(
+                    $"{skillVisualConfig.name}: SpawnSkillVisualAction is not registered in SkillConfigsBank. Check SpawnSkillVisualAction file path.");
+            }
+
+            return skillVisualConfigsKeys[skillVisualConfig.name];
         }
     }
 }

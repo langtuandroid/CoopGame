@@ -9,6 +9,7 @@ namespace Main.Scripts.Core.GameLogic.Phases
         SkillActivationPhase,
         SkillSpawnPhase,
         SkillUpdatePhase,
+        SkillVisualSpawnPhase,
         EffectsApplyPhase,
         EffectsUpdatePhase,
         ApplyActionsPhase,

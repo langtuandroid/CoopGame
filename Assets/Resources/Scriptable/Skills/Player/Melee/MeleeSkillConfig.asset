@@ -16,14 +16,11 @@ MonoBehaviour:
   spawnDirectionType: 4
   followDirectionType: 5
   followStrategy: {fileID: 11400000, guid: 82d16c69591b36d4e95815ba986c12de, type: 2}
-  actionTrigger: {fileID: 11400000, guid: e922a03635979d04d8faf3c643f32a6b, type: 2}
-  findTargetsStrategies:
-  - {fileID: 11400000, guid: 9c8058e08407e2b4db265c7db2bc8a57, type: 2}
+  actionsPacks:
+  - {fileID: 11400000, guid: 9966a718e7d7a1e42a51dd2803ed89d0, type: 2}
   isAffectTargetsOnlyOneTime: 1
-  actions:
-  - {fileID: 11400000, guid: 59ba6013fac10674aa3e122b8bdd697f, type: 2}
-  - {fileID: 11400000, guid: b1e8485c7056a7440a2dc8316d4afc23, type: 2}
-  - {fileID: 11400000, guid: 9dff7abda67d3ea429d608469e109d18, type: 2}
   durationSec: 1
   interruptStrategy: 0
+  dontDestroyAfterFinishDurationSec: 0
+  dontDestroyAfterStopAction: 0
   prefab: {fileID: -3136543887100792344, guid: 726ce3fc71656c342a26717210ea7c04, type: 3}

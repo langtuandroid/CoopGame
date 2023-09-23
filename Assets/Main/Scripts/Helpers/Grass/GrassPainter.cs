@@ -1,23 +1,22 @@
-using Fusion;
 using Main.Scripts.Utils;
 using UnityEngine;
 
 namespace Main.Scripts.Helpers.Grass
 {
-    public class GrassPainter : NetworkBehaviour
+    public class GrassPainter : MonoBehaviour
     {
         [SerializeField]
         private GrassPainterConfig painterConfig = default!;
 
         private GrassInteractManager grassInteractManager = default!;
         
-        public override void Spawned()
+        private void Start()
         {
             grassInteractManager = GrassInteractManager.Instance.ThrowWhenNull();
             grassInteractManager.AddPainter(transform, painterConfig);
         }
 
-        public override void Despawned(NetworkRunner runner, bool hasState)
+        private void OnDestroy()
         {
             if (grassInteractManager != null)
             {

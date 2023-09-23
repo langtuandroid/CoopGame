@@ -2,11 +2,11 @@ using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Action
 {
-    [CreateAssetMenu(fileName = "SpawnAction", menuName = "Skill/Action/SpawnConfig")]
+    [CreateAssetMenu(fileName = "SpawnConfigAction", menuName = "Skill/Action/SpawnConfig")]
     public class SpawnConfigSkillAction : SpawnSkillActionBase
     {
         [SerializeField]
-        private SkillConfig skillConfig;
+        private SkillConfig skillConfig = default!;
 
         public SkillConfig SkillConfig => skillConfig;
     }

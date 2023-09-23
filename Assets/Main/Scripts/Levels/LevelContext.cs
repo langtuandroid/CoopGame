@@ -2,6 +2,7 @@ using Fusion;
 using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Enemies;
 using Main.Scripts.Player;
+using Main.Scripts.Skills.Common;
 using Main.Scripts.UI.Windows.HUD;
 using UnityEngine;
 
@@ -20,12 +21,15 @@ namespace Main.Scripts.Levels
         [SerializeField]
         private NavigationManager navigationManager = default!;
         [SerializeField]
+        private SkillVisualManager skillVisualManager = default!;
+        [SerializeField]
         private HUDScreen hudScreen = default!;
 
         public PlayersHolder PlayersHolder => playersHolder;
         public EnemiesManager EnemiesManager => enemiesManager;
         public GameLoopManager GameLoopManager => gameLoopManager;
         public NavigationManager NavigationManager => navigationManager;
+        public SkillVisualManager SkillVisualManager => skillVisualManager;
         public HUDScreen HudScreen => hudScreen;
 
         private void Awake()

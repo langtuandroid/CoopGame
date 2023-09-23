@@ -31,6 +31,7 @@ namespace Main.Scripts.Core.GameLogic
             GameLoopPhase.SkillActivationPhase,
             GameLoopPhase.SkillSpawnPhase,
             GameLoopPhase.SkillUpdatePhase,
+            GameLoopPhase.SkillVisualSpawnPhase,
             GameLoopPhase.EffectsApplyPhase,
             GameLoopPhase.EffectsUpdatePhase,
             GameLoopPhase.ApplyActionsPhase,

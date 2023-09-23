@@ -13,6 +13,7 @@ using Main.Scripts.Player.Data;
 using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills.Common.Component.Config;
 using Main.Scripts.Skills.Common.Component.Config.Action;
+using Main.Scripts.Skills.Common.Component.Config.ActionsPack;
 using Main.Scripts.Skills.Common.Component.Config.Follow;
 using Main.Scripts.Skills.Common.Component.Config.FindTargets;
 using Main.Scripts.Skills.Common.Component.Config.Trigger;
@@ -26,6 +27,7 @@ namespace Main.Scripts.Skills.Common.Component
     {
         private SkillConfigsBank skillConfigsBank = default!;
         private ModifierIdsBank modifierIdsBank = default!;
+        private SkillVisualManager skillVisualManager = default!;
 
         private SkillConfig skillConfig = default!;
         private PlayerData? playerData;
@@ -52,9 +54,10 @@ namespace Main.Scripts.Skills.Common.Component
         private List<GameObject> affectedTargets = new();
 
         private SkillFollowStrategyBase followStrategy = default!;
-        private SkillActionTriggerBase actionTrigger = default!;
-        private List<SkillFindTargetsStrategyBase> findTargetStrategiesList = new();
-        private List<SkillActionBase> actionsList = new();
+        private List<SkillActionsPackData> actionsPacksDataList = new();
+        private Stack<SkillActionsPackData> actionsPacksDataPool = new();
+        private SkillActionsPackData? collisionTriggerActionPack;
+        private SkillActionsPackData? timerTriggerActionPack;
 
         private HashSet<GameObject> findTargetHitObjectsSet = new();
 
@@ -64,6 +67,7 @@ namespace Main.Scripts.Skills.Common.Component
         private Vector3 skillPositionOnCollisionTriggered;
         private bool isCollisionTriggered;
         private bool shouldDespawn;
+        private int visualToken = -1;
 
         private Action<SkillComponent>? onSpawnNewSkillComponent;
 
@@ -105,6 +109,7 @@ namespace Main.Scripts.Skills.Common.Component
             shouldStop = false;
             startSkillTick = 0;
             skillPositionOnCollisionTriggered = default;
+            visualToken = -1;
 
             this.initialMapPoint = initialMapPoint;
             this.dynamicMapPoint = dynamicMapPoint;
@@ -133,6 +138,7 @@ namespace Main.Scripts.Skills.Common.Component
             var resources = GlobalResources.Instance.ThrowWhenNull();
             skillConfigsBank = resources.SkillConfigsBank;
             modifierIdsBank = resources.ModifierIdsBank;
+            skillVisualManager = levelContext.SkillVisualManager;
             
             playerData = PlayerDataManager.Instance.ThrowWhenNull().GetPlayerData(ownerId);
             skillConfig = skillConfigsBank.GetSkillConfig(skillConfigId);
@@ -143,30 +149,46 @@ namespace Main.Scripts.Skills.Common.Component
                 skillConfig.FollowStrategy,
                 out followStrategy
             );
-            
-            SkillActionTriggerConfigsResolver.ResolveEnabledModifiers(
-                modifierIdsBank,
-                ref playerData,
-                skillConfig.ActionTrigger,
-                out actionTrigger
-            );
-            
-            findTargetStrategiesList.Clear();
-            SkillFindTargetsStrategiesConfigsResolver.ResolveEnabledModifiers(
-                modifierIdsBank,
-                ref playerData,
-                skillConfig.FindTargetsStrategies,
-                findTargetStrategiesList
-            );
-            
-            actionsList.Clear();
-            SkillActionConfigsResolver.ResolveEnabledModifiers(
-                modifierIdsBank,
-                ref playerData,
-                skillConfig.Actions,
-                actionsList
-            );
 
+            foreach (var actionsPackData in actionsPacksDataList)
+            {
+                actionsPacksDataPool.Push(actionsPackData);
+
+            }
+            actionsPacksDataList.Clear();
+            collisionTriggerActionPack = null;
+            timerTriggerActionPack = null;
+            
+            foreach (var skillActionsPack in skillConfig.ActionsPacks)
+            {
+                if (!actionsPacksDataPool.TryPop(out var resolvedDataOut))
+                {
+                    resolvedDataOut = new SkillActionsPackData();
+                }
+                
+                SkillActionsPackResolver.ResolveEnabledModifiers(
+                    modifierIdsBank,
+                    ref playerData,
+                    skillActionsPack,
+                    resolvedDataOut
+                );
+                actionsPacksDataList.Add(resolvedDataOut);
+                if (resolvedDataOut.ActionTrigger is CollisionSkillActionTrigger)
+                {
+                    collisionTriggerActionPack = resolvedDataOut;
+                }
+
+                if (resolvedDataOut.ActionTrigger is TimerSkillActionTrigger)
+                {
+                    timerTriggerActionPack = resolvedDataOut;
+                }
+            }
+        }
+
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            base.Despawned(runner, hasState);
+            skillVisualManager = default!;
         }
 
         public override void OnGameLoopPhase(GameLoopPhase phase)
@@ -217,7 +239,10 @@ namespace Main.Scripts.Skills.Common.Component
 
             if (isCollisionTriggered)
             {
-                ExecuteActions();
+                if (collisionTriggerActionPack != null)
+                {
+                    ExecuteActions(collisionTriggerActionPack);
+                }
                 isCollisionTriggered = false;
             }
             
@@ -235,14 +260,17 @@ namespace Main.Scripts.Skills.Common.Component
                 startSkillTick = Runner.Tick;
                 lifeTimer = TickTimer.CreateFromSeconds(Runner, skillConfig.DurationSec);
 
-                if (actionTrigger is TimerSkillActionTrigger timerTrigger)
+                foreach (var actionsPack in actionsPacksDataList)
                 {
-                    triggerTimer = TickTimer.CreateFromSeconds(Runner, timerTrigger.DelaySec);
-                }
+                    if (actionsPack.ActionTrigger is TimerSkillActionTrigger timerTrigger)
+                    {
+                        triggerTimer = TickTimer.CreateFromSeconds(Runner, timerTrigger.DelaySec);
+                    }
 
-                if (actionTrigger is StartSkillActionTrigger)
-                {
-                    ExecuteActions();
+                    if (actionsPack.ActionTrigger is StartSkillActionTrigger)
+                    {
+                        ExecuteActions(actionsPack);
+                    }
                 }
             }
 
@@ -256,9 +284,12 @@ namespace Main.Scripts.Skills.Common.Component
                     OnFinishEvent.Invoke();
                 }
 
-                if (actionTrigger is FinishSkillActionTrigger)
+                foreach (var actionsPack in actionsPacksDataList)
                 {
-                    ExecuteActions();
+                    if (actionsPack.ActionTrigger is FinishSkillActionTrigger)
+                    {
+                        ExecuteActions(actionsPack);
+                    }
                 }
 
                 if (shouldDontDestroyIfNeed && skillConfig.DontDestroyAfterFinishDurationSec > 0f)
@@ -271,13 +302,17 @@ namespace Main.Scripts.Skills.Common.Component
                 {
                     shouldDespawn = true;
                 }
+                RefreshVisual(-1);
                 return;
             }
 
             if (triggerTimer.Expired(Runner))
             {
                 triggerTimer = default;
-                ExecuteActions();
+                if (timerTriggerActionPack != null)
+                {
+                    ExecuteActions(timerTriggerActionPack);
+                }
             }
 
             CheckPeriodicTrigger();
@@ -315,10 +350,13 @@ namespace Main.Scripts.Skills.Common.Component
         public void OnClickTrigger()
         {
             if (isFinished) return;
-            
-            if (actionTrigger is ClickSkillActionTrigger)
+
+            foreach (var actionsPack in actionsPacksDataList)
             {
-                ExecuteActions();
+                if (actionsPack.ActionTrigger is ClickSkillActionTrigger)
+                {
+                    ExecuteActions(actionsPack);
+                }
             }
         }
 
@@ -370,7 +408,7 @@ namespace Main.Scripts.Skills.Common.Component
             transform.rotation = Quaternion.LookRotation(GetDirectionByType(skillConfig.FollowDirectionType));
         }
 
-        private IEnumerable<GameObject> FindActionTargets()
+        private IEnumerable<GameObject> FindActionTargets(List<SkillFindTargetsStrategyBase> findTargetStrategiesList)
         {
             findTargetHitObjectsSet.Clear();
             foreach (var findTargetStrategy in findTargetStrategiesList)
@@ -425,40 +463,50 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void CheckPeriodicTrigger()
         {
-            if (actionTrigger is PeriodicSkillActionTrigger periodicTrigger
-                && TickHelper.CheckFrequency(Runner.Tick - startSkillTick, Runner.Simulation.Config.TickRate, periodicTrigger.Frequency))
+            foreach (var actionsPack in actionsPacksDataList)
             {
-                ExecuteActions();
+                if (actionsPack.ActionTrigger is PeriodicSkillActionTrigger periodicTrigger
+                    && TickHelper.CheckFrequency(Runner.Tick - startSkillTick, Runner.Simulation.Config.TickRate,
+                        periodicTrigger.Frequency))
+                {
+                    ExecuteActions(actionsPack);
+                }
             }
         }
 
         private void CheckCollisionTrigger()
         {
-            if (actionTrigger is CollisionSkillActionTrigger collisionTrigger)
+            foreach (var actionsPack in actionsPacksDataList)
             {
-                var hitsCount = Physics.OverlapSphereNonAlloc(
-                    position: transform.position,
-                    radius: collisionTrigger.Radius,
-                    results: colliders,
-                    layerMask: GetLayerMaskByType(collisionTrigger.TargetType) | collisionTrigger.TriggerByDecorationsLayer
-                );
-
-                if (!isCollisionTriggered && (hitsCount >= 2 || (hitsCount > 0 && colliders[0].gameObject != gameObject)))
+                if (actionsPack.ActionTrigger is CollisionSkillActionTrigger collisionTrigger)
                 {
-                    skillPositionOnCollisionTriggered = transform.position;
-                    isCollisionTriggered = true;
+                    var hitsCount = Physics.OverlapSphereNonAlloc(
+                        position: transform.position,
+                        radius: collisionTrigger.Radius,
+                        results: colliders,
+                        layerMask: GetLayerMaskByType(collisionTrigger.TargetType) |
+                                   collisionTrigger.TriggerByDecorationsLayer
+                    );
+
+                    if (!isCollisionTriggered &&
+                        (hitsCount >= 2 || (hitsCount > 0 && colliders[0].gameObject != gameObject)))
+                    {
+                        skillPositionOnCollisionTriggered = transform.position;
+                        isCollisionTriggered = true;
+                    }
                 }
             }
         }
 
-        private void ExecuteActions()
+        private void ExecuteActions(SkillActionsPackData actionsPackData)
         {
             //todo вынести в Render проверку стейта
             OnActionEvent.Invoke();
 
             activatedTriggersCount++;
-            var actionTargets = FindActionTargets();
-            foreach (var action in actionsList)
+
+            var actionTargets = FindActionTargets(actionsPackData.FindTargetsStrategies);
+            foreach (var action in actionsPackData.Actions)
             {
                 ApplyAction(action, actionTargets);
             }
@@ -586,10 +634,28 @@ namespace Main.Scripts.Skills.Common.Component
                             }
                         );
                         break;
+                    case SpawnSkillVisualAction spawnVisualForSkillAction:
+                        var token = skillVisualManager.StartVisual(
+                            spawnSkillConfig: spawnVisualForSkillAction,
+                            spawnPosition: transform.position,
+                            spawnDirection: transform.forward
+                        );
+                        RefreshVisual(token);
+                        break;
                 }
             }
             
             spawnActions.Clear();
+        }
+
+        private void RefreshVisual(int token)
+        {
+            if (visualToken >= 0)
+            {
+                skillVisualManager.FinishVisual(visualToken);
+            }
+
+            visualToken = token;
         }
 
         private Vector3 GetPointByType(SkillPointType pointType)

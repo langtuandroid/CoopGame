@@ -97,7 +97,7 @@ namespace Main.Scripts.Player
             cachedComponents[typeof(Rigidbody)] = GetComponent<Rigidbody>();
             cachedComponents[typeof(RVOController)] = GetComponent<RVOController>();
             cachedComponents[typeof(Collider)] = GetComponent<Collider>();
-            cachedComponents[typeof(NetworkMecanimAnimator)] = GetComponent<NetworkMecanimAnimator>();
+            cachedComponents[typeof(Animator)] = GetComponent<Animator>();
 
             cachedComponents[typeof(CharacterCustomizationSkinned)] = GetComponent<CharacterCustomizationSkinned>();
 

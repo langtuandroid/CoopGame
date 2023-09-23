@@ -382,6 +382,9 @@ namespace Main.Scripts.Enemies
             {
                 case ActiveSkillState.NotAttacking:
                     break;
+                case ActiveSkillState.Casting:
+                    enemyData.animationTriggerId++;
+                    break;
                 case ActiveSkillState.Attacking:
                     enemyData.animationTriggerId++;
                     break;

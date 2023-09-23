@@ -300,7 +300,14 @@ namespace Main.Scripts.Skills.ActiveSkills
             ApplyUnitTarget(data.unitTargetId);
         }
 
-        public void OnSkillExecuted(SkillController skill)
+        public void OnSkillStartCasting(SkillController skill)
+        {
+            ref var data = ref dataHolder.GetActiveSkillsData();
+
+            UpdateSkillState(ref data, ActiveSkillState.Casting);
+        }
+
+        public void OnSkillFinishedCasting(SkillController skill)
         {
             ref var data = ref dataHolder.GetActiveSkillsData();
 

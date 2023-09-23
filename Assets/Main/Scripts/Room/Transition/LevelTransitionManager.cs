@@ -136,7 +136,7 @@ namespace Main.Scripts.Room.Transition
 
             yield return HideLoadingScene();
             
-            Destroy(this);
+            Destroy(gameObject);
         }
 
         private IEnumerator ShowLoadingScene()

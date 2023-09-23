@@ -9,10 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a53f7122e442451293ff0cd6467aa187, type: 3}
-  m_Name: FireballSpawnExplotionAction
+  m_Script: {fileID: 11500000, guid: 7d1ec194e584404e95b1bf1ff55d3f29, type: 3}
+  m_Name: FireballSpawnVisualAction
   m_EditorClassIdentifier: 
   spawnPointType: 0
   spawnDirectionType: 0
-  prefabToSpawn: {fileID: -6678602918977523867, guid: 9ae35605870b10845ad0d03ca14ed598, type: 3}
-  spawnWithLifeDurationSec: 0
+  prefabToSpawn: {fileID: 7482236859502565080, guid: 1eefcef2684744b4692377af1c8dbc99, type: 3}
+  waitDespawnByAction: 1
+  moveSpeed: 20

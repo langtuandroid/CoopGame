@@ -2,7 +2,7 @@
 {
     public enum PlayerAnimationState
     {
-        None,
-        Attacking,
+        None, //None when animation was canceled (for example: stun on casting)
+        PrimaryCasting,
     }
 }

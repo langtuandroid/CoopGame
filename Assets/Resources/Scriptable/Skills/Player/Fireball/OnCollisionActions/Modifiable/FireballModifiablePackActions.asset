@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 029e22c81c424cf282babe95814f00cb, type: 3}
-  m_Name: FireballActionsPack
+  m_Name: FireballModifiablePackActions
   m_EditorClassIdentifier: 
   modifiablePacks:
   - ModifierId: {fileID: 11400000, guid: 05864115201632d42b57a4a93b948e06, type: 2}
@@ -19,4 +19,3 @@ MonoBehaviour:
   - ModifierId: {fileID: 11400000, guid: 5c30f640e7b7c6843b50ff0514098596, type: 2}
     ItemsToApply:
     - {fileID: 11400000, guid: e729ac14c1f6a614cac6d798c6de3743, type: 2}
-    - {fileID: 11400000, guid: f8182fe568ada8342b28c835094540ea, type: 2}

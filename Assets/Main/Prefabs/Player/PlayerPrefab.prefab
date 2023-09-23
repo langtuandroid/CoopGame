@@ -180,7 +180,6 @@ GameObject:
   - component: {fileID: 647644367357948231}
   - component: {fileID: 248694335878906214}
   - component: {fileID: 3086454895717267383}
-  - component: {fileID: 5142815061643358106}
   - component: {fileID: 7347026132956542512}
   - component: {fileID: 3635179948393097183}
   - component: {fileID: 5579321408991018727}
@@ -291,7 +290,6 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 3130498294766555559}
   - {fileID: 3086454895717267383}
-  - {fileID: 5142815061643358106}
   - {fileID: 3635179948393097183}
   - {fileID: 3660346765884984392}
   - {fileID: 7072531681304220892}
@@ -300,7 +298,6 @@ MonoBehaviour:
   - {fileID: 52253573527536025}
   - {fileID: 3479990945948588127}
   - {fileID: 7584796170096268763}
-  - {fileID: 3320240980027913522}
   SimulationBehaviours: []
 --- !u!95 &8707011388829820937
 Animator:
@@ -388,36 +385,6 @@ MonoBehaviour:
   layerMask:
     serializedVersion: 2
     m_Bits: 640
---- !u!114 &5142815061643358106
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1187552209908239639}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 506319458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  Animator: {fileID: 8707011388829820937}
-  TotalWords: 6
-  SyncSettings: 95
-  FloatAccuracy:
-    _value: 0
-    _inverse: 0
-    _hash: -814817977
-  TimeAccuracy:
-    _value: 0
-    _inverse: 0
-    _hash: 1061325578
-  WeightAccuracy:
-    _value: 0
-    _inverse: 0
-    _hash: -814817977
-  StateHashes: 000000008a18fce4b9abd9d30d286c408919226f2b1a167c1f93e185
-  TriggerHashes: 000000000d286c40
 --- !u!114 &7347026132956542512
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -921,7 +888,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffeafd87202b4ff99e096d54820f675e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
   painterConfig: {fileID: 11400000, guid: b69cd606437d2ff45b933720b3f30bb6, type: 2}
 --- !u!1001 &2587958281309583874
 PrefabInstance:

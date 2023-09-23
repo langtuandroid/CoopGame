@@ -72,6 +72,7 @@ GameObject:
   - component: {fileID: 3247517092776889144}
   - component: {fileID: 8137893628506690340}
   - component: {fileID: 2736966943557648070}
+  - component: {fileID: 6148969258022852307}
   m_Layer: 0
   m_Name: LevelManagerBase
   m_TagString: Untagged
@@ -122,6 +123,7 @@ MonoBehaviour:
     RawGuidValue: 2aab6ec2af08f234c9b682b10d82296d
   NestedObjects: []
   NetworkedBehaviours:
+  - {fileID: 6148969258022852307}
   - {fileID: 6333978886437609963}
   SimulationBehaviours: []
 --- !u!114 &2486019915918659875
@@ -136,9 +138,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a010e71e64749a6849613f4110da699, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  OnChangedEvent:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!114 &3247517092776889144
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -168,6 +167,7 @@ MonoBehaviour:
   enemiesManager: {fileID: 6333978886437609963}
   gameLoopManager: {fileID: 2320060828885581111}
   navigationManager: {fileID: 2736966943557648070}
+  skillVisualManager: {fileID: 6148969258022852307}
   hudScreen: {fileID: 5782299537849891571}
 --- !u!114 &2736966943557648070
 MonoBehaviour:
@@ -182,6 +182,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   simulatingObjectsCountByTick: 30
+--- !u!114 &6148969258022852307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2482084901144130459}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b1ff14e39d241a397ca976ca3790b4c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 0
 --- !u!1 &5492399996316746148
 GameObject:
   m_ObjectHideFlags: 0
@@ -335,7 +348,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   version: 1
-  uniqueID: 1174017608038028685
+  uniqueID: 8791800053669343608
   wallHeight: 5
 --- !u!1001 &22516220969825449
 PrefabInstance:

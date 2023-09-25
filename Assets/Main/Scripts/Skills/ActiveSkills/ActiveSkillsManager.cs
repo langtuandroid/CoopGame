@@ -16,7 +16,8 @@ namespace Main.Scripts.Skills.ActiveSkills
         private EventListener eventListener;
         private NetworkObject objectContext = default!;
 
-        private List<SkillController> allSkillControllers = new();
+        private Dictionary<ActiveSkillType, SkillController> skillControllersMap = new();
+        private Dictionary<SkillController, ActiveSkillType> skillTypesMap = new();
         private PlayerRef ownerRef;
 
         private ActiveSkillType skillToActivate;
@@ -34,38 +35,53 @@ namespace Main.Scripts.Skills.ActiveSkills
             this.dataHolder = dataHolder;
             this.eventListener = eventListener;
 
-            if (config.PrimarySkill != null)
+            if (config.PrimarySkillConfig != null)
             {
-                allSkillControllers.Add(config.PrimarySkill);
+                InitSkillController(transform, ActiveSkillType.PRIMARY, config.PrimarySkillConfig);
             }
 
-            if (config.DashSkill != null)
+            if (config.DashSkillConfig != null)
             {
-                allSkillControllers.Add(config.DashSkill);
+                InitSkillController(transform, ActiveSkillType.DASH, config.DashSkillConfig);
             }
 
-            if (config.FirstSkill != null)
+            if (config.FirstSkillConfig != null)
             {
-                allSkillControllers.Add(config.FirstSkill);
+                InitSkillController(transform, ActiveSkillType.FIRST_SKILL, config.FirstSkillConfig);
             }
 
-            if (config.SecondSkill != null)
+            if (config.SecondSkillConfig != null)
             {
-                allSkillControllers.Add(config.SecondSkill);
+                InitSkillController(transform, ActiveSkillType.SECOND_SKILL, config.SecondSkillConfig);
             }
 
-            if (config.ThirdSkill != null)
+            if (config.ThirdSkillConfig != null)
             {
-                allSkillControllers.Add(config.ThirdSkill);
+                InitSkillController(transform, ActiveSkillType.THIRD_SKILL, config.ThirdSkillConfig);
             }
+        }
 
-            foreach (var skillController in allSkillControllers)
+        public static void OnValidate(ref ActiveSkillsConfig activeSkillsConfig)
+        {
+            if (activeSkillsConfig.PrimarySkillConfig != null)
             {
-                skillController.Init(
-                    transform,
-                    config.AlliesLayerMask,
-                    config.OpponentsLayerMask
-                );
+                SkillConfigsValidationHelper.Validate(activeSkillsConfig.PrimarySkillConfig);
+            }
+            if (activeSkillsConfig.DashSkillConfig != null)
+            {
+                SkillConfigsValidationHelper.Validate(activeSkillsConfig.DashSkillConfig);
+            }
+            if (activeSkillsConfig.FirstSkillConfig != null)
+            {
+                SkillConfigsValidationHelper.Validate(activeSkillsConfig.FirstSkillConfig);
+            }
+            if (activeSkillsConfig.SecondSkillConfig != null)
+            {
+                SkillConfigsValidationHelper.Validate(activeSkillsConfig.SecondSkillConfig);
+            }
+            if (activeSkillsConfig.ThirdSkillConfig != null)
+            {
+                SkillConfigsValidationHelper.Validate(activeSkillsConfig.ThirdSkillConfig);
             }
         }
 
@@ -77,32 +93,30 @@ namespace Main.Scripts.Skills.ActiveSkills
             shouldExecuteCurrentSkill = false;
             shouldCancelCurrentSkill = false;
 
-            foreach (var skillType in Enum.GetValues(typeof(ActiveSkillType)).Cast<ActiveSkillType>())
+            foreach (var (_, skillController) in skillControllersMap)
             {
-                var skill = getSkillByType(skillType);
-                if (skill == null)
-                {
-                    continue;
-                }
-
-                skill.AddListener(this);
+                skillController.SetListener(this);
+                skillController.Spawned(objectContext);
             }
         }
 
         public void Despawned(NetworkRunner runner, bool hasState)
         {
-            foreach (var skillType in Enum.GetValues(typeof(ActiveSkillType)).Cast<ActiveSkillType>())
+            foreach (var (_, skillController) in skillControllersMap)
             {
-                var skill = getSkillByType(skillType);
-                if (skill == null)
-                {
-                    continue;
-                }
-
-                skill.RemoveListener();
+                skillController.SetListener(null);
+                skillController.Despawned(runner, hasState);
             }
 
             objectContext = default!;
+        }
+
+        public void Render()
+        {
+            foreach (var (_, skillController) in skillControllersMap)
+            {
+                skillController.Render();
+            }
         }
 
         public void AddActivateSkill(ActiveSkillType skillType)
@@ -129,9 +143,33 @@ namespace Main.Scripts.Skills.ActiveSkills
                     ExecuteCurrentSkill();
                     ActivateSkill();
                     break;
+                case GameLoopPhase.SkillUpdatePhase:
+                case GameLoopPhase.SkillSpawnPhase:
+                case GameLoopPhase.VisualStateUpdatePhase:
+                    foreach (var (_, skillController) in skillControllersMap)
+                    {
+                        skillController.OnGameLoopPhase(phase);
+                    }
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(phase), phase, null);
             }
+        }
+
+        private void InitSkillController(
+            Transform transform,
+            ActiveSkillType skillType,
+            SkillControllerConfig skillControllerConfig
+        )
+        {
+            var skillController = new SkillController(
+                skillControllerConfig: skillControllerConfig,
+                selfUnitTransform: transform,
+                alliesLayerMask: config.AlliesLayerMask,
+                opponentsLayerMask: config.OpponentsLayerMask
+            );
+            skillControllersMap[skillType] = skillController;
+            skillTypesMap[skillController] = skillType;
         }
 
         private void ActivateSkill()
@@ -334,29 +372,12 @@ namespace Main.Scripts.Skills.ActiveSkills
 
         private SkillController? getSkillByType(ActiveSkillType skillType)
         {
-            return skillType switch
-            {
-                ActiveSkillType.PRIMARY => config.PrimarySkill,
-                ActiveSkillType.DASH => config.DashSkill,
-                ActiveSkillType.FIRST_SKILL => config.FirstSkill,
-                ActiveSkillType.SECOND_SKILL => config.SecondSkill,
-                ActiveSkillType.THIRD_SKILL => config.ThirdSkill,
-                ActiveSkillType.NONE => null,
-                _ => throw new ArgumentOutOfRangeException(nameof(skillType), skillType, null)
-            };
+            return skillControllersMap.GetValueOrDefault(skillType);
         }
 
         private ActiveSkillType getTypeBySkill(SkillController skill)
         {
-            return skill switch
-            {
-                _ when skill == config.PrimarySkill => ActiveSkillType.PRIMARY,
-                _ when skill == config.DashSkill => ActiveSkillType.DASH,
-                _ when skill == config.FirstSkill => ActiveSkillType.FIRST_SKILL,
-                _ when skill == config.SecondSkill => ActiveSkillType.SECOND_SKILL,
-                _ when skill == config.ThirdSkill => ActiveSkillType.THIRD_SKILL,
-                _ => throw new Exception("Couldn't get type by skill")
-            };
+            return skillTypesMap[skill];
         }
 
         public interface DataHolder

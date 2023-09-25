@@ -83,52 +83,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &3784472781371602966
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2090609172497497566}
-  - component: {fileID: 4376424458798373671}
-  m_Layer: 8
-  m_Name: MeleeAttack
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2090609172497497566
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3784472781371602966}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 3869880601118895797}
-  m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4376424458798373671
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3784472781371602966}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5cdbe63c6b5940b9b48b5def1cbc506d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  skillControllerConfig: {fileID: 11400000, guid: baaab2be5825b6d44a6a1813fa205a57, type: 2}
 --- !u!1 &4482023671422950389
 GameObject:
   m_ObjectHideFlags: 0
@@ -354,7 +308,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1628287378485009076}
-  - {fileID: 2090609172497497566}
   - {fileID: 3053674644394487279}
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -384,11 +337,11 @@ MonoBehaviour:
       OpponentsLayerMask:
         serializedVersion: 2
         m_Bits: 128
-      PrimarySkill: {fileID: 4376424458798373671}
-      DashSkill: {fileID: 0}
-      FirstSkill: {fileID: 0}
-      SecondSkill: {fileID: 0}
-      ThirdSkill: {fileID: 0}
+      PrimarySkillConfig: {fileID: 11400000, guid: baaab2be5825b6d44a6a1813fa205a57, type: 2}
+      DashSkillConfig: {fileID: 0}
+      FirstSkillConfig: {fileID: 0}
+      SecondSkillConfig: {fileID: 0}
+      ThirdSkillConfig: {fileID: 0}
     PassiveSkillsConfig:
       AlliesLayerMask:
         serializedVersion: 2
@@ -396,7 +349,7 @@ MonoBehaviour:
       OpponentsLayerMask:
         serializedVersion: 2
         m_Bits: 128
-      PassiveSkillControllers: []
+      PassiveSkillControllersDataList: []
       InitialEffects: []
     ShowHealthChangeDisplay: 0
     HealthChangeDisplayConfig:
@@ -434,7 +387,6 @@ MonoBehaviour:
   - {fileID: 6534187366776731960}
   - {fileID: 4739822872436178127}
   - {fileID: 3734176867321401527}
-  - {fileID: 4376424458798373671}
   SimulationBehaviours: []
 --- !u!135 &5598048174663406685
 SphereCollider:

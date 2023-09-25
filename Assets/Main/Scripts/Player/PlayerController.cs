@@ -64,6 +64,8 @@ namespace Main.Scripts.Player
             GameLoopPhase.EffectsRemoveFinishedPhase,
             GameLoopPhase.PlayerInputPhase,
             GameLoopPhase.SkillActivationPhase,
+            GameLoopPhase.SkillSpawnPhase,
+            GameLoopPhase.SkillUpdatePhase,
             GameLoopPhase.EffectsApplyPhase,
             GameLoopPhase.EffectsUpdatePhase,
             GameLoopPhase.ApplyActionsPhase,

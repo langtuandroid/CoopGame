@@ -9,10 +9,10 @@ namespace Main.Scripts.Skills.ActiveSkills
     {
         public LayerMask AlliesLayerMask;
         public LayerMask OpponentsLayerMask;
-        public SkillController? PrimarySkill;
-        public SkillController? DashSkill;
-        public SkillController? FirstSkill;
-        public SkillController? SecondSkill;
-        public SkillController? ThirdSkill;
+        public SkillControllerConfig? PrimarySkillConfig;
+        public SkillControllerConfig? DashSkillConfig;
+        public SkillControllerConfig? FirstSkillConfig;
+        public SkillControllerConfig? SecondSkillConfig;
+        public SkillControllerConfig? ThirdSkillConfig;
     }
 }

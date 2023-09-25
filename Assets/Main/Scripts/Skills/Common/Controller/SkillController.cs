@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Actions;
-using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Core.Resources;
 using Main.Scripts.Player.InputSystem.Target;
@@ -10,13 +9,14 @@ using Main.Scripts.Skills.Common.Component;
 using Main.Scripts.Skills.Common.Component.Config;
 using Main.Scripts.Utils;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Main.Scripts.Skills.Common.Controller
 {
-    public class SkillController : GameLoopEntityNetworked
+    public class SkillController
     {
-        [SerializeField]
-        private SkillControllerConfig skillControllerConfig = default!;
+        private NetworkObject objectContext;
+        private SkillControllerConfig skillControllerConfig;
 
         private Listener? listener;
         private GameObject? marker;
@@ -33,7 +33,7 @@ namespace Main.Scripts.Skills.Common.Controller
         
         private List<SkillComponent?> skillComponents = new();
         
-        private Transform selfUnitTransform = default!;
+        private Transform selfUnitTransform;
         private LayerMask alliesLayerMask;
         private LayerMask opponentsLayerMask;
 
@@ -50,33 +50,36 @@ namespace Main.Scripts.Skills.Common.Controller
         public SkillActivationType ActivationType => skillControllerConfig.ActivationType;
         public UnitTargetType SelectionTargetType => skillControllerConfig.SelectionTargetType;
 
-        private void OnValidate()
-        {
-            SkillConfigsValidationHelper.Validate(skillControllerConfig);
-        }
-
-        public void Init(
+        public SkillController(
+            SkillControllerConfig skillControllerConfig,
             Transform selfUnitTransform,
             LayerMask alliesLayerMask,
             LayerMask opponentsLayerMask
         )
         {
+            this.skillControllerConfig = skillControllerConfig;
             this.selfUnitTransform = selfUnitTransform;
             this.alliesLayerMask = alliesLayerMask;
             this.opponentsLayerMask = opponentsLayerMask;
         }
 
-        public override void Spawned()
+        public void Spawned(NetworkObject objectContext)
         {
-            base.Spawned();
+            this.objectContext = objectContext;
             skillComponents.Clear();
             spawnActions.Clear();
             skillConfigsBank = GlobalResources.Instance.ThrowWhenNull().SkillConfigsBank;
         }
 
-        public override void Render()
+        public void Despawned(NetworkRunner runner, bool hasState)
         {
-            if (Runner.LocalPlayer != Object.StateAuthority) return;
+            objectContext = default!;
+        }
+
+        public void Render()
+        {
+            //todo вынести в отдельный класс, который будет создаваться только для локального игрока
+            if (objectContext.Runner.LocalPlayer != objectContext.StateAuthority) return;
 
             var canShowMarker = skillControllerConfig.ActivationType != SkillActivationType.WithUnitTarget ||
                                 selectedUnit != null;
@@ -90,7 +93,7 @@ namespace Main.Scripts.Skills.Common.Controller
                 {
                     if (skillControllerConfig.AreaMarker != null)
                     {
-                        marker = Instantiate(
+                        marker = Object.Instantiate(
                             original: skillControllerConfig.AreaMarker,
                             position: new Vector3(markerPosition.x, 0.001f, markerPosition.z),
                             rotation: skillControllerConfig.AreaMarker.transform.rotation
@@ -116,7 +119,7 @@ namespace Main.Scripts.Skills.Common.Controller
 
         public bool Activate()
         {
-            if (isActivating || IsSkillExecuting || !cooldownTimer.ExpiredOrNotRunning(Runner))
+            if (isActivating || IsSkillExecuting || !cooldownTimer.ExpiredOrNotRunning(objectContext.Runner))
             {
                 return false;
             }
@@ -177,8 +180,8 @@ namespace Main.Scripts.Skills.Common.Controller
 
             isActivating = false;
 
-            executionTimer = TickTimer.CreateFromSeconds(Runner, skillControllerConfig.ExecutionDurationSec);
-            castTimer = TickTimer.CreateFromSeconds(Runner, skillControllerConfig.CastDurationSec);
+            executionTimer = TickTimer.CreateFromSeconds(objectContext.Runner, skillControllerConfig.ExecutionDurationSec);
+            castTimer = TickTimer.CreateFromSeconds(objectContext.Runner, skillControllerConfig.CastDurationSec);
 
             listener?.OnSkillStartCasting(this);
 
@@ -187,7 +190,7 @@ namespace Main.Scripts.Skills.Common.Controller
             CheckCastFinished();
         }
 
-        public override void OnGameLoopPhase(GameLoopPhase phase)
+        public void OnGameLoopPhase(GameLoopPhase phase)
         {
             switch (phase)
             {
@@ -205,8 +208,9 @@ namespace Main.Scripts.Skills.Common.Controller
             }
         }
 
-        public override IEnumerable<GameLoopPhase> GetSubscribePhases()
+        public IEnumerable<GameLoopPhase> GetSubscribePhases()
         {
+            //todo remove
             return gameLoopPhases;
         }
 
@@ -214,7 +218,7 @@ namespace Main.Scripts.Skills.Common.Controller
         {
             CheckCastFinished();
 
-            if (executionTimer.Expired(Runner))
+            if (executionTimer.Expired(objectContext.Runner))
             {
                 ResetOnFinish();
 
@@ -232,7 +236,7 @@ namespace Main.Scripts.Skills.Common.Controller
         {
             if (cooldownTimer.IsRunning)
             {
-                if (cooldownTimer.Expired(Runner))
+                if (cooldownTimer.Expired(objectContext.Runner))
                 {
                     cooldownTimer = default;
                 }
@@ -243,10 +247,10 @@ namespace Main.Scripts.Skills.Common.Controller
 
         private void CheckCastFinished()
         {
-            if (castTimer.Expired(Runner))
+            if (castTimer.Expired(objectContext.Runner))
             {
                 castTimer = default;
-                cooldownTimer = TickTimer.CreateFromSeconds(Runner, skillControllerConfig.CooldownSec);
+                cooldownTimer = TickTimer.CreateFromSeconds(objectContext.Runner, skillControllerConfig.CooldownSec);
                 AddSpawnActions(skillControllerConfig.RunAfterCastSkillConfigs);
                 
                 listener?.OnSkillFinishedCasting(this);
@@ -255,7 +259,7 @@ namespace Main.Scripts.Skills.Common.Controller
 
         public int GetCooldownLeftTicks()
         {
-            return cooldownTimer.RemainingTicks(Runner) ?? 0;
+            return cooldownTimer.RemainingTicks(objectContext.Runner) ?? 0;
         }
 
         //todo
@@ -295,7 +299,7 @@ namespace Main.Scripts.Skills.Common.Controller
 
         public bool IsDisabledMove()
         {
-            var isDisableOnCast = skillControllerConfig.DisableMoveOnCast && !castTimer.ExpiredOrNotRunning(Runner);
+            var isDisableOnCast = skillControllerConfig.DisableMoveOnCast && !castTimer.ExpiredOrNotRunning(objectContext.Runner);
             var isDisableOnExecution = skillControllerConfig.DisableMoveOnExecution && IsSkillExecuting;
             return isDisableOnCast || isDisableOnExecution;
         }
@@ -320,14 +324,9 @@ namespace Main.Scripts.Skills.Common.Controller
             skillComponents.Clear();
         }
 
-        public void AddListener(Listener listener)
+        public void SetListener(Listener? listener)
         {
             this.listener = listener;
-        }
-
-        public void RemoveListener()
-        {
-            listener = null;
         }
 
         private void AddSpawnActions(IEnumerable<SkillConfig> skillConfigs)
@@ -397,7 +396,7 @@ namespace Main.Scripts.Skills.Common.Controller
                         throw new ArgumentOutOfRangeException();
                 }
 
-                var spawnedSkill = Runner.Spawn(
+                var spawnedSkill = objectContext.Runner.Spawn(
                     prefab: skillConfig.Prefab,
                     position: position,
                     rotation: rotation,
@@ -405,10 +404,10 @@ namespace Main.Scripts.Skills.Common.Controller
                     {
                         skillObject.GetComponent<SkillComponent>().Init(
                             skillConfigId: skillConfigsBank.GetSkillConfigId(skillConfig),
-                            ownerId: Object.StateAuthority,
+                            ownerId: objectContext.StateAuthority,
                             initialMapPoint: initialMapPoint,
                             dynamicMapPoint: dynamicMapPoint,
-                            selfUnit: Object,
+                            selfUnit: objectContext,
                             selectedUnit: selectedUnit,
                             alliesLayerMask: alliesLayerMask,
                             opponentsLayerMask: opponentsLayerMask,

@@ -6,9 +6,18 @@ namespace Main.Scripts.Skills.PassiveSkills
 {
     public class PassiveSkillController : SkillController
     {
-        [SerializeField]
-        private PassiveSkillTriggerBase passiveSkillTrigger = default!;
+        public PassiveSkillTriggerBase PassiveSkillTrigger { get; }
 
-        public PassiveSkillTriggerBase PassiveSkillTrigger => passiveSkillTrigger;
+        public PassiveSkillController(
+            PassiveSkillTriggerBase passiveSkillTrigger,
+            SkillControllerConfig skillControllerConfig,
+            Transform selfUnitTransform,
+            LayerMask alliesLayerMask,
+            LayerMask opponentsLayerMask
+        ) : base(
+            skillControllerConfig, selfUnitTransform, alliesLayerMask, opponentsLayerMask)
+        {
+            PassiveSkillTrigger = passiveSkillTrigger;
+        }
     }
 }

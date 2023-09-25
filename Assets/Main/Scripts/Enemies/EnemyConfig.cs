@@ -11,7 +11,7 @@ namespace Main.Scripts.Enemies
     {
         public float DefaultMaxHealth;
         public float DefaultSpeed;
-        public float AttackDistance; //todo replace to activeWeapon parameter
+        public float AttackDistance; //todo replace to enemy logic config
         
         public HealthBar HealthBar;
 

@@ -131,6 +131,7 @@ namespace Main.Scripts.Player
         public static void OnValidate(GameObject gameObject, ref PlayerConfig config)
         {
             PassiveSkillsManager.OnValidate(gameObject, ref config.PassiveSkillsConfig);
+            ActiveSkillsManager.OnValidate(ref config.ActiveSkillsConfig);
         }
 
         public void Spawned(NetworkObject objectContext)
@@ -139,6 +140,7 @@ namespace Main.Scripts.Player
 
             effectsManager.Spawned(objectContext);
             activeSkillsManager.Spawned(objectContext);
+            passiveSkillsManager.Spawned(objectContext);
             healthChangeDisplayManager?.Spawned(objectContext);
 
             lastAnimationTriggerId = 0;
@@ -198,6 +200,7 @@ namespace Main.Scripts.Player
         {
             effectsManager.Despawned(runner, hasState);
             activeSkillsManager.Despawned(runner, hasState);
+            passiveSkillsManager.Despawned(runner, hasState);
             healthChangeDisplayManager?.Despawned(runner, hasState);
             playerDataManager.OnPlayerDataChangedEvent.RemoveListener(OnPlayerDataChanged);
 
@@ -232,6 +235,8 @@ namespace Main.Scripts.Player
                 }
             }
             
+            activeSkillsManager.Render();
+            
             healthChangeDisplayManager?.Render();
         }
 
@@ -260,6 +265,8 @@ namespace Main.Scripts.Player
                     OnEffectsRemoveFinishedPhase();
                     break;
                 case GameLoopPhase.SkillActivationPhase:
+                case GameLoopPhase.SkillUpdatePhase:
+                case GameLoopPhase.SkillSpawnPhase:
                     activeSkillsManager.OnGameLoopPhase(phase);
                     passiveSkillsManager.OnGameLoopPhase(phase);
                     break;
@@ -283,6 +290,8 @@ namespace Main.Scripts.Player
                     break;
                 case GameLoopPhase.VisualStateUpdatePhase:
                     OnVisualStateUpdatePhase();
+                    activeSkillsManager.OnGameLoopPhase(phase);
+                    passiveSkillsManager.OnGameLoopPhase(phase);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(phase), phase, null);

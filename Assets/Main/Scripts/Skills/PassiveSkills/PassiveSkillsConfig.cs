@@ -10,8 +10,7 @@ namespace Main.Scripts.Skills.PassiveSkills
     {
         public LayerMask AlliesLayerMask;
         public LayerMask OpponentsLayerMask;
-
-        public List<PassiveSkillController> PassiveSkillControllers;
+        public List<PassiveSkillControllerData> PassiveSkillControllersDataList;
         public List<EffectsCombination> InitialEffects;
     }
 }

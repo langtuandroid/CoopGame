@@ -1,11 +1,7 @@
 using System.Collections.Generic;
-using Main.Scripts.Skills.Common.Component.Config.Action;
 using Main.Scripts.Skills.Common.Component.Config.ActionsPack;
-using Main.Scripts.Skills.Common.Component.Config.FindTargets;
 using Main.Scripts.Skills.Common.Component.Config.Follow;
-using Main.Scripts.Skills.Common.Component.Config.Trigger;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Main.Scripts.Skills.Common.Component.Config
 {
@@ -20,7 +16,6 @@ namespace Main.Scripts.Skills.Common.Component.Config
         private SkillDirectionType followDirectionType;
         [SerializeField]
         private SkillFollowStrategyBase followStrategy = default!;
-        [FormerlySerializedAs("skillActionsPacks")]
         [SerializeField]
         private List<SkillActionsPack> actionsPacks = new();
         [SerializeField, Tooltip("Enable 'Destroy when state authority leaves'")]
@@ -30,13 +25,6 @@ namespace Main.Scripts.Skills.Common.Component.Config
         private float durationSec;
         [SerializeField]
         private SkillInterruptStrategy interruptStrategy;
-        [SerializeField]
-        [Min(0f)]
-        private float dontDestroyAfterFinishDurationSec;
-        [SerializeField]
-        private bool dontDestroyAfterStopAction;
-        [SerializeField]
-        private SkillComponent prefab = default!;
 
         public SkillSpawnPointType SpawnPointType => spawnPointType;
         public SkillSpawnDirectionType SpawnDirectionType => spawnDirectionType;
@@ -46,8 +34,5 @@ namespace Main.Scripts.Skills.Common.Component.Config
         public bool IsAffectTargetsOnlyOneTime => isAffectTargetsOnlyOneTime;
         public float DurationSec => durationSec;
         public SkillInterruptStrategy InterruptStrategy => interruptStrategy;
-        public float DontDestroyAfterFinishDurationSec => dontDestroyAfterFinishDurationSec;
-        public bool DontDestroyAfterStopAction => dontDestroyAfterStopAction;
-        public SkillComponent Prefab => prefab;
     }
 }

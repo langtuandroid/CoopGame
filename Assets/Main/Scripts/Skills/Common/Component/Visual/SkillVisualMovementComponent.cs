@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component.Visual
 {
-    public class SkillVisualComponent : MonoBehaviour
+    public class SkillVisualMovementComponent : MonoBehaviour
     {
         private SpawnSkillVisualAction skillVisualConfig = default!;
 

@@ -193,7 +193,7 @@ MonoBehaviour:
       DashSkillConfig: {fileID: 11400000, guid: 975a24afc35ee8a4fb750463e96c92dd, type: 2}
       FirstSkillConfig: {fileID: 11400000, guid: 9c45539eb9b82db4c882f02f7cc493b1, type: 2}
       SecondSkillConfig: {fileID: 11400000, guid: 17c8584b985740441a6039183415b6c6, type: 2}
-      ThirdSkillConfig: {fileID: 0}
+      ThirdSkillConfig: {fileID: 11400000, guid: b7fed8c02bc5bdf40ba323e60c826d20, type: 2}
     PassiveSkillsConfig:
       AlliesLayerMask:
         serializedVersion: 2

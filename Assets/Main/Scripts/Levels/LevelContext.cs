@@ -3,6 +3,7 @@ using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Enemies;
 using Main.Scripts.Player;
 using Main.Scripts.Skills.Common;
+using Main.Scripts.Skills.Common.Component;
 using Main.Scripts.UI.Windows.HUD;
 using UnityEngine;
 
@@ -32,10 +33,17 @@ namespace Main.Scripts.Levels
         public SkillVisualManager SkillVisualManager => skillVisualManager;
         public HUDScreen HudScreen => hudScreen;
 
+        public SkillComponentsPoolHelper SkillComponentsPoolHelper { get; } = new();
+
         private void Awake()
         {
             Assert.Check(Instance == null);
             Instance = this;
+        }
+
+        private void OnDisable()
+        {
+            SkillComponentsPoolHelper.Clear();
         }
 
         private void OnDestroy()

@@ -4,6 +4,7 @@ using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Core.Resources;
+using Main.Scripts.Levels;
 using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills.Common.Component;
 using Main.Scripts.Skills.Common.Component.Config;
@@ -15,23 +16,24 @@ namespace Main.Scripts.Skills.Common.Controller
 {
     public class SkillController
     {
-        private NetworkObject objectContext;
+        private NetworkObject objectContext = null!;
         private SkillControllerConfig skillControllerConfig;
 
         private Listener? listener;
         private GameObject? marker;
-        private SkillConfigsBank skillConfigsBank = default!;
+        private SkillConfigsBank skillConfigsBank = null!;
+        private SkillComponentsPoolHelper skillComponentsPoolHelper = null!;
 
-        private Vector3 initialMapPoint { get; set; }
-        private Vector3 dynamicMapPoint { get; set; }
-        private NetworkObject? selectedUnit { get; set; }
+        private Vector3 initialMapPoint;
+        private Vector3 dynamicMapPoint;
+        private NetworkObject? selectedUnit;
+        private TickTimer executionTimer;
+        private TickTimer castTimer;
+        private bool isActivating;
 
-        private TickTimer executionTimer { get; set; }
-        private TickTimer castTimer { get; set; }
-        private TickTimer cooldownTimer { get; set; }
-        private bool isActivating { get; set; }
+        private TickTimer cooldownTimer;
         
-        private List<SkillComponent?> skillComponents = new();
+        private HashSet<SkillComponent> skillComponents = new();
         
         private Transform selfUnitTransform;
         private LayerMask alliesLayerMask;
@@ -66,14 +68,20 @@ namespace Main.Scripts.Skills.Common.Controller
         public void Spawned(NetworkObject objectContext)
         {
             this.objectContext = objectContext;
-            skillComponents.Clear();
-            spawnActions.Clear();
             skillConfigsBank = GlobalResources.Instance.ThrowWhenNull().SkillConfigsBank;
+            skillComponentsPoolHelper = LevelContext.Instance.ThrowWhenNull().SkillComponentsPoolHelper;
         }
 
         public void Despawned(NetworkRunner runner, bool hasState)
         {
-            objectContext = default!;
+            ResetOnFinish();
+            
+            objectContext = null!;
+            skillConfigsBank = null!;
+            skillComponentsPoolHelper = null!;
+            cooldownTimer = default!;
+
+            spawnActions.Clear();
         }
 
         public void Render()
@@ -125,7 +133,6 @@ namespace Main.Scripts.Skills.Common.Controller
             }
 
             isActivating = true;
-            skillComponents.Clear();
 
             switch (skillControllerConfig.ActivationType)
             {
@@ -155,10 +162,7 @@ namespace Main.Scripts.Skills.Common.Controller
 
             foreach (var skillComponent in skillComponents)
             {
-                if (skillComponent != null)
-                {
-                    skillComponent.UpdateMapPoint(mapPoint);
-                }
+                skillComponent.UpdateMapPoint(mapPoint);
             }
         }
 
@@ -267,10 +271,7 @@ namespace Main.Scripts.Skills.Common.Controller
         {
             foreach (var skillComponent in skillComponents)
             {
-                if (skillComponent != null)
-                {
-                    skillComponent.OnClickTrigger();
-                }
+                skillComponent.OnClickTrigger();
             }
         }
 
@@ -279,10 +280,7 @@ namespace Main.Scripts.Skills.Common.Controller
             //todo доделать
             foreach (var skillComponent in skillComponents)
             {
-                if (skillComponent != null)
-                {
-                    skillComponent.TryInterrupt();
-                }
+                skillComponent.TryInterrupt();
             }
 
             return false;
@@ -316,10 +314,8 @@ namespace Main.Scripts.Skills.Common.Controller
 
             foreach (var skillComponent in skillComponents)
             {
-                if (skillComponent != null)
-                {
-                    skillComponent.OnLostControl();
-                }
+                skillComponent.OnLostControl();
+                skillComponent.OnReadyToRelease -= OnReadyToReleaseSkillComponent;
             }
             skillComponents.Clear();
         }
@@ -396,35 +392,34 @@ namespace Main.Scripts.Skills.Common.Controller
                         throw new ArgumentOutOfRangeException();
                 }
 
-                var spawnedSkill = objectContext.Runner.Spawn(
-                    prefab: skillConfig.Prefab,
+                var skillComponent = skillComponentsPoolHelper.Get();
+                skillComponent.Init(
+                    skillConfigId: skillConfigsBank.GetSkillConfigId(skillConfig),
+                    objectContext: objectContext,
                     position: position,
                     rotation: rotation,
-                    onBeforeSpawned: (_, skillObject) =>
-                    {
-                        skillObject.GetComponent<SkillComponent>().Init(
-                            skillConfigId: skillConfigsBank.GetSkillConfigId(skillConfig),
-                            ownerId: objectContext.StateAuthority,
-                            initialMapPoint: initialMapPoint,
-                            dynamicMapPoint: dynamicMapPoint,
-                            selfUnit: objectContext,
-                            selectedUnit: selectedUnit,
-                            alliesLayerMask: alliesLayerMask,
-                            opponentsLayerMask: opponentsLayerMask,
-                            onSpawnNewSkillComponent: OnSpawnNewSkillComponent
-                        );
-                    }
+                    ownerId: objectContext.StateAuthority,
+                    initialMapPoint: initialMapPoint,
+                    dynamicMapPoint: dynamicMapPoint,
+                    selfUnit: objectContext,
+                    selectedUnit: selectedUnit,
+                    alliesLayerMask: alliesLayerMask,
+                    opponentsLayerMask: opponentsLayerMask,
+                    onSpawnNewSkillComponent: OnSpawnNewSkillComponent
                 );
-                if (spawnedSkill != null)
-                {
-                    skillComponents.Add(spawnedSkill);
-                }
+
+                skillComponents.Add(skillComponent);
             }
         }
 
         private void OnSpawnNewSkillComponent(SkillComponent spawnedSkillComponent)
         {
             skillComponents.Add(spawnedSkillComponent);
+        }
+
+        private void OnReadyToReleaseSkillComponent(SkillComponent skillComponent)
+        {
+            skillComponents.Remove(skillComponent);
         }
 
         public interface Listener

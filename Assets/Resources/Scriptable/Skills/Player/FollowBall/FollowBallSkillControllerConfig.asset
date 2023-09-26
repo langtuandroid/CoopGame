@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca3d1d46e4be4df1b28028d25c825374, type: 3}
+  m_Name: FollowBallSkillControllerConfig
+  m_EditorClassIdentifier: 
+  runOnStartSkillConfigs:
+  - {fileID: 11400000, guid: 18fa601a2397ad4408fa5ee9608afd77, type: 2}
+  runAfterCastSkillConfigs: []
+  activationType: 0
+  areaMarker: {fileID: 0}
+  selectionTargetType: 0
+  executionDurationSec: 5
+  disableMoveOnExecution: 0
+  castDurationSec: 0
+  disableMoveOnCast: 0
+  cooldownSec: 3

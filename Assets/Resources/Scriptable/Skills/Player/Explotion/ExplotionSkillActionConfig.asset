@@ -10,17 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 708574db76a74ebe87e92ea04b52a2a5, type: 3}
-  m_Name: ExplotionStartConfig
+  m_Name: ExplotionSkillActionConfig
   m_EditorClassIdentifier: 
   spawnPointType: 2
   spawnDirectionType: 0
   followDirectionType: 0
   followStrategy: {fileID: 11400000, guid: 3dd27e4fa2ef1b84f943915d04efaf99, type: 2}
   actionsPacks:
-  - {fileID: 11400000, guid: 322921c6670db1443b90fa5536b5e6c5, type: 2}
+  - {fileID: 11400000, guid: 8c89680d6057307418d1ea7bade37713, type: 2}
+  - {fileID: 11400000, guid: 51e8c07f1e306d949869b03302cd07f9, type: 2}
   isAffectTargetsOnlyOneTime: 0
-  durationSec: 1
+  durationSec: 3
   interruptStrategy: 0
-  dontDestroyAfterFinishDurationSec: 0
-  dontDestroyAfterStopAction: 0
-  prefab: {fileID: -3136543887100792344, guid: 2826da260529e9b41b2de7707bd0ac19, type: 3}

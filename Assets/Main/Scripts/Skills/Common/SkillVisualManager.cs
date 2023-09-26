@@ -105,7 +105,7 @@ namespace Main.Scripts.Skills.Common
                     despawnWaitingObjects[spawnActionData.token] = spawnedObject;
                 }
 
-                if (spawnedObject.TryGetComponent(out SkillVisualComponent component))
+                if (spawnedObject.TryGetComponent(out SkillVisualMovementComponent component))
                 {
                     component.Init(spawnActionData.skillVisualConfig);
                 }

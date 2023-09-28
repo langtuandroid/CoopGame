@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d752ba6ca1945169ed27d700872423d, type: 3}
   m_Name: MeleeSkillActionsPack
   m_EditorClassIdentifier: 
-  actionTrigger: {fileID: 11400000, guid: e922a03635979d04d8faf3c643f32a6b, type: 2}
   findTargetsStrategies:
   - {fileID: 11400000, guid: 9c8058e08407e2b4db265c7db2bc8a57, type: 2}
   actions:

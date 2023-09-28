@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5d752ba6ca1945169ed27d700872423d, type: 3}
-  m_Name: ExplotionActionsPackStart
+  m_Name: ExplotionCastFinishActionsPackStart
   m_EditorClassIdentifier: 
   actionTrigger: {fileID: 11400000, guid: 0ec5652734b992c4bb529c276b5343cf, type: 2}
   findTargetsStrategies: []

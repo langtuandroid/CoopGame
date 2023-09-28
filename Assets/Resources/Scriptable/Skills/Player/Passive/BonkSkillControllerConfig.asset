@@ -17,6 +17,7 @@ MonoBehaviour:
   runAfterCastSkillConfigs: []
   activationType: 0
   areaMarker: {fileID: 0}
+  selectionTargetType: 0
   executionDurationSec: 0
   disableMoveOnExecution: 0
   castDurationSec: 0

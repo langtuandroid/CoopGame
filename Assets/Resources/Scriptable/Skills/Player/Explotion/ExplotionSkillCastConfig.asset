@@ -16,9 +16,12 @@ MonoBehaviour:
   spawnDirectionType: 0
   followDirectionType: 0
   followStrategy: {fileID: 11400000, guid: 3dd27e4fa2ef1b84f943915d04efaf99, type: 2}
-  actionsPacks:
-  - {fileID: 11400000, guid: c9bdd5a555ad0974a9fa34b38107bb25, type: 2}
-  - {fileID: 11400000, guid: 322921c6670db1443b90fa5536b5e6c5, type: 2}
-  isAffectTargetsOnlyOneTime: 0
+  triggerPacks:
+  - ActionTrigger: {fileID: 11400000, guid: 19dbf92fb648d37409727eefa84f90b2, type: 2}
+    ActionsPackList:
+    - {fileID: 11400000, guid: c9bdd5a555ad0974a9fa34b38107bb25, type: 2}
+  - ActionTrigger: {fileID: 11400000, guid: 0ec5652734b992c4bb529c276b5343cf, type: 2}
+    ActionsPackList:
+    - {fileID: 11400000, guid: 322921c6670db1443b90fa5536b5e6c5, type: 2}
   durationSec: 1
   interruptStrategy: 0

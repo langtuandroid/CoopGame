@@ -9,8 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 01f186208a3e48c892acc4adfb951b2a, type: 3}
-  m_Name: PlayerPassiveSkill
+  m_Script: {fileID: 11500000, guid: adf537e1dc73466bb117ee993c0045d3, type: 3}
+  m_Name: CollisionDetectedTargets
   m_EditorClassIdentifier: 
-  Effects:
-  - {fileID: 11400000, guid: cadbb988145dbc149be2151bd134e363, type: 2}

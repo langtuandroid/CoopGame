@@ -27,6 +27,13 @@ namespace Main.Scripts.Skills.Common.Component
 {
     public class SkillComponent : GameLoopListener
     {
+        private static readonly Type START_TRIGGER_TYPE = typeof(StartSkillActionTrigger);
+        private static readonly Type FINISH_TRIGGER_TYPE = typeof(FinishSkillActionTrigger);
+        private static readonly Type TIMER_TRIGGER_TYPE = typeof(TimerSkillActionTrigger);
+        private static readonly Type PERIODIC_TRIGGER_TYPE = typeof(PeriodicSkillActionTrigger);
+        private static readonly Type COLLISION_TRIGGER_TYPE = typeof(CollisionSkillActionTrigger);
+        private static readonly Type CLICK_TRIGGER_TYPE = typeof(ClickSkillActionTrigger);
+
         private SkillConfigsBank skillConfigsBank = null!;
         private ModifierIdsBank modifierIdsBank = null!;
         private SkillVisualManager skillVisualManager = null!;
@@ -36,28 +43,31 @@ namespace Main.Scripts.Skills.Common.Component
         private SkillConfig skillConfig = null!;
         private PlayerData? playerData;
         
-        private NetworkObject objectContext = null!;
+        private NetworkRunner runner = null!;
         private PlayerRef ownerId;
         private Vector3 initialMapPoint;
         private Vector3 dynamicMapPoint;
-        private NetworkObject? selfUnit;
-        private NetworkObject? selectedUnit;
+        private NetworkId selfUnitId;
+        private NetworkId selectedUnitId;
         private int alliesLayerMask;
         private int opponentsLayerMask;
 
         private int startSkillTick;
         private TickTimer lifeTimer;
         private TickTimer triggerTimer;
-        private Dictionary<SkillActionsPackData, int> activatedTriggersCountMap = new();
+        private Dictionary<Type, int> activatedTriggersCountMap = new();
         private bool shouldStop;
 
-        private List<GameObject> affectedTargets = new();
+        private HashSet<CollisionTargetData> collisionDetectedTargets = new();
+        private HashSet<CollisionTargetData> affectedCollisionTargets = new();
 
         private SkillFollowStrategyBase followStrategy = null!;
-        private List<SkillActionsPackData> actionsPacksDataList = new();
+        private Dictionary<Type, SkillTriggerPackData> triggerPacksDataMap = new();
 
         private HashSet<GameObject> findTargetHitObjectsSet = new();
 
+        private NetworkObject? selfUnit;
+        private NetworkObject? selectedUnit;
         private List<SpawnSkillActionBase> spawnActions = new();
         private RaycastHit[] raycasts = new RaycastHit[100];
         private Collider[] colliders = new Collider[100];
@@ -85,27 +95,27 @@ namespace Main.Scripts.Skills.Common.Component
 
         public void Init(
             int skillConfigId,
-            NetworkObject objectContext,
+            NetworkRunner runner,
             Vector3 position,
             Quaternion rotation,
             PlayerRef ownerId,
             Vector3 initialMapPoint,
             Vector3 dynamicMapPoint,
-            NetworkObject? selfUnit,
-            NetworkObject? selectedUnit,
+            NetworkId selfUnitId,
+            NetworkId selectedUnitId,
             LayerMask alliesLayerMask,
             LayerMask opponentsLayerMask,
             Action<SkillComponent>? onSpawnNewSkillComponent
         )
         {
-            this.objectContext = objectContext;
+            this.runner = runner;
             Position = position;
             Rotation = rotation;
             this.ownerId = ownerId;
             this.initialMapPoint = initialMapPoint;
             this.dynamicMapPoint = dynamicMapPoint;
-            this.selfUnit = selfUnit;
-            this.selectedUnit = selectedUnit;
+            this.selfUnitId = selfUnitId;
+            this.selectedUnitId = selectedUnitId;
             this.alliesLayerMask = alliesLayerMask;
             this.opponentsLayerMask = opponentsLayerMask;
             this.onSpawnNewSkillComponent = onSpawnNewSkillComponent;
@@ -130,19 +140,38 @@ namespace Main.Scripts.Skills.Common.Component
             );
 
 
-            foreach (var skillActionsPack in skillConfig.ActionsPacks)
+            foreach (var skillTriggerPack in skillConfig.TriggerPacks)
             {
-                var resolvedDataOut = GenericPool<SkillActionsPackData>.Get();
-
-                SkillActionsPackResolver.ResolveEnabledModifiers(
+                SkillActionTriggerConfigsResolver.ResolveEnabledModifiers(
                     modifierIdsBank,
                     ref playerData,
-                    skillActionsPack,
-                    resolvedDataOut
+                    skillTriggerPack.ActionTrigger,
+                    out var resolvedActionTrigger
                 );
-                actionsPacksDataList.Add(resolvedDataOut);
+                var triggerType = resolvedActionTrigger.GetType();
 
-                activatedTriggersCountMap[resolvedDataOut] = 0;
+                var actionsPackList = ListPool<SkillActionsPackData>.Get();
+
+                foreach (var skillActionsPack in skillTriggerPack.ActionsPackList)
+                {
+                    var resolvedDataOut = GenericPool<SkillActionsPackData>.Get();
+
+                    SkillActionsPackResolver.ResolveEnabledModifiers(
+                        modifierIdsBank,
+                        ref playerData,
+                        skillActionsPack,
+                        resolvedDataOut
+                    );
+
+                    actionsPackList.Add(resolvedDataOut);
+                }
+
+                activatedTriggersCountMap[triggerType] = 0;
+                triggerPacksDataMap[triggerType] = new SkillTriggerPackData
+                {
+                    ActionTrigger = resolvedActionTrigger,
+                    ActionsPackList = actionsPackList
+                };
             }
             
             levelContext.GameLoopManager.AddListener(this);
@@ -155,11 +184,17 @@ namespace Main.Scripts.Skills.Common.Component
                 gameLoopManager.RemoveListener(this);
             }
 
-            foreach (var actionsPackData in actionsPacksDataList)
+            foreach (var (_, triggerPackData) in triggerPacksDataMap)
             {
-                GenericPool<SkillActionsPackData>.Release(actionsPackData);
+                foreach (var actionsPackData in triggerPackData.ActionsPackList)
+                {
+                    GenericPool<SkillActionsPackData>.Release(actionsPackData);
+                }
+
+                triggerPackData.ActionsPackList.Clear();
+                ListPool<SkillActionsPackData>.Release(triggerPackData.ActionsPackList);
             }
-            
+
             Reset();
         }
 
@@ -174,22 +209,25 @@ namespace Main.Scripts.Skills.Common.Component
             skillConfig = null!;
             playerData = null;
         
-            objectContext = null!;
-            selfUnit = null!;
-            selectedUnit = null!;
+            runner = null!;
+            selfUnitId = default;
+            selectedUnitId = default;
+            selfUnit = null;
+            selectedUnit = null;
             
             
             lifeTimer = default;
             triggerTimer = default;
             activatedTriggersCountMap.Clear();
+            collisionDetectedTargets.Clear();
+            affectedCollisionTargets.Clear();
             shouldStop = false;
             startSkillTick = 0;
             skillPositionOnCollisionTriggered = default;
             visualToken = -1;
             
-            affectedTargets.Clear();
             findTargetHitObjectsSet.Clear();
-            actionsPacksDataList.Clear();
+            triggerPacksDataMap.Clear();
 
             spawnActions.Clear();
             isCollisionTriggered = false;
@@ -246,83 +284,79 @@ namespace Main.Scripts.Skills.Common.Component
         {
             if (shouldStop) return;
 
+            if (selfUnitId.IsValid)
+            {
+                selfUnit = runner.FindObject(selfUnitId);
+            }
+
+            if (selectedUnitId.IsValid)
+            {
+                selectedUnit = runner.FindObject(selectedUnitId);
+            }
+
             if (isCollisionTriggered)
             {
-                foreach (var actionsPack in actionsPacksDataList)
-                {
-                    if (actionsPack.ActionTrigger is CollisionSkillActionTrigger)
-                    {
-                        ExecuteActions(actionsPack);
-                    }
-                }
+                ExecuteTriggerPack(COLLISION_TRIGGER_TYPE);
 
+                //reset trigger and targets after actions execution
                 isCollisionTriggered = false;
+                collisionDetectedTargets.Clear();
             }
 
             if (isClickTriggered)
             {
-                foreach (var actionsPack in actionsPacksDataList)
-                {
-                    if (actionsPack.ActionTrigger is ClickSkillActionTrigger)
-                    {
-                        ExecuteActions(actionsPack);
-                    }
-                }
+                ExecuteTriggerPack(CLICK_TRIGGER_TYPE);
 
                 isClickTriggered = false;
             }
 
             if (!lifeTimer.IsRunning)
             {
-                startSkillTick = objectContext.Runner.Tick;
-                lifeTimer = TickTimer.CreateFromSeconds(objectContext.Runner, skillConfig.DurationSec);
+                startSkillTick = runner.Tick;
+                lifeTimer = TickTimer.CreateFromSeconds(runner, skillConfig.DurationSec);
 
-                foreach (var actionsPack in actionsPacksDataList)
+                if (triggerPacksDataMap.TryGetValue(TIMER_TRIGGER_TYPE, out var triggerPackData)
+                    && triggerPackData.ActionTrigger is TimerSkillActionTrigger timerTrigger)
                 {
-                    if (actionsPack.ActionTrigger is TimerSkillActionTrigger timerTrigger)
-                    {
-                        triggerTimer = TickTimer.CreateFromSeconds(objectContext.Runner, timerTrigger.DelaySec);
-                    }
-
-                    if (actionsPack.ActionTrigger is StartSkillActionTrigger)
-                    {
-                        ExecuteActions(actionsPack);
-                    }
+                    triggerTimer = TickTimer.CreateFromSeconds(runner, timerTrigger.DelaySec);
                 }
+
+                ExecuteTriggerPack(START_TRIGGER_TYPE);
             }
 
-            if (!lifeTimer.Expired(objectContext.Runner))
+            if (!lifeTimer.Expired(runner))
             {
-                if (triggerTimer.Expired(objectContext.Runner))
+                if (triggerTimer.Expired(runner))
                 {
                     triggerTimer = default;
-                    foreach (var actionsPack in actionsPacksDataList)
-                    {
-                        if (actionsPack.ActionTrigger is TimerSkillActionTrigger)
-                        {
-                            ExecuteActions(actionsPack);
-                        }
-                    }
+                    ExecuteTriggerPack(TIMER_TRIGGER_TYPE);
                 }
 
                 CheckPeriodicTrigger();
             }
 
-            if (lifeTimer.Expired(objectContext.Runner) || shouldStop)
+            if (lifeTimer.Expired(runner) || shouldStop)
             {
                 lifeTimer = default;
 
-                foreach (var actionsPack in actionsPacksDataList)
-                {
-                    if (actionsPack.ActionTrigger is FinishSkillActionTrigger)
-                    {
-                        ExecuteActions(actionsPack);
-                    }
-                }
+                ExecuteTriggerPack(FINISH_TRIGGER_TYPE);
 
                 shouldStop = true;
 
                 RefreshVisual(-1);
+            }
+        }
+
+        private void CheckPeriodicTrigger()
+        {
+            var tick = runner.Tick - startSkillTick;
+            var tickRate = runner.Simulation.Config.TickRate;
+
+            if (triggerPacksDataMap.TryGetValue(PERIODIC_TRIGGER_TYPE, out var triggerPackData)
+                && triggerPackData.ActionTrigger is PeriodicSkillActionTrigger periodicTrigger
+                && TickHelper.CheckFrequency(tick, tickRate, periodicTrigger.Frequency))
+            {
+                ExecuteTriggerPack(PERIODIC_TRIGGER_TYPE);
             }
         }
 
@@ -444,69 +478,85 @@ namespace Main.Scripts.Skills.Common.Component
                         }
 
                         break;
-                }
-            }
+                    case CollisionDetectedSkillFindTargetsStrategy:
+                        foreach (var collisionDetectedTarget in collisionDetectedTargets)
+                        {
+                            if (collisionDetectedTarget.Id == collisionDetectedTarget.NetworkObject.Id)
+                            {
+                                findTargetHitObjectsSet.Add(collisionDetectedTarget.NetworkObject.gameObject);
+                            }
+                        }
 
-            if (skillConfig.IsAffectTargetsOnlyOneTime)
-            {
-                foreach (var affectedTarget in affectedTargets)
-                {
-                    findTargetHitObjectsSet.Remove(affectedTarget.gameObject);
-                }
-
-                foreach (var hitTarget in findTargetHitObjectsSet)
-                {
-                    affectedTargets.Add(hitTarget);
+                        break;
                 }
             }
 
             return findTargetHitObjectsSet;
         }
 
-        private void CheckPeriodicTrigger()
-        {
-            foreach (var actionsPack in actionsPacksDataList)
-            {
-                if (actionsPack.ActionTrigger is PeriodicSkillActionTrigger periodicTrigger
-                    && TickHelper.CheckFrequency(objectContext.Runner.Tick - startSkillTick, objectContext.Runner.Simulation.Config.TickRate,
-                        periodicTrigger.Frequency))
-                {
-                    ExecuteActions(actionsPack);
-                }
-            }
-        }
-
         private void CheckCollisionTrigger()
         {
-            foreach (var actionsPack in actionsPacksDataList)
+            if (triggerPacksDataMap.TryGetValue(COLLISION_TRIGGER_TYPE, out var triggerPackData)
+                && triggerPackData.ActionTrigger is CollisionSkillActionTrigger collisionTrigger)
             {
-                if (actionsPack.ActionTrigger is CollisionSkillActionTrigger collisionTrigger)
+                var hitsCount = Physics.OverlapSphereNonAlloc(
+                    position: Position,
+                    radius: collisionTrigger.Radius,
+                    results: colliders,
+                    layerMask: GetLayerMaskByType(collisionTrigger.TargetType) |
+                               collisionTrigger.TriggerByDecorationsLayer
+                );
+
+                var isDecorationHit = false;
+                for (var i = 0; i < hitsCount; i++)
                 {
-                    var hitsCount = Physics.OverlapSphereNonAlloc(
-                        position: Position,
-                        radius: collisionTrigger.Radius,
-                        results: colliders,
-                        layerMask: GetLayerMaskByType(collisionTrigger.TargetType) |
-                                   collisionTrigger.TriggerByDecorationsLayer
-                    );
-
-                    if (!isCollisionTriggered &&
-                        (hitsCount >= 2 || (hitsCount > 0 && colliders[0].gameObject != objectContext.gameObject)))
+                    var colliderObject = colliders[i].gameObject;
+                    if (isSelfGameObject(colliderObject)) continue;
+                    isDecorationHit |= (1 << colliderObject.layer & collisionTrigger.TriggerByDecorationsLayer) > 0;
+                    
+                    if (colliderObject.TryGetComponent<NetworkObject>(out var networkObject))
                     {
-                        skillPositionOnCollisionTriggered = Position;
-                        isCollisionTriggered = true;
+                        var targetData = new CollisionTargetData
+                        {
+                            Id = networkObject.Id,
+                            NetworkObject = networkObject
+                        };
+                        if (!collisionTrigger.IsAffectTargetsOnlyOneTime)
+                        {
+                            collisionDetectedTargets.Add(targetData);
+                        }
+                        else if (!affectedCollisionTargets.Contains(targetData))
+                        {
+                            collisionDetectedTargets.Add(targetData);
+                            affectedCollisionTargets.Add(targetData);
+                        }
                     }
+                }
 
-                    //todo переделать структуру триггеров и стратегий поиска (с
-                    break;
+                if (!isCollisionTriggered && (isDecorationHit || collisionDetectedTargets.Count > 0))
+                {
+                    skillPositionOnCollisionTriggered = Position;
+                    isCollisionTriggered = true;
                 }
             }
         }
 
-        private void ExecuteActions(SkillActionsPackData actionsPackData)
+        private void ExecuteTriggerPack(Type triggerType)
         {
-            var activatedTriggersCount = activatedTriggersCountMap[actionsPackData]++;
+            if (triggerPacksDataMap.TryGetValue(triggerType, out var triggerPackData))
+            {
+                var actionsPackList = triggerPackData.ActionsPackList;
+                var activatedTriggersCount = activatedTriggersCountMap[triggerType]++;
 
+                foreach (var actionsPack in actionsPackList)
+                {
+                    ExecuteActions(actionsPack, activatedTriggersCount);
+                }
+            }
+        }
+
+        private void ExecuteActions(SkillActionsPackData actionsPackData, int activatedTriggersCount)
+        {
             var actionTargets = FindActionTargets(actionsPackData.FindTargetsStrategies);
             foreach (var action in actionsPackData.Actions)
             {
@@ -605,7 +655,7 @@ namespace Main.Scripts.Skills.Common.Component
                 switch (spawnAction)
                 {
                     case SpawnPrefabSkillAction spawnPrefabSkillAction:
-                        var spawnedObject = objectContext.Runner.Spawn(
+                        var spawnedObject = runner.Spawn(
                             prefab: spawnPrefabSkillAction.PrefabToSpawn,
                             position: spawnPosition,
                             rotation: spawnRotation
@@ -619,14 +669,14 @@ namespace Main.Scripts.Skills.Common.Component
                         var skillComponent = skillComponentsPoolHelper.Get();
                         skillComponent.Init(
                             skillConfigId: skillConfigsBank.GetSkillConfigId(spawnConfigSkillAction.SkillConfig),
-                            objectContext: objectContext,
+                            runner: runner,
                             position: spawnPosition,
                             rotation: spawnRotation,
                             ownerId: ownerId,
                             initialMapPoint: initialMapPoint,
                             dynamicMapPoint: dynamicMapPoint,
-                            selfUnit: objectContext,
-                            selectedUnit: selectedUnit,
+                            selfUnitId: selfUnitId,
+                            selectedUnitId: selectedUnitId,
                             alliesLayerMask: alliesLayerMask,
                             opponentsLayerMask: opponentsLayerMask,
                             onSpawnNewSkillComponent: onSpawnNewSkillComponent
@@ -754,7 +804,7 @@ namespace Main.Scripts.Skills.Common.Component
             for (var i = 0; i < hitsCount; i++)
             {
                 var hit = colliders[i];
-                if (hit.gameObject == objectContext.gameObject) continue;
+                if (isSelfGameObject(hit.gameObject)) continue;
 
                 targetsSet.Add(hit.gameObject);
             }
@@ -793,7 +843,7 @@ namespace Main.Scripts.Skills.Common.Component
                 for (var j = 0; j < hitsCount; j++)
                 {
                     var hit = raycasts[j].collider;
-                    if (hit.gameObject == objectContext.gameObject) continue;
+                    if (isSelfGameObject(hit.gameObject)) continue;
 
                     targetsSet.Add(hit.gameObject);
                 }
@@ -827,15 +877,41 @@ namespace Main.Scripts.Skills.Common.Component
             for (var i = 0; i < hitsCount; i++)
             {
                 var hit = colliders[i];
-                if (hit.gameObject == objectContext.gameObject) continue;
+                if (isSelfGameObject(hit.gameObject)) continue;
 
                 targetsSet.Add(hit.gameObject);
             }
+        }
+        
+        private bool isSelfGameObject(GameObject hitGameObject)
+        {
+            return selfUnit != null && hitGameObject == selfUnit.gameObject;
         }
 
         private Vector3 GetForward()
         {
             return Rotation * Vector3.forward;
+        }
+
+        private struct CollisionTargetData
+        {
+            public NetworkId Id;
+            public NetworkObject NetworkObject;
+
+            public override bool Equals(object obj)
+            {
+                if (obj is CollisionTargetData objData)
+                {
+                    return Id.Equals(objData.Id);
+                }
+
+                return false;
+            }
+
+            public override int GetHashCode()
+            {
+                return Id.GetHashCode();
+            }
         }
     }
 }

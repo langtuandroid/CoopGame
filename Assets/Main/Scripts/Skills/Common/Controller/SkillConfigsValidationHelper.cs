@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Main.Scripts.Skills.Common.Component.Config;
 using Main.Scripts.Skills.Common.Component.Config.Action;
@@ -61,21 +62,31 @@ namespace Main.Scripts.Skills.Common.Controller
                 throw new Exception($"{skillControllerConfigName}::{skillConfig.name}: FollowStrategy has empty value");
             }
 
-            foreach (var actionsPack in skillConfig.ActionsPacks)
+            var triggersSet = new HashSet<Type>();
+            foreach (var triggerPack in skillConfig.TriggerPacks)
             {
-                if (actionsPack.ActionTrigger == null)
+                if (triggerPack.ActionTrigger == null)
                 {
-                    throw new Exception($"{skillControllerConfigName}::{skillConfig.name}::{actionsPack.name}: ActionTrigger has empty value");
+                    throw new Exception($"{skillControllerConfigName}::{skillConfig.name}: ActionTrigger has empty value");
                 }
 
-                if (actionsPack.FindTargetsStrategies.Any(findTargetsStrategy => findTargetsStrategy == null))
+                var triggerType = triggerPack.ActionTrigger.GetType();
+                if (triggersSet.Contains(triggerType))
                 {
-                    throw new Exception($"{skillControllerConfigName}::{skillConfig.name}::{actionsPack.name}: FindTargetsStrategies has empty value");
+                    throw new Exception($"{skillControllerConfigName}::{skillConfig.name}::{triggerPack.ActionTrigger}: ActionTrigger type is already registered");
                 }
 
-                if (actionsPack.Actions.Any(action => action == null))
+                foreach (var actionsPack in triggerPack.ActionsPackList)
                 {
-                    throw new Exception($"{skillControllerConfigName}::{skillConfig.name}::{actionsPack.name}: Actions has empty value");
+                    if (actionsPack.FindTargetsStrategies.Any(findTargetsStrategy => findTargetsStrategy == null))
+                    {
+                        throw new Exception($"{skillControllerConfigName}::{skillConfig.name}::{triggerPack.ActionTrigger}::{actionsPack.name}: FindTargetsStrategies has empty value");
+                    }
+
+                    if (actionsPack.Actions.Any(action => action == null))
+                    {
+                        throw new Exception($"{skillControllerConfigName}::{skillConfig.name}::{triggerPack.ActionTrigger}::{actionsPack.name}: Actions has empty value");
+                    }
                 }
             }
         }
@@ -101,58 +112,62 @@ namespace Main.Scripts.Skills.Common.Controller
                     return skillConfig.name;
                 }
 
-                foreach (var actionsPack in skillConfig.ActionsPacks)
+                foreach (var triggerPack in skillConfig.TriggerPacks)
                 {
-                    foreach (var findTargetsStrategy in actionsPack.FindTargetsStrategies)
+                    foreach (var actionsPack in triggerPack.ActionsPackList)
                     {
-                        switch (findTargetsStrategy)
+                        foreach (var findTargetsStrategy in actionsPack.FindTargetsStrategies)
                         {
-                            case AroundPointSkillFindTargetsStrategy aroundPoint:
-                                if (IsPointOrDirectionUseSelectedUnit(aroundPoint.OriginPoint, null))
-                                {
-                                    return $"{skillConfig.name}::{actionsPack.name}::{aroundPoint.name}";
-                                }
+                            switch (findTargetsStrategy)
+                            {
+                                case AroundPointSkillFindTargetsStrategy aroundPoint:
+                                    if (IsPointOrDirectionUseSelectedUnit(aroundPoint.OriginPoint, null))
+                                    {
+                                        return $"{skillConfig.name}::{actionsPack.name}::{aroundPoint.name}";
+                                    }
 
-                                break;
-                            case CircleSectorSkillFindTargetsStrategy circleSector:
-                                if (IsPointOrDirectionUseSelectedUnit(circleSector.OriginPoint,
-                                        circleSector.DirectionType))
-                                {
-                                    return $"{skillConfig.name}::{actionsPack.name}::{circleSector.name}";
-                                }
+                                    break;
+                                case CircleSectorSkillFindTargetsStrategy circleSector:
+                                    if (IsPointOrDirectionUseSelectedUnit(circleSector.OriginPoint,
+                                            circleSector.DirectionType))
+                                    {
+                                        return $"{skillConfig.name}::{actionsPack.name}::{circleSector.name}";
+                                    }
 
-                                break;
-                            case RectangleSkillFindTargetsStrategy rectangle:
-                                if (IsPointOrDirectionUseSelectedUnit(rectangle.OriginPoint, rectangle.DirectionType))
-                                {
-                                    return $"{skillConfig.name}::{actionsPack.name}::{rectangle.name}";
-                                }
+                                    break;
+                                case RectangleSkillFindTargetsStrategy rectangle:
+                                    if (IsPointOrDirectionUseSelectedUnit(rectangle.OriginPoint,
+                                            rectangle.DirectionType))
+                                    {
+                                        return $"{skillConfig.name}::{actionsPack.name}::{rectangle.name}";
+                                    }
 
-                                break;
-                            case SelectedUnitSkillFindTargetsStrategy selectedUnitStrategy:
-                                return $"{skillConfig.name}::{actionsPack.name}::{selectedUnitStrategy.name}";
+                                    break;
+                                case SelectedUnitSkillFindTargetsStrategy selectedUnitStrategy:
+                                    return $"{skillConfig.name}::{actionsPack.name}::{selectedUnitStrategy.name}";
+                            }
                         }
-                    }
 
-                    foreach (var skillAction in actionsPack.Actions)
-                    {
-                        switch (skillAction)
+                        foreach (var skillAction in actionsPack.Actions)
                         {
-                            case DashSkillAction dashAction:
-                                if (IsPointOrDirectionUseSelectedUnit(null, dashAction.DirectionType))
-                                {
-                                    return $"{skillConfig.name}::{actionsPack.name}::{dashAction.name}";
-                                }
+                            switch (skillAction)
+                            {
+                                case DashSkillAction dashAction:
+                                    if (IsPointOrDirectionUseSelectedUnit(null, dashAction.DirectionType))
+                                    {
+                                        return $"{skillConfig.name}::{actionsPack.name}::{dashAction.name}";
+                                    }
 
-                                break;
-                            case SpawnConfigSkillAction spawnAction:
-                                if (IsPointOrDirectionUseSelectedUnit(spawnAction.SpawnPointType,
-                                        spawnAction.SpawnDirectionType))
-                                {
-                                    return $"{skillConfig.name}::{actionsPack.name}::{spawnAction.name}";
-                                }
+                                    break;
+                                case SpawnConfigSkillAction spawnAction:
+                                    if (IsPointOrDirectionUseSelectedUnit(spawnAction.SpawnPointType,
+                                            spawnAction.SpawnDirectionType))
+                                    {
+                                        return $"{skillConfig.name}::{actionsPack.name}::{spawnAction.name}";
+                                    }
 
-                                break;
+                                    break;
+                            }
                         }
                     }
                 }
@@ -197,7 +212,6 @@ namespace Main.Scripts.Skills.Common.Controller
 
         private static string? GetConfigNameThatUsedIllegalInitialMapPoint(SkillControllerConfig skillControllerConfig)
         {
-            //todo
             foreach (var skillConfig in skillControllerConfig.RunAfterCastSkillConfigs)
             {
                 if (skillConfig.SpawnPointType == SkillSpawnPointType.InitialMapPointTarget)
@@ -215,57 +229,60 @@ namespace Main.Scripts.Skills.Common.Controller
                     return skillConfig.name;
                 }
 
-                foreach (var actionsPack in skillConfig.ActionsPacks)
+                foreach (var triggerPack in skillConfig.TriggerPacks)
                 {
-                    foreach (var findTargetsStrategy in actionsPack.FindTargetsStrategies)
+                    foreach (var actionsPack in triggerPack.ActionsPackList)
                     {
-                        switch (findTargetsStrategy)
+                        foreach (var findTargetsStrategy in actionsPack.FindTargetsStrategies)
                         {
-                            case AroundPointSkillFindTargetsStrategy aroundPoint:
-                                if (IsPointOrDirectionUseInitialMapPoint(aroundPoint.OriginPoint, null))
-                                {
-                                    return $"{skillConfig.name}::{actionsPack.name}::{aroundPoint.name}";
-                                }
+                            switch (findTargetsStrategy)
+                            {
+                                case AroundPointSkillFindTargetsStrategy aroundPoint:
+                                    if (IsPointOrDirectionUseInitialMapPoint(aroundPoint.OriginPoint, null))
+                                    {
+                                        return $"{skillConfig.name}::{actionsPack.name}::{aroundPoint.name}";
+                                    }
 
-                                break;
-                            case CircleSectorSkillFindTargetsStrategy circleSector:
-                                if (IsPointOrDirectionUseInitialMapPoint(circleSector.OriginPoint,
-                                        circleSector.DirectionType))
-                                {
-                                    return $"{skillConfig.name}::{actionsPack.name}::{circleSector.name}";
-                                }
+                                    break;
+                                case CircleSectorSkillFindTargetsStrategy circleSector:
+                                    if (IsPointOrDirectionUseInitialMapPoint(circleSector.OriginPoint,
+                                            circleSector.DirectionType))
+                                    {
+                                        return $"{skillConfig.name}::{actionsPack.name}::{circleSector.name}";
+                                    }
 
-                                break;
-                            case RectangleSkillFindTargetsStrategy rectangle:
-                                if (IsPointOrDirectionUseInitialMapPoint(rectangle.OriginPoint,
-                                        rectangle.DirectionType))
-                                {
-                                    return $"{skillConfig.name}::{actionsPack.name}::{rectangle.name}";
-                                }
+                                    break;
+                                case RectangleSkillFindTargetsStrategy rectangle:
+                                    if (IsPointOrDirectionUseInitialMapPoint(rectangle.OriginPoint,
+                                            rectangle.DirectionType))
+                                    {
+                                        return $"{skillConfig.name}::{actionsPack.name}::{rectangle.name}";
+                                    }
 
-                                break;
+                                    break;
+                            }
                         }
-                    }
 
-                    foreach (var skillAction in actionsPack.Actions)
-                    {
-                        switch (skillAction)
+                        foreach (var skillAction in actionsPack.Actions)
                         {
-                            case DashSkillAction dashAction:
-                                if (IsPointOrDirectionUseInitialMapPoint(null, dashAction.DirectionType))
-                                {
-                                    return $"{skillConfig.name}::{actionsPack.name}::{dashAction.name}";
-                                }
+                            switch (skillAction)
+                            {
+                                case DashSkillAction dashAction:
+                                    if (IsPointOrDirectionUseInitialMapPoint(null, dashAction.DirectionType))
+                                    {
+                                        return $"{skillConfig.name}::{actionsPack.name}::{dashAction.name}";
+                                    }
 
-                                break;
-                            case SpawnConfigSkillAction spawnAction:
-                                if (IsPointOrDirectionUseInitialMapPoint(spawnAction.SpawnPointType,
-                                        spawnAction.SpawnDirectionType))
-                                {
-                                    return $"{skillConfig.name}::{actionsPack.name}::{spawnAction.name}";
-                                }
+                                    break;
+                                case SpawnConfigSkillAction spawnAction:
+                                    if (IsPointOrDirectionUseInitialMapPoint(spawnAction.SpawnPointType,
+                                            spawnAction.SpawnDirectionType))
+                                    {
+                                        return $"{skillConfig.name}::{actionsPack.name}::{spawnAction.name}";
+                                    }
 
-                                break;
+                                    break;
+                            }
                         }
                     }
                 }

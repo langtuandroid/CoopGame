@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: FollowBallCollisionTrigger
   m_EditorClassIdentifier: 
   radius: 1
+  isAffectTargetsOnlyOneTime: 1
   targetType: 0
   triggerByDecorationsLayer:
     serializedVersion: 2

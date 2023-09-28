@@ -395,14 +395,14 @@ namespace Main.Scripts.Skills.Common.Controller
                 var skillComponent = skillComponentsPoolHelper.Get();
                 skillComponent.Init(
                     skillConfigId: skillConfigsBank.GetSkillConfigId(skillConfig),
-                    objectContext: objectContext,
+                    runner: objectContext.Runner,
                     position: position,
                     rotation: rotation,
                     ownerId: objectContext.StateAuthority,
                     initialMapPoint: initialMapPoint,
                     dynamicMapPoint: dynamicMapPoint,
-                    selfUnit: objectContext,
-                    selectedUnit: selectedUnit,
+                    selfUnitId: objectContext.Id,
+                    selectedUnitId: selectedUnit != null ? selectedUnit.Id : default,
                     alliesLayerMask: alliesLayerMask,
                     opponentsLayerMask: opponentsLayerMask,
                     onSpawnNewSkillComponent: OnSpawnNewSkillComponent

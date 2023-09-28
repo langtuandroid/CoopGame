@@ -26,8 +26,10 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void OnReadyToRelease(SkillComponent skillComponent)
         {
+            activeSkillComponents.Remove(skillComponent);
             skillComponent.OnReadyToRelease -= OnReadyToRelease;
             skillComponent.Release();
+            GenericPool<SkillComponent>.Release(skillComponent);
         }
     }
 }

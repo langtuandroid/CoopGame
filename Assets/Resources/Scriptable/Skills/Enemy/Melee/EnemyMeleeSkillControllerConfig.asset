@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca3d1d46e4be4df1b28028d25c825374, type: 3}
   m_Name: EnemyMeleeSkillControllerConfig
   m_EditorClassIdentifier: 
-  runOnStartSkillConfigs:
+  runOnCastSkillConfigs: []
+  runOnExecutionSkillConfigs:
   - {fileID: 11400000, guid: 35573ac8ed71bcc4e89e2434ef82d9d7, type: 2}
-  runAfterCastSkillConfigs: []
   activationType: 0
   areaMarker: {fileID: 0}
+  selectionTargetType: 0
   executionDurationSec: 1
   disableMoveOnExecution: 0
   castDurationSec: 0

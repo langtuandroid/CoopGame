@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca3d1d46e4be4df1b28028d25c825374, type: 3}
   m_Name: TargetStunSkillControllerConfig
   m_EditorClassIdentifier: 
-  runOnStartSkillConfigs:
+  runOnCastSkillConfigs: []
+  runOnExecutionSkillConfigs:
   - {fileID: 11400000, guid: 7d78b8ff224aad2429fdb16de41f459e, type: 2}
-  runAfterCastSkillConfigs: []
   activationType: 2
   areaMarker: {fileID: 0}
   selectionTargetType: 2

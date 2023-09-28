@@ -94,7 +94,7 @@ namespace Main.Scripts.Skills.Common.Component
         };
 
         public void Init(
-            int skillConfigId,
+            SkillConfig skillConfig,
             NetworkRunner runner,
             Vector3 position,
             Quaternion rotation,
@@ -130,7 +130,7 @@ namespace Main.Scripts.Skills.Common.Component
             skillVisualManager = levelContext.SkillVisualManager;
             
             playerData = PlayerDataManager.Instance.ThrowWhenNull().GetPlayerData(ownerId);
-            skillConfig = skillConfigsBank.GetSkillConfig(skillConfigId);
+            this.skillConfig = skillConfig;
 
             SkillFollowStrategyConfigsResolver.ResolveEnabledModifiers(
                 modifierIdsBank,
@@ -668,7 +668,7 @@ namespace Main.Scripts.Skills.Common.Component
                     case SpawnConfigSkillAction spawnConfigSkillAction:
                         var skillComponent = skillComponentsPoolHelper.Get();
                         skillComponent.Init(
-                            skillConfigId: skillConfigsBank.GetSkillConfigId(spawnConfigSkillAction.SkillConfig),
+                            skillConfig: spawnConfigSkillAction.SkillConfig,
                             runner: runner,
                             position: spawnPosition,
                             rotation: spawnRotation,

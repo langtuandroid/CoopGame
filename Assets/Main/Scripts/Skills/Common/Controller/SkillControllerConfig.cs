@@ -9,9 +9,9 @@ namespace Main.Scripts.Skills.Common.Controller
     public class SkillControllerConfig : ScriptableObject
     {
         [SerializeField]
-        private List<SkillConfig> runOnStartSkillConfigs = new();
+        private List<SkillConfig> runOnCastSkillConfigs = new();
         [SerializeField]
-        private List<SkillConfig> runAfterCastSkillConfigs = new();
+        private List<SkillConfig> runOnExecutionSkillConfigs = new();
         [SerializeField]
         private SkillActivationType activationType;
         [SerializeField]
@@ -32,8 +32,8 @@ namespace Main.Scripts.Skills.Common.Controller
         [Min(0f)]
         private float cooldownSec;
 
-        public List<SkillConfig> RunOnStartSkillConfigs => runOnStartSkillConfigs;
-        public List<SkillConfig> RunAfterCastSkillConfigs => runAfterCastSkillConfigs;
+        public List<SkillConfig> RunOnCastSkillConfigs => runOnCastSkillConfigs;
+        public List<SkillConfig> RunOnExecutionSkillConfigs => runOnExecutionSkillConfigs;
         public SkillActivationType ActivationType => activationType;
         public GameObject? AreaMarker => areaMarker;
         public UnitTargetType SelectionTargetType => selectionTargetType;

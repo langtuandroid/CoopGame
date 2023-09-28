@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca3d1d46e4be4df1b28028d25c825374, type: 3}
   m_Name: FollowBallSkillControllerConfig
   m_EditorClassIdentifier: 
-  runOnStartSkillConfigs:
+  runOnCastSkillConfigs: []
+  runOnExecutionSkillConfigs:
   - {fileID: 11400000, guid: 18fa601a2397ad4408fa5ee9608afd77, type: 2}
-  runAfterCastSkillConfigs: []
   activationType: 0
   areaMarker: {fileID: 0}
   selectionTargetType: 0

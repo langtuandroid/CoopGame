@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Main.Scripts.Skills.Common.Component.Config;
 using Main.Scripts.Skills.Common.Component.Config.Action;
 using Main.Scripts.Skills.Common.Component.Config.FindTargets;
 using Main.Scripts.Skills.Common.Component.Config.Follow;
+using Main.Scripts.Skills.Common.Component.Config.Trigger;
 
 namespace Main.Scripts.Skills.Common.Controller
 {
@@ -14,39 +16,30 @@ namespace Main.Scripts.Skills.Common.Controller
         {
             if (skillControllerConfig.CastDurationSec > skillControllerConfig.ExecutionDurationSec)
             {
-                throw new Exception($"{skillControllerConfig.name}: ExecutionDurationSec must be bigger or equal CastDurationSec");
+                OnError(
+                    "ExecutionDurationSec must be bigger or equal CastDurationSec",
+                    skillControllerConfig.name
+                );
             }
             
-            foreach (var skillConfig in skillControllerConfig.RunOnStartSkillConfigs)
+            foreach (var skillConfig in skillControllerConfig.RunOnCastSkillConfigs)
             {
                 CheckSkillConfig(skillConfig, skillControllerConfig.name);
             }
             
-            foreach (var skillConfig in skillControllerConfig.RunAfterCastSkillConfigs)
+            foreach (var skillConfig in skillControllerConfig.RunOnExecutionSkillConfigs)
             {
                 CheckSkillConfig(skillConfig, skillControllerConfig.name);
             }
             
             if (skillControllerConfig.ActivationType != SkillActivationType.WithUnitTarget)
             {
-                var configName = GetConfigNameThatUsedIllegalSelectedUnit(skillControllerConfig);
-                if (configName != null)
-                {
-                    throw new Exception(
-                        $"{skillControllerConfig.name}: using SelectedUnit in {configName} when ActivationType is not UnitTarget");
-
-                }
+                CheckUsingIllegalSelectedUnit(skillControllerConfig);
             }
             
             if (skillControllerConfig.ActivationType != SkillActivationType.WithMapPointTarget)
             {
-                var configName = GetConfigNameThatUsedIllegalInitialMapPoint(skillControllerConfig);
-                if (configName != null)
-                {
-                    throw new Exception(
-                        $"{skillControllerConfig.name}: using InitialMapPoint in {configName} when ActivationType is not MapPointTarget");
-
-                }
+                CheckUsingIllegalInitialMapPoint(skillControllerConfig);
             }
         }
 
@@ -54,12 +47,20 @@ namespace Main.Scripts.Skills.Common.Controller
         {
             if (skillConfig == null)
             {
-                throw new Exception($"{skillControllerConfigName}: SkillConfigs has empty value");
+                OnError(
+                    "SkillConfigs list has empty value",
+                    skillControllerConfigName
+                );
+                return;
             }
 
             if (skillConfig.FollowStrategy == null)
             {
-                throw new Exception($"{skillControllerConfigName}::{skillConfig.name}: FollowStrategy has empty value");
+                OnError(
+                    "FollowStrategy has empty value",
+                    skillControllerConfigName,
+                    skillConfig.name
+                );
             }
 
             var triggersSet = new HashSet<Type>();
@@ -67,49 +68,92 @@ namespace Main.Scripts.Skills.Common.Controller
             {
                 if (triggerPack.ActionTrigger == null)
                 {
-                    throw new Exception($"{skillControllerConfigName}::{skillConfig.name}: ActionTrigger has empty value");
+                    OnError(
+                        "TriggerPacks list has empty ActionTrigger value",
+                        skillControllerConfigName,
+                        skillConfig.name
+                    );
+                    return;
                 }
 
                 var triggerType = triggerPack.ActionTrigger.GetType();
                 if (triggersSet.Contains(triggerType))
                 {
-                    throw new Exception($"{skillControllerConfigName}::{skillConfig.name}::{triggerPack.ActionTrigger}: ActionTrigger type is already registered");
+                    OnError(
+                        "ActionTrigger type is already registered in TriggerPacks",
+                        skillControllerConfigName,
+                        skillConfig.name,
+                        triggerPack.ActionTrigger.name
+                    );
                 }
+
+                triggersSet.Add(triggerType);
 
                 foreach (var actionsPack in triggerPack.ActionsPackList)
                 {
                     if (actionsPack.FindTargetsStrategies.Any(findTargetsStrategy => findTargetsStrategy == null))
                     {
-                        throw new Exception($"{skillControllerConfigName}::{skillConfig.name}::{triggerPack.ActionTrigger}::{actionsPack.name}: FindTargetsStrategies has empty value");
+                        OnError(
+                            "FindTargetsStrategies list has empty value",
+                            skillControllerConfigName,
+                            skillConfig.name,
+                            actionsPack.name
+                        );
                     }
 
                     if (actionsPack.Actions.Any(action => action == null))
                     {
-                        throw new Exception($"{skillControllerConfigName}::{skillConfig.name}::{triggerPack.ActionTrigger}::{actionsPack.name}: Actions has empty value");
+                        OnError(
+                            "Actions list has empty value",
+                            skillControllerConfigName,
+                            skillConfig.name,
+                            actionsPack.name
+                        );
+                    }
+
+                    if (triggerPack.ActionTrigger is not CollisionSkillActionTrigger)
+                    {
+                        var collisionDetectedStrategy = actionsPack.FindTargetsStrategies.Find(findTargetsStrategy =>
+                            findTargetsStrategy is CollisionDetectedSkillFindTargetsStrategy);
+                        if (collisionDetectedStrategy != null)
+                        {
+                            OnError(
+                                $"FindTargetsStrategy {collisionDetectedStrategy.name} has CollisionDetectedSkillFindTargetsStrategy type when ActionTrigger is not CollisionSkillActionTrigger",
+                                skillControllerConfigName,
+                                skillConfig.name,
+                                actionsPack.name
+                            );
+                        }
                     }
                 }
             }
         }
 
-        private static string? GetConfigNameThatUsedIllegalSelectedUnit(SkillControllerConfig skillControllerConfig)
+        private static void CheckUsingIllegalSelectedUnit(SkillControllerConfig skillControllerConfig)
         {
-            foreach (var skillConfig in skillControllerConfig.RunAfterCastSkillConfigs)
+            var errorMessage = "Using SelectedUnit when ActivationType is not UnitTarget";
+            
+            foreach (var skillConfig in skillControllerConfig.RunOnExecutionSkillConfigs)
             {
-                if (skillConfig.SpawnPointType == SkillSpawnPointType.SelectedUnitTarget)
+                if (skillConfig.SpawnPointType == SkillSpawnPointType.SelectedUnitTarget
+                    || IsPointOrDirectionUseSelectedUnit(null, skillConfig.FollowDirectionType))
                 {
-                    return skillConfig.name;
+                    OnError(
+                        errorMessage,
+                        skillControllerConfig.name, 
+                        skillConfig.name
+                    );
                 }
 
                 if (skillConfig.SpawnDirectionType is SkillSpawnDirectionType.ToSelectedUnit
                     or SkillSpawnDirectionType.SelectedUnitLookDirection
                     or SkillSpawnDirectionType.SelectedUnitMoveDirection)
                 {
-                    return skillConfig.name;
-                }
-
-                if (IsPointOrDirectionUseSelectedUnit(null, skillConfig.FollowDirectionType))
-                {
-                    return skillConfig.name;
+                    OnError(
+                        errorMessage,
+                        skillControllerConfig.name, 
+                        skillConfig.name
+                    );
                 }
 
                 foreach (var triggerPack in skillConfig.TriggerPacks)
@@ -123,7 +167,13 @@ namespace Main.Scripts.Skills.Common.Controller
                                 case AroundPointSkillFindTargetsStrategy aroundPoint:
                                     if (IsPointOrDirectionUseSelectedUnit(aroundPoint.OriginPoint, null))
                                     {
-                                        return $"{skillConfig.name}::{actionsPack.name}::{aroundPoint.name}";
+                                        OnError(
+                                            errorMessage,
+                                            skillControllerConfig.name, 
+                                            skillConfig.name,
+                                            actionsPack.name,
+                                            aroundPoint.name
+                                        );
                                     }
 
                                     break;
@@ -131,7 +181,13 @@ namespace Main.Scripts.Skills.Common.Controller
                                     if (IsPointOrDirectionUseSelectedUnit(circleSector.OriginPoint,
                                             circleSector.DirectionType))
                                     {
-                                        return $"{skillConfig.name}::{actionsPack.name}::{circleSector.name}";
+                                        OnError(
+                                            errorMessage,
+                                            skillControllerConfig.name, 
+                                            skillConfig.name,
+                                            actionsPack.name,
+                                            circleSector.name
+                                        );
                                     }
 
                                     break;
@@ -139,12 +195,25 @@ namespace Main.Scripts.Skills.Common.Controller
                                     if (IsPointOrDirectionUseSelectedUnit(rectangle.OriginPoint,
                                             rectangle.DirectionType))
                                     {
-                                        return $"{skillConfig.name}::{actionsPack.name}::{rectangle.name}";
+                                        OnError(
+                                            errorMessage,
+                                            skillControllerConfig.name, 
+                                            skillConfig.name,
+                                            actionsPack.name,
+                                            rectangle.name
+                                        );
                                     }
 
                                     break;
                                 case SelectedUnitSkillFindTargetsStrategy selectedUnitStrategy:
-                                    return $"{skillConfig.name}::{actionsPack.name}::{selectedUnitStrategy.name}";
+                                    OnError(
+                                        errorMessage,
+                                        skillControllerConfig.name, 
+                                        skillConfig.name,
+                                        actionsPack.name,
+                                        selectedUnitStrategy.name
+                                    );
+                                    break;
                             }
                         }
 
@@ -155,7 +224,13 @@ namespace Main.Scripts.Skills.Common.Controller
                                 case DashSkillAction dashAction:
                                     if (IsPointOrDirectionUseSelectedUnit(null, dashAction.DirectionType))
                                     {
-                                        return $"{skillConfig.name}::{actionsPack.name}::{dashAction.name}";
+                                        OnError(
+                                            errorMessage,
+                                            skillControllerConfig.name, 
+                                            skillConfig.name,
+                                            actionsPack.name,
+                                            dashAction.name
+                                        );
                                     }
 
                                     break;
@@ -163,7 +238,13 @@ namespace Main.Scripts.Skills.Common.Controller
                                     if (IsPointOrDirectionUseSelectedUnit(spawnAction.SpawnPointType,
                                             spawnAction.SpawnDirectionType))
                                     {
-                                        return $"{skillConfig.name}::{actionsPack.name}::{spawnAction.name}";
+                                        OnError(
+                                            errorMessage,
+                                            skillControllerConfig.name, 
+                                            skillConfig.name,
+                                            actionsPack.name,
+                                            spawnAction.name
+                                        );
                                     }
 
                                     break;
@@ -177,28 +258,41 @@ namespace Main.Scripts.Skills.Common.Controller
                     case AttachToTargetSkillFollowStrategy attachToFollow:
                         if (IsPointOrDirectionUseSelectedUnit(attachToFollow.AttachTo, null))
                         {
-                            return skillConfig.name + "::" + attachToFollow.name;
+                            OnError(
+                                errorMessage,
+                                skillControllerConfig.name, 
+                                skillConfig.name,
+                                attachToFollow.name
+                            );
                         }
 
                         break;
                     case MoveToDirectionSkillFollowStrategy moveToDirection:
                         if (IsPointOrDirectionUseSelectedUnit(null, moveToDirection.MoveDirectionType))
                         {
-                            return skillConfig.name + "::" + moveToDirection.name;
+                            OnError(
+                                errorMessage,
+                                skillControllerConfig.name, 
+                                skillConfig.name,
+                                moveToDirection.name
+                            );
                         }
 
                         break;
                     case MoveToTargetSkillFollowStrategy moveToTarget:
                         if (IsPointOrDirectionUseSelectedUnit(moveToTarget.MoveTo, null))
                         {
-                            return skillConfig.name + "::" + moveToTarget.name;
+                            OnError(
+                                errorMessage,
+                                skillControllerConfig.name, 
+                                skillConfig.name,
+                                moveToTarget.name
+                            );
                         }
 
                         break;
                 }
             }
-
-            return null;
         }
 
         private static bool IsPointOrDirectionUseSelectedUnit(SkillPointType? skillPointType,
@@ -210,23 +304,20 @@ namespace Main.Scripts.Skills.Common.Controller
                        or SkillDirectionType.SelectedUnitMoveDirection;
         }
 
-        private static string? GetConfigNameThatUsedIllegalInitialMapPoint(SkillControllerConfig skillControllerConfig)
+        private static void CheckUsingIllegalInitialMapPoint(SkillControllerConfig skillControllerConfig)
         {
-            foreach (var skillConfig in skillControllerConfig.RunAfterCastSkillConfigs)
+            var errorMessage = "Using InitialMapPoint when ActivationType is not MapPointTarget";
+            foreach (var skillConfig in skillControllerConfig.RunOnExecutionSkillConfigs)
             {
-                if (skillConfig.SpawnPointType == SkillSpawnPointType.InitialMapPointTarget)
+                if (skillConfig.SpawnPointType == SkillSpawnPointType.InitialMapPointTarget
+                    || skillConfig.SpawnDirectionType == SkillSpawnDirectionType.ToInitialMapPoint
+                    || IsPointOrDirectionUseInitialMapPoint(null, skillConfig.FollowDirectionType))
                 {
-                    return skillConfig.name;
-                }
-
-                if (skillConfig.SpawnDirectionType == SkillSpawnDirectionType.ToInitialMapPoint)
-                {
-                    return skillConfig.name;
-                }
-
-                if (IsPointOrDirectionUseInitialMapPoint(null, skillConfig.FollowDirectionType))
-                {
-                    return skillConfig.name;
+                    OnError(
+                        errorMessage,
+                        skillControllerConfig.name, 
+                        skillConfig.name
+                    );
                 }
 
                 foreach (var triggerPack in skillConfig.TriggerPacks)
@@ -240,7 +331,13 @@ namespace Main.Scripts.Skills.Common.Controller
                                 case AroundPointSkillFindTargetsStrategy aroundPoint:
                                     if (IsPointOrDirectionUseInitialMapPoint(aroundPoint.OriginPoint, null))
                                     {
-                                        return $"{skillConfig.name}::{actionsPack.name}::{aroundPoint.name}";
+                                        OnError(
+                                            errorMessage,
+                                            skillControllerConfig.name,
+                                            skillConfig.name,
+                                            actionsPack.name,
+                                            aroundPoint.name
+                                        );
                                     }
 
                                     break;
@@ -248,7 +345,13 @@ namespace Main.Scripts.Skills.Common.Controller
                                     if (IsPointOrDirectionUseInitialMapPoint(circleSector.OriginPoint,
                                             circleSector.DirectionType))
                                     {
-                                        return $"{skillConfig.name}::{actionsPack.name}::{circleSector.name}";
+                                        OnError(
+                                            errorMessage,
+                                            skillControllerConfig.name,
+                                            skillConfig.name,
+                                            actionsPack.name,
+                                            circleSector.name
+                                        );
                                     }
 
                                     break;
@@ -256,7 +359,13 @@ namespace Main.Scripts.Skills.Common.Controller
                                     if (IsPointOrDirectionUseInitialMapPoint(rectangle.OriginPoint,
                                             rectangle.DirectionType))
                                     {
-                                        return $"{skillConfig.name}::{actionsPack.name}::{rectangle.name}";
+                                        OnError(
+                                            errorMessage,
+                                            skillControllerConfig.name,
+                                            skillConfig.name,
+                                            actionsPack.name,
+                                            rectangle.name
+                                        );
                                     }
 
                                     break;
@@ -270,7 +379,13 @@ namespace Main.Scripts.Skills.Common.Controller
                                 case DashSkillAction dashAction:
                                     if (IsPointOrDirectionUseInitialMapPoint(null, dashAction.DirectionType))
                                     {
-                                        return $"{skillConfig.name}::{actionsPack.name}::{dashAction.name}";
+                                        OnError(
+                                            errorMessage,
+                                            skillControllerConfig.name,
+                                            skillConfig.name,
+                                            actionsPack.name,
+                                            dashAction.name
+                                        );
                                     }
 
                                     break;
@@ -278,7 +393,13 @@ namespace Main.Scripts.Skills.Common.Controller
                                     if (IsPointOrDirectionUseInitialMapPoint(spawnAction.SpawnPointType,
                                             spawnAction.SpawnDirectionType))
                                     {
-                                        return $"{skillConfig.name}::{actionsPack.name}::{spawnAction.name}";
+                                        OnError(
+                                            errorMessage,
+                                            skillControllerConfig.name,
+                                            skillConfig.name,
+                                            actionsPack.name,
+                                            spawnAction.name
+                                        );
                                     }
 
                                     break;
@@ -292,28 +413,41 @@ namespace Main.Scripts.Skills.Common.Controller
                     case AttachToTargetSkillFollowStrategy attachToFollow:
                         if (IsPointOrDirectionUseInitialMapPoint(attachToFollow.AttachTo, null))
                         {
-                            return $"{skillConfig.name}::{attachToFollow.name}";
+                            OnError(
+                                errorMessage,
+                                skillControllerConfig.name,
+                                skillConfig.name,
+                                attachToFollow.name
+                            );
                         }
 
                         break;
                     case MoveToDirectionSkillFollowStrategy moveToDirection:
                         if (IsPointOrDirectionUseInitialMapPoint(null, moveToDirection.MoveDirectionType))
                         {
-                            return $"{skillConfig.name}::{moveToDirection.name}";
+                            OnError(
+                                errorMessage,
+                                skillControllerConfig.name,
+                                skillConfig.name,
+                                moveToDirection.name
+                            );
                         }
 
                         break;
                     case MoveToTargetSkillFollowStrategy moveToTarget:
                         if (IsPointOrDirectionUseInitialMapPoint(moveToTarget.MoveTo, null))
                         {
-                            return $"{skillConfig.name}::{moveToTarget.name}";
+                            OnError(
+                                errorMessage,
+                            skillControllerConfig.name,
+                                skillConfig.name,
+                                moveToTarget.name
+                            );
                         }
 
                         break;
                 }
             }
-
-            return null;
         }
 
         private static bool IsPointOrDirectionUseInitialMapPoint(
@@ -322,6 +456,20 @@ namespace Main.Scripts.Skills.Common.Controller
         {
             return skillPointType == SkillPointType.InitialMapPointTarget
                    || skillDirectionType == SkillDirectionType.ToInitialMapPoint;
+        }
+
+        private static void OnError(string message, params string[] path)
+        {
+            var builder = new StringBuilder();
+            for (var i = 0; i < path.Length; i++)
+            {
+                builder.Append(path[i]);
+                builder.Append(i == path.Length - 1 ? "::" : " - ");
+            }
+
+            builder.Append(message);
+
+            throw new Exception(builder.ToString());
         }
     }
 }

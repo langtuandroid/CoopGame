@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca3d1d46e4be4df1b28028d25c825374, type: 3}
   m_Name: ExplotionSkillControllerConfig
   m_EditorClassIdentifier: 
-  runOnStartSkillConfigs:
+  runOnCastSkillConfigs: []
+  runOnExecutionSkillConfigs:
   - {fileID: 11400000, guid: 5041204be9f3205428d3b9730ebebe42, type: 2}
-  runAfterCastSkillConfigs: []
   activationType: 1
   areaMarker: {fileID: 5057171897305266061, guid: ff0d9b2f39e85dc479ec32ae19e5e951, type: 3}
+  selectionTargetType: 0
   executionDurationSec: 0.3
   disableMoveOnExecution: 0
   castDurationSec: 0.3

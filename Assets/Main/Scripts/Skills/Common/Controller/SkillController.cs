@@ -189,7 +189,7 @@ namespace Main.Scripts.Skills.Common.Controller
 
             listener?.OnSkillStartCasting(this);
 
-            AddSpawnActions(skillControllerConfig.RunOnStartSkillConfigs);
+            AddSpawnActions(skillControllerConfig.RunOnCastSkillConfigs);
 
             CheckCastFinished();
         }
@@ -255,7 +255,7 @@ namespace Main.Scripts.Skills.Common.Controller
             {
                 castTimer = default;
                 cooldownTimer = TickTimer.CreateFromSeconds(objectContext.Runner, skillControllerConfig.CooldownSec);
-                AddSpawnActions(skillControllerConfig.RunAfterCastSkillConfigs);
+                AddSpawnActions(skillControllerConfig.RunOnExecutionSkillConfigs);
                 
                 listener?.OnSkillFinishedCasting(this);
             }
@@ -394,7 +394,7 @@ namespace Main.Scripts.Skills.Common.Controller
 
                 var skillComponent = skillComponentsPoolHelper.Get();
                 skillComponent.Init(
-                    skillConfigId: skillConfigsBank.GetSkillConfigId(skillConfig),
+                    skillConfig: skillConfig,
                     runner: objectContext.Runner,
                     position: position,
                     rotation: rotation,

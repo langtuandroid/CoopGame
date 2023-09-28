@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca3d1d46e4be4df1b28028d25c825374, type: 3}
   m_Name: FireballSkillControllerConfig
   m_EditorClassIdentifier: 
-  runOnStartSkillConfigs: []
-  runAfterCastSkillConfigs:
+  runOnCastSkillConfigs: []
+  runOnExecutionSkillConfigs:
   - {fileID: 11400000, guid: 478e7c993cb594d489b65a0f8b3e9965, type: 2}
   activationType: 0
   areaMarker: {fileID: 0}

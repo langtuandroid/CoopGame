@@ -7,9 +7,10 @@ namespace Main.Scripts.Effects.PeriodicEffects
         [SerializeField]
         private PeriodicEffectType periodicEffectType;
         [SerializeField]
-        private float frequency = 1f;
+        [Min(1)]
+        private int frequencyTicks = 24;
 
         public PeriodicEffectType PeriodicEffectType => periodicEffectType;
-        public float Frequency => frequency;
+        public int FrequencyTicks => frequencyTicks;
     }
 }

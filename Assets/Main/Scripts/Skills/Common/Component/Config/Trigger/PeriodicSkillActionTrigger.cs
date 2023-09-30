@@ -6,8 +6,9 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
     public class PeriodicSkillActionTrigger : SkillActionTriggerBase
     {
         [SerializeField]
-        private float frequency;
+        [Min(1)]
+        private int frequencyTicks = 24;
 
-        public float Frequency => frequency;
+        public int FrequencyTicks => frequencyTicks;
     }
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
 {
-    [CreateAssetMenu(fileName = "RectangleTargets", menuName = "Skill/FindTargets/Rectangle")]
+    [CreateAssetMenu(fileName = "RectangleTargetsStrategy", menuName = "Skill/FindTargets/Rectangle")]
     public class RectangleSkillFindTargetsStrategy : SkillFindTargetsStrategyBase
     {
         [SerializeField]

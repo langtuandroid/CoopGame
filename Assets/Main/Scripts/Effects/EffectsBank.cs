@@ -169,7 +169,7 @@ namespace Main.Scripts.Effects
             var limitedEffectsSum = 0;
             foreach (var effect in effects)
             {
-                if (effect.DurationSec == 0)
+                if (effect.DurationTicks == 0)
                 {
                     unlimitedEffectsSum++;
                 }

@@ -313,12 +313,12 @@ namespace Main.Scripts.Skills.Common.Component
             if (!lifeTimer.IsRunning)
             {
                 startSkillTick = runner.Tick;
-                lifeTimer = TickTimer.CreateFromSeconds(runner, skillConfig.DurationSec);
+                lifeTimer = TickTimer.CreateFromTicks(runner, skillConfig.DurationTicks);
 
                 if (triggerPacksDataMap.TryGetValue(TIMER_TRIGGER_TYPE, out var triggerPackData)
                     && triggerPackData.ActionTrigger is TimerSkillActionTrigger timerTrigger)
                 {
-                    triggerTimer = TickTimer.CreateFromSeconds(runner, timerTrigger.DelaySec);
+                    triggerTimer = TickTimer.CreateFromTicks(runner, timerTrigger.DelayTicks);
                 }
 
                 ExecuteTriggerPack(START_TRIGGER_TYPE);
@@ -349,12 +349,11 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void CheckPeriodicTrigger()
         {
-            var tick = runner.Tick - startSkillTick;
-            var tickRate = runner.Simulation.Config.TickRate;
+            var ticksFromStart = runner.Tick - startSkillTick;
 
             if (triggerPacksDataMap.TryGetValue(PERIODIC_TRIGGER_TYPE, out var triggerPackData)
                 && triggerPackData.ActionTrigger is PeriodicSkillActionTrigger periodicTrigger
-                && TickHelper.CheckFrequency(tick, tickRate, periodicTrigger.Frequency))
+                && ticksFromStart % periodicTrigger.FrequencyTicks == 0)
             {
                 ExecuteTriggerPack(PERIODIC_TRIGGER_TYPE);
             }
@@ -617,7 +616,7 @@ namespace Main.Scripts.Skills.Common.Component
                         {
                             direction = directionByType,
                             speed = dashAction.Speed,
-                            durationSec = dashAction.DurationSec
+                            durationTicks = dashAction.DurationTicks
                         };
                         dashable.AddDash(ref dashActionData);
 
@@ -626,7 +625,7 @@ namespace Main.Scripts.Skills.Common.Component
                         when actionTarget.TryGetInterface(out ObjectWithGettingStun stunnable):
                         var stunActionData = new StunActionData
                         {
-                            durationSec = stunAction.DurationSec
+                            durationTicks = stunAction.DurationTicks
                         };
                         stunnable.AddStun(ref stunActionData);
 

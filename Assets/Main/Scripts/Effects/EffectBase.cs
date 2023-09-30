@@ -8,10 +8,11 @@ namespace Main.Scripts.Effects
         [Min(1)]
         private int maxStackCount = 1;
         [SerializeField]
-        private float durationSec;
+        [Min(0)]
+        private int durationTicks;
 
         public string NameId => name;
         public int MaxStackCount => maxStackCount;
-        public float DurationSec => durationSec;
+        public int DurationTicks => durationTicks;
     }
 }

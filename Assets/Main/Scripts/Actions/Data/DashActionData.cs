@@ -6,6 +6,6 @@ namespace Main.Scripts.Actions.Data
     {
         public Vector3 direction;
         public float speed;
-        public float durationSec;
+        public int durationTicks;
     }
 }

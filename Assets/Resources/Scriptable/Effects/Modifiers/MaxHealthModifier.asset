@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MaxHealthModifier
   m_EditorClassIdentifier: 
   maxStackCount: 1
-  durationSec: 0
+  durationTicks: 0
   statType: 1
   constAdditive: 20
   percentAdditive: 50

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SpeedModifier
   m_EditorClassIdentifier: 
   maxStackCount: 1
-  durationSec: 5
+  durationTicks: 120
   statType: 0
   constAdditive: 0
   percentAdditive: 50

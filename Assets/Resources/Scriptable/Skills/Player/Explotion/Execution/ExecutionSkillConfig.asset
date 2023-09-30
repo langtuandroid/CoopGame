@@ -23,5 +23,5 @@ MonoBehaviour:
   - ActionTrigger: {fileID: 11400000, guid: 0ec5652734b992c4bb529c276b5343cf, type: 2}
     ActionsPackList:
     - {fileID: 11400000, guid: 322921c6670db1443b90fa5536b5e6c5, type: 2}
-  durationSec: 1
+  durationTicks: 24
   interruptStrategy: 0

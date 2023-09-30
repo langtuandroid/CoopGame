@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Follow
 {
-    [CreateAssetMenu(fileName = "AttachToTarget", menuName = "Skill/Follow/AttachToTarget")]
+    [CreateAssetMenu(fileName = "AttachToTargetFollowStrategy", menuName = "Skill/Follow/AttachToTarget")]
     public class AttachToTargetSkillFollowStrategy : SkillFollowStrategyBase
     {
         [SerializeField]

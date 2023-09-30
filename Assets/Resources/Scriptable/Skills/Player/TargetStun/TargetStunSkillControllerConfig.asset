@@ -18,8 +18,8 @@ MonoBehaviour:
   activationType: 2
   areaMarker: {fileID: 0}
   selectionTargetType: 2
-  executionDurationSec: 0.5
-  disableMoveOnExecution: 0
-  castDurationSec: 0
+  castDurationTicks: 0
   disableMoveOnCast: 0
-  cooldownSec: 0
+  executionDurationTicks: 12
+  disableMoveOnExecution: 0
+  cooldownTicks: 0

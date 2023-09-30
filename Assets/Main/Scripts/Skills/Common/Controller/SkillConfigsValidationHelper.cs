@@ -14,14 +14,6 @@ namespace Main.Scripts.Skills.Common.Controller
     {
         public static void Validate(SkillControllerConfig skillControllerConfig)
         {
-            if (skillControllerConfig.CastDurationSec > skillControllerConfig.ExecutionDurationSec)
-            {
-                OnError(
-                    "ExecutionDurationSec must be bigger or equal CastDurationSec",
-                    skillControllerConfig.name
-                );
-            }
-            
             foreach (var skillConfig in skillControllerConfig.RunOnCastSkillConfigs)
             {
                 CheckSkillConfig(skillConfig, skillControllerConfig.name);

@@ -14,9 +14,9 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
         )
         {
             if (playerData != null
-                && config is ModifiableSkillActionTriggerPack modifiableSkillActionTriggerPack)
+                && config is ModifiableSkillActionTriggers modifiableSkillActionTriggerPack)
             {
-                foreach (var modifiableActionsTriggersList in modifiableSkillActionTriggerPack.ModifiablePacks)
+                foreach (var modifiableActionsTriggersList in modifiableSkillActionTriggerPack.ModifiableTriggers)
                 {
                     var isEnabled = playerData != null && playerData.Value.Modifiers.Values[
                         bank.GetModifierIdToken(modifiableActionsTriggersList.ModifierId)];

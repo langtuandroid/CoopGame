@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
 {
-    [CreateAssetMenu(fileName = "CircleSectorTargets", menuName = "Skill/FindTargets/CircleSector")]
+    [CreateAssetMenu(fileName = "CircleSectorTargetsStrategy", menuName = "Skill/FindTargets/CircleSector")]
     public class CircleSectorSkillFindTargetsStrategy : SkillFindTargetsStrategyBase
     {
         [SerializeField]

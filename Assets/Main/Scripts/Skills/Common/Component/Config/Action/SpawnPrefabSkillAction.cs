@@ -7,7 +7,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
     public class SpawnPrefabSkillAction : SpawnSkillActionBase
     {
         [SerializeField]
-        private NetworkObject prefabToSpawn = default!; //todo мб разрешить спавнить обычные монобехи через RPC
+        private NetworkObject prefabToSpawn = default!;
 
         public NetworkObject PrefabToSpawn => prefabToSpawn;
     }

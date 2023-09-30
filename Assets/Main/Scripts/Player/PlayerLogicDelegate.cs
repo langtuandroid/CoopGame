@@ -439,7 +439,7 @@ namespace Main.Scripts.Player
 
         private void ApplyDash(ref PlayerLogicData playerLogicData, ref DashActionData actionData)
         {
-            playerLogicData.dashTimer = TickTimer.CreateFromSeconds(objectContext.Runner, actionData.durationSec);
+            playerLogicData.dashTimer = TickTimer.CreateFromTicks(objectContext.Runner, actionData.durationTicks);
             playerLogicData.dashDirection = actionData.direction;
             playerLogicData.dashSpeed = actionData.speed;
         }

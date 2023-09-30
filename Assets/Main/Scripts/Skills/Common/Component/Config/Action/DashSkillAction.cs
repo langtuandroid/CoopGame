@@ -10,10 +10,11 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
         [SerializeField]
         private float speed;
         [SerializeField]
-        private float durationSec;
+        [Min(0)]
+        private int durationTicks;
 
         public SkillDirectionType DirectionType => directionType;
         public float Speed => speed;
-        public float DurationSec => durationSec;
+        public int DurationTicks => durationTicks;
     }
 }

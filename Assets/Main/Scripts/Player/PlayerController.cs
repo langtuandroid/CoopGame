@@ -377,17 +377,17 @@ namespace Main.Scripts.Player
 
         public void AddDash(ref DashActionData data)
         {
-            RPC_AddDash(data.direction, data.speed, data.durationSec);
+            RPC_AddDash(data.direction, data.speed, data.durationTicks);
         }
 
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-        private void RPC_AddDash(Vector3 direction, float speed, float durationSec)
+        private void RPC_AddDash(Vector3 direction, float speed, int durationTicks)
         {
             var data = new DashActionData
             {
                 direction = direction,
                 speed = speed,
-                durationSec = durationSec
+                durationTicks = durationTicks
             };
             playerLogicDelegate.AddDash(ref data);
         }

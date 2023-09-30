@@ -6,9 +6,9 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
     public class StunSkillAction : SkillActionBase
     {
         [SerializeField]
-        [Min(0f)]
-        private float durationSec;
+        [Min(0)]
+        private int durationTicks;
 
-        public float DurationSec => durationSec;
+        public int DurationTicks => durationTicks;
     }
 }

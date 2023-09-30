@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: DamageEffect
   m_EditorClassIdentifier: 
   maxStackCount: 1
-  durationSec: 5
+  durationTicks: 120
   periodicEffectType: 0
-  frequency: 2
+  frequencyTicks: 12
   constantDamage: 1
   percentMaxHealthDamage: 0

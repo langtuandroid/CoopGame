@@ -19,28 +19,28 @@ namespace Main.Scripts.Skills.Common.Controller
         [SerializeField]
         private UnitTargetType selectionTargetType;
         [SerializeField]
-        [Min(0f)]
-        private float executionDurationSec;
-        [SerializeField]
-        private bool disableMoveOnExecution;
-        [SerializeField]
-        [Min(0f)]
-        private float castDurationSec;
+        [Min(0)]
+        private int castDurationTicks;
         [SerializeField]
         private bool disableMoveOnCast;
         [SerializeField]
-        [Min(0f)]
-        private float cooldownSec;
+        [Min(0)]
+        private int executionDurationTicks;
+        [SerializeField]
+        private bool disableMoveOnExecution;
+        [SerializeField]
+        [Min(0)]
+        private int cooldownTicks;
 
         public List<SkillConfig> RunOnCastSkillConfigs => runOnCastSkillConfigs;
         public List<SkillConfig> RunOnExecutionSkillConfigs => runOnExecutionSkillConfigs;
         public SkillActivationType ActivationType => activationType;
         public GameObject? AreaMarker => areaMarker;
         public UnitTargetType SelectionTargetType => selectionTargetType;
-        public float ExecutionDurationSec => executionDurationSec;
-        public bool DisableMoveOnExecution => disableMoveOnExecution;
-        public float CastDurationSec => castDurationSec;
+        public int CastDurationTicks => castDurationTicks;
         public bool DisableMoveOnCast => disableMoveOnCast;
-        public float CooldownSec => cooldownSec;
+        public int ExecutionDurationTicks => executionDurationTicks;
+        public bool DisableMoveOnExecution => disableMoveOnExecution;
+        public int CooldownTicks => cooldownTicks;
     }
 }

@@ -6,9 +6,9 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
     public class TimerSkillActionTrigger : SkillActionTriggerBase
     {
         [SerializeField]
-        [Min(0f)]
-        private float delaySec;
+        [Min(0)]
+        private int delayTicks;
 
-        public float DelaySec => delaySec;
+        public int DelayTicks => delayTicks;
     }
 }

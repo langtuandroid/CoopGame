@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
 {
-    [CreateAssetMenu(fileName = "SkillActionsPack", menuName = "Skill/SkillActionsPack")]
+    [CreateAssetMenu(fileName = "ActionsPack", menuName = "Skill/ActionsPack")]
     public class SkillActionsPack : ScriptableObject
     {
         [SerializeField]

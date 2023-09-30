@@ -16,7 +16,6 @@ using Main.Scripts.Gui.HealthChangeDisplay;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.Utils;
 using Pathfinding;
-using Pathfinding.RVO;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -266,16 +265,16 @@ namespace Main.Scripts.Enemies
             
             if (!HasStateAuthority)
             {
-                RPC_AddStun(data.durationSec);
+                RPC_AddStun(data.durationTicks);
             }
         }
 
         [Rpc(RpcSources.Proxies, RpcTargets.StateAuthority)]
-        private void RPC_AddStun(float durationSec)
+        private void RPC_AddStun(int durationTicks)
         {
             var data = new StunActionData
             {
-                durationSec = durationSec
+                durationTicks = durationTicks
             };
             enemyLogicDelegate.AddStun(ref data);
         }

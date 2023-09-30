@@ -14,9 +14,9 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
         )
         {
             if (playerData != null
-                && config is ModifiableSkillFollowStrategyPack modifiableSkillFollowStrategyPack)
+                && config is ModifiableSkillFollowStrategies modifiableSkillFollowStrategyPack)
             {
-                foreach (var modifiableFollowStrategiesPack in modifiableSkillFollowStrategyPack.ModifiablePacks)
+                foreach (var modifiableFollowStrategiesPack in modifiableSkillFollowStrategyPack.ModifiableFollowStrategies)
                 {
                     var isEnabled = playerData != null && playerData.Value.Modifiers.Values[
                         bank.GetModifierIdToken(modifiableFollowStrategiesPack.ModifierId)];

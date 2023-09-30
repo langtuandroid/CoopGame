@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
 {
-    [CreateAssetMenu(fileName = "AroundPointTargets", menuName = "Skill/FindTargets/AroundPoint")]
+    [CreateAssetMenu(fileName = "AroundPointTargetsStrategy", menuName = "Skill/FindTargets/AroundPoint")]
     public class AroundPointSkillFindTargetsStrategy : SkillFindTargetsStrategyBase
     {
         [SerializeField]

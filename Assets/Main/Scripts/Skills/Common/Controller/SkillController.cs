@@ -27,7 +27,7 @@ namespace Main.Scripts.Skills.Common.Controller
         private Vector3 initialMapPoint;
         private Vector3 dynamicMapPoint;
         private NetworkObject? selectedUnit;
-        private TickTimer executionTimer;
+        private TickTimer skillRunningTimer;
         private TickTimer castTimer;
         private bool isActivating;
 
@@ -48,7 +48,7 @@ namespace Main.Scripts.Skills.Common.Controller
             GameLoopPhase.VisualStateUpdatePhase
         };
 
-        public bool IsSkillExecuting => executionTimer.IsRunning;
+        public bool IsSkillRunning => skillRunningTimer.IsRunning;
         public SkillActivationType ActivationType => skillControllerConfig.ActivationType;
         public UnitTargetType SelectionTargetType => skillControllerConfig.SelectionTargetType;
 
@@ -127,7 +127,7 @@ namespace Main.Scripts.Skills.Common.Controller
 
         public bool Activate()
         {
-            if (isActivating || IsSkillExecuting || !cooldownTimer.ExpiredOrNotRunning(objectContext.Runner))
+            if (isActivating || IsSkillRunning || !cooldownTimer.ExpiredOrNotRunning(objectContext.Runner))
             {
                 return false;
             }
@@ -155,7 +155,7 @@ namespace Main.Scripts.Skills.Common.Controller
         public void UpdateMapPoint(Vector3 mapPoint)
         {
             dynamicMapPoint = mapPoint;
-            if (!IsSkillExecuting)
+            if (!IsSkillRunning)
             {
                 initialMapPoint = mapPoint;
             }
@@ -180,12 +180,12 @@ namespace Main.Scripts.Skills.Common.Controller
                 throw new Exception("Skill must be activated before calling execute");
             }
 
-            if (IsSkillExecuting) return;
+            if (IsSkillRunning) return;
 
             isActivating = false;
 
-            executionTimer = TickTimer.CreateFromSeconds(objectContext.Runner, skillControllerConfig.ExecutionDurationSec);
-            castTimer = TickTimer.CreateFromSeconds(objectContext.Runner, skillControllerConfig.CastDurationSec);
+            skillRunningTimer = TickTimer.CreateFromTicks(objectContext.Runner, skillControllerConfig.CastDurationTicks + skillControllerConfig.ExecutionDurationTicks);
+            castTimer = TickTimer.CreateFromTicks(objectContext.Runner, skillControllerConfig.CastDurationTicks);
 
             listener?.OnSkillStartCasting(this);
 
@@ -222,7 +222,7 @@ namespace Main.Scripts.Skills.Common.Controller
         {
             CheckCastFinished();
 
-            if (executionTimer.Expired(objectContext.Runner))
+            if (skillRunningTimer.Expired(objectContext.Runner))
             {
                 ResetOnFinish();
 
@@ -254,7 +254,7 @@ namespace Main.Scripts.Skills.Common.Controller
             if (castTimer.Expired(objectContext.Runner))
             {
                 castTimer = default;
-                cooldownTimer = TickTimer.CreateFromSeconds(objectContext.Runner, skillControllerConfig.CooldownSec);
+                cooldownTimer = TickTimer.CreateFromTicks(objectContext.Runner, skillControllerConfig.CooldownTicks);
                 AddSpawnActions(skillControllerConfig.RunOnExecutionSkillConfigs);
                 
                 listener?.OnSkillFinishedCasting(this);
@@ -298,14 +298,14 @@ namespace Main.Scripts.Skills.Common.Controller
         public bool IsDisabledMove()
         {
             var isDisableOnCast = skillControllerConfig.DisableMoveOnCast && !castTimer.ExpiredOrNotRunning(objectContext.Runner);
-            var isDisableOnExecution = skillControllerConfig.DisableMoveOnExecution && IsSkillExecuting;
+            var isDisableOnExecution = skillControllerConfig.DisableMoveOnExecution && IsSkillRunning;
             return isDisableOnCast || isDisableOnExecution;
         }
 
         private void ResetOnFinish()
         {
             castTimer = default;
-            executionTimer = default;
+            skillRunningTimer = default;
             isActivating = false;
 
             selectedUnit = null;

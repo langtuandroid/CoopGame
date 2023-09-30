@@ -18,8 +18,8 @@ namespace Main.Scripts.Skills.Common.Component.Config
         [SerializeField]
         private List<SkillTriggerPack> triggerPacks = new();
         [SerializeField]
-        [Min(0f)]
-        private float durationSec;
+        [Min(0)]
+        private int durationTicks;
         [SerializeField]
         private SkillInterruptStrategy interruptStrategy;
 
@@ -28,7 +28,7 @@ namespace Main.Scripts.Skills.Common.Component.Config
         public SkillDirectionType FollowDirectionType => followDirectionType;
         public SkillFollowStrategyBase FollowStrategy => followStrategy;
         public List<SkillTriggerPack> TriggerPacks => triggerPacks;
-        public float DurationSec => durationSec;
+        public int DurationTicks => durationTicks;
         public SkillInterruptStrategy InterruptStrategy => interruptStrategy;
     }
 }

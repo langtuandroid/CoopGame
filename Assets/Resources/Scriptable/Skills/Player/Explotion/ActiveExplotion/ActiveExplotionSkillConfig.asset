@@ -23,6 +23,5 @@ MonoBehaviour:
   - ActionTrigger: {fileID: 11400000, guid: cb34f997e2027f1439a4d94d4f448cb9, type: 2}
     ActionsPackList:
     - {fileID: 11400000, guid: 51e8c07f1e306d949869b03302cd07f9, type: 2}
-  isAffectTargetsOnlyOneTime: 0
-  durationSec: 3
+  durationTicks: 72
   interruptStrategy: 0

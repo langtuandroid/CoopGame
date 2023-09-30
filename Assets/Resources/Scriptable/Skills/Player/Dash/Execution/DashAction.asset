@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   directionType: 6
   speed: 20
-  durationSec: 0.3
+  durationTicks: 8

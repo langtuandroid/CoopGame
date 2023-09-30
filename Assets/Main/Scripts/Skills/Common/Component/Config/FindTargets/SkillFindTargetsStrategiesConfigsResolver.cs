@@ -16,10 +16,10 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
             foreach (var config in configs)
             {
                 if (playerData != null
-                    && config is ModifiableSkillFindTargetsStrategiesPack modifiableSkillFindTargetsStrategiesPack)
+                    && config is ModifiableSkillFindTargetsStrategies modifiableSkillFindTargetsStrategiesPack)
                 {
                     foreach (var modifiableFindTargetsStrategies in modifiableSkillFindTargetsStrategiesPack
-                                 .ModifiablePacks)
+                                 .ModifiableTargetsStrategies)
                     {
                         var isEnabled = playerData.Value.Modifiers.Values[
                             bank.GetModifierIdToken(modifiableFindTargetsStrategies.ModifierId)];

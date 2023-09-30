@@ -18,8 +18,8 @@ MonoBehaviour:
   activationType: 1
   areaMarker: {fileID: 5057171897305266061, guid: ff0d9b2f39e85dc479ec32ae19e5e951, type: 3}
   selectionTargetType: 0
-  executionDurationSec: 0.3
+  executionDurationTicks: 0
   disableMoveOnExecution: 0
-  castDurationSec: 0.3
+  castDurationTicks: 8
   disableMoveOnCast: 1
-  cooldownSec: 3
+  cooldownTicks: 72

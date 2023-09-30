@@ -16,9 +16,9 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
             foreach (var config in configs)
             {
                 if (playerData != null
-                    && config is ModifiableSkillActionsPack modifiableSkillActionsPack)
+                    && config is ModifiableSkillActions modifiableSkillActionsPack)
                 {
-                    foreach (var modifiableActions in modifiableSkillActionsPack.ModifiablePacks)
+                    foreach (var modifiableActions in modifiableSkillActionsPack.ModifiableActions)
                     {
                         var isEnabled = playerData.Value.Modifiers.Values[
                             bank.GetModifierIdToken(modifiableActions.ModifierId)];

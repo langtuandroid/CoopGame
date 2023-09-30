@@ -178,9 +178,8 @@ namespace Main.Scripts.Effects
         private void HandlePeriodicEffect(PeriodicEffectBase periodicEffect, int startTick, int stackCount)
         {
             var tick = objectContext.Runner.Tick;
-            var tickRate = objectContext.Runner.Config.Simulation.TickRate;
 
-            if (TickHelper.CheckFrequency(tick - startTick, tickRate, periodicEffect.Frequency))
+            if ((tick - startTick) % periodicEffect.FrequencyTicks == 0)
             {
                 periodicEffectsHandlers[periodicEffect.PeriodicEffectType].HandleEffect(periodicEffect, stackCount);
             }
@@ -192,10 +191,9 @@ namespace Main.Scripts.Effects
             var endTick = 0;
             var effectId = effectsBank.GetEffectId(effect);
             ActiveEffectData? currentData = null;
-            if (effect.DurationSec > 0)
+            if (effect.DurationTicks > 0)
             {
-                endTick = (int)(startTick +
-                                effect.DurationSec * objectContext.Runner.Config.Simulation.TickRate);
+                endTick = startTick + effect.DurationTicks;
                 if (limitedEffectDataMap.ContainsKey(effectId))
                 {
                     currentData = limitedEffectDataMap[effectId];

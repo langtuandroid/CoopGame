@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: HealEffect
   m_EditorClassIdentifier: 
   maxStackCount: 1
-  durationSec: 0
+  durationTicks: 0
   periodicEffectType: 1
-  frequency: 2
+  frequencyTicks: 12
   constantHeal: 0
   percentMaxHealthHeal: 2

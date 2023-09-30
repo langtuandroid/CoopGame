@@ -588,7 +588,7 @@ namespace Main.Scripts.Enemies
 
         private void ApplyStun(ref EnemyData enemyData, ref StunActionData actionData)
         {
-            enemyData.stunTimer = TickTimer.CreateFromSeconds(objectContext.Runner, actionData.durationSec);
+            enemyData.stunTimer = TickTimer.CreateFromTicks(objectContext.Runner, actionData.durationTicks);
         }
 
         public void AddEffects(EffectsCombination effectsCombination)

@@ -5,9 +5,9 @@ using Main.Scripts.Skills.PassiveSkills.Triggers;
 namespace Main.Scripts.Skills.PassiveSkills
 {
     [Serializable]
-    public struct PassiveSkillControllerData
+    public struct PassiveSkillData
     {
-        public SkillControllerConfig SkillControllerConfig;
         public PassiveSkillTriggerBase PassiveSkillTrigger;
+        public SkillControllerConfig SkillControllerConfig;
     }
 }

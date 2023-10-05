@@ -314,7 +314,7 @@ namespace Main.Scripts.Enemies
         {
             ref var enemyData = ref dataHolder.GetEnemyData();
             
-            if (!objectContext.HasStateAuthority || enemyData.isDead) return;
+            if (!objectContext.HasStateAuthority || enemyData.isDead || !enemyData.hasNavTarget) return;
 
             richAI.destination = enemyData.navigationTarget;
         }
@@ -441,11 +441,16 @@ namespace Main.Scripts.Enemies
         private void UpdateDestination(ref EnemyData enemyData, Vector3? destination)
         {
             enemyData.navigationTarget = destination ?? transform.position;
+            enemyData.hasNavTarget = destination != null;
+            if (!enemyData.hasNavTarget)
+            {
+                richAI.SetPath(null);
+            }
         }
 
         private bool IsAttacking()
         {
-            return activeSkillsManager.GetCurrentSkillState() == ActiveSkillState.Attacking;
+            return activeSkillsManager.GetCurrentSkillState() != ActiveSkillState.NotAttacking;
         }
 
         public float GetMaxHealth()
@@ -609,7 +614,17 @@ namespace Main.Scripts.Enemies
                                 meshAnimator.Play(mobConfig.AnimationIndexMap[animation]);
                             }
                         }
-
+                        break;
+                    case EnemyAnimationState.Casting:
+                        if (mobConfig.ActiveSkillAnimationsMap.ContainsKey(ActiveSkillType.PRIMARY))
+                        {
+                            var animation = mobConfig.ActiveSkillAnimationsMap[ActiveSkillType.PRIMARY].CastSkillAnimation;
+                            if (animation != null)
+                            {
+                                meshAnimator.speed = 1f;
+                                meshAnimator.Play(mobConfig.AnimationIndexMap[animation]);
+                            }
+                        }
                         break;
                 }
             }
@@ -646,7 +661,14 @@ namespace Main.Scripts.Enemies
                 return EnemyAnimationState.Attacking;
             }
 
-            return CanMoveByController(ref enemyData) ? EnemyAnimationState.Walking : EnemyAnimationState.Idle;
+            if (activeSkillsManager.GetCurrentSkillState() == ActiveSkillState.Casting)
+            {
+                return EnemyAnimationState.Casting;
+            }
+
+            return CanMoveByController(ref enemyData) && enemyData.hasNavTarget
+                ? EnemyAnimationState.Walking
+                : EnemyAnimationState.Idle;
         }
 
         private bool CanMoveByController(ref EnemyData enemyData)

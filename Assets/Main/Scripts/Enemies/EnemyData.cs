@@ -18,6 +18,8 @@ namespace Main.Scripts.Enemies
         [Networked]
         public Vector3 navigationTarget { get; set; }
         [Networked]
+        public bool hasNavTarget { get; set; }
+        [Networked]
         public TickTimer stunTimer { get; set; }
         [Networked]
         public PlayerRef targetPlayerRef { get; set; }

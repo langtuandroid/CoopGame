@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca3d1d46e4be4df1b28028d25c825374, type: 3}
+  m_Name: FireballSkillControllerConfig
+  m_EditorClassIdentifier: 
+  runOnCastSkillConfigs: []
+  runOnExecutionSkillConfigs:
+  - {fileID: 11400000, guid: 190dbba2406914741b463041cf7b52b9, type: 2}
+  activationType: 2
+  areaMarker: {fileID: 0}
+  selectionTargetType: 0
+  castDurationTicks: 8
+  disableMoveOnCast: 0
+  executionDurationTicks: 16
+  disableMoveOnExecution: 0
+  cooldownTicks: 24

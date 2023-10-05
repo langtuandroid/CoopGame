@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d752ba6ca1945169ed27d700872423d, type: 3}
+  m_Name: CollisionActionsPack
+  m_EditorClassIdentifier: 
+  findTargetsStrategies:
+  - {fileID: 11400000, guid: e68ef4d2184ddc240b8670a84170be08, type: 2}
+  actions:
+  - {fileID: 11400000, guid: cd373f94786e0c646917a69ad6908f71, type: 2}
+  - {fileID: 11400000, guid: f64c0389bbfbfe642a73d7035d0a758a, type: 2}
+  - {fileID: 11400000, guid: 52485175c152e774f894469dffeab551, type: 2}

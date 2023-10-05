@@ -5,6 +5,7 @@
         None,
         Idle,
         Walking,
+        Casting,
         Attacking,
     }
 }

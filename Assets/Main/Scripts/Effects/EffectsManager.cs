@@ -8,7 +8,6 @@ using Main.Scripts.Effects.PeriodicEffects.Handlers.Damage;
 using Main.Scripts.Effects.PeriodicEffects.Handlers.Heal;
 using Main.Scripts.Effects.Stats;
 using Main.Scripts.Effects.Stats.Modifiers;
-using Main.Scripts.Utils;
 
 namespace Main.Scripts.Effects
 {
@@ -51,18 +50,28 @@ namespace Main.Scripts.Effects
 
         public void Despawned(NetworkRunner runner, bool hasState)
         {
+            ResetState();
+
             objectContext = default!;
             effectsBank = default!;
 
             dataHolder.SetEffectDataChangeListener(null);
         }
 
-        public void ResetState()
+        public void ResetOnRespawn()
+        {
+            dataHolder.ResetAllEffectData();
+        }
+
+        private void ResetState()
         {
             endedEffectIds.Clear();
             updatedStatTypes.Clear();
-            
-            dataHolder.ResetAllEffectData();
+                
+            unlimitedEffectDataMap.Clear();
+            limitedEffectDataMap.Clear();
+            Array.Fill(statConstAdditiveSums, 0f);
+            Array.Fill(statPercentAdditiveSums, 0f);
         }
 
         public void UpdateEffects()
@@ -152,10 +161,7 @@ namespace Main.Scripts.Effects
 
         public void OnResetAllEffectData()
         {
-            unlimitedEffectDataMap.Clear();
-            limitedEffectDataMap.Clear();
-            Array.Fill(statConstAdditiveSums, 0f);
-            Array.Fill(statPercentAdditiveSums, 0f);
+            ResetState();
         }
 
         private void InitEffectsHandlers(object effectsTarget)
@@ -243,9 +249,9 @@ namespace Main.Scripts.Effects
 
         public void RemoveFinishedEffects()
         {
+            endedEffectIds.Clear();
             updatedStatTypes.Clear();
 
-            endedEffectIds.Clear();
             foreach (var (id, effectData) in limitedEffectDataMap)
             {
                 if (objectContext.Runner.Tick > effectData.EndTick)

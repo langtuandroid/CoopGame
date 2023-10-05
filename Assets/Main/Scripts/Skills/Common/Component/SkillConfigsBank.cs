@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Main.Scripts.Skills.Common.Component.Config;
 using Main.Scripts.Skills.Common.Component.Config.Action;
-using UnityEditor;
 using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component

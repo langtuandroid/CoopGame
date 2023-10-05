@@ -250,6 +250,15 @@ namespace FSG.MeshAnimator.ShaderAnimated
             if (meshAnimations.Length > 0 && defaultMeshAnimation == null)
                 defaultMeshAnimation = this.meshAnimations[0];
         }
+        
+        public void SetAnimations(ShaderMeshAnimation[] meshAnimations)
+        {
+            this.meshAnimations = meshAnimations;
+            if (meshAnimations.Length > 0 && defaultMeshAnimation == null)
+                defaultMeshAnimation = this.meshAnimations[0];
+            SetupTextureData();
+        }
+        
         public override void StoreAdditionalMeshData(Mesh mesh) { }
 
         private void RefreshTimeData()

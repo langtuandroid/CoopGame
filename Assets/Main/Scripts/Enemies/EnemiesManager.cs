@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Core.GameLogic.Phases;
+using Main.Scripts.Core.Resources;
+using Main.Scripts.Mobs.Config;
+using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.Events;
 using Random = UnityEngine.Random;
@@ -11,11 +14,14 @@ namespace Main.Scripts.Enemies
     public class EnemiesManager : GameLoopEntityNetworked
     {
         [SerializeField]
-        private EnemyController enemyPrefab = default!;
+        private EnemyController enemyPrefab = null!;
+        [SerializeField]
+        private MobConfig mobConfig = null!;
 
-        private NavigationManager navigationManager = default!;
+        private NavigationManager navigationManager = null!;
+        private MobConfigsBank mobConfigsBank = null!;
 
-        public UnityEvent<EnemyController> OnEnemyDeadEvent = default!;
+        public UnityEvent<EnemyController> OnEnemyDeadEvent = null!;
 
         private Dictionary<NetworkId, EnemyController> localEnemiesMap = new();
 
@@ -32,8 +38,15 @@ namespace Main.Scripts.Enemies
             spawnActions.Clear();
 
             navigationManager = levelContext.NavigationManager;
+            mobConfigsBank = GlobalResources.Instance.ThrowWhenNull().MobConfigsBank;
         }
 
+        public override void Despawned(NetworkRunner runner, bool hasState)
+        {
+            base.Despawned(runner, hasState);
+            navigationManager = null!;
+            mobConfigsBank = null!;
+        }
 
         public override void OnGameLoopPhase(GameLoopPhase phase)
         {
@@ -45,6 +58,7 @@ namespace Main.Scripts.Enemies
                     onBeforeSpawned: (runner, networkObject) =>
                     {
                         var enemyController = networkObject.GetComponent<EnemyController>();
+                        enemyController.Init(mobConfigsBank.GetMobConfigKey(mobConfig));
                         enemyController.OnDeadEvent.AddListener(OnEnemyDead);
                     }
                 );
@@ -76,7 +90,10 @@ namespace Main.Scripts.Enemies
         public void UnregisterEnemy(EnemyController enemy)
         {
             localEnemiesMap.Remove(enemy.Object.Id);
-            navigationManager.Remove(enemy.Object);
+            if (navigationManager != null)
+            {
+                navigationManager.Remove(enemy.Object);
+            }
         }
 
         private void OnEnemyDead(EnemyController enemyController)

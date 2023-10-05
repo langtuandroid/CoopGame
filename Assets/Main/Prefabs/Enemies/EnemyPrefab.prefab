@@ -281,7 +281,6 @@ GameObject:
   - component: {fileID: 5369456169372925418}
   - component: {fileID: 5598048174663406685}
   - component: {fileID: 5226872336907141032}
-  - component: {fileID: 150736510840700759}
   - component: {fileID: 4739822872436178127}
   - component: {fileID: 4289399812898263863}
   - component: {fileID: 2611707164485296804}
@@ -358,7 +357,8 @@ MonoBehaviour:
       textLifeTimer: 0.5
       textSpeed: 5
       healthChangeDisplay: {fileID: 2810098918455596548, guid: 2e12ba9d46989ac46acbb5ad436fb79b, type: 3}
-  meshAnimator: {fileID: 3601962615104572936}
+  meshFilter: {fileID: 5134526763187908767}
+  shaderMeshAnimator: {fileID: 3601962615104572936}
   OnDeadEvent:
     m_PersistentCalls:
       m_Calls: []
@@ -436,27 +436,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 116
   m_CollisionDetection: 0
---- !u!95 &150736510840700759
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6033847763045838493}
-  m_Enabled: 1
-  m_Avatar: {fileID: 9000000, guid: 65f306708d29cee43a098f6c1f64a84c, type: 3}
-  m_Controller: {fileID: 9100000, guid: a4fae1f7fdd03e944a5d210ec8e196b2, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &4739822872436178127
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -617,6 +596,30 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3053674644394487279}
     m_Modifications:
+    - target: {fileID: 4415776773454120632, guid: df41795b25f305540964508c049d4758, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4415776773454120632, guid: df41795b25f305540964508c049d4758, type: 3}
+      propertyPath: resetOnEnable
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4415776773454120632, guid: df41795b25f305540964508c049d4758, type: 3}
+      propertyPath: defaultMeshAnimation
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 4415776773454120632, guid: df41795b25f305540964508c049d4758, type: 3}
+      propertyPath: meshAnimations.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4415776773454120632, guid: df41795b25f305540964508c049d4758, type: 3}
+      propertyPath: meshAnimations.Array.data[0]
+      value: 
+      objectReference: {fileID: 11400000, guid: 4352de620b999db4fb5a595b1a0a3310, type: 2}
+    - target: {fileID: 5474900078959392815, guid: df41795b25f305540964508c049d4758, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 5557582918429997248, guid: df41795b25f305540964508c049d4758, type: 3}
       propertyPath: m_Name
       value: EnemyPrefab_AnimatedMesh
@@ -676,11 +679,16 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 917397860934011056}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5e6cc279b0b49934980f1637ad388b77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!33 &5134526763187908767 stripped
+MeshFilter:
+  m_CorrespondingSourceObject: {fileID: 5474900078959392815, guid: df41795b25f305540964508c049d4758, type: 3}
+  m_PrefabInstance: {fileID: 917397860934011056}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &6138069743705063076 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6455221321838114324, guid: df41795b25f305540964508c049d4758, type: 3}

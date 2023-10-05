@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using FSG.MeshAnimator;
+using FSG.MeshAnimator.ShaderAnimated;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Data;
@@ -9,8 +9,12 @@ using Main.Scripts.Core.CustomPhysics;
 using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Effects;
 using Main.Scripts.Effects.Stats;
-using Main.Scripts.Gui;
 using Main.Scripts.Gui.HealthChangeDisplay;
+using Main.Scripts.Mobs.Component;
+using Main.Scripts.Mobs.Component.Delegate;
+using Main.Scripts.Mobs.Config;
+using Main.Scripts.Mobs.Config.Block.Action;
+using Main.Scripts.Skills;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.Skills.PassiveSkills;
 using Pathfinding;
@@ -25,45 +29,43 @@ namespace Main.Scripts.Enemies
         ObjectWithGettingKnockBack,
         ObjectWithGettingStun,
         EffectsManager.EventListener,
-        ActiveSkillsManager.EventListener
+        ActiveSkillsManager.EventListener,
+        SkillsOwner
     {
-        private static readonly int IS_MOVING_ANIM = Animator.StringToHash("isMoving");
-        private static readonly int ATTACK_ANIM = Animator.StringToHash("Attack");
         private static readonly float HEALTH_THRESHOLD = 0.01f;
 
-        private EnemyConfig config;
         private DataHolder dataHolder;
         private EventListener eventListener;
-        private NetworkObject objectContext = default!;
 
         private Transform transform;
         private NetworkRigidbody3D rigidbody3D;
         private RichAI richAI;
-        private MeshAnimatorBase meshAnimator;
-        private HealthBar healthBar;
-
-        private EnemiesHelper enemiesHelper = default!;
-        private NavigationManager navigationManager = default!;
-
+        private MeshFilter meshFilter;
+        private ShaderMeshAnimator meshAnimator;
+        
         private ActiveSkillsManager activeSkillsManager;
         private PassiveSkillsManager passiveSkillsManager;
         private EffectsManager effectsManager;
-        private HealthChangeDisplayManager? healthChangeDisplayManager;
+
+        private MobConfig mobConfig = null!;
+        private NetworkObject objectContext = null!;
+        
+        private NavigationManager navigationManager = null!;
+        private MobConfigsBank mobConfigsBank = null!;
+        private MobBlockDelegate logicBlockDelegate = null!;
 
         private int lastAnimationTriggerId;
-
         private EnemyAnimationState currentAnimationState;
 
-        private float sqrAttackDistance;
         private Vector3 lookDirection;
         private int movementDeltaTicks;
+        private bool shouldDespawn;
 
         private List<KnockBackActionData> knockBackActions = new();
         private List<StunActionData> stunActions = new();
         private List<DamageActionData> damageActions = new();
         private List<HealActionData> healActions = new();
         private List<EffectsCombination> effectActions = new();
-        private bool shouldDespawn;
 
         public readonly GameLoopPhase[] gameLoopPhases =
         {
@@ -83,23 +85,20 @@ namespace Main.Scripts.Enemies
         };
 
         public EnemyLogicDelegate(
-            ref EnemyConfig config,
             DataHolder dataHolder,
             EventListener eventListener
         )
         {
-            this.config = config;
             this.dataHolder = dataHolder;
             this.eventListener = eventListener;
 
             rigidbody3D = dataHolder.GetCachedComponent<NetworkRigidbody3D>();
             richAI = dataHolder.GetCachedComponent<RichAI>();
-            meshAnimator = dataHolder.GetCachedComponent<MeshAnimatorBase>();
+            meshFilter = dataHolder.GetCachedComponent<MeshFilter>();
+            meshAnimator = dataHolder.GetCachedComponent<ShaderMeshAnimator>();
             transform = dataHolder.GetCachedComponent<Transform>();
 
             richAI.updatePosition = false;
-
-            healthBar = config.HealthBar;
 
             effectsManager = new EffectsManager(
                 dataHolder: dataHolder,
@@ -107,26 +106,14 @@ namespace Main.Scripts.Enemies
                 effectsTarget: this
             );
             activeSkillsManager = new ActiveSkillsManager(
-                config: ref config.ActiveSkillsConfig,
                 dataHolder: dataHolder,
                 eventListener: this,
                 transform
             );
             passiveSkillsManager = new PassiveSkillsManager(
-                config: ref config.PassiveSkillsConfig,
                 affectable: this,
                 transform: transform
             );
-
-            if (config.ShowHealthChangeDisplay)
-            {
-                healthChangeDisplayManager = new HealthChangeDisplayManager(
-                    config: ref config.HealthChangeDisplayConfig,
-                    dataHolder: dataHolder
-                );
-            }
-
-            sqrAttackDistance = config.AttackDistance * config.AttackDistance;
         }
 
         public static void OnValidate(GameObject gameObject, ref EnemyConfig config)
@@ -137,77 +124,87 @@ namespace Main.Scripts.Enemies
 
         public void Spawned(NetworkObject objectContext)
         {
+            ref var enemyData = ref dataHolder.GetEnemyData();
             this.objectContext = objectContext;
-            ResetState();
 
-            enemiesHelper = dataHolder.GetCachedComponent<EnemiesHelper>();
             navigationManager = dataHolder.GetCachedComponent<NavigationManager>();
+            mobConfigsBank = dataHolder.GetCachedComponent<MobConfigsBank>();
+            
+            mobConfig = mobConfigsBank.GetMobConfig(enemyData.mobConfigKey);
+            
+            effectsManager.Spawned(objectContext);
+            activeSkillsManager.Spawned(objectContext, ref mobConfig.ActiveSkillsConfig);
+            passiveSkillsManager.Spawned(objectContext, ref mobConfig.PassiveSkillsConfig); //call after effectsManager.Spawned
+            
+            logicBlockDelegate = MobBlockDelegateHelper.Create(mobConfig.LogicBlockConfig);
+
+            meshFilter.sharedMesh = mobConfig.MobMesh;
+            meshAnimator.SetAnimations(mobConfig.AnimationsArray);
+
             richAI.enabled = objectContext.HasStateAuthority;
             if (this.objectContext.HasStateAuthority)
             {
                 richAI.Teleport(transform.position);
             }
-            
-            effectsManager.Spawned(objectContext);
-            activeSkillsManager.Spawned(objectContext);
-            passiveSkillsManager.Spawned(objectContext);
-            healthChangeDisplayManager?.Spawned(objectContext);
+
+            InitState(ref enemyData);
         }
 
         public void Despawned(NetworkRunner runner, bool hasState)
         {
+            ResetState();
+
             effectsManager.Despawned(runner, hasState);
             activeSkillsManager.Despawned(runner, hasState);
-            healthChangeDisplayManager?.Despawned(runner, hasState);
+            passiveSkillsManager.Despawned(runner, hasState);
+            
+            MobBlockDelegateHelper.Release(logicBlockDelegate);
+            logicBlockDelegate = null!;
 
-            objectContext = default!;
-            enemiesHelper = default!;
+            objectContext = null!;
+        }
+
+        private void InitState(ref EnemyData enemyData)
+        {
+            if (!objectContext.HasStateAuthority) return;
+            
+            enemyData.maxHealth = mobConfig.MaxHealth;
+            enemyData.speed = mobConfig.MoveSpeed;
+            enemyData.health = enemyData.maxHealth;
+            enemyData.isDead = false;
+
+            lookDirection = transform.rotation * Vector3.forward;
+            
+            passiveSkillsManager.ApplyInitialEffects();
         }
 
         private void ResetState()
         {
-            ref var enemyData = ref dataHolder.GetEnemyData();
-            
+            mobConfig = null!;
             knockBackActions.Clear();
             stunActions.Clear();
             damageActions.Clear();
             healActions.Clear();
             effectActions.Clear();
             shouldDespawn = false;
-            lookDirection = Vector3.zero;
-            movementDeltaTicks = 0;
-
-            enemyData.maxHealth = config.DefaultMaxHealth;
-            enemyData.speed = config.DefaultSpeed;
-
-            effectsManager.ResetState();
-            passiveSkillsManager.Init(); //reset after reset effectsManager
-
-            enemyData.health = enemyData.maxHealth;
-            healthBar.SetMaxHealth((uint)Math.Max(0, enemyData.maxHealth));
-
-            enemyData.isDead = false;
+            movementDeltaTicks = default;
+            lastAnimationTriggerId = default;
             currentAnimationState = EnemyAnimationState.None;
+
+            //если нужно поддержать респавн, то нужно добавить сюда ресет стейтов у менеджеров
         }
 
         public void Render()
         {
-            ref var enemyData = ref dataHolder.GetEnemyData();
-
             switch (currentAnimationState)
             {
                 case EnemyAnimationState.Walking:
-                    var velocity = rigidbody3D.VelocityInterpolated.magnitude / config.DefaultSpeed;
+                    var velocity = rigidbody3D.VelocityInterpolated.magnitude / mobConfig.MoveSpeed;
                     meshAnimator.speed = velocity;
                     break;
             }
 
-            healthBar.SetMaxHealth((uint)enemyData.maxHealth);
-            healthBar.SetHealth((uint)enemyData.health);
-            
             activeSkillsManager.Render();
-
-            healthChangeDisplayManager?.Render();
         }
 
         public void OnGameLoopPhase(GameLoopPhase phase)
@@ -261,7 +258,43 @@ namespace Main.Scripts.Enemies
         {
             ref var enemyData = ref dataHolder.GetEnemyData();
 
-            UpdateTickLogic(ref enemyData);
+            if (!objectContext.HasStateAuthority || enemyData.isDead || !CanMoveByController(ref enemyData)) return;
+
+            var blockContext = new MobBlockContext
+            {
+                SelfUnit = objectContext,
+                Tick = objectContext.Runner.Tick,
+                AlliesLayerMask = mobConfig.AlliesLayerMask,
+                OpponentsLayerMask = mobConfig.OpponentsLayerMask
+            };
+            logicBlockDelegate.Do(ref blockContext, out var blockResult);
+            
+            var target = blockResult.blockContext.TargetUnit;
+            switch (blockResult.actionConfig)
+            {
+                case DoNothingMobActionBlock:
+                    UpdateDestination(ref enemyData, null);
+                    break;
+                case ActivateSkillMobActionBlock activateSkillAction:
+                    if (target != null)
+                    {
+                        lookDirection = target.transform.position - transform.position;
+                        activeSkillsManager.ApplyUnitTarget(target.Id);
+                    }
+                    activeSkillsManager.AddActivateSkill(activateSkillAction.SkillType, true);
+                    break;
+                case MoveToTargetMobActionBlock:
+                    if (target == null)
+                    {
+                        throw new Exception($"Target in null after logic blocks calculating in {mobConfig.name}");
+                    }
+                    UpdateDestination(ref enemyData, target.transform.position);
+                    break;
+                case MoveToPointMobActionBlock:
+                    //todo
+                    // UpdateDestination(ref enemyData, target.transform.position);
+                    break;
+            }
         }
 
         private void OnApplyActionsPhase()
@@ -336,8 +369,6 @@ namespace Main.Scripts.Enemies
             ref var enemyData = ref dataHolder.GetEnemyData();
 
             UpdateAnimationState(ref enemyData);
-
-            healthChangeDisplayManager?.OnAfterPhysicsSteps();
         }
 
         /**
@@ -366,14 +397,10 @@ namespace Main.Scripts.Enemies
             switch (statType)
             {
                 case StatType.Speed:
-                    enemyData.speed = effectsManager.GetModifiedValue(statType, config.DefaultSpeed);
+                    enemyData.speed = effectsManager.GetModifiedValue(statType, mobConfig.MoveSpeed);
                     break;
                 case StatType.MaxHealth:
-                    var newMaxHealth = effectsManager.GetModifiedValue(statType, config.DefaultMaxHealth);
-                    if ((int)newMaxHealth == (int)enemyData.maxHealth)
-                    {
-                        healthBar.SetMaxHealth((uint)Math.Max(0, newMaxHealth));
-                    }
+                    var newMaxHealth = effectsManager.GetModifiedValue(statType, mobConfig.MaxHealth);
 
                     enemyData.maxHealth = newMaxHealth;
                     break;
@@ -411,42 +438,9 @@ namespace Main.Scripts.Enemies
             }
         }
 
-        private void UpdateTickLogic(ref EnemyData enemyData)
-        {
-            if (!objectContext.HasStateAuthority || enemyData.isDead || !CanMoveByController(ref enemyData)) return;
-
-            var targetRef =
-                enemiesHelper.FindPlayerTarget(objectContext.Runner, transform.position, out var targetPosition);
-            if (targetRef != null)
-            {
-                enemyData.targetPlayerRef = targetRef.Value;
-                var sqrDistanceToTarget = Vector3.SqrMagnitude(transform.position - targetPosition);
-
-                if (sqrDistanceToTarget > sqrAttackDistance)
-                {
-                    UpdateDestination(ref enemyData, targetPosition);
-                }
-                else
-                {
-                    UpdateDestination(ref enemyData, null);
-                    lookDirection = targetPosition - transform.position;
-                    FireWeapon();
-                }
-            }
-            else
-            {
-                UpdateDestination(ref enemyData, null);
-            }
-        }
-
         private void UpdateDestination(ref EnemyData enemyData, Vector3? destination)
         {
             enemyData.navigationTarget = destination ?? transform.position;
-        }
-
-        private void FireWeapon()
-        {
-            activeSkillsManager.AddActivateSkill(ActiveSkillType.PRIMARY);
         }
 
         private bool IsAttacking()
@@ -491,10 +485,6 @@ namespace Main.Scripts.Enemies
         private void ApplyHeal(ref EnemyData enemyData, ref HealActionData actionData)
         {
             enemyData.health = Math.Min(enemyData.health + actionData.healValue, enemyData.maxHealth);
-            if (healthChangeDisplayManager != null)
-            {
-                healthChangeDisplayManager.ApplyHeal(actionData.healValue);
-            }
         }
 
         public void AddDamage(ref DamageActionData data)
@@ -529,11 +519,6 @@ namespace Main.Scripts.Enemies
             else
             {
                 enemyData.health -= actionData.damageValue;
-            }
-
-            if (healthChangeDisplayManager != null)
-            {
-                healthChangeDisplayManager.ApplyDamage(actionData.damageValue);
             }
         }
 
@@ -598,12 +583,6 @@ namespace Main.Scripts.Enemies
 
         private void ApplyEffects()
         {
-            // if (enemyData.isDead)
-            // {
-            //     effectActions.Clear();
-            //     return;
-            // } //todo далить, если не падает
-
             foreach (var effectsCombination in effectActions)
             {
                 effectsManager.AddEffects(effectsCombination.Effects);
@@ -621,9 +600,16 @@ namespace Main.Scripts.Enemies
                 switch (newAnimationState)
                 {
                     case EnemyAnimationState.Attacking:
-                        Debug.Log("Start Attacking animation");
-                        meshAnimator.Play(2);
-                        meshAnimator.speed = 1f;
+                        if (mobConfig.ActiveSkillAnimationsMap.ContainsKey(ActiveSkillType.PRIMARY))
+                        {
+                            var animation = mobConfig.ActiveSkillAnimationsMap[ActiveSkillType.PRIMARY].ExecutionSkillAnimation;
+                            if (animation != null)
+                            {
+                                meshAnimator.speed = 1f;
+                                meshAnimator.Play(mobConfig.AnimationIndexMap[animation]);
+                            }
+                        }
+
                         break;
                 }
             }
@@ -635,13 +621,17 @@ namespace Main.Scripts.Enemies
                 switch (newAnimationState)
                 {
                     case EnemyAnimationState.Walking:
-                        Debug.Log("Start Walking animation");
-                        meshAnimator.Play(1);
+                        if (mobConfig.Animations.RunAnimation != null)
+                        {
+                            meshAnimator.Play(mobConfig.AnimationIndexMap[mobConfig.Animations.RunAnimation]);
+                        }
                         break;
                     case EnemyAnimationState.Idle:
-                        Debug.Log("Start Idle animation");
-                        meshAnimator.Play(0);
-                        meshAnimator.speed = 1f;
+                        if (mobConfig.Animations.IdleAnimation != null)
+                        {
+                            meshAnimator.speed = 1f;
+                            meshAnimator.Play(mobConfig.AnimationIndexMap[mobConfig.Animations.IdleAnimation]);
+                        }
                         break;
                 }
             }
@@ -665,6 +655,21 @@ namespace Main.Scripts.Enemies
                    && !IsAttacking()
                    && !rigidbody3D.IsForceRunning();
         }
+
+        public int GetActiveSkillCooldownLeftTicks(ActiveSkillType skillType)
+        {
+            return activeSkillsManager.GetSkillCooldownLeftTicks(skillType);
+        }
+
+        public bool CanActivateSkill(ActiveSkillType skillType)
+        {
+            return activeSkillsManager.GetCurrentSkillState() == ActiveSkillState.NotAttacking
+                && GetActiveSkillCooldownLeftTicks(skillType) == 0;
+        }
+
+        public void AddSkillListener(SkillsOwner.Listener listener) { }
+
+        public void RemoveSkillListener(SkillsOwner.Listener listener) { }
 
         public interface DataHolder :
             EffectsManager.DataHolder,

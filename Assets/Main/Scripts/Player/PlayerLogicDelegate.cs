@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Data;
 using Main.Scripts.Actions.Health;
 using Main.Scripts.Actions.Interaction;
-using Main.Scripts.Core.CustomPhysics;
 using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Customization;
 using Main.Scripts.Drop;
@@ -108,13 +106,11 @@ namespace Main.Scripts.Player
                 effectsTarget: this
             );
             activeSkillsManager = new ActiveSkillsManager(
-                config: ref config.ActiveSkillsConfig,
                 dataHolder: dataHolder,
                 eventListener: this,
                 transform: transform
             );
             passiveSkillsManager = new PassiveSkillsManager(
-                config: ref config.PassiveSkillsConfig,
                 affectable: this,
                 transform: transform
             );
@@ -139,15 +135,9 @@ namespace Main.Scripts.Player
             this.objectContext = objectContext;
 
             effectsManager.Spawned(objectContext);
-            activeSkillsManager.Spawned(objectContext);
-            passiveSkillsManager.Spawned(objectContext);
+            activeSkillsManager.Spawned(objectContext, ref config.ActiveSkillsConfig);
+            passiveSkillsManager.Spawned(objectContext, ref config.PassiveSkillsConfig);
             healthChangeDisplayManager?.Spawned(objectContext);
-
-            lastAnimationTriggerId = 0;
-
-            ResetState();
-
-            ref var data = ref dataHolder.GetPlayerLogicData();
 
             playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
             playerDataManager.OnPlayerDataChangedEvent.AddListener(OnPlayerDataChanged);
@@ -157,6 +147,10 @@ namespace Main.Scripts.Player
             {
                 ApplyCustomization(playerDataManager.GetPlayerData(objectContext.StateAuthority).ThrowWhenNull().Customization);
             }
+            
+            ref var data = ref dataHolder.GetPlayerLogicData();
+            
+            InitState(ref data);
 
             healthBar.SetMaxHealth((uint)Math.Max(0, data.maxHealth));
 
@@ -167,33 +161,33 @@ namespace Main.Scripts.Player
             {
                 findTargetManager = FindTargetManager.Instance.ThrowWhenNull();
             }
+            
+            UpdateState(ref data, PlayerState.Spawning);
         }
 
         public void Respawn()
         {
-            ResetState();
+            ref var data = ref dataHolder.GetPlayerLogicData();
+            //todo переделать логику распавна. сейчас почему то ресетим при перерождении, а не при смерти
+            ClearActions();
+
+            effectsManager.ResetOnRespawn();
+            passiveSkillsManager.ResetOnRespawn();
+            
+            InitState(ref data);
+
+            UpdateState(ref data, PlayerState.Spawning);
         }
 
-        private void ResetState()
+        private void InitState(ref PlayerLogicData data)
         {
-            damageActions.Clear();
-            healActions.Clear();
-            effectActions.Clear();
-            dashActions.Clear();
-            
             if (!objectContext.HasStateAuthority) return;
-
-            ref var data = ref dataHolder.GetPlayerLogicData();
 
             data.maxHealth = config.DefaultMaxHealth;
             data.speed = config.DefaultSpeed;
-
-            effectsManager.ResetState();
-            passiveSkillsManager.Init(); //reset after reset effectsManager
-
             data.health = data.maxHealth;
 
-            UpdateState(ref data, PlayerState.Spawning);
+            passiveSkillsManager.ApplyInitialEffects(); //init after reset effectsManager
         }
 
         public void Despawned(NetworkRunner runner, bool hasState)
@@ -204,7 +198,19 @@ namespace Main.Scripts.Player
             healthChangeDisplayManager?.Despawned(runner, hasState);
             playerDataManager.OnPlayerDataChangedEvent.RemoveListener(OnPlayerDataChanged);
 
+            ClearActions();
+            
+            lastAnimationTriggerId = default;
+            currentAnimationState = default;
             objectContext = default!;
+        }
+        
+        private void ClearActions()
+        {
+            damageActions.Clear();
+            healActions.Clear();
+            effectActions.Clear();
+            dashActions.Clear();
         }
 
         public void Render()
@@ -550,7 +556,7 @@ namespace Main.Scripts.Player
             switch (activeSkillsManager.GetCurrentSkillState())
             {
                 case ActiveSkillState.NotAttacking:
-                    activeSkillsManager.AddActivateSkill(type);
+                    activeSkillsManager.AddActivateSkill(type, false);
                     break;
                 case ActiveSkillState.WaitingForPoint:
                 case ActiveSkillState.WaitingForTarget:
@@ -770,6 +776,12 @@ namespace Main.Scripts.Player
                 listener.OnActiveSkillCooldownChanged(type, cooldownLeftTicks);
             }
 
+        }
+
+        public bool CanActivateSkill(ActiveSkillType skillType)
+        {
+            return activeSkillsManager.GetCurrentSkillState() == ActiveSkillState.NotAttacking
+                   && GetActiveSkillCooldownLeftTicks(skillType) == 0;
         }
 
         public void AddSkillListener(SkillsOwner.Listener listener)

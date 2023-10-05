@@ -14,51 +14,26 @@ namespace Main.Scripts.Skills.ActiveSkills
         private ActiveSkillsConfig config;
         private DataHolder dataHolder;
         private EventListener eventListener;
-        private NetworkObject objectContext = default!;
+        private NetworkObject objectContext = null!;
+        private Transform transform;
 
         private Dictionary<ActiveSkillType, SkillController> skillControllersMap = new();
         private Dictionary<SkillController, ActiveSkillType> skillTypesMap = new();
         private PlayerRef ownerRef;
 
-        private ActiveSkillType skillToActivate;
+        private ActivateSkillActionData activateSkillActionData;
         private bool shouldExecuteCurrentSkill;
         private bool shouldCancelCurrentSkill;
 
         public ActiveSkillsManager(
-            ref ActiveSkillsConfig config,
             DataHolder dataHolder,
             EventListener eventListener,
             Transform transform
         )
         {
-            this.config = config;
             this.dataHolder = dataHolder;
             this.eventListener = eventListener;
-
-            if (config.PrimarySkillConfig != null)
-            {
-                InitSkillController(transform, ActiveSkillType.PRIMARY, config.PrimarySkillConfig);
-            }
-
-            if (config.DashSkillConfig != null)
-            {
-                InitSkillController(transform, ActiveSkillType.DASH, config.DashSkillConfig);
-            }
-
-            if (config.FirstSkillConfig != null)
-            {
-                InitSkillController(transform, ActiveSkillType.FIRST_SKILL, config.FirstSkillConfig);
-            }
-
-            if (config.SecondSkillConfig != null)
-            {
-                InitSkillController(transform, ActiveSkillType.SECOND_SKILL, config.SecondSkillConfig);
-            }
-
-            if (config.ThirdSkillConfig != null)
-            {
-                InitSkillController(transform, ActiveSkillType.THIRD_SKILL, config.ThirdSkillConfig);
-            }
+            this.transform = transform;
         }
 
         public static void OnValidate(ref ActiveSkillsConfig activeSkillsConfig)
@@ -85,11 +60,14 @@ namespace Main.Scripts.Skills.ActiveSkills
             }
         }
 
-        public void Spawned(NetworkObject objectContext)
+        public void Spawned(NetworkObject objectContext, ref ActiveSkillsConfig config)
         {
             this.objectContext = objectContext;
+            this.config = config;
 
-            skillToActivate = ActiveSkillType.NONE;
+            InitSkillControllers();
+
+            activateSkillActionData = default;
             shouldExecuteCurrentSkill = false;
             shouldCancelCurrentSkill = false;
 
@@ -97,6 +75,34 @@ namespace Main.Scripts.Skills.ActiveSkills
             {
                 skillController.SetListener(this);
                 skillController.Spawned(objectContext);
+            }
+        }
+        
+        private void InitSkillControllers()
+        {
+            if (config.PrimarySkillConfig != null)
+            {
+                InitSkillController(transform, ActiveSkillType.PRIMARY, config.PrimarySkillConfig);
+            }
+
+            if (config.DashSkillConfig != null)
+            {
+                InitSkillController(transform, ActiveSkillType.DASH, config.DashSkillConfig);
+            }
+
+            if (config.FirstSkillConfig != null)
+            {
+                InitSkillController(transform, ActiveSkillType.FIRST_SKILL, config.FirstSkillConfig);
+            }
+
+            if (config.SecondSkillConfig != null)
+            {
+                InitSkillController(transform, ActiveSkillType.SECOND_SKILL, config.SecondSkillConfig);
+            }
+
+            if (config.ThirdSkillConfig != null)
+            {
+                InitSkillController(transform, ActiveSkillType.THIRD_SKILL, config.ThirdSkillConfig);
             }
         }
 
@@ -119,9 +125,13 @@ namespace Main.Scripts.Skills.ActiveSkills
             }
         }
 
-        public void AddActivateSkill(ActiveSkillType skillType)
+        public void AddActivateSkill(ActiveSkillType skillType, bool shouldExecute)
         {
-            skillToActivate = skillType;
+            activateSkillActionData = new ActivateSkillActionData
+            {
+                SkillType = skillType,
+                ShouldExecute = shouldExecute
+            };
         }
 
         public void AddExecuteCurrentSkill()
@@ -140,8 +150,8 @@ namespace Main.Scripts.Skills.ActiveSkills
             {
                 case GameLoopPhase.SkillActivationPhase:
                     CancelCurrentSkill();
-                    ExecuteCurrentSkill();
                     ActivateSkill();
+                    ExecuteCurrentSkill();
                     break;
                 case GameLoopPhase.SkillUpdatePhase:
                 case GameLoopPhase.SkillSpawnPhase:
@@ -174,8 +184,9 @@ namespace Main.Scripts.Skills.ActiveSkills
 
         private void ActivateSkill()
         {
-            var skillType = skillToActivate;
-            skillToActivate = ActiveSkillType.NONE;
+            var skillType = activateSkillActionData.SkillType;
+            var shouldExecute = activateSkillActionData.ShouldExecute;
+            activateSkillActionData = default;
 
             if (skillType == ActiveSkillType.NONE) return;
 
@@ -194,6 +205,12 @@ namespace Main.Scripts.Skills.ActiveSkills
 
             data.currentSkillType = skillType;
             skill.Activate();
+            var skillState = GetCurrentSkillState();
+            if (shouldExecute
+                && skillState is ActiveSkillState.WaitingForTarget or ActiveSkillState.WaitingForPoint)
+            {
+                shouldExecuteCurrentSkill = shouldExecute;
+            }
         }
 
         private void ExecuteCurrentSkill()
@@ -378,6 +395,12 @@ namespace Main.Scripts.Skills.ActiveSkills
         private ActiveSkillType getTypeBySkill(SkillController skill)
         {
             return skillTypesMap[skill];
+        }
+
+        private struct ActivateSkillActionData
+        {
+            public ActiveSkillType SkillType;
+            public bool ShouldExecute;
         }
 
         public interface DataHolder

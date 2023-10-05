@@ -1,6 +1,7 @@
 using Fusion;
 using Main.Scripts.Customization.Banks;
 using Main.Scripts.Effects;
+using Main.Scripts.Mobs.Config;
 using Main.Scripts.Modifiers;
 using Main.Scripts.Skills;
 using Main.Scripts.Skills.Common.Component;
@@ -14,23 +15,26 @@ namespace Main.Scripts.Core.Resources
         public static GlobalResources? Instance { get; private set; }
 
         [SerializeField]
-        private CustomizationConfigsBank customizationConfigsBank = default!;
+        private CustomizationConfigsBank customizationConfigsBank = null!;
         [SerializeField]
-        private SkillInfoHolder skillInfoHolder = default!;
+        private SkillInfoHolder skillInfoHolder = null!;
         [SerializeField]
-        private SkillConfigsBank skillConfigsBank = default!;
+        private SkillConfigsBank skillConfigsBank = null!;
         [SerializeField]
-        private EffectsBank effectsBank = default!;
+        private EffectsBank effectsBank = null!;
         [SerializeField]
-        private ModifierIdsBank modifierIdsBank = default!;
+        private ModifierIdsBank modifierIdsBank = null!;
         [SerializeField]
-        private HotBarIconDataHolder hotBarIconDataHolder = default!;
+        private MobConfigsBank mobConfigsBank = null!;
+        [SerializeField]
+        private HotBarIconDataHolder hotBarIconDataHolder = null!;
 
         public CustomizationConfigsBank CustomizationConfigsBank => customizationConfigsBank;
         public SkillInfoHolder SkillInfoHolder => skillInfoHolder;
         public SkillConfigsBank SkillConfigsBank => skillConfigsBank;
         public EffectsBank EffectsBank => effectsBank;
         public ModifierIdsBank ModifierIdsBank => modifierIdsBank;
+        public MobConfigsBank MobConfigsBank => mobConfigsBank;
         public HotBarIconDataHolder HotBarIconDataHolder => hotBarIconDataHolder;
 
         private void Awake()

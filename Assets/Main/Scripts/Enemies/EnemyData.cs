@@ -6,6 +6,8 @@ namespace Main.Scripts.Enemies
     public struct EnemyData : INetworkStruct
     {
         [Networked]
+        public int mobConfigKey { get; set; }
+        [Networked]
         public float health { get; set; }
         [Networked]
         public float maxHealth { get; set; }

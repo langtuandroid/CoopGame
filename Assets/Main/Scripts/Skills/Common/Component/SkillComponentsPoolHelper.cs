@@ -19,9 +19,11 @@ namespace Main.Scripts.Skills.Common.Component
         {
             foreach (var skillComponent in activeSkillComponents)
             {
+                skillComponent.OnReadyToRelease -= OnReadyToRelease;
                 skillComponent.Release();
                 GenericPool<SkillComponent>.Release(skillComponent);
             }
+            activeSkillComponents.Clear();
         }
 
         private void OnReadyToRelease(SkillComponent skillComponent)

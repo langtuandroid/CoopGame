@@ -14,24 +14,45 @@ namespace Main.Scripts.Skills.PassiveSkills
     {
         private PassiveSkillsConfig config;
         private Affectable affectable;
+        private Transform transform;
 
         private Dictionary<PassiveSkillTriggerType, List<PassiveSkillController>> skillControllersListMap = new();
 
         private List<KeyValuePair<SkillController, NetworkObject?>> activateSkillActions = new();
 
         public PassiveSkillsManager(
-            ref PassiveSkillsConfig config,
             Affectable affectable,
             Transform transform
         )
         {
-            this.config = config;
             this.affectable = affectable;
+            this.transform = transform;
 
             foreach (var type in Enum.GetValues(typeof(PassiveSkillTriggerType)).Cast<PassiveSkillTriggerType>())
             {
                 skillControllersListMap.Add(type, new List<PassiveSkillController>());
             }
+        }
+
+        public static void OnValidate(GameObject gameObject, ref PassiveSkillsConfig config)
+        {
+            if (config.InitialEffects.Any(effectsCombination => effectsCombination == null))
+            {
+                throw new ArgumentNullException(
+                    $"{gameObject.name}: has empty value in PassiveSkillsConfig::InitialEffects");
+            }
+
+            if (config.PassiveSkillControllersDataList.Any(passiveSkillControllerData => 
+                    passiveSkillControllerData.SkillControllerConfig == null || passiveSkillControllerData.PassiveSkillTrigger == null))
+            {
+                throw new ArgumentNullException(
+                    $"{gameObject.name}: has empty value in PassiveSkillsConfig::PassiveSkillControllersDataList");
+            }
+        }
+
+        public void Spawned(NetworkObject objectContext, ref PassiveSkillsConfig config)
+        {
+            this.config = config;
 
             foreach (var passiveSkillControllerData in config.PassiveSkillControllersDataList)
             {
@@ -55,26 +76,7 @@ namespace Main.Scripts.Skills.PassiveSkills
 
                 skillControllersListMap[type].Add(skillController);
             }
-        }
 
-        public static void OnValidate(GameObject gameObject, ref PassiveSkillsConfig config)
-        {
-            if (config.InitialEffects.Any(effectsCombination => effectsCombination == null))
-            {
-                throw new ArgumentNullException(
-                    $"{gameObject.name}: has empty value in PassiveSkillsConfig::InitialEffects");
-            }
-
-            if (config.PassiveSkillControllersDataList.Any(passiveSkillControllerData => 
-                    passiveSkillControllerData.SkillControllerConfig == null || passiveSkillControllerData.PassiveSkillTrigger == null))
-            {
-                throw new ArgumentNullException(
-                    $"{gameObject.name}: has empty value in PassiveSkillsConfig::PassiveSkillControllersDataList");
-            }
-        }
-
-        public void Spawned(NetworkObject objectContext)
-        {
             foreach (var (_, skillControllersList) in skillControllersListMap)
             {
                 foreach (var skillController in skillControllersList)
@@ -86,19 +88,31 @@ namespace Main.Scripts.Skills.PassiveSkills
 
         public void Despawned(NetworkRunner runner, bool hasState)
         {
+            ResetState();
+
             foreach (var (_, skillControllersList) in skillControllersListMap)
             {
                 foreach (var skillController in skillControllersList)
                 {
                     skillController.Despawned(runner, hasState);
                 }
+
+                skillControllersList.Clear();
             }
         }
 
-        public void Init()
+        public void ResetOnRespawn()
+        {
+            ResetState();
+        }
+
+        private void ResetState()
         {
             activateSkillActions.Clear();
-            
+        }
+
+        public void ApplyInitialEffects()
+        {
             foreach (var effectsCombination in config.InitialEffects)
             {
                 affectable.AddEffects(effectsCombination);

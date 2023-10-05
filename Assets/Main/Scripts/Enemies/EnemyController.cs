@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using FSG.MeshAnimator;
+using FSG.MeshAnimator.ShaderAnimated;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Actions.Data;
@@ -13,11 +14,13 @@ using Main.Scripts.Core.Resources;
 using Main.Scripts.Effects;
 using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui.HealthChangeDisplay;
+using Main.Scripts.Mobs.Config;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.Utils;
 using Pathfinding;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 namespace Main.Scripts.Enemies
 {
@@ -40,9 +43,12 @@ namespace Main.Scripts.Enemies
         [SerializeField]
         private EnemyConfig enemyConfig = EnemyConfig.GetDefault();
         [SerializeField]
-        private MeshAnimatorBase meshAnimator = default!;
+        private MeshFilter meshFilter = null!;
+        [SerializeField]
+        private ShaderMeshAnimator shaderMeshAnimator = null!;
 
-        private EffectsBank effectsBank = default!;
+        private EffectsBank effectsBank = null!;
+        private MobConfigsBank mobConfigsBank = null!;
 
         [Networked]
         private ref EnemyData enemyData => ref MakeRef<EnemyData>();
@@ -53,17 +59,23 @@ namespace Main.Scripts.Enemies
 
         private EffectDataChangeListener? effectDataChangeListener;
 
-        private EnemyLogicDelegate enemyLogicDelegate = default!;
+        private EnemyLogicDelegate enemyLogicDelegate = null!;
 
-        public UnityEvent<EnemyController> OnDeadEvent = default!;
+        public UnityEvent<EnemyController> OnDeadEvent = null!;
 
         public void OnValidate()
         {
-            if (GetComponent<NetworkTransform>() == null)
-                throw new MissingComponentException("NetworkTransform component is required in EnemyController");
-            if (GetComponent<Animator>() == null)
-                throw new MissingComponentException("Animator component is required in EnemyController");
-            
+            if (GetComponent<NetworkRigidbody3D>() == null)
+                throw new MissingComponentException("NetworkTransform component is required for EnemyController");
+            if (GetComponent<Seeker>() == null)
+                throw new MissingComponentException("Seeker component is required for EnemyController");
+            if (GetComponent<RichAI>() == null)
+                throw new MissingComponentException("RichAI component is required for EnemyController");
+            if (meshFilter == null)
+                throw new MissingComponentException("MeshFilter parameter is required for EnemyController config");
+            if (shaderMeshAnimator == null)
+                throw new MissingComponentException("ShaderMeshAnimator parameter is required for EnemyController config");
+
             EnemyLogicDelegate.OnValidate(gameObject, ref enemyConfig);
         }
 
@@ -73,24 +85,30 @@ namespace Main.Scripts.Enemies
             cachedComponents[typeof(NetworkRigidbody3D)] = GetComponent<NetworkRigidbody3D>();
             cachedComponents[typeof(Seeker)] = GetComponent<Seeker>();
             cachedComponents[typeof(RichAI)] = GetComponent<RichAI>();
-            cachedComponents[typeof(NetworkTransform)] = GetComponent<NetworkTransform>();
-            cachedComponents[typeof(MeshAnimatorBase)] = meshAnimator;
+            cachedComponents[typeof(MeshFilter)] = meshFilter;
+            cachedComponents[typeof(ShaderMeshAnimator)] = shaderMeshAnimator;
 
             enemyLogicDelegate = new EnemyLogicDelegate(
-                config: ref enemyConfig,
                 dataHolder: this,
                 eventListener: this
             );
         }
 
+        public void Init(int mobConfigKey)
+        {
+            enemyData.mobConfigKey = mobConfigKey;
+        }
+
         public override void Spawned()
         {
             base.Spawned();
-            effectsBank = GlobalResources.Instance.ThrowWhenNull().EffectsBank;
-            
-            cachedComponents[typeof(EnemiesHelper)] = EnemiesHelper.Instance.ThrowWhenNull();
+            var globalResources = GlobalResources.Instance.ThrowWhenNull();
+            effectsBank = globalResources.EffectsBank;
+            mobConfigsBank = globalResources.MobConfigsBank;
+
             cachedComponents[typeof(NavigationManager)] = levelContext.NavigationManager;
             cachedComponents[typeof(EffectsBank)] = effectsBank;
+            cachedComponents[typeof(MobConfigsBank)] = mobConfigsBank;
 
             enemyLogicDelegate.Spawned(Object);
         }
@@ -98,10 +116,11 @@ namespace Main.Scripts.Enemies
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
             base.Despawned(runner, hasState);
-            effectsBank = default!;
-            cachedComponents.Remove(typeof(EnemiesHelper));
+            effectsBank = null!;
+            mobConfigsBank = null!;
             cachedComponents.Remove(typeof(NavigationManager));
             cachedComponents.Remove(typeof(EffectsBank));
+            cachedComponents.Remove(typeof(MobConfigsBank));
             OnDeadEvent.RemoveAllListeners();
 
             enemyLogicDelegate.Despawned(runner, hasState);
@@ -136,7 +155,7 @@ namespace Main.Scripts.Enemies
         {
             this.effectDataChangeListener = effectDataChangeListener;
         }
-        
+
         public ref ActiveSkillsData GetActiveSkillsData()
         {
             return ref activeSkillsData;
@@ -158,7 +177,7 @@ namespace Main.Scripts.Enemies
             {
                 return typedThis;
             }
-            
+
             if (enemyLogicDelegate is T typed)
             {
                 return typed;
@@ -174,7 +193,7 @@ namespace Main.Scripts.Enemies
                 typed = typedThis;
                 return true;
             }
-            
+
             if (enemyLogicDelegate is T typedDelegate)
             {
                 typed = typedDelegate;
@@ -184,7 +203,7 @@ namespace Main.Scripts.Enemies
             typed = default!;
             return false;
         }
-        
+
         public float GetMaxHealth()
         {
             return enemyLogicDelegate.GetMaxHealth();
@@ -194,7 +213,7 @@ namespace Main.Scripts.Enemies
         {
             return enemyLogicDelegate.GetCurrentHealth();
         }
-                
+
         public void AddDamage(ref DamageActionData data)
         {
             RPC_AddDamage(data.damageOwner, data.damageValue);
@@ -262,7 +281,7 @@ namespace Main.Scripts.Enemies
         public void AddStun(ref StunActionData data)
         {
             enemyLogicDelegate.AddStun(ref data);
-            
+
             if (!HasStateAuthority)
             {
                 RPC_AddStun(data.durationTicks);
@@ -287,7 +306,8 @@ namespace Main.Scripts.Enemies
         }
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_UpdateEffectData(int effectId, ActiveEffectData activeEffectData, NetworkBool isUnlimitedEffect)
+        private void RPC_UpdateEffectData(int effectId, ActiveEffectData activeEffectData,
+            NetworkBool isUnlimitedEffect)
         {
             effectDataChangeListener?.OnUpdateEffectData(effectId, ref activeEffectData, isUnlimitedEffect);
         }

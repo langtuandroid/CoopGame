@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bc64f5a3c9516047b8e671ce1378486, type: 3}
+  m_Name: AttackDistanceBranchBlock
+  m_EditorClassIdentifier: 
+  condition: {fileID: 11400000, guid: 981d9af28322de6488ffd2132222c72b, type: 2}
+  blockIfConditionTrue: {fileID: 11400000, guid: b52c9fe249a3e2c43b71909a1416fed5, type: 2}
+  blockIfConditionFalse: {fileID: 11400000, guid: d7cd90826c8b61443bb7114aec0f4064, type: 2}

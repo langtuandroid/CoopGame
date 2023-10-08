@@ -24,7 +24,7 @@ namespace Main.Scripts.Mobs.Component.Delegate.Condition
             var deltaPosition = target.transform.position - context.SelfUnit.transform.position;
             var directionToTarget = deltaPosition.normalized;
             
-            var halfDistance = Mathf.Max(conditionConfig.Distance, deltaPosition.sqrMagnitude) / 2f;
+            var halfDistance = Mathf.Min(conditionConfig.Distance, deltaPosition.sqrMagnitude) / 2f;
 
             
             var hitsCount = Physics.OverlapBoxNonAlloc(

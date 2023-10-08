@@ -7,6 +7,7 @@ using Main.Scripts.Skills;
 using Main.Scripts.Skills.Common.Component;
 using Main.Scripts.UI.Windows.HUD.HotBar;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Main.Scripts.Core.Resources
 {
@@ -16,8 +17,9 @@ namespace Main.Scripts.Core.Resources
 
         [SerializeField]
         private CustomizationConfigsBank customizationConfigsBank = null!;
+        [FormerlySerializedAs("skillInfoHolder")]
         [SerializeField]
-        private SkillInfoHolder skillInfoHolder = null!;
+        private SkillInfoBank skillInfoBank = null!;
         [SerializeField]
         private SkillConfigsBank skillConfigsBank = null!;
         [SerializeField]
@@ -30,7 +32,7 @@ namespace Main.Scripts.Core.Resources
         private HotBarIconDataHolder hotBarIconDataHolder = null!;
 
         public CustomizationConfigsBank CustomizationConfigsBank => customizationConfigsBank;
-        public SkillInfoHolder SkillInfoHolder => skillInfoHolder;
+        public SkillInfoBank SkillInfoBank => skillInfoBank;
         public SkillConfigsBank SkillConfigsBank => skillConfigsBank;
         public EffectsBank EffectsBank => effectsBank;
         public ModifierIdsBank ModifierIdsBank => modifierIdsBank;

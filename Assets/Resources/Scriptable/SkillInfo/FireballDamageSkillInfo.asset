@@ -10,9 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 308dcb451089460f9061ef4ead7f9b93, type: 3}
-  m_Name: DamageBoost
+  m_Name: FireballDamageSkillInfo
   m_EditorClassIdentifier: 
-  type: 1
-  title: Damage
-  description: Increase the attack damage
-  maxLevel: 5
+  modifierId: {fileID: 11400000, guid: 1f6c682c4602564468c1096f8a8762ae, type: 2}
+  title: Fireball damage
+  description: 'Damage value:
+
+    Default - 10
+
+    Lvl 1 - 30
+
+    Lvl 2 - 50
+
+    Lvl
+    3 - 100'

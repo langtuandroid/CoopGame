@@ -1,31 +1,27 @@
 using System;
-using Main.Scripts.Player.Data;
+using System.Collections.Generic;
 using Main.Scripts.Player.Experience;
-using Main.Scripts.Skills;
 using UnityEngine.UIElements;
 
 namespace Main.Scripts.UI.Windows.SkillTree
 {
-    public class SkillTreeViewContainer : SkillTreeContract.SkillTreeView, SkillInfoFrame.InteractionCallback
+    public class SkillTreeViewContainer : SkillTreeContract.SkillTreeView, SkillInfoViewHolder.InteractionCallback
     {
         private UIDocument doc;
         private Label playerLevelCountLabel;
         private Label xpCountLabel;
         private Label skillPointsCountLabel;
-        private SkillInfoFrame healthBoostSkill;
-        private SkillInfoFrame damageBoostSkill;
-        private SkillInfoFrame speedBoostSkill;
+        private ListView skillInfoListView;
 
-        private SkillInfoHolder skillInfoHolder;
+        private List<SkillInfoData> itemsDataList = new();
 
         public Action? OnResetSkillPoints;
-        public Action<SkillType>? OnIncreaseSkillLevel;
-        public Action<SkillType>? OnDecreaseSkillLevel;
+        public Action<SkillInfoData>? OnIncreaseSkillLevelClicked;
+        public Action<SkillInfoData>? OnDecreaseSkillLevelClicked;
 
-        public SkillTreeViewContainer(UIDocument doc, SkillInfoHolder skillInfoHolder)
+        public SkillTreeViewContainer(UIDocument doc, VisualTreeAsset skillInfoLayout)
         {
             this.doc = doc;
-            this.skillInfoHolder = skillInfoHolder;
             var root = doc.rootVisualElement;
             SetVisibility(false);
             playerLevelCountLabel = root.Q<Label>("PlayerLevelCount");
@@ -33,12 +29,23 @@ namespace Main.Scripts.UI.Windows.SkillTree
             var resetButton = root.Q<Button>("SkillResetButton");
             resetButton.clicked += () => { OnResetSkillPoints?.Invoke(); };
             skillPointsCountLabel = root.Q<Label>("SkillPointsCount");
-            healthBoostSkill = SkillInfoFrame.from(root.Q<VisualElement>("SkillHPBoost"));
-            healthBoostSkill.SetInteractionCallback(this);
-            damageBoostSkill = SkillInfoFrame.from(root.Q<VisualElement>("SkillDamageBoost"));
-            damageBoostSkill.SetInteractionCallback(this);
-            speedBoostSkill = SkillInfoFrame.from(root.Q<VisualElement>("SkillSpeedBoost"));
-            speedBoostSkill.SetInteractionCallback(this);
+            skillInfoListView = root.Q<ListView>("SkillList");
+
+            skillInfoListView.makeItem = () =>
+            {
+                var itemView = skillInfoLayout.Instantiate();
+
+                var itemViewHolder = new SkillInfoViewHolder(itemView);
+                itemViewHolder.SetInteractionCallback(this);
+                itemView.userData = itemViewHolder;
+
+                return itemView;
+            };
+            skillInfoListView.bindItem = (item, index) =>
+            {
+                (item.userData as SkillInfoViewHolder)?.Bind(itemsDataList[index]);
+            };
+            skillInfoListView.itemsSource = itemsDataList;
         }
 
         public void SetVisibility(bool isVisible)
@@ -46,34 +53,26 @@ namespace Main.Scripts.UI.Windows.SkillTree
             doc.rootVisualElement.style.display = isVisible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
-        public void Bind(PlayerData playerData)
+        public void Bind(PlayerInfoData playerInfoData)
         {
-            playerLevelCountLabel.text = $"{playerData.Level}";
-            var experienceForNextLevel = ExperienceHelper.GetExperienceForNextLevel(playerData.Level);
-            xpCountLabel.text = $"{playerData.Experience}/{experienceForNextLevel}";
-            skillPointsCountLabel.text = $"{playerData.GetAvailableSkillPoints()}/{playerData.MaxSkillPoints}";
-            healthBoostSkill.Bind(
-                skillInfo: skillInfoHolder.GetSkillInfo(SkillType.HEALTH_BOOST_PASSIVE),
-                currentLevel: playerData.SkillLevels.Get(SkillType.HEALTH_BOOST_PASSIVE)
-            );
-            damageBoostSkill.Bind(
-                skillInfo: skillInfoHolder.GetSkillInfo(SkillType.DAMAGE_BOOST_PASSIVE),
-                currentLevel: playerData.SkillLevels.Get(SkillType.DAMAGE_BOOST_PASSIVE)
-            );
-            speedBoostSkill.Bind(
-                skillInfo: skillInfoHolder.GetSkillInfo(SkillType.SPEED_BOOST_PASSIVE),
-                currentLevel: playerData.SkillLevels.Get(SkillType.SPEED_BOOST_PASSIVE)
-            );
+            playerLevelCountLabel.text = $"{playerInfoData.Level}";
+            var experienceForNextLevel = ExperienceHelper.GetExperienceForNextLevel(playerInfoData.Level);
+            xpCountLabel.text = $"{playerInfoData.Experience}/{experienceForNextLevel}";
+            skillPointsCountLabel.text = $"{playerInfoData.AvailableSkillPoints}/{playerInfoData.MaxSkillPoints}";
+
+            itemsDataList.Clear();
+            itemsDataList.AddRange(playerInfoData.SkillInfoDataList);
+            skillInfoListView.RefreshItems();
         }
 
-        public void OnIncreaseClicked(SkillType skillType)
+        public void OnIncreaseClicked(SkillInfoData skillInfoData)
         {
-            OnIncreaseSkillLevel?.Invoke(skillType);
+            OnIncreaseSkillLevelClicked?.Invoke(skillInfoData);
         }
 
-        public void OnDecreaseClicked(SkillType skillType)
+        public void OnDecreaseClicked(SkillInfoData skillInfoData)
         {
-            OnDecreaseSkillLevel?.Invoke(skillType);
+            OnDecreaseSkillLevelClicked?.Invoke(skillInfoData);
         }
     }
 }

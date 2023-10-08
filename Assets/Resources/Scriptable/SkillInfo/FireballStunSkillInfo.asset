@@ -10,9 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 308dcb451089460f9061ef4ead7f9b93, type: 3}
-  m_Name: HealthBoost
+  m_Name: FireballStunSkillInfo
   m_EditorClassIdentifier: 
-  type: 0
-  title: Health
-  description: Increase the health points
-  maxLevel: 4
+  modifierId: {fileID: 11400000, guid: 05864115201632d42b57a4a93b948e06, type: 2}
+  title: Fireball stun
+  description: Apply stun to targets

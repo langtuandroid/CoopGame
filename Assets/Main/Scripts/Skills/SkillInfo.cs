@@ -1,3 +1,4 @@
+using Main.Scripts.Modifiers;
 using UnityEngine;
 
 namespace Main.Scripts.Skills
@@ -6,20 +7,15 @@ namespace Main.Scripts.Skills
     public class SkillInfo: ScriptableObject
     {
         [SerializeField]
-        private SkillType type;
+        private ModifierId modifierId = null!;
         [SerializeField]
-        private string title = default!;
+        private string title = null!;
         [SerializeField]
-        private string description = default!;
-        [SerializeField]
-        private int maxLevel;
-        
-        public SkillType Type => type;
+        [Multiline]
+        private string description = null!;
 
+        public ModifierId ModifierId => modifierId;
         public string Title => title;
-
         public string Description => description;
-
-        public int MaxLevel => maxLevel;
     }
 }

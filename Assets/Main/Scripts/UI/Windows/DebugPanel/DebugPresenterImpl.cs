@@ -66,7 +66,7 @@ namespace Main.Scripts.UI.Windows.DebugPanel
             }
 
             var itemDataList = new List<ModifierItemData>();
-            var playerData = playerDataManager.LocalPlayerData;
+            ref var playerData = ref playerDataManager.LocalPlayerData;
             foreach (var modifierId in currentModifierIds)
             {
                 var modifierToken = modifiersBank.GetModifierIdToken(modifierId);

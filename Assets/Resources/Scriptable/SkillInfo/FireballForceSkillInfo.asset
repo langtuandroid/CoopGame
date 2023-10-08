@@ -10,9 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 308dcb451089460f9061ef4ead7f9b93, type: 3}
-  m_Name: SpeedBoost
+  m_Name: FireballForceSkillInfo
   m_EditorClassIdentifier: 
-  type: 2
-  title: Speed
-  description: Increase the move speed
-  maxLevel: 3
+  modifierId: {fileID: 11400000, guid: 5c30f640e7b7c6843b50ff0514098596, type: 2}
+  title: Fireball force
+  description: Apply force to targets

@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Fusion;
 using Main.Scripts.Connection;
 using Main.Scripts.Core.Resources;
 using Main.Scripts.Levels.Results;
 using Main.Scripts.Player.Experience;
 using Main.Scripts.Room;
-using Main.Scripts.Skills;
 using Main.Scripts.Utils;
 using Main.Scripts.Utils.Save;
 using UniRx;
@@ -31,7 +29,8 @@ namespace Main.Scripts.Player.Data
         private CompositeDisposable compositeDisposable = new();
 
         public UserId LocalUserId { get; private set; }
-        public PlayerData LocalPlayerData { get; private set; }
+        private PlayerData localPlayerData;
+        public ref PlayerData LocalPlayerData => ref localPlayerData;
         public AwardsData? LocalAwardsData { get; private set; }
 
         public UnityEvent<UserId, PlayerData, PlayerData> OnPlayerDataChangedEvent = default!;
@@ -182,46 +181,25 @@ namespace Main.Scripts.Player.Data
             OnPlayerDataChangedEvent.Invoke(userId, playerData, default); //todo сделать отдельный интерфейс
         }
 
-        public void ResetSkillPoints()
+        public void ResetAllModifiersLevel()
         {
             var playerData = LocalPlayerData;
-            playerData.SkillLevels.Clear();
-            foreach (var skillType in Enum.GetValues(typeof(SkillType)).Cast<SkillType>())
-            {
-                playerData.SkillLevels.Set(skillType, 0);
-            }
+            playerData.Modifiers = ModifiersData.GetDefault();
 
             playerData.UsedSkillPoints = 0;
             UpdatePlayerData(playerData);
         }
 
-        public void IncreaseSkillLevel(SkillType skillType)
+        public void SetModifierLevel(int modifierToken, ushort level)
         {
             var playerData = LocalPlayerData;
-            if (playerData.GetAvailableSkillPoints() > 0)
+            var currentLevel = playerData.Modifiers.ModifiersLevel[modifierToken];
+            if (currentLevel != level)
             {
-                var currentSkillLevel = playerData.SkillLevels.Get(skillType);
-                if (currentSkillLevel < resources.SkillInfoHolder.GetSkillInfo(skillType).MaxLevel)
-                {
-                    playerData.SkillLevels.Set(skillType, currentSkillLevel + 1);
-                    playerData.UsedSkillPoints++;
-                }
+                playerData.UsedSkillPoints = (uint)((int)playerData.UsedSkillPoints - currentLevel + level);
+                playerData.Modifiers.ModifiersLevel.Set(modifierToken, level);
+                UpdatePlayerData(playerData);
             }
-
-            UpdatePlayerData(playerData);
-        }
-
-        public void DecreaseSkillLevel(SkillType skillType)
-        {
-            var playerData = LocalPlayerData;
-            var currentSkillLevel = playerData.SkillLevels.Get(skillType);
-            if (currentSkillLevel > 0)
-            {
-                playerData.SkillLevels.Set(skillType, currentSkillLevel - 1);
-                playerData.UsedSkillPoints--;
-            }
-
-            UpdatePlayerData(playerData);
         }
 
         public void ApplyCustomizationData(CustomizationData customizationData)
@@ -230,16 +208,6 @@ namespace Main.Scripts.Player.Data
             playerData.Customization = customizationData;
 
             UpdatePlayerData(playerData);
-        }
-
-        public void SetModifierLevel(int modifierToken, ushort level)
-        {
-            var playerData = LocalPlayerData;
-            if (playerData.Modifiers.ModifiersLevel[modifierToken] != level)
-            {
-                playerData.Modifiers.ModifiersLevel.Set(modifierToken, level);
-                UpdatePlayerData(playerData);
-            }
         }
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]

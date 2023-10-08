@@ -1,6 +1,4 @@
 using Main.Scripts.Core.Mvp;
-using Main.Scripts.Player.Data;
-using Main.Scripts.Skills;
 
 namespace Main.Scripts.UI.Windows.SkillTree
 {
@@ -11,13 +9,13 @@ namespace Main.Scripts.UI.Windows.SkillTree
             void Show();
             void Hide();
             void ResetSkillPoints();
-            void IncreaseSkillLevel(SkillType skillType);
-            void DecreaseSkillLevel(SkillType skillType);
+            void OnIncreaseSkillLevelClicked(SkillInfoData skillInfoData);
+            void OnDecreaseSkillLevelClicked(SkillInfoData skillInfoData);
         }
 
         public interface SkillTreeView : View<SkillTreePresenter>
         {
-            void Bind(PlayerData playerData);
+            void Bind(PlayerInfoData playerInfoData);
             void SetVisibility(bool isVisible);
         }
     }

@@ -2,12 +2,16 @@ using Main.Scripts.Core.Mvp;
 using Main.Scripts.Core.Resources;
 using Main.Scripts.Player.Data;
 using Main.Scripts.Utils;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Main.Scripts.UI.Windows.SkillTree
 {
     public class SkillTreeWindow : MvpMonoBehavior<SkillTreeContract.SkillTreePresenter>, UIScreen, SkillTreeContract.SkillTreeView
     {
+        [SerializeField]
+        private VisualTreeAsset skillInfoLayout = null!;
+        
         private SkillTreeViewContainer skillTreeViewContainer = default!;
         protected override SkillTreeContract.SkillTreePresenter? presenter { get; set; }
 
@@ -15,7 +19,7 @@ namespace Main.Scripts.UI.Windows.SkillTree
         {
             skillTreeViewContainer = new SkillTreeViewContainer(
                 doc: GetComponent<UIDocument>(),
-                skillInfoHolder: GlobalResources.Instance.ThrowWhenNull().SkillInfoHolder
+                skillInfoLayout: skillInfoLayout
             );
         }
 
@@ -23,14 +27,17 @@ namespace Main.Scripts.UI.Windows.SkillTree
         {
             if (presenter == null)
             {
+                var globalResources = GlobalResources.Instance.ThrowWhenNull();
                 presenter = new SkillTreePresenterImpl(
                     playerDataManager: PlayerDataManager.Instance.ThrowWhenNull(),
+                    skillInfoBank: globalResources.SkillInfoBank,
+                    modifierIdsBank: globalResources.ModifierIdsBank,
                     view: this
                 );
 
                 skillTreeViewContainer.OnResetSkillPoints = presenter.ResetSkillPoints;
-                skillTreeViewContainer.OnIncreaseSkillLevel = presenter.IncreaseSkillLevel;
-                skillTreeViewContainer.OnDecreaseSkillLevel = presenter.DecreaseSkillLevel;
+                skillTreeViewContainer.OnIncreaseSkillLevelClicked = presenter.OnIncreaseSkillLevelClicked;
+                skillTreeViewContainer.OnDecreaseSkillLevelClicked = presenter.OnDecreaseSkillLevelClicked;
             }
 
             presenter.Show();
@@ -46,9 +53,9 @@ namespace Main.Scripts.UI.Windows.SkillTree
             skillTreeViewContainer.SetVisibility(isVisible);
         }
 
-        public void Bind(PlayerData playerData)
+        public void Bind(PlayerInfoData playerInfoData)
         {
-            skillTreeViewContainer.Bind(playerData);
+            skillTreeViewContainer.Bind(playerInfoData);
         }
     }
 }

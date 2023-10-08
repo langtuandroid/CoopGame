@@ -18,6 +18,11 @@ namespace Main.Scripts.Mobs.Component.Delegate.Condition
                     var distanceConditionDelegate = GenericPool<DistanceToTargetConditionDelegate>.Get();
                     distanceConditionDelegate.Init(distanceToTargetMobCondition);
                     return distanceConditionDelegate;
+                case RaycastToTargetCondition raycastToTargetCondition:
+                    var raycastToTargetConditionDelegate =
+                        GenericPool<RaycastToTargetConditionDelegate>.Get();
+                    raycastToTargetConditionDelegate.Init(raycastToTargetCondition);
+                    return raycastToTargetConditionDelegate;
                 case HasTargetMobCondition hasTargetMobCondition:
                     var hasTargetConditionDelegate = GenericPool<HasTargetConditionDelegate>.Get();
                     hasTargetConditionDelegate.Init(hasTargetMobCondition);
@@ -45,6 +50,9 @@ namespace Main.Scripts.Mobs.Component.Delegate.Condition
                     break;
                 case DistanceToTargetConditionDelegate distanceToTargetConditionDelegate:
                     GenericPool<DistanceToTargetConditionDelegate>.Release(distanceToTargetConditionDelegate);
+                    break;
+                case RaycastToTargetConditionDelegate raycastToTargetConditionDelegate:
+                    GenericPool<RaycastToTargetConditionDelegate>.Release(raycastToTargetConditionDelegate);
                     break;
                 case HasTargetConditionDelegate hasTargetConditionDelegate:
                     GenericPool<HasTargetConditionDelegate>.Release(hasTargetConditionDelegate);

@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5bc64f5a3c9516047b8e671ce1378486, type: 3}
-  m_Name: AttackDistanceBranchBlock
+  m_Name: HasCollidersBranchBlock
   m_EditorClassIdentifier: 
-  condition: {fileID: 11400000, guid: 282385840a74caa42a8023a78594a55e, type: 2}
-  blockIfConditionTrue: {fileID: 11400000, guid: d63a9345abb3d2640940f77b99f051db, type: 2}
-  blockIfConditionFalse: {fileID: 11400000, guid: 7636a701424a9fe41b6dd6d34713963f, type: 2}
+  condition: {fileID: 11400000, guid: e449a61b3a9a6c94a9da2cebd17e3b72, type: 2}
+  blockIfConditionTrue: {fileID: 11400000, guid: 7636a701424a9fe41b6dd6d34713963f, type: 2}
+  blockIfConditionFalse: {fileID: 11400000, guid: e8f06276ba1574e4fa4409f84ce09ada, type: 2}

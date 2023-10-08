@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: CanActivateSkillBranchBlock
   m_EditorClassIdentifier: 
   condition: {fileID: 11400000, guid: aea30c8ad75315c439d1f50d0f095e65, type: 2}
-  blockIfConditionTrue: {fileID: 11400000}
+  blockIfConditionTrue: {fileID: 11400000, guid: d63a9345abb3d2640940f77b99f051db, type: 2}
   blockIfConditionFalse: {fileID: 11400000, guid: 5855d1afb0ba0f14aadf8c66270ff902, type: 2}

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using Main.Scripts.Modifiers;
 using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Action
@@ -7,8 +7,16 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
     public class ModifiableSkillActions : SkillActionBase
     {
         [SerializeField]
-        private List<ModifiableList<SkillActionBase>> modifiableActions = new();
+        private ModifierId modifierId = null!;
+        [SerializeField]
+        private SerializableList<SkillActionBase>[] actionsByModifierLevel = null!;
 
-        public List<ModifiableList<SkillActionBase>> ModifiableActions => modifiableActions;
+        public ModifierId ModifierId => modifierId;
+        public SerializableList<SkillActionBase>[] ActionsByModifierLevel => actionsByModifierLevel;
+
+        private void OnValidate()
+        {
+            actionsByModifierLevel = ModifiableItemValidationHelper.GetLimitedArray(modifierId, actionsByModifierLevel);
+        }
     }
 }

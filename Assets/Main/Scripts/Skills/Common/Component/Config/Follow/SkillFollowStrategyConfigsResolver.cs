@@ -16,26 +16,27 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
             if (playerData != null
                 && config is ModifiableSkillFollowStrategies modifiableSkillFollowStrategyPack)
             {
-                foreach (var modifiableFollowStrategiesPack in modifiableSkillFollowStrategyPack.ModifiableFollowStrategies)
                 {
-                    var isEnabled = playerData != null && playerData.Value.Modifiers.Values[
-                        bank.GetModifierIdToken(modifiableFollowStrategiesPack.ModifierId)];
-                    if (isEnabled)
-                    {
-                        ResolveEnabledModifiers(
-                            bank,
-                            ref playerData,
-                            modifiableFollowStrategiesPack.ItemToApply,
-                            out resolvedConfig
-                        );
-                        if (resolvedConfig == null)
-                        {
-                            throw new Exception(
-                                "Resolved config cannot be null. Check ModifiableFollowStrategyPack configs");
-                        }
+                    var modifierLevel =
+                        playerData.Value.Modifiers.ModifiersLevel[
+                            bank.GetModifierIdToken(modifiableSkillFollowStrategyPack.ModifierId)];
+                    var followStrategy =
+                        modifiableSkillFollowStrategyPack.FollowStrategyByModifierLevel[modifierLevel];
 
-                        return;
+                    ResolveEnabledModifiers(
+                        bank,
+                        ref playerData,
+                        followStrategy,
+                        out resolvedConfig
+                    );
+
+                    if (resolvedConfig == null)
+                    {
+                        throw new Exception(
+                            $"Resolved config cannot be null. Check {modifiableSkillFollowStrategyPack.name} config.");
                     }
+
+                    return;
                 }
             }
 

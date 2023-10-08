@@ -18,20 +18,18 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
                 if (playerData != null
                     && config is ModifiableSkillActions modifiableSkillActionsPack)
                 {
-                    foreach (var modifiableActions in modifiableSkillActionsPack.ModifiableActions)
-                    {
-                        var isEnabled = playerData.Value.Modifiers.Values[
-                            bank.GetModifierIdToken(modifiableActions.ModifierId)];
-                        if (isEnabled)
-                        {
-                            ResolveEnabledModifiers(
-                                bank,
-                                ref playerData,
-                                modifiableActions.ItemsToApply,
-                                resolvedConfigs
-                            );
-                        }
-                    }
+                    var modifierLevel =
+                        playerData.Value.Modifiers.ModifiersLevel[
+                            bank.GetModifierIdToken(modifiableSkillActionsPack.ModifierId)];
+                    var actions =
+                        modifiableSkillActionsPack.ActionsByModifierLevel[modifierLevel];
+                    
+                    ResolveEnabledModifiers(
+                        bank,
+                        ref playerData,
+                        actions.Value,
+                        resolvedConfigs
+                    );
                 }
                 else
                 {

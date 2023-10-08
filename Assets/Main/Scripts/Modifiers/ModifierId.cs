@@ -5,12 +5,16 @@ namespace Main.Scripts.Modifiers
     [CreateAssetMenu(fileName = "ModifierId", menuName = "Modifiers/Id")]
     public class ModifierId : ScriptableObject
     {
-        private string id = "";
-        public string Id => id;
+        [SerializeField]
+        [Min(1)]
+        private int levelsCount;
+        
+        public ushort LevelsCount => (ushort) levelsCount;
+        public string Id { get; private set; } = "";
 
         public void OnEnable()
         {
-            id = name;
+            Id = name;
         }
     }
 }

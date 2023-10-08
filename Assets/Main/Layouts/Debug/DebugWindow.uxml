@@ -6,7 +6,7 @@
             <ui:Button text="Создать" display-tooltip-when-elided="true" name="SpawnEnemiesBtn" />
         </ui:VisualElement>
         <ui:VisualElement name="ModifiersList" style="border-bottom-right-radius: 16px; flex-grow: 1; margin-top: 8px;">
-            <ui:ListView focusable="true" name="ModifiersList" />
+            <ui:ListView focusable="true" name="ModifiersList" virtualization-method="DynamicHeight" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

@@ -6,26 +6,35 @@ namespace Main.Scripts.UI.Windows.DebugPanel
 {
     public class DebugItemViewHolder
     {
-        private Toggle ModifierToggle;
+        private IntegerField modifierLevelField;
+        private ModifierItemData itemData;
 
-        private Action<bool>? onChangeValueCallback;
+        private Action<int>? onChangeValueCallback;
 
         public DebugItemViewHolder(VisualElement view)
         {
-            ModifierToggle = view.Q<Toggle>("Toggle");
-            ModifierToggle.RegisterValueChangedCallback(OnChange);
+            modifierLevelField = view.Q<IntegerField>("ModifierLevel");
+            modifierLevelField.RegisterValueChangedCallback(OnChange);
         }
 
-        public void Bind(ModifierItemData data, Action<bool> onChangeValueCallback)
+        public void Bind(ModifierItemData data, Action<int> onChangeValueCallback)
         {
-            ModifierToggle.label = data.Name;
-            ModifierToggle.value = data.IsEnabled;
+            itemData = data;
+            modifierLevelField.label = data.Name + $" MaxLevel={data.MaxLevel}";
+            modifierLevelField.value = data.Level;
             this.onChangeValueCallback = onChangeValueCallback;
         }
 
-        private void OnChange(ChangeEvent<bool> changeEvent)
+        private void OnChange(ChangeEvent<int> changeEvent)
         {
-            onChangeValueCallback?.Invoke(changeEvent.newValue);
+            if (changeEvent.newValue > itemData.MaxLevel || changeEvent.newValue < 0)
+            {
+                modifierLevelField.value = changeEvent.previousValue;
+            }
+            else
+            {
+                onChangeValueCallback?.Invoke(changeEvent.newValue);
+            }
         }
     }
 }

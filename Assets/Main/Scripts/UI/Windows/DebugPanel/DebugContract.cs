@@ -11,7 +11,7 @@ namespace Main.Scripts.UI.Windows.DebugPanel
             void OnOpen();
             void OnClose();
             void OnTabClicked(DebugTab tab);
-            void OnItemChangeValue(int itemIndex, bool value);
+            void OnItemChangeValue(int itemIndex, int value);
 
             void OnSpawnEnemiesClicked(int count);
         }

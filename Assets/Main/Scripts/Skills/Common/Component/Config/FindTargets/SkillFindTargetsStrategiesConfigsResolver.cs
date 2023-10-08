@@ -18,21 +18,18 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
                 if (playerData != null
                     && config is ModifiableSkillFindTargetsStrategies modifiableSkillFindTargetsStrategiesPack)
                 {
-                    foreach (var modifiableFindTargetsStrategies in modifiableSkillFindTargetsStrategiesPack
-                                 .ModifiableTargetsStrategies)
-                    {
-                        var isEnabled = playerData.Value.Modifiers.Values[
-                            bank.GetModifierIdToken(modifiableFindTargetsStrategies.ModifierId)];
-                        if (isEnabled)
-                        {
-                            ResolveEnabledModifiers(
-                                bank,
-                                ref playerData,
-                                modifiableFindTargetsStrategies.ItemsToApply,
-                                resolvedConfigs
-                            );
-                        }
-                    }
+                    var modifierLevel =
+                        playerData.Value.Modifiers.ModifiersLevel[
+                            bank.GetModifierIdToken(modifiableSkillFindTargetsStrategiesPack.ModifierId)];
+                    var findTargetsStrategies =
+                        modifiableSkillFindTargetsStrategiesPack.FindTargetsStrategiesByModifierLevel[modifierLevel];
+                    
+                    ResolveEnabledModifiers(
+                        bank,
+                        ref playerData,
+                        findTargetsStrategies.Value,
+                        resolvedConfigs
+                    );
                 }
                 else
                 {

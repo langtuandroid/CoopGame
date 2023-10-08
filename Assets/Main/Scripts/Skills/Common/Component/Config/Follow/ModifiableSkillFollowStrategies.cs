@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using Main.Scripts.Modifiers;
 using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Follow
@@ -7,8 +7,17 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
     public class ModifiableSkillFollowStrategies : SkillFollowStrategyBase
     {
         [SerializeField]
-        private List<ModifiableItem<SkillFollowStrategyBase>> modifiableFollowStrategies = new();
+        private ModifierId modifierId = null!;
+        [SerializeField]
+        private SkillFollowStrategyBase[] followStrategyByModifierLevel = null!;
 
-        public List<ModifiableItem<SkillFollowStrategyBase>> ModifiableFollowStrategies => modifiableFollowStrategies;
+        public ModifierId ModifierId => modifierId;
+        public SkillFollowStrategyBase[] FollowStrategyByModifierLevel => followStrategyByModifierLevel;
+
+        private void OnValidate()
+        {
+            followStrategyByModifierLevel =
+                ModifiableItemValidationHelper.GetLimitedArray(modifierId, followStrategyByModifierLevel);
+        }
     }
 }

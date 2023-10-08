@@ -10,12 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 029e22c81c424cf282babe95814f00cb, type: 3}
-  m_Name: ModifiablePackActions
+  m_Name: StunModifiable
   m_EditorClassIdentifier: 
-  modifiableActions:
-  - ModifierId: {fileID: 11400000, guid: 5c30f640e7b7c6843b50ff0514098596, type: 2}
-    ItemsToApply:
-    - {fileID: 11400000, guid: e729ac14c1f6a614cac6d798c6de3743, type: 2}
-  - ModifierId: {fileID: 11400000, guid: 05864115201632d42b57a4a93b948e06, type: 2}
-    ItemsToApply:
+  modifierId: {fileID: 11400000, guid: 05864115201632d42b57a4a93b948e06, type: 2}
+  actionsByModifierLevel:
+  - Value: []
+  - Value:
     - {fileID: 11400000, guid: 696e415638a06e84dbaf510d5267f77a, type: 2}

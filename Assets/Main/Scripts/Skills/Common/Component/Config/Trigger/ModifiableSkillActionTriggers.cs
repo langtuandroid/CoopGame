@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using Main.Scripts.Modifiers;
 using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Trigger
@@ -7,8 +7,17 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
     public class ModifiableSkillActionTriggers : SkillActionTriggerBase
     {
         [SerializeField]
-        private List<ModifiableItem<SkillActionTriggerBase>> modifiableTriggers = new();
+        private ModifierId modifierId = null!;
+        [SerializeField]
+        private SkillActionTriggerBase[] triggerByModifierLevel = null!;
 
-        public List<ModifiableItem<SkillActionTriggerBase>> ModifiableTriggers => modifiableTriggers;
+        public ModifierId ModifierId => modifierId;
+        public SkillActionTriggerBase[] TriggerByModifierLevel => triggerByModifierLevel;
+
+        private void OnValidate()
+        {
+            triggerByModifierLevel =
+                ModifiableItemValidationHelper.GetLimitedArray(modifierId, triggerByModifierLevel);
+        }
     }
 }

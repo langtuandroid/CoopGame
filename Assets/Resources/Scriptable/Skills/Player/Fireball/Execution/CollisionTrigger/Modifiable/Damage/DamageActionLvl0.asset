@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62d4623ace2f4b4496a161099be8f349, type: 3}
-  m_Name: FireballExplotionMoidifierId
+  m_Script: {fileID: 11500000, guid: a71e4967503d490faccfe305398e1e1d, type: 3}
+  m_Name: DamageActionLvl0
   m_EditorClassIdentifier: 
-  levelsCount: 1
+  damageValue: 10

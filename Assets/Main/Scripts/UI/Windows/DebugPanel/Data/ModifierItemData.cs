@@ -1,14 +1,18 @@
+using System;
+
 namespace Main.Scripts.UI.Windows.DebugPanel.Data
 {
     public class ModifierItemData
     {
         public readonly string Name;
-        public readonly bool IsEnabled;
+        public readonly ushort Level;
+        public readonly ushort MaxLevel;
 
-        public ModifierItemData(string name, bool isEnabled)
+        public ModifierItemData(string name, ushort level, ushort maxLevel)
         {
             Name = name;
-            IsEnabled = isEnabled;
+            Level = level;
+            MaxLevel = maxLevel;
         }
     }
 }

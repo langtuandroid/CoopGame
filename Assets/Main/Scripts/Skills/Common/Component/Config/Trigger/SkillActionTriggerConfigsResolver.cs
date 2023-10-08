@@ -14,29 +14,28 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
         )
         {
             if (playerData != null
-                && config is ModifiableSkillActionTriggers modifiableSkillActionTriggerPack)
+                && config is ModifiableSkillActionTriggers modifiableSkillActionTrigger)
             {
-                foreach (var modifiableActionsTriggersList in modifiableSkillActionTriggerPack.ModifiableTriggers)
-                {
-                    var isEnabled = playerData != null && playerData.Value.Modifiers.Values[
-                        bank.GetModifierIdToken(modifiableActionsTriggersList.ModifierId)];
-                    if (isEnabled)
-                    {
-                        ResolveEnabledModifiers(
-                            bank,
-                            ref playerData,
-                            modifiableActionsTriggersList.ItemToApply,
-                            out resolvedConfig
-                        );
-                        if (resolvedConfig == null)
-                        {
-                            throw new Exception(
-                                "Resolved config cannot be null. Check ModifiableActionTriggerPack configs");
-                        }
+                var modifierLevel =
+                    playerData.Value.Modifiers.ModifiersLevel[
+                        bank.GetModifierIdToken(modifiableSkillActionTrigger.ModifierId)];
+                var trigger =
+                    modifiableSkillActionTrigger.TriggerByModifierLevel[modifierLevel];
 
-                        return;
-                    }
+                ResolveEnabledModifiers(
+                    bank,
+                    ref playerData,
+                    trigger,
+                    out resolvedConfig
+                );
+
+                if (resolvedConfig == null)
+                {
+                    throw new Exception(
+                        $"Resolved config cannot be null. Check {modifiableSkillActionTrigger.name} config");
                 }
+
+                return;
             }
 
             resolvedConfig = config;

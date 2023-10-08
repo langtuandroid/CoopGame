@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Fusion;
 using Main.Scripts.Core.Resources;
@@ -9,14 +10,14 @@ namespace Main.Scripts.Player.Data
     public struct ModifiersData : INetworkStruct
     {
         [Networked, Capacity(ModifierIdsBank.MODIFIERS_COUNT)]
-        public NetworkArray<NetworkBool> Values => default;
+        public NetworkArray<ushort> ModifiersLevel => default;
 
         public static ModifiersData GetDefault()
         {
             var modifiersData = new ModifiersData();
-            for (var i = 0; i < modifiersData.Values.Count(); i++)
+            for (var i = 0; i < modifiersData.ModifiersLevel.Count(); i++)
             {
-                modifiersData.Values.Set(i, false);
+                modifiersData.ModifiersLevel.Set(i, 0);
             }
 
             return modifiersData;
@@ -29,9 +30,9 @@ namespace Main.Scripts.Player.Data
             foreach (var modifierJ in jArray)
             {
                 var modifierId = modifierJ.Value<string>(KEY_ID);
-                var modifierValue = modifierJ.Value<bool>(KEY_VALUE);
+                var modifierValue = modifierJ.Value<ushort>(KEY_VALUE);
                 var token = bank.GetModifierIdToken(modifierId);
-                modifiersData.Values.Set(token, modifierValue);
+                modifiersData.ModifiersLevel.Set(token, modifierValue);
             }
 
             return modifiersData;
@@ -47,7 +48,7 @@ namespace Main.Scripts.Player.Data
             {
                 var modifierJ = new JObject();
                 modifierJ.Add(KEY_ID, bank.GetModifierId(token).Id);
-                modifierJ.Add(KEY_VALUE, (bool) Values[token]);
+                modifierJ.Add(KEY_VALUE, ModifiersLevel[token]);
                 jArray.Add(modifierJ);
             }
 

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using Main.Scripts.Modifiers;
 using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
@@ -7,8 +7,17 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
     public class ModifiableSkillFindTargetsStrategies : SkillFindTargetsStrategyBase
     {
         [SerializeField]
-        private List<ModifiableList<SkillFindTargetsStrategyBase>> modifiableTargetsStrategies = new();
+        private ModifierId modifierId = null!;
+        [SerializeField]
+        private SerializableList<SkillFindTargetsStrategyBase>[] findTargetsStrategiesByModifierLevel = null!;
 
-        public List<ModifiableList<SkillFindTargetsStrategyBase>> ModifiableTargetsStrategies => modifiableTargetsStrategies;
+        public ModifierId ModifierId => modifierId;
+        public SerializableList<SkillFindTargetsStrategyBase>[] FindTargetsStrategiesByModifierLevel => findTargetsStrategiesByModifierLevel;
+
+        private void OnValidate()
+        {
+            findTargetsStrategiesByModifierLevel =
+                ModifiableItemValidationHelper.GetLimitedArray(modifierId, findTargetsStrategiesByModifierLevel);
+        }
     }
 }

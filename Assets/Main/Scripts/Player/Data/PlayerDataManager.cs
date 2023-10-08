@@ -232,12 +232,12 @@ namespace Main.Scripts.Player.Data
             UpdatePlayerData(playerData);
         }
 
-        public void SetModifierEnable(int modifierToken, bool enable)
+        public void SetModifierLevel(int modifierToken, ushort level)
         {
             var playerData = LocalPlayerData;
-            if (playerData.Modifiers.Values[modifierToken] != enable)
+            if (playerData.Modifiers.ModifiersLevel[modifierToken] != level)
             {
-                playerData.Modifiers.Values.Set(modifierToken, enable);
+                playerData.Modifiers.ModifiersLevel.Set(modifierToken, level);
                 UpdatePlayerData(playerData);
             }
         }

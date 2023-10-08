@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Main.Scripts.Enemies;
 using Main.Scripts.Modifiers;
@@ -39,9 +40,11 @@ namespace Main.Scripts.UI.Windows.DebugPanel
             SelectTab(tab);
         }
 
-        public void OnItemChangeValue(int itemIndex, bool value)
+        public void OnItemChangeValue(int itemIndex, int value)
         {
-            playerDataManager.SetModifierEnable(itemIndex, value);
+            var modifierId = modifiersBank.GetModifierId(itemIndex);
+            var newLevel = Mathf.Clamp(value, 0, modifierId.LevelsCount + 1);
+            playerDataManager.SetModifierLevel(itemIndex, (ushort)newLevel);
         }
 
         public void OnSpawnEnemiesClicked(int count)
@@ -67,7 +70,11 @@ namespace Main.Scripts.UI.Windows.DebugPanel
             foreach (var modifierId in currentModifierIds)
             {
                 var modifierToken = modifiersBank.GetModifierIdToken(modifierId);
-                itemDataList.Add(new ModifierItemData(modifierId.name, playerData.Modifiers.Values[modifierToken]));
+                itemDataList.Add(new ModifierItemData(
+                    name: modifierId.name,
+                    level: playerData.Modifiers.ModifiersLevel[modifierToken],
+                    maxLevel: modifierId.LevelsCount
+                ));
             }
 
             view.ShowTab(tab, itemDataList);

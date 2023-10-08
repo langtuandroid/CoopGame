@@ -1,6 +1,6 @@
 //UNITY_SHADER_NO_UPGRADE
 
-float GetPixelOffset(inout float textureIndex, float4 animInfo, float4 animTimeInfo)
+float3 GetFramesInterpolationData(float4 animInfo, float4 animTimeInfo)
 {
 	const float wrapMode = animInfo.w;	
 	const float isPlayingBackwards = animTimeInfo.w < animTimeInfo.z;
@@ -27,14 +27,16 @@ float GetPixelOffset(inout float textureIndex, float4 animInfo, float4 animTimeI
 		isPlayingBackwards);
 	
 	const float currentFrame = min(normalizedTime * animTimeInfo.y, animTimeInfo.y - 1);
-	const float vertexCount = animInfo.y;
-	const float textureSize = animInfo.z;
-	const float framesPerTexture = floor((textureSize * textureSize) / (vertexCount * 2));
-    const float textureIndexOffset = floor(currentFrame / framesPerTexture);
-    textureIndex = floor(textureIndex + textureIndexOffset + 0.1);
-	const float frameOffset = floor(currentFrame % framesPerTexture);
-    const float pixelOffset = floor(vertexCount * 2 * frameOffset + 0.5);
-	return pixelOffset;
+    
+    const float fromFrame = floor(currentFrame);
+    
+    const float toFrameNoLoop = min(floor(currentFrame) + 1, animTimeInfo.y - 1);
+    const float toFrameWithLoop = floor((currentFrame + 1) % animTimeInfo.y);
+    const float toFrame = lerp(toFrameNoLoop, toFrameWithLoop, isLoopingWrapMode);
+    
+    const float interpolationAlpha = currentFrame - fromFrame;
+    
+	return float3(fromFrame, toFrame, interpolationAlpha);
 }
 
 float3 GetUVPos(uint vertexIndex, float textureIndex, float pixelOffset, float textureSize, uint offset)
@@ -47,10 +49,19 @@ float3 GetUVPos(uint vertexIndex, float textureIndex, float pixelOffset, float t
 	return uvPos;
 }
 
-float3 GetAnimationUVPosition(uint vertexIndex, float4 animInfo, float4 animTimeInfo, uint offset)
+float3 GetAnimationUVPosition(uint vertexIndex, float4 animInfo, float frame, uint offset)
 {
 	float textureIndex = animInfo.x - 1.0;
-	const float pixelOffset = GetPixelOffset(textureIndex, animInfo, animTimeInfo);
+
+    const float vertexCount = animInfo.y;
+    const float textureSize = animInfo.z;
+    const float framesPerTexture = floor((textureSize * textureSize) / (vertexCount * 2));
+    
+    const float textureIndexOffset = floor(frame / framesPerTexture);
+    textureIndex = floor(textureIndex + textureIndexOffset + 0.1);
+    const float frameOffset = floor(frame % framesPerTexture);
+    const float pixelOffset = floor(vertexCount * 2 * frameOffset + 0.5);
+    
 	return GetUVPos(vertexIndex, textureIndex, pixelOffset, animInfo.z, offset);
 }
 
@@ -84,16 +95,31 @@ float3 ApplyMeshAnimation(
 {
 	if (animInfo.x >= 1.0)
 	{
-		float3 uvPos = GetAnimationUVPosition(vertexId, animInfo, animTimeInfo, 0);
-		float3 positionData = SAMPLE_TEXTURE2D_ARRAY_LOD(animTextures, samplerState, uvPos.xy, uvPos.z, 0).xyz;
-		positionData = ApplyAnimationScalar(positionData, animScalar);
+	    float3 framesInterpolationData = GetFramesInterpolationData(animInfo, animTimeInfo);
+	    
+		float3 uvPosFrom = GetAnimationUVPosition(vertexId, animInfo, framesInterpolationData.x, 0);
+		float3 uvPosTo = GetAnimationUVPosition(vertexId, animInfo, framesInterpolationData.y, 0);
+	    
+		float3 positionFromData = SAMPLE_TEXTURE2D_ARRAY_LOD(animTextures, samplerState, uvPosFrom.xy, uvPosFrom.z, 0).xyz;
+		float3 positionToData = SAMPLE_TEXTURE2D_ARRAY_LOD(animTextures, samplerState, uvPosTo.xy, uvPosTo.z, 0).xyz;
+	    
+		positionFromData = ApplyAnimationScalar(positionFromData, animScalar);
+		positionToData = ApplyAnimationScalar(positionToData, animScalar);
+
+	    float3 positionData = lerp(positionFromData, positionToData, framesInterpolationData.z);
 			
 		if (crossfadeData.y > _Time.y)
-		{		
-			uvPos = GetAnimationUVPosition(vertexId, crossfadeAnimInfo, crossfadeTimeInfo, 0);
-			float3 crossfadePositionData = SAMPLE_TEXTURE2D_ARRAY_LOD(animTextures, samplerState, uvPos.xy, uvPos.z, 0).xyz;
-			crossfadePositionData = ApplyAnimationScalar(crossfadePositionData, crossfadeAnimScalar);
+		{
+		    framesInterpolationData = GetFramesInterpolationData(crossfadeAnimInfo, crossfadeTimeInfo);
+			uvPosFrom = GetAnimationUVPosition(vertexId, crossfadeAnimInfo, framesInterpolationData.x, 0);
+			uvPosTo = GetAnimationUVPosition(vertexId, crossfadeAnimInfo, framesInterpolationData.y, 0);
+			float3 crossfadePositionDataFrom = SAMPLE_TEXTURE2D_ARRAY_LOD(animTextures, samplerState, uvPosFrom.xy, uvPosFrom.z, 0).xyz;
+			float3 crossfadePositionDataTo = SAMPLE_TEXTURE2D_ARRAY_LOD(animTextures, samplerState, uvPosTo.xy, uvPosTo.z, 0).xyz;
+			crossfadePositionDataFrom = ApplyAnimationScalar(crossfadePositionDataFrom, crossfadeAnimScalar);
+			crossfadePositionDataTo = ApplyAnimationScalar(crossfadePositionDataTo, crossfadeAnimScalar);
 
+		    const float3 crossfadePositionData = lerp(crossfadePositionDataFrom, crossfadePositionDataTo, framesInterpolationData.z);
+		
 			const float blendWeight = saturate((_Time.y - crossfadeData.x) / crossfadeData.z);
 			positionData = lerp(crossfadePositionData, positionData, blendWeight);
 		}
@@ -115,17 +141,35 @@ float3 GetAnimatedMeshNormal(
 {
 	if (animInfo.x >= 1.0)
 	{
-		float3 uvPos = GetAnimationUVPosition(vertexId, animInfo, animTimeInfo, 1);
-		float3 normalData = SAMPLE_TEXTURE2D_ARRAY_LOD(animTextures, samplerState, uvPos.xy, uvPos.z, 0).xyz;
-		normalData = DecodeNegativeVectors(normalData);
+	    float3 framesInterpolationData = GetFramesInterpolationData(animInfo, animTimeInfo);
+	    
+		float3 uvPosFrom = GetAnimationUVPosition(vertexId, animInfo, framesInterpolationData.x, 1);
+		float3 uvPosTo = GetAnimationUVPosition(vertexId, animInfo, framesInterpolationData.y, 1);
+	    
+		float3 normalDataFrom = SAMPLE_TEXTURE2D_ARRAY_LOD(animTextures, samplerState, uvPosFrom.xy, uvPosFrom.z, 0).xyz;
+		float3 normalDataTo = SAMPLE_TEXTURE2D_ARRAY_LOD(animTextures, samplerState, uvPosTo.xy, uvPosTo.z, 0).xyz;
+	    
+		normalDataFrom = DecodeNegativeVectors(normalDataFrom);
+		normalDataTo = DecodeNegativeVectors(normalDataTo);
+
+	    float3 normalData = lerp(normalDataFrom, normalDataTo, framesInterpolationData.z);
+	    
 		if (normalData.x != 0.0 || normalData.y != 0.0 || normalData.z != 0.0)
 		{
 			normal = normalData;
 			if (crossfadeData.y > _Time.y)
-			{		
-				uvPos = GetAnimationUVPosition(vertexId, crossfadeAnimInfo, crossfadeAnimTimeInfo, 1);
-				float3 crossfadeNormalData = SAMPLE_TEXTURE2D_ARRAY_LOD(animTextures, samplerState, uvPos.xy, uvPos.z, 0).xyz;
-				crossfadeNormalData = DecodeNegativeVectors(crossfadeNormalData);
+			{
+			    framesInterpolationData = GetFramesInterpolationData(crossfadeAnimInfo, crossfadeAnimTimeInfo);
+			    
+			    uvPosFrom = GetAnimationUVPosition(vertexId, crossfadeAnimInfo, framesInterpolationData.x, 1);
+			    uvPosTo = GetAnimationUVPosition(vertexId, crossfadeAnimInfo, framesInterpolationData.y, 1);
+			    float3 crossfadeNormalDataFrom = SAMPLE_TEXTURE2D_ARRAY_LOD(animTextures, samplerState, uvPosFrom.xy, uvPosFrom.z, 0).xyz;
+			    float3 crossfadeNormalDataTo = SAMPLE_TEXTURE2D_ARRAY_LOD(animTextures, samplerState, uvPosTo.xy, uvPosTo.z, 0).xyz;
+			    crossfadeNormalDataFrom = DecodeNegativeVectors(crossfadeNormalDataFrom);
+			    crossfadeNormalDataTo = DecodeNegativeVectors(crossfadeNormalDataTo);
+
+			    const float3 crossfadeNormalData = lerp(crossfadeNormalDataFrom, crossfadeNormalDataTo, framesInterpolationData.z);
+			    
 				if (crossfadeNormalData.x != 0.0 || crossfadeNormalData.y != 0.0 || crossfadeNormalData.z != 0.0)
 				{
 					const float blendWeight = saturate((_Time.y - crossfadeData.x) / crossfadeData.z);

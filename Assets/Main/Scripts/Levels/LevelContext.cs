@@ -2,6 +2,7 @@ using Fusion;
 using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Enemies;
 using Main.Scripts.Player;
+using Main.Scripts.Skills.Charge;
 using Main.Scripts.Skills.Common;
 using Main.Scripts.Skills.Common.Component;
 using Main.Scripts.UI.Windows.HUD;
@@ -14,22 +15,25 @@ namespace Main.Scripts.Levels
         public static LevelContext? Instance { get; private set; }
 
         [SerializeField]
-        private PlayersHolder playersHolder = default!;
+        private PlayersHolder playersHolder = null!;
         [SerializeField]
-        private EnemiesManager enemiesManager = default!;
+        private EnemiesManager enemiesManager = null!;
         [SerializeField]
-        private GameLoopManager gameLoopManager = default!;
+        private GameLoopManager gameLoopManager = null!;
         [SerializeField]
-        private NavigationManager navigationManager = default!;
+        private NavigationManager navigationManager = null!;
         [SerializeField]
-        private SkillVisualManager skillVisualManager = default!;
+        private SkillChargeManager skillChargeManager = null!;
         [SerializeField]
-        private HUDScreen hudScreen = default!;
+        private SkillVisualManager skillVisualManager = null!;
+        [SerializeField]
+        private HUDScreen hudScreen = null!;
 
         public PlayersHolder PlayersHolder => playersHolder;
         public EnemiesManager EnemiesManager => enemiesManager;
         public GameLoopManager GameLoopManager => gameLoopManager;
         public NavigationManager NavigationManager => navigationManager;
+        public SkillChargeManager SkillChargeManager => skillChargeManager;
         public SkillVisualManager SkillVisualManager => skillVisualManager;
         public HUDScreen HudScreen => hudScreen;
 

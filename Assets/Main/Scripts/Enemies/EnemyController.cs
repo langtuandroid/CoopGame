@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using FSG.MeshAnimator;
 using FSG.MeshAnimator.ShaderAnimated;
 using Fusion;
 using Main.Scripts.Actions;
@@ -16,11 +15,11 @@ using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui.HealthChangeDisplay;
 using Main.Scripts.Mobs.Config;
 using Main.Scripts.Skills.ActiveSkills;
+using Main.Scripts.Skills.Charge;
 using Main.Scripts.Utils;
 using Pathfinding;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
 
 namespace Main.Scripts.Enemies
 {
@@ -34,7 +33,6 @@ namespace Main.Scripts.Enemies
         EnemyLogicDelegate.EventListener,
         Damageable,
         Healable,
-        Affectable,
         ObjectWithGettingKnockBack,
         ObjectWithGettingStun
     {
@@ -106,6 +104,7 @@ namespace Main.Scripts.Enemies
             effectsBank = globalResources.EffectsBank;
             mobConfigsBank = globalResources.MobConfigsBank;
 
+            cachedComponents[typeof(SkillChargeManager)] = levelContext.SkillChargeManager;
             cachedComponents[typeof(NavigationManager)] = levelContext.NavigationManager;
             cachedComponents[typeof(EffectsBank)] = effectsBank;
             cachedComponents[typeof(MobConfigsBank)] = mobConfigsBank;
@@ -118,6 +117,7 @@ namespace Main.Scripts.Enemies
             base.Despawned(runner, hasState);
             effectsBank = null!;
             mobConfigsBank = null!;
+            cachedComponents.Remove(typeof(SkillChargeManager));
             cachedComponents.Remove(typeof(NavigationManager));
             cachedComponents.Remove(typeof(EffectsBank));
             cachedComponents.Remove(typeof(MobConfigsBank));
@@ -222,7 +222,6 @@ namespace Main.Scripts.Enemies
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
         private void RPC_AddDamage(NetworkId damageOwnerId, float damageValue)
         {
-            //todo NetworkId and get from registered <NetworkId, NetworkObject> map
             var data = new DamageActionData
             {
                 damageOwner = Runner.FindObject(damageOwnerId),

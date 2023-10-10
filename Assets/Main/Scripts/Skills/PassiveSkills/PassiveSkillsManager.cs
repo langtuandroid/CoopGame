@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Fusion;
 using Main.Scripts.Actions;
+using Main.Scripts.Core.Architecture;
 using Main.Scripts.Core.GameLogic.Phases;
+using Main.Scripts.Skills.Charge;
 using Main.Scripts.Skills.Common.Controller;
 using Main.Scripts.Skills.PassiveSkills.Triggers;
 using UnityEngine;
@@ -13,19 +15,20 @@ namespace Main.Scripts.Skills.PassiveSkills
     public class PassiveSkillsManager
     {
         private PassiveSkillsConfig config;
-        private Affectable affectable;
+        private DataHolder dataHolder;
         private Transform transform;
+        private SkillChargeManager skillChargeManager = null!;
 
         private Dictionary<PassiveSkillTriggerType, List<PassiveSkillController>> skillControllersListMap = new();
 
         private List<KeyValuePair<SkillController, NetworkObject?>> activateSkillActions = new();
 
         public PassiveSkillsManager(
-            Affectable affectable,
+            DataHolder dataHolder,
             Transform transform
         )
         {
-            this.affectable = affectable;
+            this.dataHolder = dataHolder;
             this.transform = transform;
 
             foreach (var type in Enum.GetValues(typeof(PassiveSkillTriggerType)).Cast<PassiveSkillTriggerType>())
@@ -50,9 +53,14 @@ namespace Main.Scripts.Skills.PassiveSkills
             }
         }
 
-        public void Spawned(NetworkObject objectContext, ref PassiveSkillsConfig config)
+        public void Spawned(
+            NetworkObject objectContext,
+            bool isPlayerOwner,
+            ref PassiveSkillsConfig config
+        )
         {
             this.config = config;
+            skillChargeManager = dataHolder.GetCachedComponent<SkillChargeManager>();
 
             foreach (var passiveSkillControllerData in config.PassiveSkillControllersDataList)
             {
@@ -81,7 +89,7 @@ namespace Main.Scripts.Skills.PassiveSkills
             {
                 foreach (var skillController in skillControllersList)
                 {
-                    skillController.Spawned(objectContext);
+                    skillController.Spawned(objectContext, isPlayerOwner);
                 }
             }
         }
@@ -89,6 +97,7 @@ namespace Main.Scripts.Skills.PassiveSkills
         public void Despawned(NetworkRunner runner, bool hasState)
         {
             ResetState();
+            skillChargeManager = null!;
 
             foreach (var (_, skillControllersList) in skillControllersListMap)
             {
@@ -115,7 +124,7 @@ namespace Main.Scripts.Skills.PassiveSkills
         {
             foreach (var effectsCombination in config.InitialEffects)
             {
-                affectable.AddEffects(effectsCombination);
+                dataHolder.AddEffects(effectsCombination);
             }
         }
 
@@ -197,7 +206,7 @@ namespace Main.Scripts.Skills.PassiveSkills
             switch (skillController.ActivationType)
             {
                 case SkillActivationType.WithUnitTarget when selectedTarget != null:
-                    skillController.Activate();
+                    skillController.Activate(skillChargeManager.ChargeLevel);
                     skillController.ApplyUnitTarget(selectedTarget);
                     skillController.Execute();
                     break;
@@ -205,7 +214,7 @@ namespace Main.Scripts.Skills.PassiveSkills
                     Debug.LogError("PassiveSkillController: ActivationType is UnitTarget and SelectedTarget is null");
                     break;
                 case SkillActivationType.Instantly:
-                    skillController.Activate();
+                    skillController.Activate(skillChargeManager.ChargeLevel);
                     break;
                 case SkillActivationType.WithMapPointTarget:
                     Debug.LogError("PassiveSkillController: ActivationType MapPointTarget is not supported");
@@ -214,5 +223,7 @@ namespace Main.Scripts.Skills.PassiveSkills
                     throw new ArgumentOutOfRangeException();
             }
         }
+
+        public interface DataHolder : Affectable, ComponentsHolder { }
     }
 }

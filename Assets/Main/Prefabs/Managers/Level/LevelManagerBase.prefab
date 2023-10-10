@@ -73,6 +73,7 @@ GameObject:
   - component: {fileID: 8137893628506690340}
   - component: {fileID: 2736966943557648070}
   - component: {fileID: 6148969258022852307}
+  - component: {fileID: 7076939479648465617}
   m_Layer: 0
   m_Name: LevelManagerBase
   m_TagString: Untagged
@@ -124,6 +125,7 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 6148969258022852307}
+  - {fileID: 7076939479648465617}
   - {fileID: 6333978886437609963}
   SimulationBehaviours: []
 --- !u!114 &2486019915918659875
@@ -167,6 +169,7 @@ MonoBehaviour:
   enemiesManager: {fileID: 6333978886437609963}
   gameLoopManager: {fileID: 2320060828885581111}
   navigationManager: {fileID: 2736966943557648070}
+  skillChargeManager: {fileID: 7076939479648465617}
   skillVisualManager: {fileID: 6148969258022852307}
   hudScreen: {fileID: 5782299537849891571}
 --- !u!114 &2736966943557648070
@@ -195,6 +198,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
+--- !u!114 &7076939479648465617
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2482084901144130459}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 822ec0ccb0fb4659836c075cc8aeeef2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 0
+  decreaseProgressFrequencyTicks: 12
+  decreaseProgressValue: 1
+  progressForLevel2: 100
+  progressForLevel3: 250
+  progressForLevel4: 500
+  progressForLevel5: 1000
 --- !u!1 &5492399996316746148
 GameObject:
   m_ObjectHideFlags: 0
@@ -348,7 +370,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   version: 1
-  uniqueID: 8791800053669343608
+  uniqueID: 3693216755255891756
   wallHeight: 5
 --- !u!1001 &22516220969825449
 PrefabInstance:

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Actions;
 using Main.Scripts.Core.GameLogic.Phases;
-using Main.Scripts.Core.Resources;
 using Main.Scripts.Levels;
 using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills.Common.Component;
@@ -18,10 +17,10 @@ namespace Main.Scripts.Skills.Common.Controller
     {
         private NetworkObject objectContext = null!;
         private SkillControllerConfig skillControllerConfig;
+        private PlayerRef ownerId;
 
         private Listener? listener;
         private GameObject? marker;
-        private SkillConfigsBank skillConfigsBank = null!;
         private SkillComponentsPoolHelper skillComponentsPoolHelper = null!;
 
         private Vector3 initialMapPoint;
@@ -30,6 +29,7 @@ namespace Main.Scripts.Skills.Common.Controller
         private TickTimer skillRunningTimer;
         private TickTimer castTimer;
         private bool isActivating;
+        private int chargeLevel;
 
         private TickTimer cooldownTimer;
         
@@ -65,10 +65,10 @@ namespace Main.Scripts.Skills.Common.Controller
             this.opponentsLayerMask = opponentsLayerMask;
         }
 
-        public void Spawned(NetworkObject objectContext)
+        public void Spawned(NetworkObject objectContext, bool isPlayerOwner)
         {
             this.objectContext = objectContext;
-            skillConfigsBank = GlobalResources.Instance.ThrowWhenNull().SkillConfigsBank;
+            ownerId = isPlayerOwner ? objectContext.StateAuthority : default;
             skillComponentsPoolHelper = LevelContext.Instance.ThrowWhenNull().SkillComponentsPoolHelper;
         }
 
@@ -77,7 +77,6 @@ namespace Main.Scripts.Skills.Common.Controller
             ResetOnFinish();
             
             objectContext = null!;
-            skillConfigsBank = null!;
             skillComponentsPoolHelper = null!;
             cooldownTimer = default!;
 
@@ -125,7 +124,7 @@ namespace Main.Scripts.Skills.Common.Controller
             }
         }
 
-        public bool Activate()
+        public bool Activate(int chargeLevel)
         {
             if (isActivating || IsSkillRunning || !cooldownTimer.ExpiredOrNotRunning(objectContext.Runner))
             {
@@ -133,6 +132,7 @@ namespace Main.Scripts.Skills.Common.Controller
             }
 
             isActivating = true;
+            this.chargeLevel = chargeLevel;
 
             switch (skillControllerConfig.ActivationType)
             {
@@ -398,7 +398,8 @@ namespace Main.Scripts.Skills.Common.Controller
                     runner: objectContext.Runner,
                     position: position,
                     rotation: rotation,
-                    ownerId: objectContext.StateAuthority,
+                    ownerId: ownerId,
+                    chargeLevel: chargeLevel,
                     initialMapPoint: initialMapPoint,
                     dynamicMapPoint: dynamicMapPoint,
                     selfUnitId: objectContext.Id,

@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Serialization;
 
-namespace Main.Scripts.Skills.Common.Component.Config
+namespace Main.Scripts.Utils
 {
     [Serializable]
     public struct SerializableList<T>

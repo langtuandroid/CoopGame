@@ -8,25 +8,31 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
     {
         public static void ResolveEnabledModifiers(
             ModifierIdsBank bank,
-            ref PlayerData? playerData,
+            ref PlayerData playerData,
+            int chargeLevel,
             List<SkillFindTargetsStrategyBase> configs,
             List<SkillFindTargetsStrategyBase> resolvedConfigs
         )
         {
             foreach (var config in configs)
             {
-                if (playerData != null
-                    && config is ModifiableSkillFindTargetsStrategies modifiableSkillFindTargetsStrategiesPack)
+                if (config is ModifiableSkillFindTargetsStrategies modifiableConfig)
                 {
-                    var modifierLevel =
-                        playerData.Value.Modifiers.ModifiersLevel[
-                            bank.GetModifierIdToken(modifiableSkillFindTargetsStrategiesPack.ModifierId)];
-                    var findTargetsStrategies =
-                        modifiableSkillFindTargetsStrategiesPack.FindTargetsStrategiesByModifierLevel[modifierLevel];
+                    var modifierLevel = 0;
+                    if (chargeLevel >= modifiableConfig.ModifierId.ChargeLevel)
+                    {
+                        var modifierKey = bank.GetModifierIdToken(modifiableConfig.ModifierId);
+                        modifierLevel = playerData.Modifiers.ModifiersLevel[modifierKey];
+                    }
                     
+                    var findTargetsStrategies =
+                        modifiableConfig
+                            .FindTargetsStrategiesByModifierLevel[modifierLevel];
+
                     ResolveEnabledModifiers(
                         bank,
                         ref playerData,
+                        chargeLevel,
                         findTargetsStrategies.Value,
                         resolvedConfigs
                     );

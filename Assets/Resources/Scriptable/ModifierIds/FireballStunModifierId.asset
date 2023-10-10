@@ -13,3 +13,4 @@ MonoBehaviour:
   m_Name: FireballStunModifierId
   m_EditorClassIdentifier: 
   levelsCount: 1
+  chargeLevel: 2

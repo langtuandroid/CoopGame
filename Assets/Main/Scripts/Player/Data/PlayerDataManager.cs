@@ -135,14 +135,14 @@ namespace Main.Scripts.Player.Data
             }
         }
         
-        public PlayerData? GetPlayerData(PlayerRef playerRef)
+        public PlayerData GetPlayerData(PlayerRef playerRef)
         {
-            return userIdsMap.ContainsKey(playerRef) ? GetPlayerData(userIdsMap[playerRef]) : null;
+            return GetPlayerData(userIdsMap[playerRef]);
         }
 
-        public PlayerData? GetPlayerData(UserId userId)
+        public PlayerData GetPlayerData(UserId userId)
         {
-            return playersDataMap.ContainsKey(userId) ? playersDataMap[userId] : null;
+            return playersDataMap[userId];
         }
 
         public void AddPlayerData(PlayerRef playerRef, ref UserId userId, ref PlayerData playerData)

@@ -16,6 +16,7 @@ using Main.Scripts.Player.Data;
 using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills;
 using Main.Scripts.Skills.ActiveSkills;
+using Main.Scripts.Skills.Charge;
 using Main.Scripts.Skills.PassiveSkills;
 using Main.Scripts.UI.Gui;
 using Main.Scripts.Utils;
@@ -46,7 +47,7 @@ namespace Main.Scripts.Player
         private DataHolder dataHolder;
         private EventListener eventListener;
         private List<SkillsOwner.Listener> listeners = new();
-        private NetworkObject objectContext = default!;
+        private NetworkObject objectContext = null!;
 
         private Transform transform;
         private Rigidbody rigidbody;
@@ -63,11 +64,12 @@ namespace Main.Scripts.Player
         private UIDocument interactionInfoDoc;
         private HealthBar healthBar;
 
-        private PlayerDataManager playerDataManager = default!;
+        private SkillChargeManager skillChargeManager = null!;
+        private PlayerDataManager playerDataManager = null!;
 
         private int lastAnimationTriggerId;
 
-        private InteractionInfoView interactionInfoView = default!;
+        private InteractionInfoView interactionInfoView = null!;
         private PlayerAnimationState currentAnimationState;
 
         private float moveAcceleration = 200f;
@@ -111,7 +113,7 @@ namespace Main.Scripts.Player
                 transform: transform
             );
             passiveSkillsManager = new PassiveSkillsManager(
-                affectable: this,
+                dataHolder: dataHolder,
                 transform: transform
             );
 
@@ -134,9 +136,19 @@ namespace Main.Scripts.Player
         {
             this.objectContext = objectContext;
 
+            skillChargeManager = dataHolder.GetCachedComponent<SkillChargeManager>();
+
             effectsManager.Spawned(objectContext);
-            activeSkillsManager.Spawned(objectContext, ref config.ActiveSkillsConfig);
-            passiveSkillsManager.Spawned(objectContext, ref config.PassiveSkillsConfig);
+            activeSkillsManager.Spawned(
+                objectContext: objectContext,
+                isPlayerOwner: true,
+                config: ref config.ActiveSkillsConfig
+            );
+            passiveSkillsManager.Spawned(
+                objectContext: objectContext,
+                isPlayerOwner: true,
+                config: ref config.PassiveSkillsConfig
+            );
             healthChangeDisplayManager?.Spawned(objectContext);
 
             playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
@@ -202,7 +214,10 @@ namespace Main.Scripts.Player
             
             lastAnimationTriggerId = default;
             currentAnimationState = default;
-            objectContext = default!;
+            objectContext = null!;
+            playerDataManager = null!;
+            interactionInfoView = null!;
+            skillChargeManager = null!;
         }
         
         private void ClearActions()
@@ -722,6 +737,7 @@ namespace Main.Scripts.Player
 
         public void AddHeal(ref HealActionData data)
         {
+            skillChargeManager.AddCharge((int)data.healValue);
             healActions.Add(data);
         }
 
@@ -802,7 +818,8 @@ namespace Main.Scripts.Player
         public interface DataHolder :
             EffectsManager.DataHolder,
             ActiveSkillsManager.DataHolder,
-            HealthChangeDisplayManager.DataHolder
+            HealthChangeDisplayManager.DataHolder,
+            PassiveSkillsManager.DataHolder
         {
             public ref PlayerLogicData GetPlayerLogicData();
         }

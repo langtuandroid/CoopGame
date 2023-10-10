@@ -28,6 +28,7 @@ namespace Main.Scripts.Core.GameLogic
             GameLoopPhase.EffectsRemoveFinishedPhase,
             GameLoopPhase.PlayerInputPhase,
             GameLoopPhase.StrategyPhase,
+            GameLoopPhase.SkillChargeUpdate,
             GameLoopPhase.SkillActivationPhase,
             GameLoopPhase.SkillSpawnPhase,
             GameLoopPhase.SkillUpdatePhase,

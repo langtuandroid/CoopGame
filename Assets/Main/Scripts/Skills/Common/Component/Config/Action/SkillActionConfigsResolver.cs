@@ -8,25 +8,30 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
     {
         public static void ResolveEnabledModifiers(
             ModifierIdsBank bank,
-            ref PlayerData? playerData,
+            ref PlayerData playerData,
+            int chargeLevel,
             List<SkillActionBase> configs,
             List<SkillActionBase> resolvedConfigs
         )
         {
             foreach (var config in configs)
             {
-                if (playerData != null
-                    && config is ModifiableSkillActions modifiableSkillActionsPack)
+                if (config is ModifiableSkillActions modifiableConfig)
                 {
-                    var modifierLevel =
-                        playerData.Value.Modifiers.ModifiersLevel[
-                            bank.GetModifierIdToken(modifiableSkillActionsPack.ModifierId)];
+                    var modifierLevel = 0;
+                    if (chargeLevel >= modifiableConfig.ModifierId.ChargeLevel)
+                    {
+                        var modifierKey = bank.GetModifierIdToken(modifiableConfig.ModifierId);
+                        modifierLevel = playerData.Modifiers.ModifiersLevel[modifierKey];
+                    }
+                    
                     var actions =
-                        modifiableSkillActionsPack.ActionsByModifierLevel[modifierLevel];
+                        modifiableConfig.ActionsByModifierLevel[modifierLevel];
                     
                     ResolveEnabledModifiers(
                         bank,
                         ref playerData,
+                        chargeLevel,
                         actions.Value,
                         resolvedConfigs
                     );

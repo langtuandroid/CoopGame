@@ -8,23 +8,28 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
     {
         public static void ResolveEnabledModifiers(
             ModifierIdsBank bank,
-            ref PlayerData? playerData,
+            ref PlayerData playerData,
+            int chargeLevel,
             SkillActionTriggerBase config,
             out SkillActionTriggerBase resolvedConfig
         )
         {
-            if (playerData != null
-                && config is ModifiableSkillActionTriggers modifiableSkillActionTrigger)
+            if (config is ModifiableSkillActionTriggers modifiableConfig)
             {
-                var modifierLevel =
-                    playerData.Value.Modifiers.ModifiersLevel[
-                        bank.GetModifierIdToken(modifiableSkillActionTrigger.ModifierId)];
+                var modifierLevel = 0;
+                if (chargeLevel >= modifiableConfig.ModifierId.ChargeLevel)
+                {
+                    var modifierKey = bank.GetModifierIdToken(modifiableConfig.ModifierId);
+                    modifierLevel = playerData.Modifiers.ModifiersLevel[modifierKey];
+                }
+
                 var trigger =
-                    modifiableSkillActionTrigger.TriggerByModifierLevel[modifierLevel];
+                    modifiableConfig.TriggerByModifierLevel[modifierLevel];
 
                 ResolveEnabledModifiers(
                     bank,
                     ref playerData,
+                    chargeLevel,
                     trigger,
                     out resolvedConfig
                 );
@@ -32,13 +37,13 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
                 if (resolvedConfig == null)
                 {
                     throw new Exception(
-                        $"Resolved config cannot be null. Check {modifiableSkillActionTrigger.name} config");
+                        $"Resolved config cannot be null. Check {modifiableConfig.name} config");
                 }
-
-                return;
             }
-
-            resolvedConfig = config;
+            else
+            {
+                resolvedConfig = config;
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ namespace Main.Scripts.Core.GameLogic.Phases
         EffectsRemoveFinishedPhase,
         PlayerInputPhase,
         StrategyPhase,
+        SkillChargeUpdate,
         SkillActivationPhase,
         SkillSpawnPhase,
         SkillUpdatePhase,

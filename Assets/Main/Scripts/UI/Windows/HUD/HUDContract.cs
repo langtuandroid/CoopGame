@@ -17,6 +17,7 @@ namespace Main.Scripts.UI.Windows.HUD
             void Bind(ref HotBarData hotBarData);
             void SetVisibility(bool isVisible);
             void UpdateSkillCooldown(ActiveSkillType skillType, int cooldownLeftSec);
+            void OnChargeInfoChanged(int chargeLevel, int chargeProgress, int chargeProgressTarget, bool isMaxChargeLevel);
         }
     }
 }

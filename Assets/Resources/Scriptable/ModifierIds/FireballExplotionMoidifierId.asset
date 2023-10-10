@@ -13,3 +13,4 @@ MonoBehaviour:
   m_Name: FireballExplotionMoidifierId
   m_EditorClassIdentifier: 
   levelsCount: 1
+  chargeLevel: 3

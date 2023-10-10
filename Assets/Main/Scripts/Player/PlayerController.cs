@@ -16,6 +16,7 @@ using Main.Scripts.Effects;
 using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui.HealthChangeDisplay;
 using Main.Scripts.Skills.ActiveSkills;
+using Main.Scripts.Skills.Charge;
 using Main.Scripts.UI.Windows.HUD;
 using Main.Scripts.Utils;
 using Pathfinding.RVO;
@@ -33,7 +34,6 @@ namespace Main.Scripts.Player
         PlayerLogicDelegate.EventListener,
         Damageable,
         Healable,
-        Affectable,
         ObjectWithPickUp,
         Interactable,
         Dashable
@@ -125,6 +125,7 @@ namespace Main.Scripts.Player
             base.Spawned();
             effectsBank = GlobalResources.Instance.ThrowWhenNull().EffectsBank;
             cachedComponents[typeof(EffectsBank)] = effectsBank;
+            cachedComponents[typeof(SkillChargeManager)] = levelContext.SkillChargeManager;
             playerLogicDelegate.Spawned(Object);
             
             playersHolder = levelContext.PlayersHolder;
@@ -158,6 +159,7 @@ namespace Main.Scripts.Player
             base.Despawned(runner, hasState);
             effectsBank = default!;
             cachedComponents.Remove(typeof(EffectsBank));
+            cachedComponents.Remove(typeof(SkillChargeManager));
 
             OnPlayerStateChangedEvent.RemoveAllListeners();
             playerLogicDelegate.Despawned(runner, hasState);

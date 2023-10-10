@@ -181,7 +181,6 @@ namespace Main.Scripts.Room
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
         private void RPC_OnPlayerDataReady(PlayerRef playerRef, UserId userId, PlayerData playerData)
         {
-            var keepedPlayerData = playerDataManager.GetPlayerData(userId);
             if (playerDataManager.HasPlayer(userId))
             {
                 Debug.Log("Kick player by userId is in game");
@@ -189,16 +188,7 @@ namespace Main.Scripts.Room
                 return;
             }
             
-            if (keepedPlayerData != null)
-            {
-                if (!keepedPlayerData.Equals(playerData))
-                {
-                    Debug.Log("Kick player by player data is not equals");
-                    RPC_KickPlayer(playerRef);
-                    return;
-                }
-            }
-            else if (levelTransitionManager.CurrentSceneState is SceneState.LEVEL)
+            if (levelTransitionManager.CurrentSceneState is SceneState.LEVEL)
             {
                 Debug.Log("Kick player by mission is started");
                 RPC_KickPlayer(playerRef);

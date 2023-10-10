@@ -16,6 +16,7 @@ using Main.Scripts.Mobs.Config;
 using Main.Scripts.Mobs.Config.Block.Action;
 using Main.Scripts.Skills;
 using Main.Scripts.Skills.ActiveSkills;
+using Main.Scripts.Skills.Charge;
 using Main.Scripts.Skills.PassiveSkills;
 using Pathfinding;
 using UnityEngine;
@@ -50,6 +51,7 @@ namespace Main.Scripts.Enemies
         private MobConfig mobConfig = null!;
         private NetworkObject objectContext = null!;
         
+        private SkillChargeManager skillChargeManager = null!;
         private NavigationManager navigationManager = null!;
         private MobConfigsBank mobConfigsBank = null!;
         private MobBlockDelegate logicBlockDelegate = null!;
@@ -111,7 +113,7 @@ namespace Main.Scripts.Enemies
                 transform
             );
             passiveSkillsManager = new PassiveSkillsManager(
-                affectable: this,
+                dataHolder: dataHolder,
                 transform: transform
             );
         }
@@ -127,14 +129,23 @@ namespace Main.Scripts.Enemies
             ref var enemyData = ref dataHolder.GetEnemyData();
             this.objectContext = objectContext;
 
+            skillChargeManager = dataHolder.GetCachedComponent<SkillChargeManager>();
             navigationManager = dataHolder.GetCachedComponent<NavigationManager>();
             mobConfigsBank = dataHolder.GetCachedComponent<MobConfigsBank>();
             
             mobConfig = mobConfigsBank.GetMobConfig(enemyData.mobConfigKey);
             
             effectsManager.Spawned(objectContext);
-            activeSkillsManager.Spawned(objectContext, ref mobConfig.ActiveSkillsConfig);
-            passiveSkillsManager.Spawned(objectContext, ref mobConfig.PassiveSkillsConfig); //call after effectsManager.Spawned
+            activeSkillsManager.Spawned(
+                objectContext: objectContext,
+                isPlayerOwner: false,
+                config: ref mobConfig.ActiveSkillsConfig
+            );
+            passiveSkillsManager.Spawned(
+                objectContext: objectContext,
+                isPlayerOwner: false,
+                config: ref mobConfig.PassiveSkillsConfig
+            );
             
             logicBlockDelegate = MobBlockDelegateHelper.Create(mobConfig.LogicBlockConfig);
 
@@ -162,6 +173,7 @@ namespace Main.Scripts.Enemies
             logicBlockDelegate = null!;
 
             objectContext = null!;
+            skillChargeManager = null!;
         }
 
         private void InitState(ref EnemyData enemyData)
@@ -494,6 +506,7 @@ namespace Main.Scripts.Enemies
 
         public void AddDamage(ref DamageActionData data)
         {
+            skillChargeManager.AddCharge((int)data.damageValue);
             damageActions.Add(data);
         }
 
@@ -696,7 +709,8 @@ namespace Main.Scripts.Enemies
         public interface DataHolder :
             EffectsManager.DataHolder,
             ActiveSkillsManager.DataHolder,
-            HealthChangeDisplayManager.DataHolder
+            HealthChangeDisplayManager.DataHolder,
+            PassiveSkillsManager.DataHolder
         {
             public ref EnemyData GetEnemyData();
         }

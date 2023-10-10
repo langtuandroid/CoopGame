@@ -34,17 +34,16 @@ namespace Main.Scripts.Skills.Common.Component
         private static readonly Type COLLISION_TRIGGER_TYPE = typeof(CollisionSkillActionTrigger);
         private static readonly Type CLICK_TRIGGER_TYPE = typeof(ClickSkillActionTrigger);
 
-        private SkillConfigsBank skillConfigsBank = null!;
         private ModifierIdsBank modifierIdsBank = null!;
         private SkillVisualManager skillVisualManager = null!;
         private SkillComponentsPoolHelper skillComponentsPoolHelper = null!;
         private GameLoopManager gameLoopManager = null!;
         
         private SkillConfig skillConfig = null!;
-        private PlayerData? playerData;
         
         private NetworkRunner runner = null!;
         private PlayerRef ownerId;
+        private int chargeLevel;
         private Vector3 initialMapPoint;
         private Vector3 dynamicMapPoint;
         private NetworkId selfUnitId;
@@ -99,6 +98,7 @@ namespace Main.Scripts.Skills.Common.Component
             Vector3 position,
             Quaternion rotation,
             PlayerRef ownerId,
+            int chargeLevel,
             Vector3 initialMapPoint,
             Vector3 dynamicMapPoint,
             NetworkId selfUnitId,
@@ -112,6 +112,7 @@ namespace Main.Scripts.Skills.Common.Component
             Position = position;
             Rotation = rotation;
             this.ownerId = ownerId;
+            this.chargeLevel = chargeLevel;
             this.initialMapPoint = initialMapPoint;
             this.dynamicMapPoint = dynamicMapPoint;
             this.selfUnitId = selfUnitId;
@@ -125,26 +126,42 @@ namespace Main.Scripts.Skills.Common.Component
             gameLoopManager = levelContext.GameLoopManager;
             
             var resources = GlobalResources.Instance.ThrowWhenNull();
-            skillConfigsBank = resources.SkillConfigsBank;
             modifierIdsBank = resources.ModifierIdsBank;
             skillVisualManager = levelContext.SkillVisualManager;
             
-            playerData = PlayerDataManager.Instance.ThrowWhenNull().GetPlayerData(ownerId);
             this.skillConfig = skillConfig;
 
+            var playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
+            if (playerDataManager.HasPlayer(ownerId))
+            {
+                var playerData = playerDataManager.GetPlayerData(ownerId);
+                
+                ResolveConfigWithPlayerData(ref playerData);
+            }
+            else
+            {
+                ResolveConfigWithoutPlayerData();
+            }
+
+            levelContext.GameLoopManager.AddListener(this);
+        }
+
+        private void ResolveConfigWithPlayerData(ref PlayerData playerData)
+        {
             SkillFollowStrategyConfigsResolver.ResolveEnabledModifiers(
                 modifierIdsBank,
                 ref playerData,
+                chargeLevel,
                 skillConfig.FollowStrategy,
                 out followStrategy
             );
-
-
+            
             foreach (var skillTriggerPack in skillConfig.TriggerPacks)
             {
                 SkillActionTriggerConfigsResolver.ResolveEnabledModifiers(
                     modifierIdsBank,
                     ref playerData,
+                    chargeLevel,
                     skillTriggerPack.ActionTrigger,
                     out var resolvedActionTrigger
                 );
@@ -159,6 +176,7 @@ namespace Main.Scripts.Skills.Common.Component
                     SkillActionsPackResolver.ResolveEnabledModifiers(
                         modifierIdsBank,
                         ref playerData,
+                        chargeLevel,
                         skillActionsPack,
                         resolvedDataOut
                     );
@@ -173,8 +191,37 @@ namespace Main.Scripts.Skills.Common.Component
                     ActionsPackList = actionsPackList
                 };
             }
+        }
+
+        private void ResolveConfigWithoutPlayerData()
+        {
+            followStrategy = skillConfig.FollowStrategy;
             
-            levelContext.GameLoopManager.AddListener(this);
+            foreach (var skillTriggerPack in skillConfig.TriggerPacks)
+            {
+                var resolvedActionTrigger = skillTriggerPack.ActionTrigger;
+                var triggerType = resolvedActionTrigger.GetType();
+
+                var actionsPackList = ListPool<SkillActionsPackData>.Get();
+
+                foreach (var skillActionsPack in skillTriggerPack.ActionsPackList)
+                {
+                    var resolvedDataOut = GenericPool<SkillActionsPackData>.Get();
+
+                    //todo можно попробовать оптимизировать присваиванием списка, но не забыть учесть вариант с модификаторами
+                    resolvedDataOut.Actions.AddRange(skillActionsPack.Actions);
+                    resolvedDataOut.FindTargetsStrategies.AddRange(skillActionsPack.FindTargetsStrategies);
+
+                    actionsPackList.Add(resolvedDataOut);
+                }
+
+                activatedTriggersCountMap[triggerType] = 0;
+                triggerPacksDataMap[triggerType] = new SkillTriggerPackData
+                {
+                    ActionTrigger = resolvedActionTrigger,
+                    ActionsPackList = actionsPackList
+                };
+            }
         }
 
         public void Release()
@@ -188,6 +235,8 @@ namespace Main.Scripts.Skills.Common.Component
             {
                 foreach (var actionsPackData in triggerPackData.ActionsPackList)
                 {
+                    actionsPackData.Actions.Clear();
+                    actionsPackData.FindTargetsStrategies.Clear();
                     GenericPool<SkillActionsPackData>.Release(actionsPackData);
                 }
 
@@ -200,14 +249,12 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void Reset()
         {
-            skillConfigsBank = null!;
             modifierIdsBank = null!;
             skillVisualManager = null!;
             skillComponentsPoolHelper = null!;
             gameLoopManager = null!;
             
             skillConfig = null!;
-            playerData = null;
         
             runner = null!;
             selfUnitId = default;
@@ -672,6 +719,7 @@ namespace Main.Scripts.Skills.Common.Component
                             position: spawnPosition,
                             rotation: spawnRotation,
                             ownerId: ownerId,
+                            chargeLevel: chargeLevel,
                             initialMapPoint: initialMapPoint,
                             dynamicMapPoint: dynamicMapPoint,
                             selfUnitId: selfUnitId,

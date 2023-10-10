@@ -9,7 +9,8 @@ namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
     {
         public static void ResolveEnabledModifiers(
             ModifierIdsBank modifierIdsBank,
-            ref PlayerData? playerData,
+            ref PlayerData playerData,
+            int chargeLevel,
             SkillActionsPack actionsPackConfig,
             SkillActionsPackData resolvedDataOut
         )
@@ -18,6 +19,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
             SkillFindTargetsStrategiesConfigsResolver.ResolveEnabledModifiers(
                 modifierIdsBank,
                 ref playerData,
+                chargeLevel,
                 actionsPackConfig.FindTargetsStrategies,
                 resolvedDataOut.FindTargetsStrategies
             );
@@ -26,6 +28,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
             SkillActionConfigsResolver.ResolveEnabledModifiers(
                 modifierIdsBank,
                 ref playerData,
+                chargeLevel,
                 actionsPackConfig.Actions,
                 resolvedDataOut.Actions
             );

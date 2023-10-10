@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion;
+using Main.Scripts.Core.Architecture;
 using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Player.InputSystem.Target;
+using Main.Scripts.Skills.Charge;
 using Main.Scripts.Skills.Common.Controller;
 using UnityEngine;
 
@@ -14,8 +16,9 @@ namespace Main.Scripts.Skills.ActiveSkills
         private ActiveSkillsConfig config;
         private DataHolder dataHolder;
         private EventListener eventListener;
-        private NetworkObject objectContext = null!;
         private Transform transform;
+        private SkillChargeManager skillChargeManager = null!;
+        private NetworkObject objectContext = null!;
 
         private Dictionary<ActiveSkillType, SkillController> skillControllersMap = new();
         private Dictionary<SkillController, ActiveSkillType> skillTypesMap = new();
@@ -60,10 +63,15 @@ namespace Main.Scripts.Skills.ActiveSkills
             }
         }
 
-        public void Spawned(NetworkObject objectContext, ref ActiveSkillsConfig config)
+        public void Spawned(
+            NetworkObject objectContext,
+            bool isPlayerOwner,
+            ref ActiveSkillsConfig config
+        )
         {
             this.objectContext = objectContext;
             this.config = config;
+            skillChargeManager = dataHolder.GetCachedComponent<SkillChargeManager>();
 
             InitSkillControllers();
 
@@ -74,7 +82,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             foreach (var (_, skillController) in skillControllersMap)
             {
                 skillController.SetListener(this);
-                skillController.Spawned(objectContext);
+                skillController.Spawned(objectContext, isPlayerOwner);
             }
         }
         
@@ -114,7 +122,8 @@ namespace Main.Scripts.Skills.ActiveSkills
                 skillController.Despawned(runner, hasState);
             }
 
-            objectContext = default!;
+            objectContext = null!;
+            skillChargeManager = null!;
         }
 
         public void Render()
@@ -204,7 +213,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             }
 
             data.currentSkillType = skillType;
-            skill.Activate();
+            skill.Activate(skillChargeManager.ChargeLevel);
             var skillState = GetCurrentSkillState();
             if (shouldExecute
                 && skillState is ActiveSkillState.WaitingForTarget or ActiveSkillState.WaitingForPoint)
@@ -403,7 +412,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             public bool ShouldExecute;
         }
 
-        public interface DataHolder
+        public interface DataHolder : ComponentsHolder
         {
             public ref ActiveSkillsData GetActiveSkillsData();
         }

@@ -8,39 +8,42 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
     {
         public static void ResolveEnabledModifiers(
             ModifierIdsBank bank,
-            ref PlayerData? playerData,
+            ref PlayerData playerData,
+            int chargeLevel,
             SkillFollowStrategyBase config,
             out SkillFollowStrategyBase resolvedConfig
         )
         {
-            if (playerData != null
-                && config is ModifiableSkillFollowStrategies modifiableSkillFollowStrategyPack)
+            if (config is ModifiableSkillFollowStrategies modifiableConfig)
             {
+                var modifierLevel = 0;
+                if (chargeLevel >= modifiableConfig.ModifierId.ChargeLevel)
                 {
-                    var modifierLevel =
-                        playerData.Value.Modifiers.ModifiersLevel[
-                            bank.GetModifierIdToken(modifiableSkillFollowStrategyPack.ModifierId)];
-                    var followStrategy =
-                        modifiableSkillFollowStrategyPack.FollowStrategyByModifierLevel[modifierLevel];
+                    var modifierKey = bank.GetModifierIdToken(modifiableConfig.ModifierId);
+                    modifierLevel = playerData.Modifiers.ModifiersLevel[modifierKey];
+                }
+                
+                var followStrategy =
+                    modifiableConfig.FollowStrategyByModifierLevel[modifierLevel];
 
-                    ResolveEnabledModifiers(
-                        bank,
-                        ref playerData,
-                        followStrategy,
-                        out resolvedConfig
-                    );
+                ResolveEnabledModifiers(
+                    bank,
+                    ref playerData,
+                    chargeLevel,
+                    followStrategy,
+                    out resolvedConfig
+                );
 
-                    if (resolvedConfig == null)
-                    {
-                        throw new Exception(
-                            $"Resolved config cannot be null. Check {modifiableSkillFollowStrategyPack.name} config.");
-                    }
-
-                    return;
+                if (resolvedConfig == null)
+                {
+                    throw new Exception(
+                        $"Resolved config cannot be null. Check {modifiableConfig.name} config.");
                 }
             }
-
-            resolvedConfig = config;
+            else
+            {
+                resolvedConfig = config;
+            }
         }
     }
 }

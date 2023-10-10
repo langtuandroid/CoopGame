@@ -6,7 +6,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
 {
     public class SkillActionsPackData
     {
-        public readonly List<SkillFindTargetsStrategyBase> FindTargetsStrategies = new();
-        public readonly List<SkillActionBase> Actions = new();
+        public List<SkillFindTargetsStrategyBase> FindTargetsStrategies = null!;
+        public List<SkillActionBase> Actions = null!;
     }
 }

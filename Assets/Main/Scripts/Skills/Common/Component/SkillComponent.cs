@@ -172,6 +172,8 @@ namespace Main.Scripts.Skills.Common.Component
                 foreach (var skillActionsPack in skillTriggerPack.ActionsPackList)
                 {
                     var resolvedDataOut = GenericPool<SkillActionsPackData>.Get();
+                    resolvedDataOut.FindTargetsStrategies = ListPool<SkillFindTargetsStrategyBase>.Get();
+                    resolvedDataOut.Actions = ListPool<SkillActionBase>.Get();
 
                     SkillActionsPackResolver.ResolveEnabledModifiers(
                         modifierIdsBank,
@@ -208,9 +210,8 @@ namespace Main.Scripts.Skills.Common.Component
                 {
                     var resolvedDataOut = GenericPool<SkillActionsPackData>.Get();
 
-                    //todo можно попробовать оптимизировать присваиванием списка, но не забыть учесть вариант с модификаторами
-                    resolvedDataOut.Actions.AddRange(skillActionsPack.Actions);
-                    resolvedDataOut.FindTargetsStrategies.AddRange(skillActionsPack.FindTargetsStrategies);
+                    resolvedDataOut.Actions = skillActionsPack.Actions;
+                    resolvedDataOut.FindTargetsStrategies = skillActionsPack.FindTargetsStrategies;
 
                     actionsPackList.Add(resolvedDataOut);
                 }
@@ -235,8 +236,16 @@ namespace Main.Scripts.Skills.Common.Component
             {
                 foreach (var actionsPackData in triggerPackData.ActionsPackList)
                 {
-                    actionsPackData.Actions.Clear();
-                    actionsPackData.FindTargetsStrategies.Clear();
+                    if (ownerId != default)
+                    {
+                        actionsPackData.Actions.Clear();
+                        ListPool<SkillActionBase>.Release(actionsPackData.Actions);
+                        actionsPackData.FindTargetsStrategies.Clear();
+                        ListPool<SkillFindTargetsStrategyBase>.Release(actionsPackData.FindTargetsStrategies);
+                    }
+                    actionsPackData.Actions = null!;
+                    actionsPackData.FindTargetsStrategies = null!;
+                    
                     GenericPool<SkillActionsPackData>.Release(actionsPackData);
                 }
 

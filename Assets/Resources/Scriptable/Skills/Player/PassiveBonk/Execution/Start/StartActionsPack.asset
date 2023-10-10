@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d752ba6ca1945169ed27d700872423d, type: 3}
   m_Name: StartActionsPack
   m_EditorClassIdentifier: 
-  actionTrigger: {fileID: 11400000, guid: 19dbf92fb648d37409727eefa84f90b2, type: 2}
   findTargetsStrategies:
   - {fileID: 11400000, guid: e85c6295566f4b243a0f30056526b681, type: 2}
   actions:
   - {fileID: 11400000, guid: 4f75f0f9d5c79ca4c94a463d95b90554, type: 2}
   - {fileID: 11400000, guid: a5ab51686a623d14280d8cf233bd07c2, type: 2}
   - {fileID: 11400000, guid: eed1c7baae85a6d42934c4751432ceb8, type: 2}
+  - {fileID: 11400000, guid: 0d41ac4b62b91e9459d78bf06fe6968a, type: 2}

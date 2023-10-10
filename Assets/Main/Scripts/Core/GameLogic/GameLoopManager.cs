@@ -53,6 +53,7 @@ namespace Main.Scripts.Core.GameLogic
             GameLoopPhase.ObjectsSpawnPhase,
             GameLoopPhase.VisualStateUpdatePhase,
             GameLoopPhase.SyncTransformAfterAllPhase,
+            GameLoopPhase.SyncChargeValue,
             GameLoopPhase.LevelStrategyPhase
         };
 

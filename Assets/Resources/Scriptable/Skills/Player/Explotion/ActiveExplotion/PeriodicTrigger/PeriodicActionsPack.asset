@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d752ba6ca1945169ed27d700872423d, type: 3}
   m_Name: PeriodicActionsPack
   m_EditorClassIdentifier: 
-  actionTrigger: {fileID: 11400000, guid: cb34f997e2027f1439a4d94d4f448cb9, type: 2}
   findTargetsStrategies:
   - {fileID: 11400000, guid: a76758bba0cb8274fbd5627d528800b8, type: 2}
   actions:
   - {fileID: 11400000, guid: 2b3659c3493d9f64e9997d9ee2be16eb, type: 2}
   - {fileID: 11400000, guid: e4f82ac455ed37648bfc8f2442386924, type: 2}
+  - {fileID: 11400000, guid: 0969e4113075dd64d9a637aa7411906e, type: 2}

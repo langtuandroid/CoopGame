@@ -24,6 +24,7 @@ namespace Main.Scripts.Core.GameLogic.Phases
         AOIUpdatePhase,
         ObjectsSpawnPhase,
         VisualStateUpdatePhase,
+        SyncChargeValue,
         SyncTransformAfterAllPhase,
         LevelStrategyPhase,
     }

@@ -12,6 +12,7 @@ using Main.Scripts.Levels;
 using Main.Scripts.Modifiers;
 using Main.Scripts.Player.Data;
 using Main.Scripts.Player.InputSystem.Target;
+using Main.Scripts.Skills.Charge;
 using Main.Scripts.Skills.Common.Component.Config;
 using Main.Scripts.Skills.Common.Component.Config.Action;
 using Main.Scripts.Skills.Common.Component.Config.ActionsPack;
@@ -35,6 +36,7 @@ namespace Main.Scripts.Skills.Common.Component
         private static readonly Type CLICK_TRIGGER_TYPE = typeof(ClickSkillActionTrigger);
 
         private ModifierIdsBank modifierIdsBank = null!;
+        private SkillChargeManager skillChargeManager = null!;
         private SkillVisualManager skillVisualManager = null!;
         private SkillComponentsPoolHelper skillComponentsPoolHelper = null!;
         private GameLoopManager gameLoopManager = null!;
@@ -127,8 +129,9 @@ namespace Main.Scripts.Skills.Common.Component
             
             var resources = GlobalResources.Instance.ThrowWhenNull();
             modifierIdsBank = resources.ModifierIdsBank;
+            skillChargeManager = levelContext.SkillChargeManager;
             skillVisualManager = levelContext.SkillVisualManager;
-            
+
             this.skillConfig = skillConfig;
 
             var playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
@@ -259,6 +262,7 @@ namespace Main.Scripts.Skills.Common.Component
         private void Reset()
         {
             modifierIdsBank = null!;
+            skillChargeManager = null!;
             skillVisualManager = null!;
             skillComponentsPoolHelper = null!;
             gameLoopManager = null!;
@@ -625,6 +629,9 @@ namespace Main.Scripts.Skills.Common.Component
             {
                 switch (action)
                 {
+                    case AddChargeAction addChargeAction:
+                        skillChargeManager.AddCharge(addChargeAction.ChargeValue);
+                        break;
                     case ApplyEffectsSkillAction applyEffectsAction
                         when actionTarget.TryGetInterface<Affectable>(out var affectable):
 

@@ -37,11 +37,12 @@ namespace Main.Scripts.Skills.Charge
         private GameLoopPhase[] gameLoopPhases =
         {
             GameLoopPhase.SkillChargeUpdate,
-            GameLoopPhase.VisualStateUpdatePhase
+            GameLoopPhase.VisualStateUpdatePhase,
         };
         private GameLoopPhase[] proxyGameLoopPhases =
         {
-            GameLoopPhase.VisualStateUpdatePhase
+            GameLoopPhase.VisualStateUpdatePhase,
+            GameLoopPhase.SyncChargeValue
         };
 
         [Networked]
@@ -62,6 +63,9 @@ namespace Main.Scripts.Skills.Charge
                     break;
                 case GameLoopPhase.VisualStateUpdatePhase:
                     VisualStateUpdatePhase();
+                    break;
+                case GameLoopPhase.SyncChargeValue:
+                    SyncChargeValue();
                     break;
             }
         }
@@ -120,6 +124,12 @@ namespace Main.Scripts.Skills.Charge
             }
         }
 
+        private void SyncChargeValue()
+        {
+            RPC_AddCharge(addChargeValue);
+            addChargeValue = 0;
+        }
+
         public void AddListener(Listener listener)
         {
             listeners.Add(listener);
@@ -137,14 +147,7 @@ namespace Main.Scripts.Skills.Charge
 
         public void AddCharge(int chargeValue)
         {
-            if (HasStateAuthority)
-            {
-                addChargeValue += chargeValue;
-            }
-            else
-            {
-                RPC_AddCharge(chargeValue);
-            }
+            addChargeValue += chargeValue;
         }
 
         [Rpc(RpcSources.Proxies, RpcTargets.StateAuthority)]

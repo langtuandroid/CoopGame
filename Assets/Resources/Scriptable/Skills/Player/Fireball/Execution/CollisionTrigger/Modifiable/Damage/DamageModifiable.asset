@@ -16,9 +16,13 @@ MonoBehaviour:
   actionsByModifierLevel:
   - Value:
     - {fileID: 11400000, guid: 1365e48fc79cc8e4182eb0b5e32fbe1f, type: 2}
+    - {fileID: 11400000, guid: 4b31969356aa7354d979984a8a562557, type: 2}
   - Value:
     - {fileID: 11400000, guid: 7059bd9a479e85d4596d0b3b4d3f2b12, type: 2}
+    - {fileID: 11400000, guid: 8e27afc09e7a09a4899906d97602f282, type: 2}
   - Value:
     - {fileID: 11400000, guid: 70f7a24e1df9ad246bc15b19decc6b51, type: 2}
+    - {fileID: 11400000, guid: fd726ba26ce53aa43b24e3a28443c3a4, type: 2}
   - Value:
     - {fileID: 11400000, guid: f63bf5bef1e234d498b5edb661fd4861, type: 2}
+    - {fileID: 11400000, guid: 7ab4638baa81a894a8f706dade1c3991, type: 2}

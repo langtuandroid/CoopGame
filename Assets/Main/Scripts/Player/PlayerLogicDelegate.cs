@@ -737,7 +737,6 @@ namespace Main.Scripts.Player
 
         public void AddHeal(ref HealActionData data)
         {
-            skillChargeManager.AddCharge((int)data.healValue);
             healActions.Add(data);
         }
 

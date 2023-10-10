@@ -506,7 +506,6 @@ namespace Main.Scripts.Enemies
 
         public void AddDamage(ref DamageActionData data)
         {
-            skillChargeManager.AddCharge((int)data.damageValue);
             damageActions.Add(data);
         }
 

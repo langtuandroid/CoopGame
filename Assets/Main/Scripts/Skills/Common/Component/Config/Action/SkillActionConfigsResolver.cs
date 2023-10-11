@@ -9,7 +9,8 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
         public static void ResolveEnabledModifiers(
             ModifierIdsBank bank,
             ref PlayerData playerData,
-            int chargeLevel,
+            int heatLevel,
+            int powerChargeLevel,
             List<SkillActionBase> configs,
             List<SkillActionBase> resolvedConfigs
         )
@@ -19,10 +20,18 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
                 if (config is ModifiableSkillActions modifiableConfig)
                 {
                     var modifierLevel = 0;
-                    if (chargeLevel >= modifiableConfig.ModifierId.ChargeLevel)
+                    if (heatLevel >= modifiableConfig.Modifier.HeatLevel)
                     {
-                        var modifierKey = bank.GetModifierIdToken(modifiableConfig.ModifierId);
-                        modifierLevel = playerData.Modifiers.ModifiersLevel[modifierKey];
+                        switch (modifiableConfig.Modifier)
+                        {
+                            case ModifierId modifierId:
+                                var modifierKey = bank.GetModifierIdToken(modifierId);
+                                modifierLevel = playerData.Modifiers.ModifiersLevel[modifierKey];
+                                break;
+                            case PowerChargeModifier:
+                                modifierLevel = powerChargeLevel;
+                                break;
+                        }
                     }
                     
                     var actions =
@@ -31,7 +40,8 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
                     ResolveEnabledModifiers(
                         bank,
                         ref playerData,
-                        chargeLevel,
+                        heatLevel,
+                        powerChargeLevel,
                         actions.Value,
                         resolvedConfigs
                     );

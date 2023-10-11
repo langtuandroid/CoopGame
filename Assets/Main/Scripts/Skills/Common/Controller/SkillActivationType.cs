@@ -4,6 +4,7 @@ namespace Main.Scripts.Skills.Common.Controller
     {
         Instantly,
         WithMapPointTarget,
-        WithUnitTarget
+        WithUnitTarget,
+        WithPowerCharge
     }
 }

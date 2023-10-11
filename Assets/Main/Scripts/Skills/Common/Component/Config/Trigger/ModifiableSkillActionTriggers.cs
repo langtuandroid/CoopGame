@@ -7,17 +7,17 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
     public class ModifiableSkillActionTriggers : SkillActionTriggerBase
     {
         [SerializeField]
-        private ModifierId modifierId = null!;
+        private ModifierBase modifier = null!;
         [SerializeField]
         private SkillActionTriggerBase[] triggerByModifierLevel = null!;
 
-        public ModifierId ModifierId => modifierId;
+        public ModifierBase Modifier => modifier;
         public SkillActionTriggerBase[] TriggerByModifierLevel => triggerByModifierLevel;
 
         private void OnValidate()
         {
             triggerByModifierLevel =
-                ModifiableItemValidationHelper.GetLimitedArray(modifierId, triggerByModifierLevel);
+                ModifiableItemValidationHelper.GetLimitedArray(modifier, triggerByModifierLevel);
         }
     }
 }

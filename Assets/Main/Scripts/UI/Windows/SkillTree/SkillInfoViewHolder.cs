@@ -30,7 +30,7 @@ namespace Main.Scripts.UI.Windows.SkillTree
             this.skillInfoData = skillInfoData;
             var skillInfo = skillInfoData.SkillInfo;
             var currentLevel = skillInfoData.CurrentLevel;
-            var maxLevel = skillInfo.ModifierId.LevelsCount;
+            var maxLevel = skillInfo.ModifierId.UpgradeLevels;
             
             titleLabel.text = skillInfo.Title;
             descriptionLabel.text = skillInfo.Description;

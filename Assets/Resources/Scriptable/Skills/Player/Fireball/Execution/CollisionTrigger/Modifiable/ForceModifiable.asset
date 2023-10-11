@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 029e22c81c424cf282babe95814f00cb, type: 3}
   m_Name: ForceModifiable
   m_EditorClassIdentifier: 
-  modifierId: {fileID: 11400000, guid: 5c30f640e7b7c6843b50ff0514098596, type: 2}
+  modifier: {fileID: 11400000, guid: 5c30f640e7b7c6843b50ff0514098596, type: 2}
   actionsByModifierLevel:
   - Value: []
   - Value:

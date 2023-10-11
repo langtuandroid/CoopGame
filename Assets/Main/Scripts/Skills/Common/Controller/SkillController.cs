@@ -25,11 +25,13 @@ namespace Main.Scripts.Skills.Common.Controller
 
         private Vector3 initialMapPoint;
         private Vector3 dynamicMapPoint;
+        private int powerChargeLevel;
         private NetworkObject? selectedUnit;
+        private int chargeLevel;
         private TickTimer skillRunningTimer;
         private TickTimer castTimer;
         private bool isActivating;
-        private int chargeLevel;
+        private Tick activationTick;
 
         private TickTimer cooldownTimer;
         
@@ -132,6 +134,7 @@ namespace Main.Scripts.Skills.Common.Controller
             }
 
             isActivating = true;
+            activationTick = objectContext.Runner.Tick;
             this.chargeLevel = chargeLevel;
 
             switch (skillControllerConfig.ActivationType)
@@ -144,6 +147,9 @@ namespace Main.Scripts.Skills.Common.Controller
                     break;
                 case SkillActivationType.WithUnitTarget:
                     listener?.OnSkillWaitingForUnitTarget(this);
+                    break;
+                case SkillActivationType.WithPowerCharge:
+                    listener?.OnSkillWaitingForPowerCharge(this);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -183,6 +189,12 @@ namespace Main.Scripts.Skills.Common.Controller
             if (IsSkillRunning) return;
 
             isActivating = false;
+            if (ActivationType == SkillActivationType.WithPowerCharge)
+            {
+                powerChargeLevel = GetPowerChargeLevel(GetPowerChargeProgress());
+                //todo мб можно вынести в стейт обновления визуала
+                listener?.OnPowerChargeProgressChanged(this, false, 0, 0);
+            }
 
             skillRunningTimer = TickTimer.CreateFromTicks(objectContext.Runner, skillControllerConfig.CastDurationTicks + skillControllerConfig.ExecutionDurationTicks);
             castTimer = TickTimer.CreateFromTicks(objectContext.Runner, skillControllerConfig.CastDurationTicks);
@@ -192,6 +204,26 @@ namespace Main.Scripts.Skills.Common.Controller
             AddSpawnActions(skillControllerConfig.RunOnCastSkillConfigs);
 
             CheckCastFinished();
+        }
+
+        private int GetPowerChargeProgress()
+        {
+            return Math.Min(
+                100,
+                (int)(100 * (objectContext.Runner.Tick - activationTick) / (float)skillControllerConfig.TicksToFullPowerCharge)
+            );
+        }
+
+        private int GetPowerChargeLevel(int powerChargeProgress)
+        {
+            var level = 0;
+            var powerChargeStepValues = skillControllerConfig.PowerChargeStepValues;
+            while (level < powerChargeStepValues.Length && powerChargeProgress >= powerChargeStepValues[level])
+            {
+                level++;
+            }
+
+            return level;
         }
 
         public void OnGameLoopPhase(GameLoopPhase phase)
@@ -246,6 +278,12 @@ namespace Main.Scripts.Skills.Common.Controller
                 }
 
                 listener?.OnSkillCooldownChanged(this);
+            }
+
+            if (isActivating && ActivationType == SkillActivationType.WithPowerCharge)
+            {
+                var powerChargeProgress = GetPowerChargeProgress();
+                listener?.OnPowerChargeProgressChanged(this, true, GetPowerChargeLevel(powerChargeProgress), powerChargeProgress);
             }
         }
 
@@ -307,10 +345,12 @@ namespace Main.Scripts.Skills.Common.Controller
             castTimer = default;
             skillRunningTimer = default;
             isActivating = false;
+            activationTick = default;
 
             selectedUnit = null;
             initialMapPoint = default;
             dynamicMapPoint = default;
+            powerChargeLevel = default;
 
             foreach (var skillComponent in skillComponents)
             {
@@ -402,6 +442,7 @@ namespace Main.Scripts.Skills.Common.Controller
                     chargeLevel: chargeLevel,
                     initialMapPoint: initialMapPoint,
                     dynamicMapPoint: dynamicMapPoint,
+                    powerChargeLevel: powerChargeLevel,
                     selfUnitId: objectContext.Id,
                     selectedUnitId: selectedUnit != null ? selectedUnit.Id : default,
                     alliesLayerMask: alliesLayerMask,
@@ -426,8 +467,10 @@ namespace Main.Scripts.Skills.Common.Controller
         public interface Listener
         {
             public void OnSkillCooldownChanged(SkillController skill);
+            public void OnPowerChargeProgressChanged(SkillController skill, bool isCharging, int powerChargeLevel, int powerChargeProgress);
             public void OnSkillWaitingForPointTarget(SkillController skill);
             public void OnSkillWaitingForUnitTarget(SkillController skill);
+            public void OnSkillWaitingForPowerCharge(SkillController skill);
             public void OnSkillStartCasting(SkillController skill);
             public void OnSkillFinishedCasting(SkillController skill);
             public void OnSkillFinished(SkillController skill);

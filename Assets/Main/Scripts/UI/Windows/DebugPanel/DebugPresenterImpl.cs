@@ -43,7 +43,7 @@ namespace Main.Scripts.UI.Windows.DebugPanel
         public void OnItemChangeValue(int itemIndex, int value)
         {
             var modifierId = modifiersBank.GetModifierId(itemIndex);
-            var newLevel = Mathf.Clamp(value, 0, modifierId.LevelsCount + 1);
+            var newLevel = Mathf.Clamp(value, 0, modifierId.UpgradeLevels + 1);
             playerDataManager.SetModifierLevel(itemIndex, (ushort)newLevel);
         }
 
@@ -73,7 +73,7 @@ namespace Main.Scripts.UI.Windows.DebugPanel
                 itemDataList.Add(new ModifierItemData(
                     name: modifierId.name,
                     level: playerData.Modifiers.ModifiersLevel[modifierToken],
-                    maxLevel: modifierId.LevelsCount
+                    maxLevel: modifierId.UpgradeLevels
                 ));
             }
 

@@ -12,4 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62d4623ace2f4b4496a161099be8f349, type: 3}
   m_Name: FireballDamageModifierId
   m_EditorClassIdentifier: 
-  levelsCount: 3
+  heatLevel: 0
+  upgradeLevels: 3

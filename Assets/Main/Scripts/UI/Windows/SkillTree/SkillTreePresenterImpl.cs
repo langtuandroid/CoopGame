@@ -81,7 +81,7 @@ namespace Main.Scripts.UI.Windows.SkillTree
         {
             var modifierId = skillInfoData.SkillInfo.ModifierId;
             var modifierToken = modifierIdsBank.GetModifierIdToken(modifierId);
-            if (skillInfoData.CurrentLevel < modifierId.LevelsCount)
+            if (skillInfoData.CurrentLevel < modifierId.UpgradeLevels)
             {
                 playerDataManager.SetModifierLevel(modifierToken, (ushort)(skillInfoData.CurrentLevel + 1));
             }

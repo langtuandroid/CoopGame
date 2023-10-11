@@ -10,6 +10,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
             ModifierIdsBank bank,
             ref PlayerData playerData,
             int chargeLevel,
+            int powerChargeLevel,
             SkillActionTriggerBase config,
             out SkillActionTriggerBase resolvedConfig
         )
@@ -17,10 +18,18 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
             if (config is ModifiableSkillActionTriggers modifiableConfig)
             {
                 var modifierLevel = 0;
-                if (chargeLevel >= modifiableConfig.ModifierId.ChargeLevel)
+                if (chargeLevel >= modifiableConfig.Modifier.HeatLevel)
                 {
-                    var modifierKey = bank.GetModifierIdToken(modifiableConfig.ModifierId);
-                    modifierLevel = playerData.Modifiers.ModifiersLevel[modifierKey];
+                    switch (modifiableConfig.Modifier)
+                    {
+                        case ModifierId modifierId:
+                            var modifierKey = bank.GetModifierIdToken(modifierId);
+                            modifierLevel = playerData.Modifiers.ModifiersLevel[modifierKey];
+                            break;
+                        case PowerChargeModifier:
+                            modifierLevel = powerChargeLevel;
+                            break;
+                    }
                 }
 
                 var trigger =
@@ -30,6 +39,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
                     bank,
                     ref playerData,
                     chargeLevel,
+                    powerChargeLevel,
                     trigger,
                     out resolvedConfig
                 );

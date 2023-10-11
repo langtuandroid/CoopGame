@@ -197,9 +197,14 @@ namespace Main.Scripts.Player
             playerLogicDelegate.SetDirections(ref moveDirection, ref aimDirection);
         }
 
-        public void ActivateSkill(ActiveSkillType type)
+        public void SkillBtnPressed(ActiveSkillType type)
         {
-            playerLogicDelegate.ActivateSkill(type);
+            playerLogicDelegate.SkillBtnPressed(type);
+        }
+
+        public void SkillBtnReleased(ActiveSkillType type)
+        {
+            playerLogicDelegate.SkillBtnReleased(type);
         }
 
         public void OnPrimaryButtonClicked()

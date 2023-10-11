@@ -16,11 +16,11 @@ namespace Main.Scripts.UI.Windows.HUD.ChargeInfo
 
         public void SetChargeInfo(int level, int progress, int progressTarget, bool isMaxLevel)
         {
-            chargeLevelLabel.text = $"Charge lvl: {level}";
+            chargeLevelLabel.text = $"Heat lvl: {level}";
             if (isMaxLevel)
             {
                 chargeProgressBar.value = 100;
-                chargeProgressBar.title = "MAX Charge";
+                chargeProgressBar.title = "MAX Heat";
             }
             else
             {

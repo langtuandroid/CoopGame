@@ -566,7 +566,7 @@ namespace Main.Scripts.Player
             Respawn();
         }
 
-        public void ActivateSkill(ActiveSkillType type)
+        public void SkillBtnPressed(ActiveSkillType type)
         {
             switch (activeSkillsManager.GetCurrentSkillState())
             {
@@ -575,7 +575,18 @@ namespace Main.Scripts.Player
                     break;
                 case ActiveSkillState.WaitingForPoint:
                 case ActiveSkillState.WaitingForTarget:
-                    activeSkillsManager.AddCancelCurrentSkill();
+                    //todo при клике мышкой однвоременно отправляется ивент отмены и запуска скилла
+                    // activeSkillsManager.AddCancelCurrentSkill();
+                    break;
+            }
+        }
+
+        public void SkillBtnReleased(ActiveSkillType type)
+        {
+            switch (activeSkillsManager.GetCurrentSkillState())
+            {
+                case ActiveSkillState.WaitingForPowerCharge:
+                    activeSkillsManager.AddExecuteCurrentSkill();
                     break;
             }
         }
@@ -589,7 +600,7 @@ namespace Main.Scripts.Player
                     activeSkillsManager.AddExecuteCurrentSkill();
                     break;
                 case ActiveSkillState.NotAttacking:
-                    ActivateSkill(ActiveSkillType.PRIMARY);
+                    SkillBtnPressed(ActiveSkillType.PRIMARY);
                     break;
             }
         }
@@ -791,6 +802,14 @@ namespace Main.Scripts.Player
                 listener.OnActiveSkillCooldownChanged(type, cooldownLeftTicks);
             }
 
+        }
+
+        public void OnPowerChargeProgressChanged(ActiveSkillType type, bool isCharging, int powerChargeLevel, int powerChargeProgress)
+        {
+            foreach (var listener in listeners)
+            {
+                listener.OnPowerChargeProgressChanged(isCharging, powerChargeLevel, powerChargeProgress);
+            }
         }
 
         public bool CanActivateSkill(ActiveSkillType skillType)

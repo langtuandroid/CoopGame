@@ -221,24 +221,18 @@ namespace Main.Scripts.Player.InputSystem
                     playerController.OnPrimaryButtonClicked();
                 }
 
-                if (pressedButtons.IsSet(NetworkInputData.BUTTON_CAST_FIRST_SKILL))
+                foreach (var skillButton in NetworkInputData.SKILL_BUTTONS)
                 {
-                    playerController.ActivateSkill(ActiveSkillType.FIRST_SKILL);
-                }
+                    var skillType = GetSkillByButton(skillButton);
+                    if (pressedButtons.IsSet(skillButton))
+                    {
+                        playerController.SkillBtnPressed(skillType);
+                    }
 
-                if (pressedButtons.IsSet(NetworkInputData.BUTTON_CAST_SECOND_SKILL))
-                {
-                    playerController.ActivateSkill(ActiveSkillType.SECOND_SKILL);
-                }
-
-                if (pressedButtons.IsSet(NetworkInputData.BUTTON_CAST_THIRD_SKILL))
-                {
-                    playerController.ActivateSkill(ActiveSkillType.THIRD_SKILL);
-                }
-
-                if (pressedButtons.IsSet(NetworkInputData.BUTTON_CAST_DASH_SKILL))
-                {
-                    playerController.ActivateSkill(ActiveSkillType.DASH);
+                    if (releasedButtons.IsSet(skillButton))
+                    {
+                        playerController.SkillBtnReleased(skillType);
+                    }
                 }
 
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_INTERACT) && interactionController != null)
@@ -263,6 +257,20 @@ namespace Main.Scripts.Player.InputSystem
                 var aimDirectionNormalized = input.aimDirection.normalized;
                 playerController.SetDirections(ref moveDirectionNormalized, ref aimDirectionNormalized);
             }
+        }
+
+        private ActiveSkillType GetSkillByButton(int skillButton)
+        {
+            return skillButton switch
+            {
+                NetworkInputData.BUTTON_FIRE_PRIMARY => ActiveSkillType.PRIMARY,
+                NetworkInputData.BUTTON_FIRE_SECONDARY => ActiveSkillType.PRIMARY,
+                NetworkInputData.BUTTON_CAST_DASH_SKILL => ActiveSkillType.DASH,
+                NetworkInputData.BUTTON_CAST_FIRST_SKILL => ActiveSkillType.FIRST_SKILL,
+                NetworkInputData.BUTTON_CAST_SECOND_SKILL => ActiveSkillType.SECOND_SKILL,
+                NetworkInputData.BUTTON_CAST_THIRD_SKILL => ActiveSkillType.THIRD_SKILL,
+                _ => throw new ArgumentOutOfRangeException(nameof(skillButton), skillButton, null)
+            };
         }
         
         public override IEnumerable<GameLoopPhase> GetSubscribePhases()
@@ -306,6 +314,16 @@ namespace Main.Scripts.Player.InputSystem
         public const int BUTTON_CAST_FIRST_SKILL = 6;
         public const int BUTTON_CAST_SECOND_SKILL = 7;
         public const int BUTTON_CAST_THIRD_SKILL = 8;
+
+        public static readonly int[] SKILL_BUTTONS =
+        {
+            BUTTON_FIRE_PRIMARY,
+            BUTTON_FIRE_SECONDARY,
+            BUTTON_CAST_DASH_SKILL,
+            BUTTON_CAST_FIRST_SKILL,
+            BUTTON_CAST_SECOND_SKILL,
+            BUTTON_CAST_THIRD_SKILL
+        };
 
         public NetworkButtons Buttons;
         public Vector2 aimDirection;

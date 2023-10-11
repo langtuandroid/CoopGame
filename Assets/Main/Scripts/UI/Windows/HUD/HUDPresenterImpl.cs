@@ -47,6 +47,7 @@ namespace Main.Scripts.UI.Windows.HUD
             };
             view.Bind(ref hotBarData);
             OnChargeInfoChanged();
+            OnPowerChargeProgressChanged(false, 0, 0);
             skillsOwner.AddSkillListener(this);
             skillChargeManager.AddListener(this);
             view.SetVisibility(true);
@@ -78,6 +79,11 @@ namespace Main.Scripts.UI.Windows.HUD
             var charProgressTarget = skillChargeManager.GetProgressForNextLevel();
             var isMaxLevel = skillChargeManager.IsMaxChargeLevel;
             view.OnChargeInfoChanged(chargeLevel, progressPercent, charProgressTarget, isMaxLevel);
+        }
+
+        public void OnPowerChargeProgressChanged(bool isCharging, int powerChargeLevel, int powerChargeProgress)
+        {
+            view.OnPowerChargeInfoChanged(isCharging, powerChargeLevel + 1, powerChargeProgress);
         }
     }
 }

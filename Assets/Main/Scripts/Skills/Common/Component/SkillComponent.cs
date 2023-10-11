@@ -48,6 +48,7 @@ namespace Main.Scripts.Skills.Common.Component
         private int chargeLevel;
         private Vector3 initialMapPoint;
         private Vector3 dynamicMapPoint;
+        private int powerChargeLevel;
         private NetworkId selfUnitId;
         private NetworkId selectedUnitId;
         private int alliesLayerMask;
@@ -103,6 +104,7 @@ namespace Main.Scripts.Skills.Common.Component
             int chargeLevel,
             Vector3 initialMapPoint,
             Vector3 dynamicMapPoint,
+            int powerChargeLevel,
             NetworkId selfUnitId,
             NetworkId selectedUnitId,
             LayerMask alliesLayerMask,
@@ -117,6 +119,7 @@ namespace Main.Scripts.Skills.Common.Component
             this.chargeLevel = chargeLevel;
             this.initialMapPoint = initialMapPoint;
             this.dynamicMapPoint = dynamicMapPoint;
+            this.powerChargeLevel = powerChargeLevel;
             this.selfUnitId = selfUnitId;
             this.selectedUnitId = selectedUnitId;
             this.alliesLayerMask = alliesLayerMask;
@@ -155,6 +158,7 @@ namespace Main.Scripts.Skills.Common.Component
                 modifierIdsBank,
                 ref playerData,
                 chargeLevel,
+                powerChargeLevel,
                 skillConfig.FollowStrategy,
                 out followStrategy
             );
@@ -165,6 +169,7 @@ namespace Main.Scripts.Skills.Common.Component
                     modifierIdsBank,
                     ref playerData,
                     chargeLevel,
+                    powerChargeLevel,
                     skillTriggerPack.ActionTrigger,
                     out var resolvedActionTrigger
                 );
@@ -182,6 +187,7 @@ namespace Main.Scripts.Skills.Common.Component
                         modifierIdsBank,
                         ref playerData,
                         chargeLevel,
+                        powerChargeLevel,
                         skillActionsPack,
                         resolvedDataOut
                     );
@@ -738,6 +744,7 @@ namespace Main.Scripts.Skills.Common.Component
                             chargeLevel: chargeLevel,
                             initialMapPoint: initialMapPoint,
                             dynamicMapPoint: dynamicMapPoint,
+                            powerChargeLevel: powerChargeLevel,
                             selfUnitId: selfUnitId,
                             selectedUnitId: selectedUnitId,
                             alliesLayerMask: alliesLayerMask,

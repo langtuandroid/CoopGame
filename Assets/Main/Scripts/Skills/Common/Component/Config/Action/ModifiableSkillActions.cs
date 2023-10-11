@@ -8,16 +8,16 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
     public class ModifiableSkillActions : SkillActionBase
     {
         [SerializeField]
-        private ModifierId modifierId = null!;
+        private ModifierBase modifier = null!;
         [SerializeField]
         private SerializableList<SkillActionBase>[] actionsByModifierLevel = null!;
 
-        public ModifierId ModifierId => modifierId;
+        public ModifierBase Modifier => modifier;
         public SerializableList<SkillActionBase>[] ActionsByModifierLevel => actionsByModifierLevel;
 
         private void OnValidate()
         {
-            actionsByModifierLevel = ModifiableItemValidationHelper.GetLimitedArray(modifierId, actionsByModifierLevel);
+            actionsByModifierLevel = ModifiableItemValidationHelper.GetLimitedArray(modifier, actionsByModifierLevel);
         }
     }
 }

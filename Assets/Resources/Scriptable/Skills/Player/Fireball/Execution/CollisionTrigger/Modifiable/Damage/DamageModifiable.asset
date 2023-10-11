@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 029e22c81c424cf282babe95814f00cb, type: 3}
   m_Name: DamageModifiable
   m_EditorClassIdentifier: 
-  modifierId: {fileID: 11400000, guid: 1f6c682c4602564468c1096f8a8762ae, type: 2}
+  modifier: {fileID: 11400000, guid: a238740b3fd28e14cb4a049ed58af038, type: 2}
   actionsByModifierLevel:
   - Value:
     - {fileID: 11400000, guid: 1365e48fc79cc8e4182eb0b5e32fbe1f, type: 2}

@@ -11,6 +11,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
             ModifierIdsBank modifierIdsBank,
             ref PlayerData playerData,
             int chargeLevel,
+            int powerChargeLevel,
             SkillActionsPack actionsPackConfig,
             SkillActionsPackData resolvedDataOut
         )
@@ -20,6 +21,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
                 modifierIdsBank,
                 ref playerData,
                 chargeLevel,
+                powerChargeLevel,
                 actionsPackConfig.FindTargetsStrategies,
                 resolvedDataOut.FindTargetsStrategies
             );
@@ -29,6 +31,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
                 modifierIdsBank,
                 ref playerData,
                 chargeLevel,
+                powerChargeLevel,
                 actionsPackConfig.Actions,
                 resolvedDataOut.Actions
             );

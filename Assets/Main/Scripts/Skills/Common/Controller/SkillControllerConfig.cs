@@ -19,6 +19,10 @@ namespace Main.Scripts.Skills.Common.Controller
         [SerializeField]
         private UnitTargetType selectionTargetType;
         [SerializeField]
+        private int ticksForFullPowerCharge;
+        [SerializeField]
+        private int[] powerChargeStepValues = null!;
+        [SerializeField]
         [Min(0)]
         private int castDurationTicks;
         [SerializeField]
@@ -37,6 +41,8 @@ namespace Main.Scripts.Skills.Common.Controller
         public SkillActivationType ActivationType => activationType;
         public GameObject? AreaMarker => areaMarker;
         public UnitTargetType SelectionTargetType => selectionTargetType;
+        public int TicksToFullPowerCharge => ticksForFullPowerCharge;
+        public int[] PowerChargeStepValues => powerChargeStepValues;
         public int CastDurationTicks => castDurationTicks;
         public bool DisableMoveOnCast => disableMoveOnCast;
         public int ExecutionDurationTicks => executionDurationTicks;

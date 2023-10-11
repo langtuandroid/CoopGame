@@ -230,8 +230,10 @@ namespace Main.Scripts.Skills.ActiveSkills
             ref var data = ref dataHolder.GetActiveSkillsData();
 
             var skill = getSkillByType(data.currentSkillType);
-            if (skill == null || (data.currentSkillState != ActiveSkillState.WaitingForPoint &&
-                                  data.currentSkillState != ActiveSkillState.WaitingForTarget))
+            if (skill == null || data.currentSkillState
+                    is not ActiveSkillState.WaitingForPoint
+                    and not ActiveSkillState.WaitingForTarget
+                    and not ActiveSkillState.WaitingForPowerCharge)
             {
                 Debug.LogError("Incorrect skill state");
                 return;
@@ -255,8 +257,10 @@ namespace Main.Scripts.Skills.ActiveSkills
             ref var data = ref dataHolder.GetActiveSkillsData();
 
             var skill = getSkillByType(data.currentSkillType);
-            if (skill == null || (data.currentSkillState != ActiveSkillState.WaitingForPoint &&
-                                  data.currentSkillState != ActiveSkillState.WaitingForTarget))
+            if (skill == null || data.currentSkillState
+                    is not ActiveSkillState.WaitingForPoint
+                    and not ActiveSkillState.WaitingForTarget
+                    and not ActiveSkillState.WaitingForPowerCharge)
             {
                 Debug.LogError("Incorrect skill state");
                 return;
@@ -308,8 +312,10 @@ namespace Main.Scripts.Skills.ActiveSkills
             ref var data = ref dataHolder.GetActiveSkillsData();
 
             var skill = getSkillByType(data.currentSkillType);
-            if (skill == null || (data.currentSkillState != ActiveSkillState.WaitingForPoint &&
-                                  data.currentSkillState != ActiveSkillState.WaitingForTarget))
+            if (skill == null || data.currentSkillState
+                    is not ActiveSkillState.WaitingForPoint
+                    and not ActiveSkillState.WaitingForTarget
+                    and not ActiveSkillState.WaitingForPowerCharge)
             {
                 throw new Exception("Incorrect skill state");
             }
@@ -356,12 +362,34 @@ namespace Main.Scripts.Skills.ActiveSkills
             eventListener.OnSkillCooldownChanged(type, cooldownLeftTicks);
         }
 
+        public void OnPowerChargeProgressChanged(
+            SkillController skill,
+            bool isCharging,
+            int powerChargeLevel,
+            int powerChargeProgress
+        )
+        {
+            eventListener.OnPowerChargeProgressChanged(
+                getTypeBySkill(skill),
+                isCharging,
+                powerChargeLevel,
+                powerChargeProgress
+            );
+        }
+
         public void OnSkillWaitingForUnitTarget(SkillController skill)
         {
             ref var data = ref dataHolder.GetActiveSkillsData();
 
             UpdateSkillState(ref data, ActiveSkillState.WaitingForTarget);
             ApplyUnitTarget(data.unitTargetId);
+        }
+
+        public void OnSkillWaitingForPowerCharge(SkillController skill)
+        {
+            ref var data = ref dataHolder.GetActiveSkillsData();
+            
+            UpdateSkillState(ref data, ActiveSkillState.WaitingForPowerCharge);
         }
 
         public void OnSkillStartCasting(SkillController skill)
@@ -421,6 +449,13 @@ namespace Main.Scripts.Skills.ActiveSkills
         {
             public void OnActiveSkillStateChanged(ActiveSkillType type, ActiveSkillState state);
             public void OnSkillCooldownChanged(ActiveSkillType type, int cooldownLeftTicks) { }
+
+            public void OnPowerChargeProgressChanged(
+                ActiveSkillType type,
+                bool isCharging,
+                int powerChargeLevel,
+                int powerChargeProgress
+            ) { }
         }
     }
 }

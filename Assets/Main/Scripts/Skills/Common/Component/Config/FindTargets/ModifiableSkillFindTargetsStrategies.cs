@@ -8,17 +8,17 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
     public class ModifiableSkillFindTargetsStrategies : SkillFindTargetsStrategyBase
     {
         [SerializeField]
-        private ModifierId modifierId = null!;
+        private ModifierBase modifier = null!;
         [SerializeField]
         private SerializableList<SkillFindTargetsStrategyBase>[] findTargetsStrategiesByModifierLevel = null!;
 
-        public ModifierId ModifierId => modifierId;
+        public ModifierBase Modifier => modifier;
         public SerializableList<SkillFindTargetsStrategyBase>[] FindTargetsStrategiesByModifierLevel => findTargetsStrategiesByModifierLevel;
 
         private void OnValidate()
         {
             findTargetsStrategiesByModifierLevel =
-                ModifiableItemValidationHelper.GetLimitedArray(modifierId, findTargetsStrategiesByModifierLevel);
+                ModifiableItemValidationHelper.GetLimitedArray(modifier, findTargetsStrategiesByModifierLevel);
         }
     }
 }

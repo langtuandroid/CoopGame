@@ -9,8 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62d4623ace2f4b4496a161099be8f349, type: 3}
-  m_Name: FireballExplotionMoidifierId
+  m_Script: {fileID: 11500000, guid: 5a018385efac42f2862a17526a4f5478, type: 3}
+  m_Name: PowerChargeModifier
   m_EditorClassIdentifier: 
-  heatLevel: 3
-  upgradeLevels: 1
+  heatLevel: 0

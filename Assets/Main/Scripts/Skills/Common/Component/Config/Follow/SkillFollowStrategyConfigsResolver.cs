@@ -10,6 +10,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
             ModifierIdsBank bank,
             ref PlayerData playerData,
             int chargeLevel,
+            int powerChargeLevel,
             SkillFollowStrategyBase config,
             out SkillFollowStrategyBase resolvedConfig
         )
@@ -17,10 +18,18 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
             if (config is ModifiableSkillFollowStrategies modifiableConfig)
             {
                 var modifierLevel = 0;
-                if (chargeLevel >= modifiableConfig.ModifierId.ChargeLevel)
+                if (chargeLevel >= modifiableConfig.Modifier.HeatLevel)
                 {
-                    var modifierKey = bank.GetModifierIdToken(modifiableConfig.ModifierId);
-                    modifierLevel = playerData.Modifiers.ModifiersLevel[modifierKey];
+                    switch (modifiableConfig.Modifier)
+                    {
+                        case ModifierId modifierId:
+                            var modifierKey = bank.GetModifierIdToken(modifierId);
+                            modifierLevel = playerData.Modifiers.ModifiersLevel[modifierKey];
+                            break;
+                        case PowerChargeModifier:
+                            modifierLevel = powerChargeLevel;
+                            break;
+                    }
                 }
                 
                 var followStrategy =
@@ -30,6 +39,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
                     bank,
                     ref playerData,
                     chargeLevel,
+                    powerChargeLevel,
                     followStrategy,
                     out resolvedConfig
                 );

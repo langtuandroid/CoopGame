@@ -6,12 +6,13 @@ namespace Main.Scripts.Skills
     {
         public int GetActiveSkillCooldownLeftTicks(ActiveSkillType skillType);
         public bool CanActivateSkill(ActiveSkillType skillType);
-        public void AddSkillListener(SkillsOwner.Listener listener);
-        public void RemoveSkillListener(SkillsOwner.Listener listener);
+        public void AddSkillListener(Listener listener);
+        public void RemoveSkillListener(Listener listener);
 
         public interface Listener
         {
             void OnActiveSkillCooldownChanged(ActiveSkillType skillType, int cooldownLeftTicks);
+            void OnPowerChargeProgressChanged(bool isCharging, int powerChargeLevel, int powerChargeProgress);
         }
     }
 }

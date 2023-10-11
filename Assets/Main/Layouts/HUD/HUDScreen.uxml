@@ -4,9 +4,10 @@
     <ui:VisualElement name="VisualElement" style="width: 100%; height: 100%; align-items: center; justify-content: space-between;">
         <ui:ListView name="ControlsListView" selection-type="None" fixed-item-height="16" class="help-window-style unity-collection-view__item" style="-unity-text-align: upper-right; align-self: flex-end; justify-content: flex-start; position: relative;" />
         <ui:VisualElement style="bottom: 0; position: absolute;">
+            <ui:ProgressBar value="22" title="Power 1" name="PowerChargeInfo" style="border-bottom-width: 16px; -unity-font-style: bold;" />
             <ui:VisualElement name="ChargeInfo" style="background-color: rgba(0, 0, 0, 0); margin-bottom: 16px; align-self: center; border-top-left-radius: 6px; border-bottom-left-radius: 6px; border-top-right-radius: 6px; border-bottom-right-radius: 6px; color: rgb(255, 255, 255); flex-direction: row;">
-                <ui:Label text="Charge lvl: 1" display-tooltip-when-elided="false" name="ChargeLevel" style="font-size: 18px; -unity-font-style: bold; -unity-text-align: middle-left;" />
-                <ui:ProgressBar value="0" title="MAX Charge" name="ChargeProgress" style="width: 128px; color: rgb(0, 0, 0);" />
+                <ui:Label text="Heat lvl: 1" display-tooltip-when-elided="false" name="ChargeLevel" style="font-size: 18px; -unity-font-style: bold; -unity-text-align: middle-left;" />
+                <ui:ProgressBar value="0" title="MAX Charge" name="ChargeProgress" style="width: 128px; color: rgb(0, 0, 0); -unity-font-style: bold;" />
             </ui:VisualElement>
             <ui:VisualElement name="HotBar" style="height: 64px; flex-direction: row; align-items: center; margin-left: 2px; margin-right: 2px; background-color: rgba(0, 0, 0, 0); border-top-left-radius: 6px; border-bottom-left-radius: 6px; border-top-right-radius: 6px; border-bottom-right-radius: 6px;">
                 <ui:Instance template="HotBarIcon" name="AttackSkill" style="margin-left: 2px; margin-right: 2px;" />

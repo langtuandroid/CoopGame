@@ -3,17 +3,13 @@ using UnityEngine;
 namespace Main.Scripts.Modifiers
 {
     [CreateAssetMenu(fileName = "ModifierId", menuName = "Modifiers/Id")]
-    public class ModifierId : ScriptableObject
+    public class ModifierId : ModifierBase
     {
         [SerializeField]
         [Min(1)]
-        private int levelsCount;
-        [SerializeField]
-        [Min(1)]
-        private int chargeLevel;
+        private int upgradeLevels;
 
-        public ushort LevelsCount => (ushort) levelsCount;
-        public int ChargeLevel => chargeLevel;
+        public ushort UpgradeLevels => (ushort) upgradeLevels;
         public string Id { get; private set; } = "";
 
         public void OnEnable()

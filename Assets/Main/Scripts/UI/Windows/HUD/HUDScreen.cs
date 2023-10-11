@@ -9,6 +9,7 @@ using Main.Scripts.UI.Windows.HUD.ChargeInfo;
 using Main.Scripts.UI.Windows.HUD.ControlsTextWindow;
 using Main.Scripts.UI.Windows.HUD.HotBar;
 using Main.Scripts.UI.Windows.HUD.HotBar.HotBarIcons;
+using Main.Scripts.UI.Windows.HUD.PowerChargeInfo;
 using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -20,6 +21,7 @@ namespace Main.Scripts.UI.Windows.HUD
         private HotBarView hotBarView = null!;
         private ControlsTextView controlsTextView = null!;
         private ChargeInfoView chargeInfoView = null!;
+        private PowerChargeInfoView powerChargeInfo = null!;
         protected override HUDContract.HotBarPresenter? presenter { get; set; }
         
         [SerializeField]
@@ -33,6 +35,7 @@ namespace Main.Scripts.UI.Windows.HUD
             hotBarView = new HotBarView(doc);
             controlsTextView = new ControlsTextView(doc, controlsTextLayout);
             chargeInfoView = new ChargeInfoView(doc);
+            powerChargeInfo = new PowerChargeInfoView(doc);
             SetVisibility(false);
         }
 
@@ -74,6 +77,11 @@ namespace Main.Scripts.UI.Windows.HUD
         public void OnChargeInfoChanged(int chargeLevel, int chargeProgress, int chargeProgressTarget, bool isMaxChargeLevel)
         {
             chargeInfoView.SetChargeInfo(chargeLevel, chargeProgress, chargeProgressTarget, isMaxChargeLevel);
+        }
+
+        public void OnPowerChargeInfoChanged(bool isShow, int powerChargeLevel, int powerChargeProgress)
+        {
+            powerChargeInfo.SetPowerChargeInfo(isShow, powerChargeLevel, powerChargeProgress);
         }
 
         public void Bind(ref HotBarData hotBarData)

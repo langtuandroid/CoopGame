@@ -7,17 +7,17 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
     public class ModifiableSkillFollowStrategies : SkillFollowStrategyBase
     {
         [SerializeField]
-        private ModifierId modifierId = null!;
+        private ModifierBase modifier = null!;
         [SerializeField]
         private SkillFollowStrategyBase[] followStrategyByModifierLevel = null!;
 
-        public ModifierId ModifierId => modifierId;
+        public ModifierBase Modifier => modifier;
         public SkillFollowStrategyBase[] FollowStrategyByModifierLevel => followStrategyByModifierLevel;
 
         private void OnValidate()
         {
             followStrategyByModifierLevel =
-                ModifiableItemValidationHelper.GetLimitedArray(modifierId, followStrategyByModifierLevel);
+                ModifiableItemValidationHelper.GetLimitedArray(modifier, followStrategyByModifierLevel);
         }
     }
 }

@@ -15,9 +15,11 @@ MonoBehaviour:
   runOnCastSkillConfigs: []
   runOnExecutionSkillConfigs:
   - {fileID: 11400000, guid: 478e7c993cb594d489b65a0f8b3e9965, type: 2}
-  activationType: 0
+  activationType: 3
   areaMarker: {fileID: 0}
   selectionTargetType: 0
+  ticksForFullPowerCharge: 24
+  powerChargeStepValues: 1e0000004600000064000000
   castDurationTicks: 8
   disableMoveOnCast: 0
   executionDurationTicks: 5

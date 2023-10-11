@@ -10,6 +10,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
             ModifierIdsBank bank,
             ref PlayerData playerData,
             int chargeLevel,
+            int powerChargeLevel,
             List<SkillFindTargetsStrategyBase> configs,
             List<SkillFindTargetsStrategyBase> resolvedConfigs
         )
@@ -19,10 +20,18 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
                 if (config is ModifiableSkillFindTargetsStrategies modifiableConfig)
                 {
                     var modifierLevel = 0;
-                    if (chargeLevel >= modifiableConfig.ModifierId.ChargeLevel)
+                    if (chargeLevel >= modifiableConfig.Modifier.HeatLevel)
                     {
-                        var modifierKey = bank.GetModifierIdToken(modifiableConfig.ModifierId);
-                        modifierLevel = playerData.Modifiers.ModifiersLevel[modifierKey];
+                        switch (modifiableConfig.Modifier)
+                        {
+                            case ModifierId modifierId:
+                                var modifierKey = bank.GetModifierIdToken(modifierId);
+                                modifierLevel = playerData.Modifiers.ModifiersLevel[modifierKey];
+                                break;
+                            case PowerChargeModifier:
+                                modifierLevel = powerChargeLevel;
+                                break;
+                        }
                     }
                     
                     var findTargetsStrategies =
@@ -33,6 +42,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
                         bank,
                         ref playerData,
                         chargeLevel,
+                        powerChargeLevel,
                         findTargetsStrategies.Value,
                         resolvedConfigs
                     );

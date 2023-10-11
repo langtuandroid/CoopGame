@@ -18,6 +18,7 @@ namespace Main.Scripts.UI.Windows.HUD
             void SetVisibility(bool isVisible);
             void UpdateSkillCooldown(ActiveSkillType skillType, int cooldownLeftSec);
             void OnChargeInfoChanged(int chargeLevel, int chargeProgress, int chargeProgressTarget, bool isMaxChargeLevel);
+            void OnPowerChargeInfoChanged(bool isShow, int powerChargeLevel, int powerChargeProgress);
         }
     }
 }

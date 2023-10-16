@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Fusion;
+using Main.Scripts.Core.Resources;
 using Main.Scripts.Levels.Results;
 using Main.Scripts.Player;
-using Main.Scripts.Player.Data;
+using Main.Scripts.Player.Config;
 using Main.Scripts.Scenarios.Missions;
 using Main.Scripts.Tasks;
 using Main.Scripts.Utils;
@@ -14,13 +15,14 @@ namespace Main.Scripts.Levels.Missions
     public class MissionLevelController : LevelControllerBase
     {
         [SerializeField]
-        private PlayerController playerPrefab = default!;
+        private PlayerController playerPrefab = null!;
         [SerializeField]
-        private KillTargetsCountMissionScenario missionScenario = default!;
+        private KillTargetsCountMissionScenario missionScenario = null!;
         [SerializeField]
-        private PlaceTargetTask placeTargetTask = default!;
+        private PlaceTargetTask placeTargetTask = null!;
 
-        private PlayerCamera playerCamera = default!;
+        private PlayerCamera playerCamera = null!;
+        private HeroConfigsBank heroConfigsBank = null!;
 
         private List<PlayerRef> spawnActions = new();
         private MissionState missionState;
@@ -38,6 +40,7 @@ namespace Main.Scripts.Levels.Missions
             isPlayersReady = false;
             
             playerCamera = PlayerCamera.Instance.ThrowWhenNull();
+            heroConfigsBank = GlobalResources.Instance.ThrowWhenNull().HeroConfigsBank;
 
             if (HasStateAuthority)
             {
@@ -48,9 +51,12 @@ namespace Main.Scripts.Levels.Missions
 
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
-            base.Despawned(runner, hasState);
             placeTargetTask.OnTaskCheckChangedEvent.RemoveListener(OnFinishTaskStatus);
             missionScenario.OnScenarioFinishedEvent.RemoveListener(OnMissionScenarioFinished);
+
+            heroConfigsBank = null!;
+            
+            base.Despawned(runner, hasState);
         }
 
         public override void Render()
@@ -71,7 +77,7 @@ namespace Main.Scripts.Levels.Missions
             
         }
 
-        protected override void OnLocalPlayerLoaded(PlayerRef playerRef)
+        protected override void OnLocalPlayerLoaded()
         {
             RPC_OnPlayerReady(Runner.LocalPlayer);
         }
@@ -83,6 +89,11 @@ namespace Main.Scripts.Levels.Missions
                 SpawnLocalPlayer(playerRef);
             }
             spawnActions.Clear();
+        }
+
+        protected override void OnDespawnPhase()
+        {
+            
         }
 
         protected override void OnLevelStrategyPhase()
@@ -147,10 +158,11 @@ namespace Main.Scripts.Levels.Missions
 
         private void OnMissionSuccess()
         {
-            var levelResults = new Dictionary<UserId, LevelResultsData>();
+            var levelResults = new Dictionary<PlayerRef, LevelResultsData>();
+            //todo use playerDataManager
             foreach (var playerRef in playersHolder.GetKeys())
             {
-                levelResults.Add(playerDataManager.GetUserId(playerRef), new LevelResultsData
+                levelResults.Add(playerRef, new LevelResultsData
                 {
                     IsSuccess = true
                 });
@@ -161,10 +173,10 @@ namespace Main.Scripts.Levels.Missions
 
         private void OnMissionFailed()
         {
-            var levelResults = new Dictionary<UserId, LevelResultsData>();
-            foreach (var playerRef in playersHolder.GetKeys())
+            var levelResults = new Dictionary<PlayerRef, LevelResultsData>();
+            foreach (var playerRef in Runner.ActivePlayers)
             {
-                levelResults.Add(playerDataManager.GetUserId(playerRef), new LevelResultsData
+                levelResults.Add(playerRef, new LevelResultsData
                 {
                     IsSuccess = false
                 });
@@ -214,6 +226,7 @@ namespace Main.Scripts.Levels.Missions
                 {
                     var playerController = playerObject.GetComponent<PlayerController>();
 
+                    playerController.Init(heroConfigsBank.GetHeroConfigKey(playerDataManager.SelectedHeroId));
                     playerController.OnPlayerStateChangedEvent.AddListener(OnLocalPlayerStateChanged);
                 }
             );

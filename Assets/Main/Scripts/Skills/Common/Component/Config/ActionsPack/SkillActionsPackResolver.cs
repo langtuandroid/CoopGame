@@ -9,7 +9,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
     {
         public static void ResolveEnabledModifiers(
             ModifierIdsBank modifierIdsBank,
-            ref PlayerData playerData,
+            ref HeroData heroData,
             int chargeLevel,
             int powerChargeLevel,
             SkillActionsPack actionsPackConfig,
@@ -19,7 +19,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
             resolvedDataOut.FindTargetsStrategies.Clear();
             SkillFindTargetsStrategiesConfigsResolver.ResolveEnabledModifiers(
                 modifierIdsBank,
-                ref playerData,
+                ref heroData,
                 chargeLevel,
                 powerChargeLevel,
                 actionsPackConfig.FindTargetsStrategies,
@@ -29,7 +29,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
             resolvedDataOut.Actions.Clear();
             SkillActionConfigsResolver.ResolveEnabledModifiers(
                 modifierIdsBank,
-                ref playerData,
+                ref heroData,
                 chargeLevel,
                 powerChargeLevel,
                 actionsPackConfig.Actions,

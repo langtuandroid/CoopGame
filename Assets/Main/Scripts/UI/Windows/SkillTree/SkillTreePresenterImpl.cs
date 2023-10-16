@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Fusion;
 using Main.Scripts.Modifiers;
 using Main.Scripts.Player.Data;
 using Main.Scripts.Skills;
@@ -27,23 +28,23 @@ namespace Main.Scripts.UI.Windows.SkillTree
             this.modifierIdsBank = modifierIdsBank;
         }
 
-        private void OnPlayerDataChanged(UserId userId, PlayerData playerData, PlayerData oldPlayerData)
+        private void OnHeroDataChanged(PlayerRef playerRef)
         {
-            if (!userId.Equals(playerDataManager.LocalUserId)) return;
+            if (playerRef != playerDataManager.Runner.LocalPlayer) return;
 
             Rebind();
         }
 
         public void Show()
         {
-            playerDataManager.OnPlayerDataChangedEvent.AddListener(OnPlayerDataChanged);
+            playerDataManager.OnHeroDataChangedEvent.AddListener(OnHeroDataChanged);
             Rebind();
             view.SetVisibility(true);
         }
 
         private void Rebind()
         {
-            var playerData = playerDataManager.LocalPlayerData;
+            var heroData = playerDataManager.GetLocalHeroData();
             skillInfoDataList.Clear();
             foreach (var skillInfo in skillInfoBank.GetSkillInfos())
             {
@@ -51,24 +52,24 @@ namespace Main.Scripts.UI.Windows.SkillTree
                 {
                     SkillInfo = skillInfo,
                     CurrentLevel =
-                        playerData.Modifiers.ModifiersLevel[modifierIdsBank.GetModifierIdToken(skillInfo.ModifierId)]
+                        heroData.Modifiers.ModifiersLevel[modifierIdsBank.GetModifierIdToken(skillInfo.ModifierId)]
                 };
                 skillInfoDataList.Add(skillInfoData);
             }
 
             view.Bind(new PlayerInfoData
             {
-                Level = playerData.Level,
-                Experience = playerData.Experience,
-                AvailableSkillPoints = playerData.GetAvailableSkillPoints(),
-                MaxSkillPoints = playerData.MaxSkillPoints,
+                Level = heroData.Level,
+                Experience = heroData.Experience,
+                AvailableSkillPoints = heroData.GetAvailableSkillPoints(),
+                MaxSkillPoints = heroData.MaxSkillPoints,
                 SkillInfoDataList = skillInfoDataList
             });
         }
 
         public void Hide()
         {
-            playerDataManager.OnPlayerDataChangedEvent.RemoveListener(OnPlayerDataChanged);
+            playerDataManager.OnHeroDataChangedEvent.RemoveListener(OnHeroDataChanged);
             view.SetVisibility(false);
         }
 

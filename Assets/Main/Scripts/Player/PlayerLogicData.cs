@@ -6,6 +6,8 @@ namespace Main.Scripts.Player
     public struct PlayerLogicData : INetworkStruct
     {
         [Networked]
+        public int heroConfigKey { get; set; }
+        [Networked]
         public PlayerState state { get; set; }
         [Networked]
         public float maxHealth { get; set; }

@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="HeroInfo" style="flex-grow: 1; flex-direction: row; align-items: center; justify-content: space-between; padding-top: 8px; padding-bottom: 8px; border-top-left-radius: 0; border-bottom-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; padding-left: 8px; padding-right: 8px;">
+        <ui:Label tabindex="-1" text="Hero Name" display-tooltip-when-elided="true" name="HeroNameLabel" style="align-self: center;" />
+        <ui:Button text="Select" display-tooltip-when-elided="true" name="SelectHeroButton" style="height: 22px; border-top-left-radius: 8px; border-bottom-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0; padding-left: 8px; padding-right: 8px; background-color: rgb(255, 255, 255); align-self: center;" />
+    </ui:VisualElement>
+</ui:UXML>

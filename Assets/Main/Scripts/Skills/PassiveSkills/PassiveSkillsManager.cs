@@ -37,19 +37,19 @@ namespace Main.Scripts.Skills.PassiveSkills
             }
         }
 
-        public static void OnValidate(GameObject gameObject, ref PassiveSkillsConfig config)
+        public static void OnValidate(string name, ref PassiveSkillsConfig config)
         {
             if (config.InitialEffects.Any(effectsCombination => effectsCombination == null))
             {
                 throw new ArgumentNullException(
-                    $"{gameObject.name}: has empty value in PassiveSkillsConfig::InitialEffects");
+                    $"{name}: has empty value in PassiveSkillsConfig::InitialEffects");
             }
 
             if (config.PassiveSkillControllersDataList.Any(passiveSkillControllerData => 
                     passiveSkillControllerData.SkillControllerConfig == null || passiveSkillControllerData.PassiveSkillTrigger == null))
             {
                 throw new ArgumentNullException(
-                    $"{gameObject.name}: has empty value in PassiveSkillsConfig::PassiveSkillControllersDataList");
+                    $"{name}: has empty value in PassiveSkillsConfig::PassiveSkillControllersDataList");
             }
         }
 
@@ -218,6 +218,9 @@ namespace Main.Scripts.Skills.PassiveSkills
                     break;
                 case SkillActivationType.WithMapPointTarget:
                     Debug.LogError("PassiveSkillController: ActivationType MapPointTarget is not supported");
+                    break;
+                case SkillActivationType.WithPowerCharge:
+                    Debug.LogError("PassiveSkillController: ActivationType PowerCharge is not supported");
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

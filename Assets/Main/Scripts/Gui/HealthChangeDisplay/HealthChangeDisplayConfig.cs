@@ -6,6 +6,7 @@ namespace Main.Scripts.Gui.HealthChangeDisplay
     [Serializable]
     public struct HealthChangeDisplayConfig
     {
+        public bool ShowHealthChangeDisplay;
         public Transform interpolationTransform;
         public int tickBufferStep;
         public float textLifeTimer;

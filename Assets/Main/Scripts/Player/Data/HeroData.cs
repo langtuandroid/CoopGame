@@ -9,7 +9,7 @@ namespace Main.Scripts.Player.Data
     /**
      * Don't use as Networked field
      */
-    public struct PlayerData : INetworkStruct
+    public struct HeroData : INetworkStruct
     {
         public uint Level;
         public uint Experience;
@@ -18,34 +18,34 @@ namespace Main.Scripts.Player.Data
         public CustomizationData Customization;
         public ModifiersData Modifiers;
 
-        public static PlayerData GetInitialPlayerData()
+        public static HeroData GetInitialHeroData()
         {
-            var playerData = new PlayerData();
-            playerData.Level = 1;
-            playerData.Experience = 0;
-            playerData.MaxSkillPoints = ExperienceHelper.GetMaxSkillPointsByLevel(playerData.Level);
-            playerData.UsedSkillPoints = 0;
+            var heroData = new HeroData();
+            heroData.Level = 1;
+            heroData.Experience = 0;
+            heroData.MaxSkillPoints = ExperienceHelper.GetMaxSkillPointsByLevel(heroData.Level);
+            heroData.UsedSkillPoints = 0;
 
-            playerData.Customization = CustomizationData.GetDefault();
-            playerData.Modifiers = ModifiersData.GetDefault();
+            heroData.Customization = CustomizationData.GetDefault();
+            heroData.Modifiers = ModifiersData.GetDefault();
 
-            return playerData;
+            return heroData;
         }
 
-        public static PlayerData ParseJSON(GlobalResources resources, JObject jObject)
+        public static HeroData ParseJSON(GlobalResources resources, JObject jObject)
         {
-            var playerData = new PlayerData();
-            playerData.Level = jObject.Value<uint>(KEY_LEVEL);
-            playerData.Experience = jObject.Value<uint>(KEY_EXPERIENCE);
-            playerData.MaxSkillPoints = jObject.Value<uint>(KEY_MAX_SKILL_POINTS);
-            playerData.UsedSkillPoints = jObject.Value<uint>(KEY_USED_SKILL_POINTS);
+            var heroData = new HeroData();
+            heroData.Level = jObject.Value<uint>(KEY_LEVEL);
+            heroData.Experience = jObject.Value<uint>(KEY_EXPERIENCE);
+            heroData.MaxSkillPoints = jObject.Value<uint>(KEY_MAX_SKILL_POINTS);
+            heroData.UsedSkillPoints = jObject.Value<uint>(KEY_USED_SKILL_POINTS);
 
-            playerData.Customization =
+            heroData.Customization =
                 CustomizationData.ParseJSON(resources, jObject.Value<JObject>(KEY_CUSTOMIZATION).ThrowWhenNull());
 
-            playerData.Modifiers = ModifiersData.ParseJSON(resources, jObject.Value<JArray>(KEY_MODIFIERS));
+            heroData.Modifiers = ModifiersData.ParseJSON(resources, jObject.Value<JArray>(KEY_MODIFIERS));
 
-            return playerData;
+            return heroData;
         }
 
         public JObject ToJSON(GlobalResources resources)
@@ -67,7 +67,7 @@ namespace Main.Scripts.Player.Data
 
         public override bool Equals(object obj)
         {
-            return obj is PlayerData playerData && Equals(playerData);
+            return obj is HeroData playerData && Equals(playerData);
         }
 
         public override int GetHashCode()
@@ -78,7 +78,7 @@ namespace Main.Scripts.Player.Data
                    ^ UsedSkillPoints.GetHashCode();
         }
 
-        public bool Equals(PlayerData other)
+        public bool Equals(HeroData other)
         {
             return Level.Equals(other.Level)
                    && Experience.Equals(other.Experience)

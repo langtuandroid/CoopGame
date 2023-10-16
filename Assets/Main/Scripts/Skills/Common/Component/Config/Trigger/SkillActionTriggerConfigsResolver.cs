@@ -8,7 +8,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
     {
         public static void ResolveEnabledModifiers(
             ModifierIdsBank bank,
-            ref PlayerData playerData,
+            ref HeroData heroData,
             int chargeLevel,
             int powerChargeLevel,
             SkillActionTriggerBase config,
@@ -24,7 +24,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
                     {
                         case ModifierId modifierId:
                             var modifierKey = bank.GetModifierIdToken(modifierId);
-                            modifierLevel = playerData.Modifiers.ModifiersLevel[modifierKey];
+                            modifierLevel = heroData.Modifiers.ModifiersLevel[modifierKey];
                             break;
                         case PowerChargeModifier:
                             modifierLevel = powerChargeLevel;
@@ -37,7 +37,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
 
                 ResolveEnabledModifiers(
                     bank,
-                    ref playerData,
+                    ref heroData,
                     chargeLevel,
                     powerChargeLevel,
                     trigger,

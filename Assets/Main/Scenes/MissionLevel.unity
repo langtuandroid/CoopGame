@@ -880,6 +880,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
   playerPrefab: {fileID: 3130498294766555559, guid: 0adccf08a296b9d4ab62f2205b695f42, type: 3}
+  playerConfig: {fileID: 11400000, guid: 2afaf0fa8a2b9204488a6a3b7b3c6e14, type: 2}
   missionScenario: {fileID: 1891384144}
   placeTargetTask: {fileID: 601317099}
 --- !u!114 &1891384146 stripped

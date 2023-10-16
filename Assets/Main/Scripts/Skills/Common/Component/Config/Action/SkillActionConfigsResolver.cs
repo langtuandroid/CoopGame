@@ -8,7 +8,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
     {
         public static void ResolveEnabledModifiers(
             ModifierIdsBank bank,
-            ref PlayerData playerData,
+            ref HeroData heroData,
             int heatLevel,
             int powerChargeLevel,
             List<SkillActionBase> configs,
@@ -26,7 +26,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
                         {
                             case ModifierId modifierId:
                                 var modifierKey = bank.GetModifierIdToken(modifierId);
-                                modifierLevel = playerData.Modifiers.ModifiersLevel[modifierKey];
+                                modifierLevel = heroData.Modifiers.ModifiersLevel[modifierKey];
                                 break;
                             case PowerChargeModifier:
                                 modifierLevel = powerChargeLevel;
@@ -39,7 +39,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
                     
                     ResolveEnabledModifiers(
                         bank,
-                        ref playerData,
+                        ref heroData,
                         heatLevel,
                         powerChargeLevel,
                         actions.Value,

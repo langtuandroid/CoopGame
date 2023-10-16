@@ -12,11 +12,11 @@ using Main.Scripts.Effects;
 using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui;
 using Main.Scripts.Gui.HealthChangeDisplay;
+using Main.Scripts.Player.Config;
 using Main.Scripts.Player.Data;
 using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills;
 using Main.Scripts.Skills.ActiveSkills;
-using Main.Scripts.Skills.Charge;
 using Main.Scripts.Skills.PassiveSkills;
 using Main.Scripts.UI.Gui;
 using Main.Scripts.Utils;
@@ -43,11 +43,9 @@ namespace Main.Scripts.Player
         private static readonly int ATTACK_ANIM = Animator.StringToHash("Attack");
         private static readonly float HEALTH_THRESHOLD = 0.01f;
 
-        private PlayerConfig config;
         private DataHolder dataHolder;
         private EventListener eventListener;
         private List<SkillsOwner.Listener> listeners = new();
-        private NetworkObject objectContext = null!;
 
         private Transform transform;
         private Rigidbody rigidbody;
@@ -64,8 +62,11 @@ namespace Main.Scripts.Player
         private UIDocument interactionInfoDoc;
         private HealthBar healthBar;
 
-        private SkillChargeManager skillChargeManager = null!;
         private PlayerDataManager playerDataManager = null!;
+        private HeroConfigsBank heroConfigsBank = null!;
+
+        private HeroConfig heroConfig = null!;
+        private NetworkObject objectContext = null!;
 
         private int lastAnimationTriggerId;
 
@@ -82,12 +83,11 @@ namespace Main.Scripts.Player
         private List<DashActionData> dashActions = new();
 
         public PlayerLogicDelegate(
-            ref PlayerConfig config,
+            ref PlayerPrefabData prefabData,
             DataHolder dataHolder,
             EventListener eventListener
         )
         {
-            this.config = config;
             this.dataHolder = dataHolder;
             this.eventListener = eventListener;
 
@@ -99,8 +99,8 @@ namespace Main.Scripts.Player
 
             characterCustomization = dataHolder.GetCachedComponent<CharacterCustomizationSkinned>();
 
-            healthBar = config.HealthBar;
-            interactionInfoDoc = config.InteractionInfoDoc;
+            healthBar = prefabData.HealthBar;
+            interactionInfoDoc = prefabData.InteractionInfoDoc;
 
             effectsManager = new EffectsManager(
                 dataHolder: dataHolder,
@@ -117,51 +117,45 @@ namespace Main.Scripts.Player
                 transform: transform
             );
 
-            if (config.ShowHealthChangeDisplay)
+            if (prefabData.HealthChangeDisplayConfig.ShowHealthChangeDisplay)
             {
                 healthChangeDisplayManager = new HealthChangeDisplayManager(
-                    config: ref config.HealthChangeDisplayConfig,
+                    config: ref prefabData.HealthChangeDisplayConfig,
                     dataHolder: dataHolder
                 );
             }
         }
 
-        public static void OnValidate(GameObject gameObject, ref PlayerConfig config)
-        {
-            PassiveSkillsManager.OnValidate(gameObject, ref config.PassiveSkillsConfig);
-            ActiveSkillsManager.OnValidate(ref config.ActiveSkillsConfig);
-        }
-
         public void Spawned(NetworkObject objectContext)
         {
+            ref var data = ref dataHolder.GetPlayerLogicData();
             this.objectContext = objectContext;
 
-            skillChargeManager = dataHolder.GetCachedComponent<SkillChargeManager>();
+            heroConfigsBank = dataHolder.GetCachedComponent<HeroConfigsBank>();
+            heroConfig = heroConfigsBank.GetHeroConfig(data.heroConfigKey);
 
             effectsManager.Spawned(objectContext);
             activeSkillsManager.Spawned(
                 objectContext: objectContext,
                 isPlayerOwner: true,
-                config: ref config.ActiveSkillsConfig
+                config: ref heroConfig.ActiveSkillsConfig
             );
             passiveSkillsManager.Spawned(
                 objectContext: objectContext,
                 isPlayerOwner: true,
-                config: ref config.PassiveSkillsConfig
+                config: ref heroConfig.PassiveSkillsConfig
             );
             healthChangeDisplayManager?.Spawned(objectContext);
 
             playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
-            playerDataManager.OnPlayerDataChangedEvent.AddListener(OnPlayerDataChanged);
+            playerDataManager.OnHeroDataChangedEvent.AddListener(OnPlayerDataChanged);
 
             //todo сделать ожидание получения PlayerData, и до этого не показывать модельку персонажа (либо сделать Customozation Networked)
-            if (playerDataManager.HasPlayer(objectContext.StateAuthority))
+            if (playerDataManager.HasHeroData(objectContext.StateAuthority))
             {
-                ApplyCustomization(playerDataManager.GetPlayerData(objectContext.StateAuthority).ThrowWhenNull().Customization);
+                ApplyCustomization(playerDataManager.GetHeroData(objectContext.StateAuthority).ThrowWhenNull().Customization);
             }
-            
-            ref var data = ref dataHolder.GetPlayerLogicData();
-            
+
             InitState(ref data);
 
             healthBar.SetMaxHealth((uint)Math.Max(0, data.maxHealth));
@@ -195,8 +189,8 @@ namespace Main.Scripts.Player
         {
             if (!objectContext.HasStateAuthority) return;
 
-            data.maxHealth = config.DefaultMaxHealth;
-            data.speed = config.DefaultSpeed;
+            data.maxHealth = heroConfig.MaxHealth;
+            data.speed = heroConfig.MoveSpeed;
             data.health = data.maxHealth;
 
             passiveSkillsManager.ApplyInitialEffects(); //init after reset effectsManager
@@ -208,7 +202,7 @@ namespace Main.Scripts.Player
             activeSkillsManager.Despawned(runner, hasState);
             passiveSkillsManager.Despawned(runner, hasState);
             healthChangeDisplayManager?.Despawned(runner, hasState);
-            playerDataManager.OnPlayerDataChangedEvent.RemoveListener(OnPlayerDataChanged);
+            playerDataManager.OnHeroDataChangedEvent.RemoveListener(OnPlayerDataChanged);
 
             ClearActions();
             
@@ -217,7 +211,6 @@ namespace Main.Scripts.Player
             objectContext = null!;
             playerDataManager = null!;
             interactionInfoView = null!;
-            skillChargeManager = null!;
         }
         
         private void ClearActions()
@@ -470,11 +463,11 @@ namespace Main.Scripts.Player
             transform.LookAt(transform.position + new Vector3(data.aimDirection.x, 0, data.aimDirection.y));
         }
 
-        private void OnPlayerDataChanged(UserId userId, PlayerData playerData, PlayerData oldPlayerData)
+        private void OnPlayerDataChanged(PlayerRef playerRef)
         {
-            if (playerDataManager.GetPlayerRef(userId) == objectContext.StateAuthority)
+            if (playerRef == objectContext.StateAuthority)
             {
-                ApplyCustomization(playerData.Customization);
+                ApplyCustomization(playerDataManager.GetHeroData(playerRef).Customization);
             }
         }
 
@@ -651,10 +644,10 @@ namespace Main.Scripts.Player
             switch (statType)
             {
                 case StatType.Speed:
-                    data.speed = effectsManager.GetModifiedValue(statType, config.DefaultSpeed);
+                    data.speed = effectsManager.GetModifiedValue(statType, heroConfig.MoveSpeed);
                     break;
                 case StatType.MaxHealth:
-                    var newMaxHealth = effectsManager.GetModifiedValue(statType, config.DefaultMaxHealth);
+                    var newMaxHealth = effectsManager.GetModifiedValue(statType, heroConfig.MaxHealth);
                     if ((int)newMaxHealth != (int)data.maxHealth)
                     {
                         healthBar.SetMaxHealth((uint)Math.Max(0, newMaxHealth));

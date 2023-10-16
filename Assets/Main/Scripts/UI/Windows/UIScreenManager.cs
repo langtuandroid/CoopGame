@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Fusion;
+using Main.Scripts.Player.Data;
 using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.Events;
@@ -11,7 +12,8 @@ namespace Main.Scripts.UI.Windows
     {
         public static UIScreenManager? Instance { get; private set; }
         
-        private UIScreensHolder uiScreensHolder = default!;
+        private UIScreensHolder uiScreensHolder = null!;
+        private PlayerDataManager playerDataManager = null!;
 
         public ScreenType CurrentScreenType { get; private set; }
         public UnityEvent<ScreenType> OnCurrentScreenChangedEvent = default!;
@@ -27,19 +29,24 @@ namespace Main.Scripts.UI.Windows
         private void Start()
         {
             uiScreensHolder = UIScreensHolder.Instance.ThrowWhenNull();
+            playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
         }
 
         private void OnDestroy()
         {
             OnCurrentScreenChangedEvent.RemoveAllListeners();
             Instance = null;
+            uiScreensHolder = null!;
+            playerDataManager = null!;
         }
 
         private void Update()
         {
+            var hasHeroData = playerDataManager.HasHeroData(playerDataManager.Runner.LocalPlayer);
+
             if (CurrentScreenType != ScreenType.NONE)
             {
-                if (Input.GetKeyDown(KeyCode.Escape))
+                if (Input.GetKeyDown(KeyCode.Escape) && hasHeroData)
                 {
                     SetScreenType(ScreenType.NONE);
                 }
@@ -47,19 +54,25 @@ namespace Main.Scripts.UI.Windows
                 return;
             }
 
-            if (Input.GetKeyDown(KeyCode.K))
+            if (Input.GetKeyDown(KeyCode.K) && hasHeroData)
             {
                 SetScreenType(ScreenType.SKILL_TREE);
                 return;
             }
 
-            if (Input.GetKeyDown(KeyCode.H))
+            if (Input.GetKeyDown(KeyCode.H) && hasHeroData)
             {
                 SetScreenType(ScreenType.CUSTOMIZATION);
                 return;
             }
 
-            if (Input.GetKeyDown(KeyCode.P))
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                SetScreenType(ScreenType.HERO_PICKER);
+                return;
+            }
+
+            if (Input.GetKeyDown(KeyCode.P) && hasHeroData)
             {
                 SetScreenType(ScreenType.DEBUG);
                 return;

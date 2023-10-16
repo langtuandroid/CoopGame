@@ -3,6 +3,7 @@ using Main.Scripts.Customization.Banks;
 using Main.Scripts.Effects;
 using Main.Scripts.Mobs.Config;
 using Main.Scripts.Modifiers;
+using Main.Scripts.Player.Config;
 using Main.Scripts.Skills;
 using Main.Scripts.Skills.Common.Component;
 using Main.Scripts.UI.Windows.HUD.HotBar;
@@ -17,7 +18,6 @@ namespace Main.Scripts.Core.Resources
 
         [SerializeField]
         private CustomizationConfigsBank customizationConfigsBank = null!;
-        [FormerlySerializedAs("skillInfoHolder")]
         [SerializeField]
         private SkillInfoBank skillInfoBank = null!;
         [SerializeField]
@@ -26,6 +26,8 @@ namespace Main.Scripts.Core.Resources
         private EffectsBank effectsBank = null!;
         [SerializeField]
         private ModifierIdsBank modifierIdsBank = null!;
+        [SerializeField]
+        private HeroConfigsBank heroConfigsBank = null!;
         [SerializeField]
         private MobConfigsBank mobConfigsBank = null!;
         [SerializeField]
@@ -36,6 +38,7 @@ namespace Main.Scripts.Core.Resources
         public SkillConfigsBank SkillConfigsBank => skillConfigsBank;
         public EffectsBank EffectsBank => effectsBank;
         public ModifierIdsBank ModifierIdsBank => modifierIdsBank;
+        public HeroConfigsBank HeroConfigsBank => heroConfigsBank;
         public MobConfigsBank MobConfigsBank => mobConfigsBank;
         public HotBarIconDataHolder HotBarIconDataHolder => hotBarIconDataHolder;
 

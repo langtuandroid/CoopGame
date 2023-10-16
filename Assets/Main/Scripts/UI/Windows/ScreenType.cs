@@ -8,5 +8,6 @@ namespace Main.Scripts.UI.Windows
         LEVEL_RESULTS,
         CUSTOMIZATION,
         DEBUG,
+        HERO_PICKER,
     }
 }

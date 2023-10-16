@@ -47,6 +47,12 @@ namespace Main.Scripts.Mobs.Config
         public Dictionary<ActiveSkillType, MobSkillAnimationData> ActiveSkillAnimationsMap { get; } =
             new();
 
+        private void OnValidate()
+        {
+            PassiveSkillsManager.OnValidate(name, ref PassiveSkillsConfig);
+            ActiveSkillsManager.OnValidate(ref ActiveSkillsConfig); //todo validate activate types
+        }
+
         private void OnEnable()
         {
             var animationsList = new List<ShaderMeshAnimation>();

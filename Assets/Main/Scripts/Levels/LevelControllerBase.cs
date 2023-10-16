@@ -7,6 +7,7 @@ using Main.Scripts.Player;
 using Main.Scripts.Player.Data;
 using Main.Scripts.Room;
 using Main.Scripts.Utils;
+using UnityEngine;
 
 namespace Main.Scripts.Levels
 {
@@ -21,27 +22,46 @@ namespace Main.Scripts.Levels
 
         private GameLoopPhase[] gameLoopPhases =
         {
+            GameLoopPhase.DespawnPhase,
             GameLoopPhase.ObjectsSpawnPhase,
             GameLoopPhase.LevelStrategyPhase
         };
 
-        public void AfterSpawned()
+        public override void Spawned()
         {
+            base.Spawned();
             isLocalInitializedAfterSceneReady = false;
-            
+            levelContext.GameLoopManager.Init(Runner.Config.Simulation.TickRate);
+
             roomManager = RoomManager.Instance.ThrowWhenNull();
             playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
             playersHolder = LevelContext.Instance.ThrowWhenNull().PlayersHolder;
-            levelContext.GameLoopManager.Init(Runner.Config.Simulation.TickRate);
+        }
 
+        public void AfterSpawned()
+        {
             roomManager.OnPlayerInitializedEvent.AddListener(OnPlayerInitialized);
             roomManager.OnPlayerDisconnectedEvent.AddListener(OnPlayerDisconnected);
+
+            if (HasStateAuthority)
+            {
+                foreach (var playerRef in Runner.ActivePlayers)
+                {
+                    if (roomManager.IsPlayerInitialized(playerRef))
+                    {
+                        OnPlayerInitialized(playerRef);
+                    }
+                }
+            }
         }
 
         public override void OnGameLoopPhase(GameLoopPhase phase)
         {
             switch (phase)
             {
+                case GameLoopPhase.DespawnPhase:
+                    OnDespawnPhase();
+                    break;
                 case GameLoopPhase.ObjectsSpawnPhase:
                     OnSpawnPhase();
                     break;
@@ -70,7 +90,7 @@ namespace Main.Scripts.Levels
 
         protected abstract void OnPlayerDisconnected(PlayerRef playerRef);
 
-        protected abstract void OnLocalPlayerLoaded(PlayerRef playerRef);
+        protected abstract void OnLocalPlayerLoaded();
         
         
         public override void FixedUpdateNetwork()
@@ -81,7 +101,7 @@ namespace Main.Scripts.Levels
             {
                 isLocalInitializedAfterSceneReady = true;
                 
-                OnLocalPlayerLoaded(Runner.LocalPlayer);
+                OnLocalPlayerLoaded();
             }
             if (IsLevelReady())
             {
@@ -92,6 +112,8 @@ namespace Main.Scripts.Levels
         protected abstract bool IsLevelReady();
 
         protected abstract void OnSpawnPhase();
+
+        protected abstract void OnDespawnPhase();
 
         protected abstract void OnLevelStrategyPhase();
     }

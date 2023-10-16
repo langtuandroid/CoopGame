@@ -1,25 +1,32 @@
 using System;
 using System.Collections.Generic;
 using Fusion;
+using Main.Scripts.Core.Resources;
 using Main.Scripts.Player;
+using Main.Scripts.Player.Config;
 using Main.Scripts.Tasks;
 using Main.Scripts.UI.Windows;
 using Main.Scripts.Utils;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Main.Scripts.Levels.Lobby
 {
     public class LobbyLevelController : LevelControllerBase
     {
         [SerializeField]
-        private PlayerController playerPrefab = default!;
+        private PlayerController playerPrefab = null!;
         [SerializeField]
-        private PlaceTargetTask readyToStartTask = default!;
+        private PlaceTargetTask readyToStartTask = null!;
+        [SerializeField]
+        private UIScreenManager screenManager = null!;
         
-        private PlayerCamera playerCamera = default!;
-        private UIScreenManager uiScreenManager = default!;
+        private PlayerCamera playerCamera = null!;
+        private UIScreenManager uiScreenManager = null!;
+        private HeroConfigsBank heroConfigsBank = null!;
 
-        private List<PlayerRef> spawnActions = new();
+        private List<PlayerRef> despawnActions = new();
+        private List<SpawnAction> spawnActions = new();
         private bool shouldStartMission;
 
         public override void Spawned()
@@ -30,7 +37,10 @@ namespace Main.Scripts.Levels.Lobby
             
             playerCamera = PlayerCamera.Instance.ThrowWhenNull();
             uiScreenManager = UIScreenManager.Instance.ThrowWhenNull();
+            heroConfigsBank = GlobalResources.Instance.ThrowWhenNull().HeroConfigsBank;
+            
             readyToStartTask.OnTaskCheckChangedEvent.AddListener(OnReadyTargetStatusChanged);
+            playerDataManager.OnLocalHeroChangedEvent.AddListener(OnLocalHeroChanged);
         }
 
         public override void Render()
@@ -43,13 +53,16 @@ namespace Main.Scripts.Levels.Lobby
 
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
-            base.Despawned(runner, hasState);
             readyToStartTask.OnTaskCheckChangedEvent.RemoveListener(OnReadyTargetStatusChanged);
+            playerDataManager.OnLocalHeroChangedEvent.RemoveListener(OnLocalHeroChanged);
+            
+            heroConfigsBank = null!;
+            
+            base.Despawned(runner, hasState);
         }
 
         protected override void OnPlayerInitialized(PlayerRef playerRef)
         {
-            
         }
 
         protected override void OnPlayerDisconnected(PlayerRef playerRef)
@@ -57,19 +70,40 @@ namespace Main.Scripts.Levels.Lobby
             
         }
 
-        protected override void OnLocalPlayerLoaded(PlayerRef playerRef)
+        protected override void OnLocalPlayerLoaded()
         {
-            RPC_OnPlayerReady(playerRef);
+            if (playerDataManager.HasHeroData(Runner.LocalPlayer))
+            {
+                spawnActions.Add(new SpawnAction {
+                    playerRef = Runner.LocalPlayer,
+                    spawnPosition = new Vector3(Random.Range(-1,1), 0, Random.Range(-1, 1))
+                });
+            }
+            else
+            {
+                screenManager.SetScreenType(ScreenType.HERO_PICKER);
+            }
         }
 
         protected override void OnSpawnPhase()
         {
-            //todo добавить спавн поинты
-            foreach (var playerRef in spawnActions)
+            foreach (var spawnAction in spawnActions)
             {
-                SpawnLocalPlayer(playerRef);
+                SpawnLocalPlayer(spawnAction);
             }
             spawnActions.Clear();
+        }
+
+        protected override void OnDespawnPhase()
+        {
+            foreach (var playerRef in despawnActions)
+            {
+                if (playersHolder.Contains(playerRef))
+                {
+                    Runner.Despawn(playersHolder.Get(playerRef).Object);
+                }
+            }
+            despawnActions.Clear();
         }
 
         protected override void OnLevelStrategyPhase()
@@ -130,31 +164,41 @@ namespace Main.Scripts.Levels.Lobby
                 return;
             }
 
-            var userId = playerDataManager.GetUserId(playerRef);
-            if (roomManager.GetLevelResults(userId) != null)
+            if (roomManager.GetLevelResults(playerRef) != null)
             {
-                roomManager.OnLevelResultsShown(userId);
+                roomManager.OnLevelResultsShown(playerRef);
                 uiScreenManager.SetScreenType(ScreenType.LEVEL_RESULTS);
             }
         }
 
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_AddSpawnPlayerAction([RpcTarget] PlayerRef playerRef)
+        private void OnLocalHeroChanged()
         {
-            spawnActions.Add(playerRef);
+            var spawnPosition = Vector3.zero;
+            if (playersHolder.Contains(Runner.LocalPlayer))
+            {
+                spawnPosition = playersHolder.Get(Runner.LocalPlayer).transform.position;
+                despawnActions.Add(Runner.LocalPlayer);
+            }
+            spawnActions.Add(new SpawnAction
+            {
+                playerRef = Runner.LocalPlayer,
+                spawnPosition = spawnPosition
+            });
+            uiScreenManager.SetScreenType(ScreenType.NONE);
         }
 
-        private void SpawnLocalPlayer(PlayerRef playerRef)
+        private void SpawnLocalPlayer(SpawnAction spawnAction)
         {
             Runner.Spawn(
                 prefab: playerPrefab,
-                position: Vector3.zero,
+                position: spawnAction.spawnPosition,
                 rotation: Quaternion.identity,
-                inputAuthority: playerRef,
+                inputAuthority: spawnAction.playerRef,
                 onBeforeSpawned: (networkRunner, playerObject) =>
                 {
                     var playerController = playerObject.GetComponent<PlayerController>();
 
+                    playerController.Init(heroConfigsBank.GetHeroConfigKey(playerDataManager.SelectedHeroId));
                     playerController.OnPlayerStateChangedEvent.AddListener(OnLocalPlayerStateChanged);
                 }
             );
@@ -162,10 +206,10 @@ namespace Main.Scripts.Levels.Lobby
             TryShowLevelResults();
         }
 
-        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-        private void RPC_OnPlayerReady(PlayerRef playerRefReady)
+        private struct SpawnAction
         {
-            RPC_AddSpawnPlayerAction(playerRefReady);
+            public PlayerRef playerRef;
+            public Vector3 spawnPosition;
         }
     }
 }

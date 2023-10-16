@@ -28,16 +28,16 @@ namespace Main.Scripts.Utils.Save
             return list;
         }
 
-        public static IObservable<Unit> Save(GlobalResources resources, string userId, PlayerData playerData)
+        public static IObservable<Unit> Save(GlobalResources resources, string userId, UserData userData)
         {
             var filePath = GetFilePath(userId);
             return Observable.Start(() =>
             {
-                var jObject = playerData.ToJSON(resources);
                 if (filePath.IsNullOrEmpty())
                 {
                     throw new Exception("File path is null or empty");
                 }
+                var jObject = userData.ToJSON(resources);
 
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath).ThrowWhenNull());
                 using var streamWriter = File.CreateText(filePath);
@@ -57,14 +57,14 @@ namespace Main.Scripts.Utils.Save
                     using var jsonReader = new JsonTextReader(streamReader);
                     return new LoadResult
                     {
-                        playerData = PlayerData.ParseJSON(resources, (JObject)JToken.ReadFrom(jsonReader)),
+                        UserData = UserData.ParseJSON(resources, (JObject)JToken.ReadFrom(jsonReader)),
                         IsCreatedNew = false
                     };
                 }
 
                 return new LoadResult
                 {
-                    playerData = PlayerData.GetInitialPlayerData(),
+                    UserData = UserData.GetInitialUserData(resources),
                     IsCreatedNew = true
                 };
             });
@@ -107,7 +107,7 @@ namespace Main.Scripts.Utils.Save
 
         public class LoadResult
         {
-            public PlayerData playerData;
+            public UserData UserData;
             public bool IsCreatedNew;
         }
     }

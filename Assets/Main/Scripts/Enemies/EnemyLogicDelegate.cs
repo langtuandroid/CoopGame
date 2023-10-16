@@ -16,7 +16,6 @@ using Main.Scripts.Mobs.Config;
 using Main.Scripts.Mobs.Config.Block.Action;
 using Main.Scripts.Skills;
 using Main.Scripts.Skills.ActiveSkills;
-using Main.Scripts.Skills.Charge;
 using Main.Scripts.Skills.PassiveSkills;
 using Pathfinding;
 using UnityEngine;
@@ -51,7 +50,6 @@ namespace Main.Scripts.Enemies
         private MobConfig mobConfig = null!;
         private NetworkObject objectContext = null!;
         
-        private SkillChargeManager skillChargeManager = null!;
         private NavigationManager navigationManager = null!;
         private MobConfigsBank mobConfigsBank = null!;
         private MobBlockDelegate logicBlockDelegate = null!;
@@ -118,18 +116,11 @@ namespace Main.Scripts.Enemies
             );
         }
 
-        public static void OnValidate(GameObject gameObject, ref EnemyConfig config)
-        {
-            PassiveSkillsManager.OnValidate(gameObject, ref config.PassiveSkillsConfig);
-            ActiveSkillsManager.OnValidate(ref config.ActiveSkillsConfig);
-        }
-
         public void Spawned(NetworkObject objectContext)
         {
             ref var enemyData = ref dataHolder.GetEnemyData();
             this.objectContext = objectContext;
 
-            skillChargeManager = dataHolder.GetCachedComponent<SkillChargeManager>();
             navigationManager = dataHolder.GetCachedComponent<NavigationManager>();
             mobConfigsBank = dataHolder.GetCachedComponent<MobConfigsBank>();
             
@@ -173,7 +164,6 @@ namespace Main.Scripts.Enemies
             logicBlockDelegate = null!;
 
             objectContext = null!;
-            skillChargeManager = null!;
         }
 
         private void InitState(ref EnemyData enemyData)

@@ -138,25 +138,25 @@ namespace Main.Scripts.Skills.Common.Component
             this.skillConfig = skillConfig;
 
             var playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
-            if (playerDataManager.HasPlayer(ownerId))
+            if (playerDataManager.HasUser(ownerId))
             {
-                var playerData = playerDataManager.GetPlayerData(ownerId);
-                
-                ResolveConfigWithPlayerData(ref playerData);
+                //StateAuthority is always local player
+                var heroData = playerDataManager.GetLocalHeroData();
+                ResolveConfigWithHeroData(ref heroData);
             }
             else
             {
-                ResolveConfigWithoutPlayerData();
+                ResolveConfigWithoutHeroData();
             }
 
             levelContext.GameLoopManager.AddListener(this);
         }
 
-        private void ResolveConfigWithPlayerData(ref PlayerData playerData)
+        private void ResolveConfigWithHeroData(ref HeroData heroData)
         {
             SkillFollowStrategyConfigsResolver.ResolveEnabledModifiers(
                 modifierIdsBank,
-                ref playerData,
+                ref heroData,
                 chargeLevel,
                 powerChargeLevel,
                 skillConfig.FollowStrategy,
@@ -167,7 +167,7 @@ namespace Main.Scripts.Skills.Common.Component
             {
                 SkillActionTriggerConfigsResolver.ResolveEnabledModifiers(
                     modifierIdsBank,
-                    ref playerData,
+                    ref heroData,
                     chargeLevel,
                     powerChargeLevel,
                     skillTriggerPack.ActionTrigger,
@@ -185,7 +185,7 @@ namespace Main.Scripts.Skills.Common.Component
 
                     SkillActionsPackResolver.ResolveEnabledModifiers(
                         modifierIdsBank,
-                        ref playerData,
+                        ref heroData,
                         chargeLevel,
                         powerChargeLevel,
                         skillActionsPack,
@@ -204,7 +204,7 @@ namespace Main.Scripts.Skills.Common.Component
             }
         }
 
-        private void ResolveConfigWithoutPlayerData()
+        private void ResolveConfigWithoutHeroData()
         {
             followStrategy = skillConfig.FollowStrategy;
             

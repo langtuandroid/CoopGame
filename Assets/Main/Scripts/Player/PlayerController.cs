@@ -15,6 +15,7 @@ using Main.Scripts.Drop;
 using Main.Scripts.Effects;
 using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui.HealthChangeDisplay;
+using Main.Scripts.Player.Config;
 using Main.Scripts.Skills.ActiveSkills;
 using Main.Scripts.Skills.Charge;
 using Main.Scripts.UI.Windows.HUD;
@@ -41,7 +42,7 @@ namespace Main.Scripts.Player
         private Dictionary<Type, Component> cachedComponents = new();
 
         [SerializeField]
-        private PlayerConfig playerConfig = PlayerConfig.GetDefault();
+        private PlayerPrefabData playerPrefabData = PlayerPrefabData.GetDefault();
 
         private ReceiveTicksManager receiveTicksManager = default!;
         private EffectsBank effectsBank = default!;
@@ -87,8 +88,6 @@ namespace Main.Scripts.Player
                 throw new MissingComponentException("Collider component is required in PlayerController");
             if (GetComponent<Animator>() == null)
                 throw new MissingComponentException("Animator component is required in PlayerController");
-
-            PlayerLogicDelegate.OnValidate(gameObject, ref playerConfig);
         }
 
         void Awake()
@@ -104,10 +103,15 @@ namespace Main.Scripts.Player
             cachedComponents[typeof(CharacterCustomizationSkinned)] = GetComponent<CharacterCustomizationSkinned>();
 
             playerLogicDelegate = new PlayerLogicDelegate(
-                config: ref playerConfig,
+                prefabData: ref playerPrefabData,
                 dataHolder: this,
                 eventListener: this
             );
+        }
+
+        public void Init(int heroConfigKey)
+        {
+            playerLogicData.heroConfigKey = heroConfigKey;
         }
 
         public new T GetComponent<T>()
@@ -123,8 +127,10 @@ namespace Main.Scripts.Player
         public override void Spawned()
         {
             base.Spawned();
-            effectsBank = GlobalResources.Instance.ThrowWhenNull().EffectsBank;
+            var globalResources = GlobalResources.Instance.ThrowWhenNull();
+            effectsBank = globalResources.EffectsBank;
             cachedComponents[typeof(EffectsBank)] = effectsBank;
+            cachedComponents[typeof(HeroConfigsBank)] = globalResources.HeroConfigsBank;
             cachedComponents[typeof(SkillChargeManager)] = levelContext.SkillChargeManager;
             playerLogicDelegate.Spawned(Object);
             
@@ -159,6 +165,7 @@ namespace Main.Scripts.Player
             base.Despawned(runner, hasState);
             effectsBank = default!;
             cachedComponents.Remove(typeof(EffectsBank));
+            cachedComponents.Remove(typeof(HeroConfigsBank));
             cachedComponents.Remove(typeof(SkillChargeManager));
 
             OnPlayerStateChangedEvent.RemoveAllListeners();

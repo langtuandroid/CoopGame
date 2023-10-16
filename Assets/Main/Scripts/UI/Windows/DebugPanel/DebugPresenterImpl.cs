@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Main.Scripts.Enemies;
 using Main.Scripts.Modifiers;
@@ -66,13 +65,13 @@ namespace Main.Scripts.UI.Windows.DebugPanel
             }
 
             var itemDataList = new List<ModifierItemData>();
-            ref var playerData = ref playerDataManager.LocalPlayerData;
+            var heroData = playerDataManager.GetLocalHeroData();
             foreach (var modifierId in currentModifierIds)
             {
                 var modifierToken = modifiersBank.GetModifierIdToken(modifierId);
                 itemDataList.Add(new ModifierItemData(
                     name: modifierId.name,
-                    level: playerData.Modifiers.ModifiersLevel[modifierToken],
+                    level: heroData.Modifiers.ModifiersLevel[modifierToken],
                     maxLevel: modifierId.UpgradeLevels
                 ));
             }

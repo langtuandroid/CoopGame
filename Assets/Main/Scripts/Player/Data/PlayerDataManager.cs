@@ -24,17 +24,19 @@ namespace Main.Scripts.Player.Data
         
         private Dictionary<UserId, PlayerRef> playerRefsMap = new();
         private Dictionary<PlayerRef, UserId> userIdsMap = new();
-        private Dictionary<UserId, PlayerData> playersDataMap = new();
+        private Dictionary<PlayerRef, HeroData> playersHeroDataMap = new();
 
         private CompositeDisposable compositeDisposable = new();
 
         public UserId LocalUserId { get; private set; }
-        private PlayerData localPlayerData;
-        public ref PlayerData LocalPlayerData => ref localPlayerData;
+        private UserData userData = null!;
+        private string selectedHeroId = "";
+        public string SelectedHeroId => selectedHeroId;
         public AwardsData? LocalAwardsData { get; private set; }
 
-        public UnityEvent<UserId, PlayerData, PlayerData> OnPlayerDataChangedEvent = default!;
-        public UnityEvent OnLocalPlayerDataReadyEvent = default!;
+        public UnityEvent<PlayerRef> OnHeroDataChangedEvent = default!;
+        public UnityEvent OnLocalHeroChangedEvent = default!;
+        public UnityEvent OnLocalUserDataReadyEvent = default!;
 
         private void Awake()
         {
@@ -58,15 +60,15 @@ namespace Main.Scripts.Player.Data
                 .ObserveOnMainThread()
                 .Do(result =>
                 {
-                    LocalPlayerData = result.playerData;
+                    userData = result.UserData;
                     if (result.IsCreatedNew)
                     {
-                        SaveLoadUtils.Save(resources, LocalUserId.Id.Value, result.playerData)
+                        SaveLoadUtils.Save(resources, LocalUserId.Id.Value, result.UserData)
                             .ObserveOnMainThread()
                             .DoOnCompleted(() =>
                             {
                                 LocalUserId = localUserId;
-                                OnLocalPlayerDataReadyEvent.Invoke();
+                                OnLocalUserDataReadyEvent.Invoke();
                             })
                             .DoOnError(Debug.LogError)
                             .Subscribe()
@@ -75,7 +77,7 @@ namespace Main.Scripts.Player.Data
                     else
                     {
                         LocalUserId = localUserId;
-                        OnLocalPlayerDataReadyEvent.Invoke();
+                        OnLocalUserDataReadyEvent.Invoke();
                     }
                 })
                 .Subscribe()
@@ -93,121 +95,136 @@ namespace Main.Scripts.Player.Data
             return !LocalUserId.Id.Value.IsNullOrEmpty();
         }
 
-        public bool HasPlayer(PlayerRef playerRef)
+        public bool HasUser(PlayerRef playerRef)
         {
             return userIdsMap.ContainsKey(playerRef);
         }
 
-        public bool HasPlayer(UserId userId)
+        public bool HasUser(UserId userId)
         {
             return playerRefsMap.ContainsKey(userId);
         }
 
-        public UserId GetUserId(PlayerRef playerRef)
-        {
-            return userIdsMap[playerRef];
-        }
-
-        public PlayerRef GetPlayerRef(UserId userId)
-        {
-            return playerRefsMap[userId];
-        }
-
-        public void RemovePlayer(PlayerRef playerRef, bool clearPlayerData)
+        public void RemovePlayer(PlayerRef playerRef)
         {
             userIdsMap.Remove(playerRef, out var userId);
             playerRefsMap.Remove(userId);
 
-            if (clearPlayerData)
-            {
-                playersDataMap.Remove(userId);
-            }
+            playersHeroDataMap.Remove(playerRef);
         }
 
-        public void ClearAllKeepedPlayerData()
+        public void AddUserData(PlayerRef playerRef, ref UserId userId)
         {
-            foreach (var (userId, _) in playersDataMap)
-            {
-                if (!playerRefsMap.ContainsKey(userId))
-                {
-                    playersDataMap.Remove(userId);
-                }
-            }
-        }
-        
-        public PlayerData GetPlayerData(PlayerRef playerRef)
-        {
-            return GetPlayerData(userIdsMap[playerRef]);
-        }
-
-        public PlayerData GetPlayerData(UserId userId)
-        {
-            return playersDataMap[userId];
-        }
-
-        public void AddPlayerData(PlayerRef playerRef, ref UserId userId, ref PlayerData playerData)
-        {
-            RPC_AddPlayerData(playerRef, userId, playerData);
+            RPC_AddUserData(playerRef, userId);
         }
 
         [Rpc(RpcSources.All, RpcTargets.All)]
-        private void RPC_AddPlayerData(PlayerRef playerRef, UserId userId, PlayerData playerData)
+        private void RPC_AddUserData(PlayerRef playerRef, UserId userId)
         {
-            OnAddPlayerData(playerRef, ref userId, ref playerData);
+            OnAddUserData(playerRef, ref userId);
+        }
+
+        public bool HasHeroData(PlayerRef playerRef)
+        {
+            return playersHeroDataMap.ContainsKey(playerRef);
+        }
+
+        public HeroData GetHeroData(PlayerRef playerRef)
+        {
+            return playersHeroDataMap[playerRef];
+        }
+
+        public HeroData GetLocalHeroData()
+        {
+            return playersHeroDataMap[Runner.LocalPlayer];
+        }
+
+        public void SelectHero(string id)
+        {
+            selectedHeroId = id;
+            RPC_AddHeroData(Runner.LocalPlayer, userData.GetHeroData(id));
+            OnLocalHeroChangedEvent.Invoke();
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        private void RPC_AddHeroData(PlayerRef playerRef, HeroData heroData)
+        {
+            OnAddHeroData(playerRef, ref heroData);
         }
         
-        public void SendAllPlayersDataToClient(PlayerRef target)
+        public void SendAllUsersDataToClient(PlayerRef target)
         {
             foreach (var (userId, playerRef) in playerRefsMap)
             {
                 if (playerRef != target)
                 {
-                    RPC_AddPlayerDataToClient(target, playerRef, userId, playersDataMap[userId]);
+                    RPC_AddUserDataToClient(target, playerRef, userId);
+                }
+            }
+        }
+        
+        public void SendAllHeroesDataToClient(PlayerRef target)
+        {
+            foreach (var (playerRef, heroData) in playersHeroDataMap)
+            {
+                if (playerRef != target)
+                {
+                    RPC_AddHeroDataToClient(target, playerRef, heroData);
                 }
             }
         }
 
         [Rpc(RpcSources.All, RpcTargets.All)]
-        private void RPC_AddPlayerDataToClient([RpcTarget] PlayerRef target, PlayerRef playerRef, UserId userId, PlayerData playerData)
+        private void RPC_AddUserDataToClient([RpcTarget] PlayerRef target, PlayerRef playerRef, UserId userId)
         {
-            OnAddPlayerData(playerRef, ref userId, ref playerData);
+            OnAddUserData(playerRef, ref userId);
         }
 
-        private void OnAddPlayerData(PlayerRef playerRef, ref UserId userId, ref PlayerData playerData)
+        private void OnAddUserData(PlayerRef playerRef, ref UserId userId)
         {
             playerRefsMap[userId] = playerRef;
             userIdsMap[playerRef] = userId;
-            playersDataMap[userId] = playerData;
-            OnPlayerDataChangedEvent.Invoke(userId, playerData, default); //todo сделать отдельный интерфейс
+        }
+
+        [Rpc(RpcSources.All, RpcTargets.All)]
+        private void RPC_AddHeroDataToClient([RpcTarget] PlayerRef target, PlayerRef playerRef, HeroData heroData)
+        {
+            OnAddHeroData(playerRef, ref heroData);
+        }
+
+        private void OnAddHeroData(PlayerRef playerRef, ref HeroData heroData)
+        {
+            playersHeroDataMap[playerRef] = heroData;
+            OnHeroDataChangedEvent.Invoke(playerRef);
         }
 
         public void ResetAllModifiersLevel()
         {
-            var playerData = LocalPlayerData;
-            playerData.Modifiers = ModifiersData.GetDefault();
+            var heroData = userData.GetHeroData(selectedHeroId);
+            heroData.Modifiers = ModifiersData.GetDefault();
 
-            playerData.UsedSkillPoints = 0;
-            UpdatePlayerData(playerData);
+            heroData.UsedSkillPoints = 0;
+            UpdatePlayerData(ref heroData);
         }
 
         public void SetModifierLevel(int modifierToken, ushort level)
         {
-            var playerData = LocalPlayerData;
-            var currentLevel = playerData.Modifiers.ModifiersLevel[modifierToken];
+            var heroData = userData.GetHeroData(selectedHeroId);
+            var currentLevel = heroData.Modifiers.ModifiersLevel[modifierToken];
             if (currentLevel != level)
             {
-                playerData.UsedSkillPoints = (uint)((int)playerData.UsedSkillPoints - currentLevel + level);
-                playerData.Modifiers.ModifiersLevel.Set(modifierToken, level);
-                UpdatePlayerData(playerData);
+                heroData.UsedSkillPoints = (uint)((int)heroData.UsedSkillPoints - currentLevel + level);
+                heroData.Modifiers.ModifiersLevel.Set(modifierToken, level);
+                UpdatePlayerData(ref heroData);
             }
         }
 
         public void ApplyCustomizationData(CustomizationData customizationData)
         {
-            var playerData = LocalPlayerData;
-            playerData.Customization = customizationData;
+            var heroData = userData.GetHeroData(selectedHeroId);
+            heroData.Customization = customizationData;
 
-            UpdatePlayerData(playerData);
+            UpdatePlayerData(ref heroData);
         }
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
@@ -215,22 +232,22 @@ namespace Main.Scripts.Player.Data
         {
             var awardsData = GetAwardsData(levelResultsData);
             LocalAwardsData = awardsData;
-            var playerData = LocalPlayerData;
+            var heroData = userData.GetHeroData(selectedHeroId);
 
-            var experienceForNextLevel = ExperienceHelper.GetExperienceForNextLevel(playerData.Level);
-            if (playerData.Experience + awardsData.Experience >= experienceForNextLevel)
+            var experienceForNextLevel = ExperienceHelper.GetExperienceForNextLevel(heroData.Level);
+            if (heroData.Experience + awardsData.Experience >= experienceForNextLevel)
             {
-                playerData.Experience = playerData.Experience + awardsData.Experience - experienceForNextLevel;
-                playerData.Level = Math.Clamp(playerData.Level + 1, 1, ExperienceHelper.MAX_LEVEL);
+                heroData.Experience = heroData.Experience + awardsData.Experience - experienceForNextLevel;
+                heroData.Level = Math.Clamp(heroData.Level + 1, 1, ExperienceHelper.MAX_LEVEL);
 
-                playerData.MaxSkillPoints = ExperienceHelper.GetMaxSkillPointsByLevel(playerData.Level);
+                heroData.MaxSkillPoints = ExperienceHelper.GetMaxSkillPointsByLevel(heroData.Level);
             }
             else
             {
-                playerData.Experience += awardsData.Experience;
+                heroData.Experience += awardsData.Experience;
             }
 
-            UpdatePlayerData(playerData);
+            UpdatePlayerData(ref heroData);
         }
 
         private AwardsData GetAwardsData(LevelResultsData levelResultsData)
@@ -241,13 +258,13 @@ namespace Main.Scripts.Player.Data
             return awardsData;
         }
 
-        private void UpdatePlayerData(PlayerData playerData)
+        private void UpdatePlayerData(ref HeroData heroData)
         {
-            LocalPlayerData = playerData;
-            SaveLoadUtils.Save(resources, LocalUserId.Id.Value, playerData)
+            userData.UpdateHeroData(selectedHeroId, ref heroData);
+            SaveLoadUtils.Save(resources, LocalUserId.Id.Value, userData)
                 .ObserveOnMainThread()
                 .DoOnCompleted(() => {
-                    RPC_OnPlayerDataChanged(LocalUserId, LocalPlayerData);
+                    RPC_OnHeroDataChanged(Runner.LocalPlayer, userData.GetHeroData(selectedHeroId));
                 })
                 .DoOnError(Debug.LogError)
                 .Subscribe()
@@ -255,15 +272,14 @@ namespace Main.Scripts.Player.Data
         }
 
         [Rpc(RpcSources.All, RpcTargets.All)]
-        private void RPC_OnPlayerDataChanged(UserId userId, PlayerData playerData)
+        private void RPC_OnHeroDataChanged(PlayerRef playerRef, HeroData heroData)
         {
-            if (!playersDataMap.ContainsKey(userId))
+            if (!playersHeroDataMap.ContainsKey(playerRef))
             {
-                throw new Exception("playerData is not exist");
+                throw new Exception("heroData is not exist");
             }
-            var oldPlayerData = playersDataMap[userId];
-            playersDataMap[userId] = playerData;
-            OnPlayerDataChangedEvent.Invoke(userId, playerData, oldPlayerData);
+            playersHeroDataMap[playerRef] = heroData;
+            OnHeroDataChangedEvent.Invoke(playerRef);
         }
     }
 }

@@ -51,7 +51,7 @@ namespace Main.Scripts.UI.Windows.Customization
             selectedItemIndex = itemIndex;
             var newConfig = currentItemConfigs[itemIndex];
 
-            var customizationData = playerDataManager.LocalPlayerData.Customization;
+            var customizationData = playerDataManager.GetLocalHeroData().Customization;
             switch (newConfig)
             {
                 case CustomizationHeadItemConfig:

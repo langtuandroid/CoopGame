@@ -8,7 +8,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
     {
         public static void ResolveEnabledModifiers(
             ModifierIdsBank bank,
-            ref PlayerData playerData,
+            ref HeroData heroData,
             int chargeLevel,
             int powerChargeLevel,
             List<SkillFindTargetsStrategyBase> configs,
@@ -26,7 +26,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
                         {
                             case ModifierId modifierId:
                                 var modifierKey = bank.GetModifierIdToken(modifierId);
-                                modifierLevel = playerData.Modifiers.ModifiersLevel[modifierKey];
+                                modifierLevel = heroData.Modifiers.ModifiersLevel[modifierKey];
                                 break;
                             case PowerChargeModifier:
                                 modifierLevel = powerChargeLevel;
@@ -40,7 +40,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
 
                     ResolveEnabledModifiers(
                         bank,
-                        ref playerData,
+                        ref heroData,
                         chargeLevel,
                         powerChargeLevel,
                         findTargetsStrategies.Value,

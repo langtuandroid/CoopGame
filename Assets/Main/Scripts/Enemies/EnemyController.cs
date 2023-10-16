@@ -39,8 +39,6 @@ namespace Main.Scripts.Enemies
         private Dictionary<Type, Component> cachedComponents = new();
 
         [SerializeField]
-        private EnemyConfig enemyConfig = EnemyConfig.GetDefault();
-        [SerializeField]
         private MeshFilter meshFilter = null!;
         [SerializeField]
         private ShaderMeshAnimator shaderMeshAnimator = null!;
@@ -73,8 +71,6 @@ namespace Main.Scripts.Enemies
                 throw new MissingComponentException("MeshFilter parameter is required for EnemyController config");
             if (shaderMeshAnimator == null)
                 throw new MissingComponentException("ShaderMeshAnimator parameter is required for EnemyController config");
-
-            EnemyLogicDelegate.OnValidate(gameObject, ref enemyConfig);
         }
 
         void Awake()

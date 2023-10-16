@@ -177,37 +177,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 0
-  playerConfig:
-    DefaultMaxHealth: 100
-    DefaultSpeed: 6
+  playerPrefabData:
     InteractionInfoDoc: {fileID: 7039325141636198610}
     HealthBar: {fileID: 4596396396371968053}
-    ActiveSkillsConfig:
-      AlliesLayerMask:
-        serializedVersion: 2
-        m_Bits: 128
-      OpponentsLayerMask:
-        serializedVersion: 2
-        m_Bits: 256
-      PrimarySkillConfig: {fileID: 11400000, guid: fc8209fbf7f947049b68101db58b5d8c, type: 2}
-      DashSkillConfig: {fileID: 11400000, guid: 975a24afc35ee8a4fb750463e96c92dd, type: 2}
-      FirstSkillConfig: {fileID: 11400000, guid: 9c45539eb9b82db4c882f02f7cc493b1, type: 2}
-      SecondSkillConfig: {fileID: 11400000, guid: 17c8584b985740441a6039183415b6c6, type: 2}
-      ThirdSkillConfig: {fileID: 11400000, guid: b7fed8c02bc5bdf40ba323e60c826d20, type: 2}
-    PassiveSkillsConfig:
-      AlliesLayerMask:
-        serializedVersion: 2
-        m_Bits: 128
-      OpponentsLayerMask:
-        serializedVersion: 2
-        m_Bits: 256
-      PassiveSkillControllersDataList:
-      - SkillControllerConfig: {fileID: 11400000, guid: 485b2ddd4a8aa094290e1cd78ad6e84b, type: 2}
-        PassiveSkillTrigger: {fileID: 11400000, guid: 4028be693e3571c4d876f3a9ed1fc15f, type: 2}
-      InitialEffects:
-      - {fileID: 11400000, guid: 768a3ead7ede7ad4da94e1581f2ce0c6, type: 2}
-    ShowHealthChangeDisplay: 1
     HealthChangeDisplayConfig:
+      ShowHealthChangeDisplay: 1
       interpolationTransform: {fileID: 1211977160529853238}
       tickBufferStep: 5
       textLifeTimer: 0.5

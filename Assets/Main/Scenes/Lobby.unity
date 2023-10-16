@@ -308,6 +308,7 @@ MonoBehaviour:
   _interpolationDataSource: 0
   playerPrefab: {fileID: 3130498294766555559, guid: 0adccf08a296b9d4ab62f2205b695f42, type: 3}
   readyToStartTask: {fileID: 883741403}
+  screenManager: {fileID: 1975360541984392944}
 --- !u!1 &537468163
 GameObject:
   m_ObjectHideFlags: 0
@@ -1299,6 +1300,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 822ec0ccb0fb4659836c075cc8aeeef2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1975360541984392944 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3392625126920699749, guid: 2aab6ec2af08f234c9b682b10d82296d, type: 3}
+  m_PrefabInstance: {fileID: 1975360541984392941}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5aa7b25481556114085cdca01427daf8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1001 &2363720085487487073

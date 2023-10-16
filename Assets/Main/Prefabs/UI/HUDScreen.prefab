@@ -31,7 +31,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: -1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6667076347346972803
 MonoBehaviour:
@@ -60,6 +60,8 @@ MonoBehaviour:
     ControlKeyDescription: Dash
   - ControlKeyName: K
     ControlKeyDescription: Skill tree
+  - ControlKeyName: M
+    ControlKeyDescription: Hero Picker
   - ControlKeyName: H
     ControlKeyDescription: Customization
   - ControlKeyName: T

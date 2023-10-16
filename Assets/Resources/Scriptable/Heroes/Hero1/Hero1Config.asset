@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5773f9df2535413eaa0b6994cde77d02, type: 3}
+  m_Name: Hero1Config
+  m_EditorClassIdentifier: 
+  id: Hero1
+  maxHealth: 150
+  moveSpeed: 6
+  activeSkillsConfig:
+    AlliesLayerMask:
+      serializedVersion: 2
+      m_Bits: 128
+    OpponentsLayerMask:
+      serializedVersion: 2
+      m_Bits: 256
+    PrimarySkillConfig: {fileID: 11400000, guid: fc8209fbf7f947049b68101db58b5d8c, type: 2}
+    DashSkillConfig: {fileID: 11400000, guid: 975a24afc35ee8a4fb750463e96c92dd, type: 2}
+    FirstSkillConfig: {fileID: 11400000, guid: 9c45539eb9b82db4c882f02f7cc493b1, type: 2}
+    SecondSkillConfig: {fileID: 11400000, guid: 17c8584b985740441a6039183415b6c6, type: 2}
+    ThirdSkillConfig: {fileID: 11400000, guid: b7fed8c02bc5bdf40ba323e60c826d20, type: 2}
+  passiveSkillsConfig:
+    AlliesLayerMask:
+      serializedVersion: 2
+      m_Bits: 128
+    OpponentsLayerMask:
+      serializedVersion: 2
+      m_Bits: 256
+    PassiveSkillControllersDataList:
+    - PassiveSkillTrigger: {fileID: 11400000, guid: 4028be693e3571c4d876f3a9ed1fc15f, type: 2}
+      SkillControllerConfig: {fileID: 11400000, guid: 485b2ddd4a8aa094290e1cd78ad6e84b, type: 2}
+    InitialEffects: []

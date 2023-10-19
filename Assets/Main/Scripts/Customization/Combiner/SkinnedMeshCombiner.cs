@@ -5,7 +5,7 @@ namespace Main.Scripts.Customization.Combiner
 {
     public static class SkinnedMeshCombiner
     {
-        public static Mesh Combine(Transform rootTransform, List<CombineMeshData> combineMeshes)
+        public static Mesh Combine(Matrix4x4 rootTransformMatrix, List<CombineMeshData> combineMeshes)
         {
             var meshesBindPoses = new Matrix4x4[combineMeshes.Count];
             var skinnedBindPoses = new Matrix4x4[combineMeshes.Count];
@@ -15,7 +15,7 @@ namespace Main.Scripts.Customization.Combiner
                 combine[i] = new CombineInstance();
                 combine[i].mesh = combineMeshes[i].mesh;
 
-                skinnedBindPoses[i] = combineMeshes[i].transform.worldToLocalMatrix * rootTransform.localToWorldMatrix;
+                skinnedBindPoses[i] = combineMeshes[i].transform.worldToLocalMatrix * rootTransformMatrix;
                 meshesBindPoses[i] = skinnedBindPoses[i].inverse * Matrix4x4.TRS(Vector3.zero, Quaternion.Euler(combineMeshes[i].rotation), Vector3.one);
 
                 

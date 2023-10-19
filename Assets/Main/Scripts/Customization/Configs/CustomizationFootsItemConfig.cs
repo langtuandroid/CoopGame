@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace Main.Scripts.Customization.Configs
 {
@@ -6,11 +7,11 @@ namespace Main.Scripts.Customization.Configs
     public class CustomizationFootsItemConfig : CustomizationItemConfigBase
     {
         [SerializeField]
-        private Mesh footLeft = default!;
+        private AssetReferenceT<Mesh> footLeft = default!;
         [SerializeField]
-        private Mesh footRight = default!;
+        private AssetReferenceT<Mesh> footRight = default!;
 
-        public Mesh FootLeft => footLeft;
-        public Mesh FootRight => footRight;
+        public AssetReferenceT<Mesh> FootLeft => footLeft;
+        public AssetReferenceT<Mesh> FootRight => footRight;
     }
 }

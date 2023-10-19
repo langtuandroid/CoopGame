@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace Main.Scripts.Customization.Configs
 {
@@ -6,23 +7,23 @@ namespace Main.Scripts.Customization.Configs
     public class CustomizationBodyItemConfig : CustomizationItemConfigBase
     {
         [SerializeField]
-        private Mesh spine = default!;
+        private AssetReferenceT<Mesh> spine = default!;
         [SerializeField]
-        private Mesh chest = default!;
+        private AssetReferenceT<Mesh> chest = default!;
         [SerializeField]
-        private Mesh armLeftLower = default!;
+        private AssetReferenceT<Mesh> armLeftLower = default!;
         [SerializeField]
-        private Mesh armLeftUpper = default!;
+        private AssetReferenceT<Mesh> armLeftUpper = default!;
         [SerializeField]
-        private Mesh armRightLower = default!;
+        private AssetReferenceT<Mesh> armRightLower = default!;
         [SerializeField]
-        private Mesh armRightUpper = default!;
+        private AssetReferenceT<Mesh> armRightUpper = default!;
 
-        public Mesh Spine => spine;
-        public Mesh Chest => chest;
-        public Mesh ArmLeftLower => armLeftLower;
-        public Mesh ArmLeftUpper => armLeftUpper;
-        public Mesh ArmRightLower => armRightLower;
-        public Mesh ArmRightUpper => armRightUpper;
+        public AssetReferenceT<Mesh> Spine => spine;
+        public AssetReferenceT<Mesh> Chest => chest;
+        public AssetReferenceT<Mesh> ArmLeftLower => armLeftLower;
+        public AssetReferenceT<Mesh> ArmLeftUpper => armLeftUpper;
+        public AssetReferenceT<Mesh> ArmRightLower => armRightLower;
+        public AssetReferenceT<Mesh> ArmRightUpper => armRightUpper;
     }
 }

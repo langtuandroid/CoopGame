@@ -1,4 +1,7 @@
 using System.Collections;
+using Cysharp.Threading.Tasks;
+using Main.Scripts.Core.Resources;
+using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -15,22 +18,23 @@ namespace Main.Scripts.Scenarios
 
         private void Start()
         {
-            StartCoroutine(LoadGame());
+            LoadGame();
         }
 
-        private IEnumerator LoadGame()
+        private async void LoadGame()
         {
             var startTime = Time.realtimeSinceStartup;
             var currentScene = SceneManager.GetActiveScene();
-            yield return SceneManager.LoadSceneAsync(managerHolderScene, LoadSceneMode.Additive);
-            yield return SceneManager.LoadSceneAsync(mainMenuScene, LoadSceneMode.Additive);
+            await SceneManager.LoadSceneAsync(managerHolderScene, LoadSceneMode.Additive);
+            await GlobalResources.Instance.ThrowWhenNull().Init();
+            await SceneManager.LoadSceneAsync(mainMenuScene, LoadSceneMode.Additive);
             var deltaTime = Time.realtimeSinceStartup - startTime;
             if (deltaTime < MIN_TIME_FOR_LOADING_SHOWING)
             {
-                yield return new WaitForSeconds(MIN_TIME_FOR_LOADING_SHOWING - deltaTime);
+                await UniTask.WaitForSeconds(MIN_TIME_FOR_LOADING_SHOWING - deltaTime);
             }
             SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex(mainMenuScene));
-            yield return SceneManager.UnloadSceneAsync(currentScene);
+            await SceneManager.UnloadSceneAsync(currentScene);
         }
     }
 }

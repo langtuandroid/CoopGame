@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b57bdcbb605f401088274b098c53d9e0, type: 3}
+  m_Name: ManekenBlueFoots
+  m_EditorClassIdentifier: 
+  nameId: ManekenBlueFoots
+  footLeft:
+    m_AssetGUID: 4208e66292baaf54093dfe4d63f21012
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  footRight:
+    m_AssetGUID: a0a762dac13f5cd4f849cf2844d369d7
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0

@@ -1,0 +1,96 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9779c36a421d47b0bcfb6f05306901ef, type: 3}
+  m_Name: ManekenGreenFullSet
+  m_EditorClassIdentifier: 
+  nameId: ManekenGreenFullSet
+  head:
+    m_AssetGUID: 861106eb55d9c6042b863bd9a92ab9a2
+    m_SubObjectName: default
+    m_SubObjectType: UnityEngine.Mesh, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+    m_EditorAssetChanged: 1
+  spine:
+    m_AssetGUID: 8d6d6f959e44c844e8ceb03b4905e89f
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  chest:
+    m_AssetGUID: 226f8648b267c5f4ab449261e7609be5
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  armLeftLower:
+    m_AssetGUID: 72879c97821157a4c959994e8e374f64
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  armLeftUpper:
+    m_AssetGUID: 978dc35c1c3016443898316eff621f56
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  armRightLower:
+    m_AssetGUID: 7f21e93979e32c64da1aab1fbe6a9846
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  armRightUpper:
+    m_AssetGUID: aca1cdb86fb25b543b760a23a6097595
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  handLeft:
+    m_AssetGUID: 8192080238f9bba43af2d84c6dea8110
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  handRight:
+    m_AssetGUID: 14caff73f41a76b4bb6d128685538199
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  hips:
+    m_AssetGUID: e051e75304b471046ab0ac8e91f25e90
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  legLeftLower:
+    m_AssetGUID: fa736540aec5b7e4d919d5c1f8734740
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  legLeftUpper:
+    m_AssetGUID: ac990831e8fc2ca40a6baed1f91e4a5d
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  legRightLower:
+    m_AssetGUID: e869c37cf4d34e84d81b5280b80da672
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  legRightUpper:
+    m_AssetGUID: 51f2c2ace057ebc428f5599d121183fb
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  footLeft:
+    m_AssetGUID: 7db47376a2237dd4b98233ca5a2d6ed0
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  footRight:
+    m_AssetGUID: 393c72a18fa729a45b63ec89385850e5
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0

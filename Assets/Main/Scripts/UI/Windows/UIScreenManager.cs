@@ -13,7 +13,6 @@ namespace Main.Scripts.UI.Windows
         public static UIScreenManager? Instance { get; private set; }
         
         private UIScreensHolder uiScreensHolder = null!;
-        private PlayerDataManager playerDataManager = null!;
 
         public ScreenType CurrentScreenType { get; private set; }
         public UnityEvent<ScreenType> OnCurrentScreenChangedEvent = default!;
@@ -29,7 +28,6 @@ namespace Main.Scripts.UI.Windows
         private void Start()
         {
             uiScreensHolder = UIScreensHolder.Instance.ThrowWhenNull();
-            playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
         }
 
         private void OnDestroy()
@@ -37,12 +35,13 @@ namespace Main.Scripts.UI.Windows
             OnCurrentScreenChangedEvent.RemoveAllListeners();
             Instance = null;
             uiScreensHolder = null!;
-            playerDataManager = null!;
         }
 
         private void Update()
         {
-            var hasHeroData = playerDataManager.HasHeroData(playerDataManager.Runner.LocalPlayer);
+            var playerDataManager = PlayerDataManager.Instance;
+            var hasHeroData = playerDataManager != null && playerDataManager.HasHeroData(playerDataManager.Runner.LocalPlayer);
+
 
             if (CurrentScreenType != ScreenType.NONE)
             {

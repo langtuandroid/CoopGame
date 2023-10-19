@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b9f7e3590694b9a933eedb669e8bca8, type: 3}
+  m_Name: ManekenBlueLegs
+  m_EditorClassIdentifier: 
+  nameId: ManekenBlueLegs
+  hips:
+    m_AssetGUID: d5ad6b243744d0445b029f9179269909
+    m_SubObjectName: default
+    m_SubObjectType: UnityEngine.Mesh, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+    m_EditorAssetChanged: 0
+  legLeftLower:
+    m_AssetGUID: fb20d683a5095db488ce46616fe745ff
+    m_SubObjectName: default
+    m_SubObjectType: UnityEngine.Mesh, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+    m_EditorAssetChanged: 1
+  legLeftUpper:
+    m_AssetGUID: 5fd04f7f27c6d5440a018df01fb846d5
+    m_SubObjectName: default
+    m_SubObjectType: UnityEngine.Mesh, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+    m_EditorAssetChanged: 1
+  legRightLower:
+    m_AssetGUID: 576a6bc5372c67344bf472333144a4cf
+    m_SubObjectName: default
+    m_SubObjectType: UnityEngine.Mesh, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+    m_EditorAssetChanged: 1
+  legRightUpper:
+    m_AssetGUID: 36faf478f819cd0469d18e0eacaa9311
+    m_SubObjectName: default
+    m_SubObjectType: UnityEngine.Mesh, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+    m_EditorAssetChanged: 1

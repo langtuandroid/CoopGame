@@ -1,0 +1,350 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Customization
+  m_EditorClassIdentifier: 
+  m_GroupName: Customization
+  m_Data:
+    m_SerializedData: []
+  m_GUID: e03eb92e5ddab27479c8bcf3e38a4fe3
+  m_SerializeEntries:
+  - m_GUID: 7bd64b9b0249e43498220d95dd247e37
+    m_Address: CustomizationsListConfig
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 51f2c2ace057ebc428f5599d121183fb
+    m_Address: Assets/Main/Meshes/Character/Green/leg-right-upper.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e051e75304b471046ab0ac8e91f25e90
+    m_Address: Assets/Main/Meshes/Character/Green/hips.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 14caff73f41a76b4bb6d128685538199
+    m_Address: Assets/Main/Meshes/Character/Green/hand-right.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fa736540aec5b7e4d919d5c1f8734740
+    m_Address: Assets/Main/Meshes/Character/Green/leg-left-lower.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ac990831e8fc2ca40a6baed1f91e4a5d
+    m_Address: Assets/Main/Meshes/Character/Green/leg-left-upper.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 226f8648b267c5f4ab449261e7609be5
+    m_Address: Assets/Main/Meshes/Character/Green/chest.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7db47376a2237dd4b98233ca5a2d6ed0
+    m_Address: Assets/Main/Meshes/Character/Green/foot-left.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8192080238f9bba43af2d84c6dea8110
+    m_Address: Assets/Main/Meshes/Character/Green/hand-left.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aca1cdb86fb25b543b760a23a6097595
+    m_Address: Assets/Main/Meshes/Character/Green/arm-right-upper.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 393c72a18fa729a45b63ec89385850e5
+    m_Address: Assets/Main/Meshes/Character/Green/foot-right.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 861106eb55d9c6042b863bd9a92ab9a2
+    m_Address: Assets/Main/Meshes/Character/Green/head.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7f21e93979e32c64da1aab1fbe6a9846
+    m_Address: Assets/Main/Meshes/Character/Green/arm-right-lower.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e869c37cf4d34e84d81b5280b80da672
+    m_Address: Assets/Main/Meshes/Character/Green/leg-right-lower.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8d6d6f959e44c844e8ceb03b4905e89f
+    m_Address: Assets/Main/Meshes/Character/Green/spine.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 978dc35c1c3016443898316eff621f56
+    m_Address: Assets/Main/Meshes/Character/Green/arm-left-upper.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 72879c97821157a4c959994e8e374f64
+    m_Address: Assets/Main/Meshes/Character/Green/arm-left-lower.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f41cd79e6dba782459bd028c03ce7acc
+    m_Address: Assets/Main/Meshes/Character/Blue/arm-left-lower.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 48b2ad1beab5f8d42a101f43cead7a75
+    m_Address: Assets/Main/Meshes/Character/Blue/arm-right-upper.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a80bc0f122f515848843cb45b98bc0d7
+    m_Address: Assets/Main/Meshes/Character/Blue/arm-left-upper.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4208e66292baaf54093dfe4d63f21012
+    m_Address: Assets/Main/Meshes/Character/Blue/foot-left.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5fd04f7f27c6d5440a018df01fb846d5
+    m_Address: Assets/Main/Meshes/Character/Blue/leg-left-upper.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d5ad6b243744d0445b029f9179269909
+    m_Address: Assets/Main/Meshes/Character/Blue/hips.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 576a6bc5372c67344bf472333144a4cf
+    m_Address: Assets/Main/Meshes/Character/Blue/leg-right-lower.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7d824ab1732e3ed478e937da72ed3b54
+    m_Address: Assets/Main/Meshes/Character/Blue/spine.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1dfe35c76bc00fa4d815ce202a8b3e1b
+    m_Address: Assets/Main/Meshes/Character/Blue/hand-right.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 62c02922d299ba4428f43cdd42d54695
+    m_Address: Assets/Main/Meshes/Character/Blue/chest.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a0a762dac13f5cd4f849cf2844d369d7
+    m_Address: Assets/Main/Meshes/Character/Blue/foot-right.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 598919b775e4d234ebd415a6fa51f40b
+    m_Address: Assets/Main/Meshes/Character/Blue/arm-right-lower.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e9250c6ee0d80344fa74a41310046b85
+    m_Address: Assets/Main/Meshes/Character/Blue/hand-left.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fb20d683a5095db488ce46616fe745ff
+    m_Address: Assets/Main/Meshes/Character/Blue/leg-left-lower.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 36faf478f819cd0469d18e0eacaa9311
+    m_Address: Assets/Main/Meshes/Character/Blue/leg-right-upper.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3603c03ce6e849341a867eb52f14a17d
+    m_Address: Assets/Main/Meshes/Character/Blue/head.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8cadc13decc40084caca0fed8d70311e
+    m_Address: Assets/Main/Meshes/Character/Red/chest.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c7316c6051fd769428566720de74bb62
+    m_Address: Assets/Main/Meshes/Character/Red/hand-left.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ee657db625e35a64c8133feaf3b655e4
+    m_Address: Assets/Main/Meshes/Character/Red/arm-left-upper.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6b733246ce65ef94cb17766cd545e70a
+    m_Address: Assets/Main/Meshes/Character/Red/arm-right-lower.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: deab886086f3ae44d8982139891a1b99
+    m_Address: Assets/Main/Meshes/Character/Red/spine.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fef69ca14c1b64948a551b0eea4a363e
+    m_Address: Assets/Main/Meshes/Character/Red/hand-right.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6eebcdbd5a3932042983f128a81eaebf
+    m_Address: Assets/Main/Meshes/Character/Red/foot-right.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 853a35d5769fba340b11e7f0bb7ce3c5
+    m_Address: Assets/Main/Meshes/Character/Red/hips.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b8f709c0d8784dc45baf1aac5d5c2afa
+    m_Address: Assets/Main/Meshes/Character/Red/arm-left-lower.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 69630aa40a4d4c94cb52692c4b5c51bb
+    m_Address: Assets/Main/Meshes/Character/Red/head.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dda5724a00085cc428f3fe8f713ae081
+    m_Address: Assets/Main/Meshes/Character/Red/leg-right-upper.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f37f516285d6bbf478975695bca72b28
+    m_Address: Assets/Main/Meshes/Character/Red/foot-left.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b0512935b1c94144f9a25b55f1f5f9fe
+    m_Address: Assets/Main/Meshes/Character/Red/arm-right-upper.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b59cc47af08f52e46b28933a1d1b8ae4
+    m_Address: Assets/Main/Meshes/Character/Red/leg-left-lower.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ac19703939156b4408187a1cbcb5b964
+    m_Address: Assets/Main/Meshes/Character/Red/leg-right-lower.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8a7a5978c942b28469d1fae97a2606d0
+    m_Address: Assets/Main/Meshes/Character/Red/leg-left-upper.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1a9d31ed8a29f10408032860589297b4
+    m_Address: Assets/Main/Meshes/Character/Yellow/arm-right-upper.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 795427a870fbc054da7dc1fe89cddef1
+    m_Address: Assets/Main/Meshes/Character/Yellow/leg-right-upper.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aee52d1909c078c468aef0475ef91b6f
+    m_Address: Assets/Main/Meshes/Character/Yellow/hand-left.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6daee1454d9763b4a93b0693f81b840d
+    m_Address: Assets/Main/Meshes/Character/Yellow/hips.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b7a9b0deb18a642489f6b90cdbd908f0
+    m_Address: Assets/Main/Meshes/Character/Yellow/foot-left.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ad6efc5ef699bf843b28cd31d322c62a
+    m_Address: Assets/Main/Meshes/Character/Yellow/arm-right-lower.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 50f12b1baace7c54d8ade43649ea26f8
+    m_Address: Assets/Main/Meshes/Character/Yellow/arm-left-upper.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 73f2c6cc9cfd45c469e05e54f0c74334
+    m_Address: Assets/Main/Meshes/Character/Yellow/spine.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8f8815c0e930964448d8aeb9d4489751
+    m_Address: Assets/Main/Meshes/Character/Yellow/head.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 87633fb1baf22844a913d09eba2c731a
+    m_Address: Assets/Main/Meshes/Character/Yellow/leg-right-lower.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 73d8a49bc05239740a7712a35a4b9634
+    m_Address: Assets/Main/Meshes/Character/Yellow/chest.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e9d98890941726d4a86cc781cc9af37e
+    m_Address: Assets/Main/Meshes/Character/Yellow/foot-right.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4d211802a550dfa4b84a55fcbfafef9d
+    m_Address: Assets/Main/Meshes/Character/Yellow/arm-left-lower.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cd0a05e363eb47a40abffd0ae7daba48
+    m_Address: Assets/Main/Meshes/Character/Yellow/leg-left-upper.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 145476fc556e2dd43a69c95b0814a69c
+    m_Address: Assets/Main/Meshes/Character/Yellow/leg-left-lower.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d42a6f6edc277544498b91e3b4c07107
+    m_Address: Assets/Main/Meshes/Character/Yellow/hand-right.obj
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 0b2373270a2b5d948a9a3291babb6456, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: f55a67e86a975f2489a9a5ff9f77187d, type: 2}
+    - {fileID: 11400000, guid: 1ebeb9ad9a56c5b44a8920e60bad6100, type: 2}

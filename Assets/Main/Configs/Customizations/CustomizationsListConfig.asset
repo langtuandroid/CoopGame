@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecc68b4bca0f48629ce51c8b4f936228, type: 3}
+  m_Name: CustomizationsListConfig
+  m_EditorClassIdentifier: 
+  bodyItemConfigs:
+  - {fileID: 11400000, guid: 82eac79bac2d53d48a112344bb5b2be1, type: 2}
+  - {fileID: 11400000, guid: 45592c17c6838c641af1f539a1c7fc4a, type: 2}
+  footsItemConfigs:
+  - {fileID: 11400000, guid: 9345c0c4618bfc242a4feb746336d9c5, type: 2}
+  - {fileID: 11400000, guid: c9676dbd4a77ec84094ca1c7541af133, type: 2}
+  handsItemConfigs:
+  - {fileID: 11400000, guid: 7b2c2c2cde519ff459f54a579f171a47, type: 2}
+  - {fileID: 11400000, guid: 88d36a6d88eb171438bc91025127b215, type: 2}
+  legsItemConfigs:
+  - {fileID: 11400000, guid: 86d898ccec231474dbfec01c9c085946, type: 2}
+  - {fileID: 11400000, guid: d6121bb83eade7a49bb8b76415c77fa9, type: 2}
+  headItemConfigs:
+  - {fileID: 11400000, guid: 7278a3f8afdd6f94198ee1e756aa5d39, type: 2}
+  - {fileID: 11400000, guid: b6ca2fc62d2c3a540bc4489b4338ef7c, type: 2}
+  fullSetItemConfigs:
+  - {fileID: 11400000, guid: 1eb38b968c4415a4595ae84072c821aa, type: 2}
+  - {fileID: 11400000, guid: e25be826fe6010d469460f3dfeff7c69, type: 2}

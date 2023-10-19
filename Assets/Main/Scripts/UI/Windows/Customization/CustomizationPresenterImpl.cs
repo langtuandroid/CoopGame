@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Main.Scripts.Customization.Banks;
 using Main.Scripts.Customization.Configs;
@@ -88,29 +89,20 @@ namespace Main.Scripts.UI.Windows.Customization
         {
             currentItemConfigs.Clear();
             selectedItemIndex = -1;
-            switch (tab)
+            IEnumerable<CustomizationItemConfigBase> configs = tab switch
             {
-                case CustomizationTab.HEAD:
-                    currentItemConfigs.AddRange(bank.HeadConfigs.GetConfigs());
-                    break;
-                case CustomizationTab.BODY:
-                    currentItemConfigs.AddRange(bank.BodyConfigs.GetConfigs());
-                    break;
-                case CustomizationTab.HANDS:
-                    currentItemConfigs.AddRange(bank.HandsConfigs.GetConfigs());
-                    break;
-                case CustomizationTab.LEGS:
-                    currentItemConfigs.AddRange(bank.LegsConfigs.GetConfigs());
-                    break;
-                case CustomizationTab.FOOTS:
-                    currentItemConfigs.AddRange(bank.FootsConfigs.GetConfigs());
-                    break;
-                case CustomizationTab.FULL_SET:
-                    currentItemConfigs.AddRange(bank.FullSetConfigs.GetConfigs());
-                    break;
-            }
+                CustomizationTab.HEAD => bank.HeadConfigs.GetConfigs(),
+                CustomizationTab.BODY => bank.BodyConfigs.GetConfigs(),
+                CustomizationTab.HANDS => bank.HandsConfigs.GetConfigs(),
+                CustomizationTab.LEGS => bank.LegsConfigs.GetConfigs(),
+                CustomizationTab.FOOTS => bank.FootsConfigs.GetConfigs(),
+                CustomizationTab.FULL_SET => bank.FullSetConfigs.GetConfigs(),
+                _ => throw new ArgumentOutOfRangeException(nameof(tab), tab, null)
+            };
 
             var itemDataList = new List<CustomizationItemData>();
+            
+            currentItemConfigs.AddRange(configs);
             foreach (var itemConfig in currentItemConfigs)
             {
                 itemDataList.Add(new CustomizationItemData(itemConfig.NameId, false));

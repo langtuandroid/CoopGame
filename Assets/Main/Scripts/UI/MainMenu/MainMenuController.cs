@@ -4,7 +4,6 @@ using Main.Scripts.Player.Data;
 using Main.Scripts.Room.Transition;
 using Main.Scripts.UI.MainMenu.ProfileSettings;
 using Main.Scripts.UI.MainMenu.Status;
-using Main.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
 

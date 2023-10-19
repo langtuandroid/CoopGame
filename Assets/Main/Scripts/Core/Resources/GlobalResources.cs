@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using Fusion;
 using Main.Scripts.Customization.Banks;
 using Main.Scripts.Effects;
@@ -8,7 +9,6 @@ using Main.Scripts.Skills;
 using Main.Scripts.Skills.Common.Component;
 using Main.Scripts.UI.Windows.HUD.HotBar;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Main.Scripts.Core.Resources
 {
@@ -46,6 +46,11 @@ namespace Main.Scripts.Core.Resources
         {
             Assert.Check(Instance == null);
             Instance = this;
+        }
+
+        public async UniTask Init()
+        {
+            await customizationConfigsBank.Init();
         }
 
         private void OnDestroy()

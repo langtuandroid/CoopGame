@@ -7,54 +7,34 @@ namespace Main.Scripts.Customization.Banks
 {
     public abstract class CustomizationConfigsBankBase<T> : MonoBehaviour where T : CustomizationItemConfigBase
     {
-        [SerializeField]
-        private List<T> configsList = new();
+        private List<T> configsList = null!;
 
         private Dictionary<int, T> configsMap = default!;
         private Dictionary<string, int> configsIdsMap = default!;
 
-        private void Awake()
+        public void Init(List<T> configs)
         {
+            configsList = configs;
+            
             configsMap = new Dictionary<int, T>(configsList.Count);
             configsIdsMap = new Dictionary<string, int>(configsList.Count);
 
             for (var i = 0; i < configsList.Count; i++)
             {
-                var customizationConfig = configsList[i];
-                if (configsIdsMap.ContainsKey(customizationConfig.NameId))
+                var customization = configsList[i];
+                var customizationNameId = customization.NameId;
+                if (configsIdsMap.ContainsKey(customizationNameId))
                 {
                     throw new ArgumentException(
-                        $"{customizationConfig.name}: CustomizationConfig NameId {customizationConfig.NameId} is using by more then one CustomizationConfigs");
+                        $"{customizationNameId}: CustomizationConfig NameId {customizationNameId} is using by more then one CustomizationConfigs");
                 }
 
-                configsMap.Add(i, customizationConfig);
-                configsIdsMap.Add(customizationConfig.NameId, i);
+                configsMap.Add(i, customization);
+                configsIdsMap.Add(customizationNameId, i);
             }
         }
 
         protected abstract string GetResourcesPath();
-
-        private void OnValidate()
-        {
-            var ids = new HashSet<string>();
-            configsList.Clear();
-
-            var configs = Resources.LoadAll(GetResourcesPath(), typeof(T));
-            foreach (var config in configs)
-            {
-                if (config is T typedConfig)
-                {
-                    if (ids.Contains(typedConfig.NameId))
-                    {
-                        throw new ArgumentException(
-                            $"{typedConfig.NameId}: CustomizationConfig NameId {typedConfig.NameId} is using in more then one CustomizationConfigs of the same type");
-                    }
-
-                    configsList.Add(typedConfig);
-                    ids.Add(typedConfig.NameId);
-                }
-            }
-        }
 
         public IEnumerable<T> GetConfigs()
         {

@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b94b18672abb417ea645c40a218846a2, type: 3}
+  m_Name: ManekenBlueBody
+  m_EditorClassIdentifier: 
+  nameId: ManekenBlueBody
+  spine:
+    m_AssetGUID: 7d824ab1732e3ed478e937da72ed3b54
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  chest:
+    m_AssetGUID: 62c02922d299ba4428f43cdd42d54695
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  armLeftLower:
+    m_AssetGUID: f41cd79e6dba782459bd028c03ce7acc
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  armLeftUpper:
+    m_AssetGUID: a80bc0f122f515848843cb45b98bc0d7
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  armRightLower:
+    m_AssetGUID: 598919b775e4d234ebd415a6fa51f40b
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  armRightUpper:
+    m_AssetGUID: 48b2ad1beab5f8d42a101f43cead7a75
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0

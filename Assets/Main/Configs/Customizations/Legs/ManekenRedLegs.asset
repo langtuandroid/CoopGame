@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b9f7e3590694b9a933eedb669e8bca8, type: 3}
+  m_Name: ManekenRedLegs
+  m_EditorClassIdentifier: 
+  nameId: ManekenRedLegs
+  hips:
+    m_AssetGUID: 853a35d5769fba340b11e7f0bb7ce3c5
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  legLeftLower:
+    m_AssetGUID: b59cc47af08f52e46b28933a1d1b8ae4
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  legLeftUpper:
+    m_AssetGUID: 8a7a5978c942b28469d1fae97a2606d0
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  legRightLower:
+    m_AssetGUID: ac19703939156b4408187a1cbcb5b964
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  legRightUpper:
+    m_AssetGUID: dda5724a00085cc428f3fe8f713ae081
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0

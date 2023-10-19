@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace Main.Scripts.Customization.Configs
 {
@@ -6,20 +7,20 @@ namespace Main.Scripts.Customization.Configs
     public class CustomizationLegsItemConfig : CustomizationItemConfigBase
     {
         [SerializeField]
-        private Mesh hips = default!;
+        private AssetReferenceT<Mesh> hips = default!;
         [SerializeField]
-        private Mesh legLeftLower = default!;
+        private AssetReferenceT<Mesh> legLeftLower = default!;
         [SerializeField]
-        private Mesh legLeftUpper = default!;
+        private AssetReferenceT<Mesh> legLeftUpper = default!;
         [SerializeField]
-        private Mesh legRightLower = default!;
+        private AssetReferenceT<Mesh> legRightLower = default!;
         [SerializeField]
-        private Mesh legRightUpper = default!;
+        private AssetReferenceT<Mesh> legRightUpper = default!;
 
-        public Mesh Hips => hips;
-        public Mesh LegLeftLower => legLeftLower;
-        public Mesh LegLeftUpper => legLeftUpper;
-        public Mesh LegRightLower => legRightLower;
-        public Mesh LegRightUpper => legRightUpper;
+        public AssetReferenceT<Mesh> Hips => hips;
+        public AssetReferenceT<Mesh> LegLeftLower => legLeftLower;
+        public AssetReferenceT<Mesh> LegLeftUpper => legLeftUpper;
+        public AssetReferenceT<Mesh> LegRightLower => legRightLower;
+        public AssetReferenceT<Mesh> LegRightUpper => legRightUpper;
     }
 }

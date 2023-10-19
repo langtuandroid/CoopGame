@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace Main.Scripts.Customization.Configs
 {
@@ -6,61 +7,61 @@ namespace Main.Scripts.Customization.Configs
     public class CustomizationFullSetItemConfig : CustomizationItemConfigBase
     {
         [SerializeField]
-        private Mesh head = default!;
+        private AssetReferenceT<Mesh> head = default!;
 
         [SerializeField]
-        private Mesh spine = default!;
+        private AssetReferenceT<Mesh> spine = default!;
         [SerializeField]
-        private Mesh chest = default!;
+        private AssetReferenceT<Mesh> chest = default!;
         [SerializeField]
-        private Mesh armLeftLower = default!;
+        private AssetReferenceT<Mesh> armLeftLower = default!;
         [SerializeField]
-        private Mesh armLeftUpper = default!;
+        private AssetReferenceT<Mesh> armLeftUpper = default!;
         [SerializeField]
-        private Mesh armRightLower = default!;
+        private AssetReferenceT<Mesh> armRightLower = default!;
         [SerializeField]
-        private Mesh armRightUpper = default!;
+        private AssetReferenceT<Mesh> armRightUpper = default!;
 
         [SerializeField]
-        private Mesh handLeft = default!;
+        private AssetReferenceT<Mesh> handLeft = default!;
         [SerializeField]
-        private Mesh handRight = default!;
+        private AssetReferenceT<Mesh> handRight = default!;
 
         [SerializeField]
-        private Mesh hips = default!;
+        private AssetReferenceT<Mesh> hips = default!;
         [SerializeField]
-        private Mesh legLeftLower = default!;
+        private AssetReferenceT<Mesh> legLeftLower = default!;
         [SerializeField]
-        private Mesh legLeftUpper = default!;
+        private AssetReferenceT<Mesh> legLeftUpper = default!;
         [SerializeField]
-        private Mesh legRightLower = default!;
+        private AssetReferenceT<Mesh> legRightLower = default!;
         [SerializeField]
-        private Mesh legRightUpper = default!;
+        private AssetReferenceT<Mesh> legRightUpper = default!;
 
         [SerializeField]
-        private Mesh footLeft = default!;
+        private AssetReferenceT<Mesh> footLeft = default!;
         [SerializeField]
-        private Mesh footRight = default!;
+        private AssetReferenceT<Mesh> footRight = default!;
 
-        public Mesh Head => head;
+        public AssetReferenceT<Mesh> Head => head;
 
-        public Mesh Spine => spine;
-        public Mesh Chest => chest;
-        public Mesh ArmLeftLower => armLeftLower;
-        public Mesh ArmLeftUpper => armLeftUpper;
-        public Mesh ArmRightLower => armRightLower;
-        public Mesh ArmRightUpper => armRightUpper;
+        public AssetReferenceT<Mesh> Spine => spine;
+        public AssetReferenceT<Mesh> Chest => chest;
+        public AssetReferenceT<Mesh> ArmLeftLower => armLeftLower;
+        public AssetReferenceT<Mesh> ArmLeftUpper => armLeftUpper;
+        public AssetReferenceT<Mesh> ArmRightLower => armRightLower;
+        public AssetReferenceT<Mesh> ArmRightUpper => armRightUpper;
 
-        public Mesh HandLeft => handLeft;
-        public Mesh HandRight => handRight;
+        public AssetReferenceT<Mesh> HandLeft => handLeft;
+        public AssetReferenceT<Mesh> HandRight => handRight;
 
-        public Mesh Hips => hips;
-        public Mesh LegLeftLower => legLeftLower;
-        public Mesh LegLeftUpper => legLeftUpper;
-        public Mesh LegRightLower => legRightLower;
-        public Mesh LegRightUpper => legRightUpper;
+        public AssetReferenceT<Mesh> Hips => hips;
+        public AssetReferenceT<Mesh> LegLeftLower => legLeftLower;
+        public AssetReferenceT<Mesh> LegLeftUpper => legLeftUpper;
+        public AssetReferenceT<Mesh> LegRightLower => legRightLower;
+        public AssetReferenceT<Mesh> LegRightUpper => legRightUpper;
 
-        public Mesh FootLeft => footLeft;
-        public Mesh FootRight => footRight;
+        public AssetReferenceT<Mesh> FootLeft => footLeft;
+        public AssetReferenceT<Mesh> FootRight => footRight;
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace Main.Scripts.Customization.Configs
 {
@@ -6,8 +7,8 @@ namespace Main.Scripts.Customization.Configs
     public class CustomizationHeadItemConfig : CustomizationItemConfigBase
     {
         [SerializeField]
-        private Mesh head = default!;
+        private AssetReferenceT<Mesh> head = default!;
 
-        public Mesh Head => head;
+        public AssetReferenceT<Mesh> Head => head;
     }
 }

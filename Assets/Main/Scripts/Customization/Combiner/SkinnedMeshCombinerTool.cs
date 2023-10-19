@@ -39,7 +39,7 @@ namespace Main.Scripts.Customization.Combiner
         [ContextMenu("Combine mesh")]
         private void CombineMesh()
         {
-            var skinnedMesh = Instantiate(SkinnedMeshCombiner.Combine(meshRootTransform, combineMeshes));
+            var skinnedMesh = Instantiate(SkinnedMeshCombiner.Combine(meshRootTransform.localToWorldMatrix, combineMeshes));
 
             var path = $"Assets/Main/Meshes/Baked/{name}_mesh.asset";
             

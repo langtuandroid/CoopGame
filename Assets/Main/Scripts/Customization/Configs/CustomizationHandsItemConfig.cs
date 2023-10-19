@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace Main.Scripts.Customization.Configs
 {
@@ -6,11 +7,11 @@ namespace Main.Scripts.Customization.Configs
     public class CustomizationHandsItemConfig : CustomizationItemConfigBase
     {
         [SerializeField]
-        private Mesh handLeft = default!;
+        private AssetReferenceT<Mesh> handLeft = default!;
         [SerializeField]
-        private Mesh handRight = default!;
+        private AssetReferenceT<Mesh> handRight = default!;
 
-        public Mesh HandLeft => handLeft;
-        public Mesh HandRight => handRight;
+        public AssetReferenceT<Mesh> HandLeft => handLeft;
+        public AssetReferenceT<Mesh> HandRight => handRight;
     }
 }

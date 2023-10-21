@@ -8,7 +8,7 @@ namespace Main.Scripts.Effects
     public class EffectsCombination : ScriptableObject
     {
         public string NameId => name;
-        public List<EffectBase> Effects = new();
+        public List<EffectConfigBase> Effects = new();
 
         public void OnValidate()
         {

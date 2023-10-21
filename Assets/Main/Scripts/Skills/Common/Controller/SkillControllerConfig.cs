@@ -19,6 +19,7 @@ namespace Main.Scripts.Skills.Common.Controller
         [SerializeField]
         private UnitTargetType selectionTargetType;
         [SerializeField]
+        [Min(0)]
         private int ticksForFullPowerCharge;
         [SerializeField]
         private int[] powerChargeStepValues = null!;

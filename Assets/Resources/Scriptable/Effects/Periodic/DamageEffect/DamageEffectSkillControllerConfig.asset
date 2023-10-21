@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca3d1d46e4be4df1b28028d25c825374, type: 3}
+  m_Name: DamageEffectSkillControllerConfig
+  m_EditorClassIdentifier: 
+  runOnCastSkillConfigs: []
+  runOnExecutionSkillConfigs:
+  - {fileID: 11400000, guid: 1e3d78b0283e18d498c9cbd294d98daa, type: 2}
+  activationType: 0
+  areaMarker: {fileID: 0}
+  selectionTargetType: 0
+  ticksForFullPowerCharge: 0
+  powerChargeStepValues: 
+  castDurationTicks: 0
+  disableMoveOnCast: 0
+  executionDurationTicks: 0
+  disableMoveOnExecution: 0
+  cooldownTicks: 12

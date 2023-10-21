@@ -119,7 +119,8 @@ namespace Main.Scripts.Skills.ActiveSkills
             foreach (var (_, skillController) in skillControllersMap)
             {
                 skillController.SetListener(null);
-                skillController.Despawned(runner, hasState);
+                skillController.Despawned();
+                skillController.Release();
             }
 
             objectContext = null!;
@@ -181,7 +182,8 @@ namespace Main.Scripts.Skills.ActiveSkills
             SkillControllerConfig skillControllerConfig
         )
         {
-            var skillController = new SkillController(
+            var skillController = new SkillController();
+            skillController.Init(
                 skillControllerConfig: skillControllerConfig,
                 selfUnitTransform: transform,
                 alliesLayerMask: config.AlliesLayerMask,
@@ -213,7 +215,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             }
 
             data.currentSkillType = skillType;
-            skill.Activate(skillChargeManager.ChargeLevel);
+            skill.Activate(skillChargeManager.ChargeLevel, 0);
             var skillState = GetCurrentSkillState();
             if (shouldExecute
                 && skillState is ActiveSkillState.WaitingForTarget or ActiveSkillState.WaitingForPoint)

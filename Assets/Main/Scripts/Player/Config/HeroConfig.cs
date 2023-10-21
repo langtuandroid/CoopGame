@@ -1,6 +1,7 @@
+using Main.Scripts.Effects;
 using Main.Scripts.Skills.ActiveSkills;
-using Main.Scripts.Skills.PassiveSkills;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Main.Scripts.Player.Config
 {
@@ -18,17 +19,17 @@ namespace Main.Scripts.Player.Config
         [SerializeField]
         private ActiveSkillsConfig activeSkillsConfig;
         [SerializeField]
-        private PassiveSkillsConfig passiveSkillsConfig;
+        private EffectsConfig effectsConfig;
 
         public string Id => id;
         public uint MaxHealth => maxHealth;
         public float MoveSpeed => moveSpeed;
         public ref ActiveSkillsConfig ActiveSkillsConfig => ref activeSkillsConfig;
-        public ref PassiveSkillsConfig PassiveSkillsConfig => ref passiveSkillsConfig;
+        public ref EffectsConfig EffectsConfig => ref effectsConfig;
 
         private void OnValidate()
         {
-            PassiveSkillsManager.OnValidate(name, ref PassiveSkillsConfig);
+            EffectsManager.OnValidate(name, ref EffectsConfig);
             ActiveSkillsManager.OnValidate(ref ActiveSkillsConfig);
         }
     }

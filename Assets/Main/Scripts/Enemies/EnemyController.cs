@@ -11,7 +11,6 @@ using Main.Scripts.Core.GameLogic;
 using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Core.Resources;
 using Main.Scripts.Effects;
-using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui.HealthChangeDisplay;
 using Main.Scripts.Mobs.Config;
 using Main.Scripts.Skills.ActiveSkills;
@@ -52,8 +51,6 @@ namespace Main.Scripts.Enemies
         private ref ActiveSkillsData activeSkillsData => ref MakeRef<ActiveSkillsData>();
         [Networked]
         private ref HealthChangeDisplayData healthChangeDisplayData => ref MakeRef<HealthChangeDisplayData>();
-
-        private EffectDataChangeListener? effectDataChangeListener;
 
         private EnemyLogicDelegate enemyLogicDelegate = null!;
 
@@ -145,11 +142,6 @@ namespace Main.Scripts.Enemies
         public ref EnemyData GetEnemyData()
         {
             return ref enemyData;
-        }
-
-        public void SetEffectDataChangeListener(EffectDataChangeListener? effectDataChangeListener)
-        {
-            this.effectDataChangeListener = effectDataChangeListener;
         }
 
         public ref ActiveSkillsData GetActiveSkillsData()
@@ -291,56 +283,6 @@ namespace Main.Scripts.Enemies
                 durationTicks = durationTicks
             };
             enemyLogicDelegate.AddStun(ref data);
-        }
-
-        public void UpdateEffectData(int effectId, ref ActiveEffectData activeEffectData, bool isUnlimitedEffect)
-        {
-            //todo при переподключении клиента у него не будет изначальных данных об эффектах
-            if (!HasStateAuthority) return;
-            RPC_UpdateEffectData(effectId, activeEffectData, isUnlimitedEffect);
-        }
-
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_UpdateEffectData(int effectId, ActiveEffectData activeEffectData,
-            NetworkBool isUnlimitedEffect)
-        {
-            effectDataChangeListener?.OnUpdateEffectData(effectId, ref activeEffectData, isUnlimitedEffect);
-        }
-
-        public void RemoveLimitedEffectData(int effectId)
-        {
-            if (!HasStateAuthority) return;
-            RPC_RemoveLimitedEffectData(effectId);
-        }
-
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_RemoveLimitedEffectData(int effectId)
-        {
-            effectDataChangeListener?.OnRemoveLimitedEffectData(effectId);
-        }
-
-        public void UpdateStatAdditiveSum(StatType statType, float constValue, float percentValue)
-        {
-            if (!HasStateAuthority) return;
-            RPC_UpdateStatAdditiveSum(statType, constValue, percentValue);
-        }
-
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_UpdateStatAdditiveSum(StatType statType, float constValue, float percentValue)
-        {
-            effectDataChangeListener?.OnUpdateStatAdditiveSum(statType, constValue, percentValue);
-        }
-
-        public void ResetAllEffectData()
-        {
-            if (!HasStateAuthority) return;
-            RPC_ResetAllEffectData();
-        }
-
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_ResetAllEffectData()
-        {
-            effectDataChangeListener?.OnResetAllEffectData();
         }
     }
 }

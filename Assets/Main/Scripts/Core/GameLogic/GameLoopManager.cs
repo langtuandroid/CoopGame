@@ -25,7 +25,6 @@ namespace Main.Scripts.Core.GameLogic
         private GameLoopPhase[] beforePhysicsPhases =
         {
             GameLoopPhase.SyncTransformBeforeAllPhase,
-            GameLoopPhase.EffectsRemoveFinishedPhase,
             GameLoopPhase.PlayerInputPhase,
             GameLoopPhase.StrategyPhase,
             GameLoopPhase.SkillChargeUpdate,
@@ -34,8 +33,8 @@ namespace Main.Scripts.Core.GameLogic
             GameLoopPhase.SkillUpdatePhase,
             GameLoopPhase.SkillVisualSpawnPhase,
             GameLoopPhase.EffectsApplyPhase,
-            GameLoopPhase.EffectsUpdatePhase,
             GameLoopPhase.ApplyActionsPhase,
+            GameLoopPhase.EffectsRemoveFinishedPhase,
             GameLoopPhase.DespawnPhase,
         };
         private GameLoopPhase[] physicsPhases =

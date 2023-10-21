@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9d28d4f14ad4b809501e406f1bb2ab0, type: 3}
+  m_Name: BonkTriggerEffectConfig
+  m_EditorClassIdentifier: 
+  maxStackCount: 1
+  durationTicks: 0
+  trigger: {fileID: 11400000, guid: 4028be693e3571c4d876f3a9ed1fc15f, type: 2}
+  skillControllerConfig: {fileID: 11400000, guid: 485b2ddd4a8aa094290e1cd78ad6e84b, type: 2}

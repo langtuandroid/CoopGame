@@ -16,7 +16,6 @@ using Main.Scripts.Mobs.Config;
 using Main.Scripts.Mobs.Config.Block.Action;
 using Main.Scripts.Skills;
 using Main.Scripts.Skills.ActiveSkills;
-using Main.Scripts.Skills.PassiveSkills;
 using Pathfinding;
 using UnityEngine;
 
@@ -44,7 +43,6 @@ namespace Main.Scripts.Enemies
         private ShaderMeshAnimator meshAnimator;
         
         private ActiveSkillsManager activeSkillsManager;
-        private PassiveSkillsManager passiveSkillsManager;
         private EffectsManager effectsManager;
 
         private MobConfig mobConfig = null!;
@@ -65,18 +63,16 @@ namespace Main.Scripts.Enemies
         private List<StunActionData> stunActions = new();
         private List<DamageActionData> damageActions = new();
         private List<HealActionData> healActions = new();
-        private List<EffectsCombination> effectActions = new();
 
         public readonly GameLoopPhase[] gameLoopPhases =
         {
-            GameLoopPhase.EffectsRemoveFinishedPhase,
             GameLoopPhase.StrategyPhase,
             GameLoopPhase.SkillActivationPhase,
             GameLoopPhase.SkillSpawnPhase,
             GameLoopPhase.SkillUpdatePhase,
             GameLoopPhase.EffectsApplyPhase,
-            GameLoopPhase.EffectsUpdatePhase,
             GameLoopPhase.ApplyActionsPhase,
+            GameLoopPhase.EffectsRemoveFinishedPhase,
             GameLoopPhase.DespawnPhase,
             GameLoopPhase.PhysicsUpdatePhase,
             GameLoopPhase.PhysicsUnitsLookPhase,
@@ -102,17 +98,12 @@ namespace Main.Scripts.Enemies
 
             effectsManager = new EffectsManager(
                 dataHolder: dataHolder,
-                eventListener: this,
-                effectsTarget: this
+                eventListener: this
             );
             activeSkillsManager = new ActiveSkillsManager(
                 dataHolder: dataHolder,
                 eventListener: this,
                 transform
-            );
-            passiveSkillsManager = new PassiveSkillsManager(
-                dataHolder: dataHolder,
-                transform: transform
             );
         }
 
@@ -126,18 +117,17 @@ namespace Main.Scripts.Enemies
             
             mobConfig = mobConfigsBank.GetMobConfig(enemyData.mobConfigKey);
             
-            effectsManager.Spawned(objectContext);
+            effectsManager.Spawned(
+                objectContext: objectContext,
+                isPlayerOwner: false,
+                config: ref mobConfig.EffectsConfig
+            );
             activeSkillsManager.Spawned(
                 objectContext: objectContext,
                 isPlayerOwner: false,
                 config: ref mobConfig.ActiveSkillsConfig
             );
-            passiveSkillsManager.Spawned(
-                objectContext: objectContext,
-                isPlayerOwner: false,
-                config: ref mobConfig.PassiveSkillsConfig
-            );
-            
+
             logicBlockDelegate = MobBlockDelegateHelper.Create(mobConfig.LogicBlockConfig);
 
             meshFilter.sharedMesh = mobConfig.MobMesh;
@@ -158,7 +148,6 @@ namespace Main.Scripts.Enemies
 
             effectsManager.Despawned(runner, hasState);
             activeSkillsManager.Despawned(runner, hasState);
-            passiveSkillsManager.Despawned(runner, hasState);
             
             MobBlockDelegateHelper.Release(logicBlockDelegate);
             logicBlockDelegate = null!;
@@ -176,8 +165,6 @@ namespace Main.Scripts.Enemies
             enemyData.isDead = false;
 
             lookDirection = transform.rotation * Vector3.forward;
-            
-            passiveSkillsManager.ApplyInitialEffects();
         }
 
         private void ResetState()
@@ -187,7 +174,6 @@ namespace Main.Scripts.Enemies
             stunActions.Clear();
             damageActions.Clear();
             healActions.Clear();
-            effectActions.Clear();
             shouldDespawn = false;
             movementDeltaTicks = default;
             lastAnimationTriggerId = default;
@@ -213,26 +199,23 @@ namespace Main.Scripts.Enemies
         {
             switch (phase)
             {
-                case GameLoopPhase.EffectsRemoveFinishedPhase:
-                    effectsManager.RemoveFinishedEffects();
-                    break;
                 case GameLoopPhase.StrategyPhase:
                     OnStrategyPhase();
                     break;
                 case GameLoopPhase.SkillActivationPhase:
                 case GameLoopPhase.SkillUpdatePhase:
                 case GameLoopPhase.SkillSpawnPhase:
+                    effectsManager.OnGameLoopPhase(phase);
                     activeSkillsManager.OnGameLoopPhase(phase);
-                    passiveSkillsManager.OnGameLoopPhase(phase);
                     break;
                 case GameLoopPhase.EffectsApplyPhase:
-                    ApplyEffects();
-                    break;
-                case GameLoopPhase.EffectsUpdatePhase:
-                    effectsManager.UpdateEffects();
+                    effectsManager.OnGameLoopPhase(phase);
                     break;
                 case GameLoopPhase.ApplyActionsPhase:
                     OnApplyActionsPhase();
+                    break;
+                case GameLoopPhase.EffectsRemoveFinishedPhase:
+                    effectsManager.OnGameLoopPhase(phase);
                     break;
                 case GameLoopPhase.DespawnPhase:
                     OnDespawnPhase();
@@ -248,8 +231,8 @@ namespace Main.Scripts.Enemies
                     break;
                 case GameLoopPhase.VisualStateUpdatePhase:
                     OnVisualStateUpdatePhase();
+                    effectsManager.OnGameLoopPhase(phase);
                     activeSkillsManager.OnGameLoopPhase(phase);
-                    passiveSkillsManager.OnGameLoopPhase(phase);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(phase), phase, null);
@@ -585,17 +568,7 @@ namespace Main.Scripts.Enemies
 
         public void AddEffects(EffectsCombination effectsCombination)
         {
-            effectActions.Add(effectsCombination);
-        }
-
-        private void ApplyEffects()
-        {
-            foreach (var effectsCombination in effectActions)
-            {
-                effectsManager.AddEffects(effectsCombination.Effects);
-            }
-
-            effectActions.Clear();
+            effectsManager.AddEffects(effectsCombination);
         }
 
         private void UpdateAnimationState(ref EnemyData enemyData)
@@ -698,8 +671,7 @@ namespace Main.Scripts.Enemies
         public interface DataHolder :
             EffectsManager.DataHolder,
             ActiveSkillsManager.DataHolder,
-            HealthChangeDisplayManager.DataHolder,
-            PassiveSkillsManager.DataHolder
+            HealthChangeDisplayManager.DataHolder
         {
             public ref EnemyData GetEnemyData();
         }

@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
 using FSG.MeshAnimator.ShaderAnimated;
+using Main.Scripts.Effects;
 using Main.Scripts.Mobs.Config.Animations;
 using Main.Scripts.Mobs.Config.Block;
 using Main.Scripts.Skills.ActiveSkills;
-using Main.Scripts.Skills.PassiveSkills;
 using UnityEngine;
 
 namespace Main.Scripts.Mobs.Config
@@ -26,7 +25,7 @@ namespace Main.Scripts.Mobs.Config
         [SerializeField]
         public ActiveSkillsConfig activeSkillsConfig;
         [SerializeField]
-        private PassiveSkillsConfig passiveSkillsConfig;
+        private EffectsConfig effectsConfig;
         [SerializeField]
         private LayerMask alliesLayerMask;
         [SerializeField]
@@ -38,7 +37,7 @@ namespace Main.Scripts.Mobs.Config
         public Mesh MobMesh => mobMesh;
         public ref MobAnimationsData Animations => ref animations;
         public ref ActiveSkillsConfig ActiveSkillsConfig => ref activeSkillsConfig;
-        public ref PassiveSkillsConfig PassiveSkillsConfig => ref passiveSkillsConfig;
+        public ref EffectsConfig EffectsConfig => ref effectsConfig;
         public LayerMask AlliesLayerMask => alliesLayerMask;
         public LayerMask OpponentsLayerMask => opponentsLayerMask;
 
@@ -49,7 +48,7 @@ namespace Main.Scripts.Mobs.Config
 
         private void OnValidate()
         {
-            PassiveSkillsManager.OnValidate(name, ref PassiveSkillsConfig);
+            EffectsManager.OnValidate(name, ref EffectsConfig);
             ActiveSkillsManager.OnValidate(ref ActiveSkillsConfig); //todo validate activate types
         }
 

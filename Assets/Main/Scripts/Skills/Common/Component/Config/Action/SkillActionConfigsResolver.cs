@@ -10,6 +10,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
             ModifierIdsBank bank,
             ref HeroData heroData,
             int heatLevel,
+            int stackCount,
             int powerChargeLevel,
             List<SkillActionBase> configs,
             List<SkillActionBase> resolvedConfigs
@@ -31,6 +32,9 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
                             case PowerChargeModifier:
                                 modifierLevel = powerChargeLevel;
                                 break;
+                            case StackCountModifier:
+                                modifierLevel = stackCount;
+                                break;
                         }
                     }
                     
@@ -41,6 +45,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
                         bank,
                         ref heroData,
                         heatLevel,
+                        stackCount,
                         powerChargeLevel,
                         actions.Value,
                         resolvedConfigs

@@ -3,7 +3,6 @@ namespace Main.Scripts.Core.GameLogic.Phases
     public enum GameLoopPhase
     {
         SyncTransformBeforeAllPhase,
-        EffectsRemoveFinishedPhase,
         PlayerInputPhase,
         StrategyPhase,
         SkillChargeUpdate,
@@ -12,8 +11,8 @@ namespace Main.Scripts.Core.GameLogic.Phases
         SkillUpdatePhase,
         SkillVisualSpawnPhase,
         EffectsApplyPhase,
-        EffectsUpdatePhase,
         ApplyActionsPhase,
+        EffectsRemoveFinishedPhase,
         DespawnPhase,
         PhysicsUpdatePhase,
         PhysicsSkillMovementPhase,

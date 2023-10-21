@@ -10,10 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5d752ba6ca1945169ed27d700872423d, type: 3}
-  m_Name: StartActionsPack
+  m_Name: ActionsPack
   m_EditorClassIdentifier: 
   findTargetsStrategies:
   - {fileID: 11400000, guid: aff232637e7859147bc2bca0cfa8c0eb, type: 2}
   actions:
-  - {fileID: 11400000, guid: 60a29fd48c07dde40b7b5dd054536c04, type: 2}
-  - {fileID: 11400000, guid: cd544f1aa23749942bfa26ada433cb5e, type: 2}
+  - {fileID: 11400000, guid: 40ba6d2bd25657441a537d3df9f814b4, type: 2}

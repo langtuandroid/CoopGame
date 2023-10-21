@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Fusion;
 using Main.Scripts.Effects.Stats;
 using Main.Scripts.Effects.Stats.Modifiers;
 using UnityEngine;
@@ -10,15 +9,12 @@ namespace Main.Scripts.Effects
 {
     public class EffectsBank : MonoBehaviour
     {
-        public const int UNLIMITED_EFFECTS_COUNT = 10;
-        public const int LIMITED_EFFECTS_COUNT = 10;
-
         [SerializeField]
-        private List<EffectBase> effects = new();
+        private List<EffectConfigBase> effects = new();
         [SerializeField]
         private List<EffectsCombination> effectsCombinations = new();
 
-        private Dictionary<int, EffectBase> effectsMap = default!;
+        private Dictionary<int, EffectConfigBase> effectsMap = default!;
         private Dictionary<string, int> effectsIds = default!;
         
         private Dictionary<int, EffectsCombination> effectsCombinationsMap = default!;
@@ -26,7 +22,7 @@ namespace Main.Scripts.Effects
 
         private void Awake()
         {
-            effectsMap = new Dictionary<int, EffectBase>(effects.Count);
+            effectsMap = new Dictionary<int, EffectConfigBase>(effects.Count);
             effectsIds = new Dictionary<string, int>(effects.Count);
             
             effectsCombinationsMap = new Dictionary<int, EffectsCombination>(effects.Count);
@@ -64,10 +60,10 @@ namespace Main.Scripts.Effects
             effects.Clear();
             effectsCombinations.Clear();
 
-            var effectsObjects = Resources.LoadAll("Scriptable/Effects", typeof(EffectBase));
+            var effectsObjects = Resources.LoadAll("Scriptable/Effects", typeof(EffectConfigBase));
             foreach (var effectObject in effectsObjects)
             {
-                if (effectObject is EffectBase effect)
+                if (effectObject is EffectConfigBase effect)
                 {
                     if (effect.NameId.IsNullOrEmpty())
                     {
@@ -80,7 +76,7 @@ namespace Main.Scripts.Effects
                             $"{effect.name}: effect NameId {effect.NameId} is using in more then one effects");
                     }
                     
-                    if (effect is StatModifierEffect { StatType: StatType.ReservedDoNotUse })
+                    if (effect is StatModifierEffectConfig { StatType: StatType.ReservedDoNotUse })
                     {
                         throw new ArgumentException(
                             $"{effect.name}: unavailable stat type \"ReservedDoNotUse\" in modifier");
@@ -90,17 +86,7 @@ namespace Main.Scripts.Effects
                     effectsIdsSet.Add(effect.NameId);
                 }
             }
-            
-            var (unlimitedCount, limitedCount) = GetUnlimitedAndLimitedEffectsCounts();
-            if (unlimitedCount != UNLIMITED_EFFECTS_COUNT)
-            {
-                Debug.LogWarning($"The UNLIMITED_EFFECTS_COUNT is not equal to the registered value: {unlimitedCount}");
-            }
-            if (limitedCount != LIMITED_EFFECTS_COUNT)
-            {
-                Debug.LogWarning($"The LIMITED_EFFECTS_COUNT is not equal to the registered value: {limitedCount}");
-            }
-            
+
             var effectsCombinationsObjects = Resources.LoadAll("Scriptable/EffectsCombinations", typeof(EffectsCombination));
             foreach (var effectsCombinationObject in effectsCombinationsObjects)
             {
@@ -123,7 +109,7 @@ namespace Main.Scripts.Effects
             }
         }
 
-        public EffectBase GetEffect(int id)
+        public EffectConfigBase GetEffect(int id)
         {
             if (!effectsMap.ContainsKey(id))
             {
@@ -133,14 +119,14 @@ namespace Main.Scripts.Effects
             return effectsMap[id];
         }
 
-        public int GetEffectId(EffectBase effect)
+        public int GetEffectId(EffectConfigBase effectConfig)
         {
-            if (!effectsIds.ContainsKey(effect.NameId))
+            if (!effectsIds.ContainsKey(effectConfig.NameId))
             {
-                throw new ArgumentException($"{effect.name}: effect is not registered in EffectsBank. Check effect file path.");
+                throw new ArgumentException($"{effectConfig.name}: effect is not registered in EffectsBank. Check effect file path.");
             }
 
-            return effectsIds[effect.NameId];
+            return effectsIds[effectConfig.NameId];
         }
 
         public EffectsCombination GetEffectsCombination(int id)
@@ -161,25 +147,6 @@ namespace Main.Scripts.Effects
             }
 
             return effectsCombinationsIds[effectsCombination.NameId];
-        }
-
-        private KeyValuePair<int, int> GetUnlimitedAndLimitedEffectsCounts()
-        {
-            var unlimitedEffectsSum = 0;
-            var limitedEffectsSum = 0;
-            foreach (var effect in effects)
-            {
-                if (effect.DurationTicks == 0)
-                {
-                    unlimitedEffectsSum++;
-                }
-                else
-                {
-                    limitedEffectsSum++;
-                }
-            }
-
-            return new KeyValuePair<int, int>(unlimitedEffectsSum, limitedEffectsSum);
         }
     }
 }

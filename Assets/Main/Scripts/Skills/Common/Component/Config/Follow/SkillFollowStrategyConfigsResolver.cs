@@ -10,6 +10,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
             ModifierIdsBank bank,
             ref HeroData heroData,
             int chargeLevel,
+            int stackCount,
             int powerChargeLevel,
             SkillFollowStrategyBase config,
             out SkillFollowStrategyBase resolvedConfig
@@ -29,6 +30,9 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
                         case PowerChargeModifier:
                             modifierLevel = powerChargeLevel;
                             break;
+                        case StackCountModifier:
+                            modifierLevel = stackCount;
+                            break;
                     }
                 }
                 
@@ -39,6 +43,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
                     bank,
                     ref heroData,
                     chargeLevel,
+                    stackCount,
                     powerChargeLevel,
                     followStrategy,
                     out resolvedConfig

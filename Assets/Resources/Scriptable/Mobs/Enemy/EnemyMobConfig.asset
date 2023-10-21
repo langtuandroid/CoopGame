@@ -35,14 +35,13 @@ MonoBehaviour:
     FirstSkillConfig: {fileID: 0}
     SecondSkillConfig: {fileID: 0}
     ThirdSkillConfig: {fileID: 0}
-  passiveSkillsConfig:
+  effectsConfig:
     AlliesLayerMask:
       serializedVersion: 2
-      m_Bits: 256
+      m_Bits: 0
     OpponentsLayerMask:
       serializedVersion: 2
-      m_Bits: 128
-    PassiveSkillControllersDataList: []
+      m_Bits: 0
     InitialEffects: []
   alliesLayerMask:
     serializedVersion: 2

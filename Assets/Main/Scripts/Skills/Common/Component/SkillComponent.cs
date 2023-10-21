@@ -46,6 +46,7 @@ namespace Main.Scripts.Skills.Common.Component
         private NetworkRunner runner = null!;
         private PlayerRef ownerId;
         private int chargeLevel;
+        private int stackCount;
         private Vector3 initialMapPoint;
         private Vector3 dynamicMapPoint;
         private int powerChargeLevel;
@@ -102,6 +103,7 @@ namespace Main.Scripts.Skills.Common.Component
             Quaternion rotation,
             PlayerRef ownerId,
             int chargeLevel,
+            int stackCount,
             Vector3 initialMapPoint,
             Vector3 dynamicMapPoint,
             int powerChargeLevel,
@@ -117,6 +119,7 @@ namespace Main.Scripts.Skills.Common.Component
             Rotation = rotation;
             this.ownerId = ownerId;
             this.chargeLevel = chargeLevel;
+            this.stackCount = stackCount;
             this.initialMapPoint = initialMapPoint;
             this.dynamicMapPoint = dynamicMapPoint;
             this.powerChargeLevel = powerChargeLevel;
@@ -158,6 +161,7 @@ namespace Main.Scripts.Skills.Common.Component
                 modifierIdsBank,
                 ref heroData,
                 chargeLevel,
+                stackCount,
                 powerChargeLevel,
                 skillConfig.FollowStrategy,
                 out followStrategy
@@ -169,6 +173,7 @@ namespace Main.Scripts.Skills.Common.Component
                     modifierIdsBank,
                     ref heroData,
                     chargeLevel,
+                    stackCount,
                     powerChargeLevel,
                     skillTriggerPack.ActionTrigger,
                     out var resolvedActionTrigger
@@ -187,6 +192,7 @@ namespace Main.Scripts.Skills.Common.Component
                         modifierIdsBank,
                         ref heroData,
                         chargeLevel,
+                        stackCount,
                         powerChargeLevel,
                         skillActionsPack,
                         resolvedDataOut
@@ -742,6 +748,7 @@ namespace Main.Scripts.Skills.Common.Component
                             rotation: spawnRotation,
                             ownerId: ownerId,
                             chargeLevel: chargeLevel,
+                            stackCount: stackCount,
                             initialMapPoint: initialMapPoint,
                             dynamicMapPoint: dynamicMapPoint,
                             powerChargeLevel: powerChargeLevel,

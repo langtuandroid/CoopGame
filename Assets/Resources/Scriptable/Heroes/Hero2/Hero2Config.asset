@@ -27,14 +27,11 @@ MonoBehaviour:
     FirstSkillConfig: {fileID: 11400000, guid: b7fed8c02bc5bdf40ba323e60c826d20, type: 2}
     SecondSkillConfig: {fileID: 11400000, guid: 17c8584b985740441a6039183415b6c6, type: 2}
     ThirdSkillConfig: {fileID: 11400000, guid: 9c45539eb9b82db4c882f02f7cc493b1, type: 2}
-  passiveSkillsConfig:
+  effectsConfig:
     AlliesLayerMask:
       serializedVersion: 2
-      m_Bits: 128
+      m_Bits: 0
     OpponentsLayerMask:
       serializedVersion: 2
-      m_Bits: 256
-    PassiveSkillControllersDataList:
-    - PassiveSkillTrigger: {fileID: 11400000, guid: 4028be693e3571c4d876f3a9ed1fc15f, type: 2}
-      SkillControllerConfig: {fileID: 11400000, guid: 485b2ddd4a8aa094290e1cd78ad6e84b, type: 2}
+      m_Bits: 0
     InitialEffects: []

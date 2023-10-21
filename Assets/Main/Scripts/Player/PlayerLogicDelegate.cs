@@ -17,7 +17,6 @@ using Main.Scripts.Player.Data;
 using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills;
 using Main.Scripts.Skills.ActiveSkills;
-using Main.Scripts.Skills.PassiveSkills;
 using Main.Scripts.UI.Gui;
 using Main.Scripts.Utils;
 using Pathfinding.RVO;
@@ -54,7 +53,6 @@ namespace Main.Scripts.Player
         private Animator animator;
 
         private ActiveSkillsManager activeSkillsManager;
-        private PassiveSkillsManager passiveSkillsManager;
         private EffectsManager effectsManager;
         private CharacterCustomizationSkinned characterCustomization;
         private HealthChangeDisplayManager? healthChangeDisplayManager;
@@ -79,7 +77,6 @@ namespace Main.Scripts.Player
 
         private List<DamageActionData> damageActions = new();
         private List<HealActionData> healActions = new();
-        private List<EffectsCombination> effectActions = new();
         private List<DashActionData> dashActions = new();
 
         public PlayerLogicDelegate(
@@ -104,16 +101,11 @@ namespace Main.Scripts.Player
 
             effectsManager = new EffectsManager(
                 dataHolder: dataHolder,
-                eventListener: this,
-                effectsTarget: this
+                eventListener: this
             );
             activeSkillsManager = new ActiveSkillsManager(
                 dataHolder: dataHolder,
                 eventListener: this,
-                transform: transform
-            );
-            passiveSkillsManager = new PassiveSkillsManager(
-                dataHolder: dataHolder,
                 transform: transform
             );
 
@@ -134,16 +126,15 @@ namespace Main.Scripts.Player
             heroConfigsBank = dataHolder.GetCachedComponent<HeroConfigsBank>();
             heroConfig = heroConfigsBank.GetHeroConfig(data.heroConfigKey);
 
-            effectsManager.Spawned(objectContext);
+            effectsManager.Spawned(
+                objectContext: objectContext,
+                isPlayerOwner: true,
+                config: ref heroConfig.EffectsConfig
+            );
             activeSkillsManager.Spawned(
                 objectContext: objectContext,
                 isPlayerOwner: true,
                 config: ref heroConfig.ActiveSkillsConfig
-            );
-            passiveSkillsManager.Spawned(
-                objectContext: objectContext,
-                isPlayerOwner: true,
-                config: ref heroConfig.PassiveSkillsConfig
             );
             healthChangeDisplayManager?.Spawned(objectContext);
 
@@ -178,7 +169,6 @@ namespace Main.Scripts.Player
             ClearActions();
 
             effectsManager.ResetOnRespawn();
-            passiveSkillsManager.ResetOnRespawn();
             
             InitState(ref data);
 
@@ -193,14 +183,13 @@ namespace Main.Scripts.Player
             data.speed = heroConfig.MoveSpeed;
             data.health = data.maxHealth;
 
-            passiveSkillsManager.ApplyInitialEffects(); //init after reset effectsManager
+            effectsManager.ApplyInitialEffects(); //init after reset effectsManager
         }
 
         public void Despawned(NetworkRunner runner, bool hasState)
         {
             effectsManager.Despawned(runner, hasState);
             activeSkillsManager.Despawned(runner, hasState);
-            passiveSkillsManager.Despawned(runner, hasState);
             healthChangeDisplayManager?.Despawned(runner, hasState);
             playerDataManager.OnHeroDataChangedEvent.RemoveListener(OnPlayerDataChanged);
 
@@ -217,7 +206,6 @@ namespace Main.Scripts.Player
         {
             damageActions.Clear();
             healActions.Clear();
-            effectActions.Clear();
             dashActions.Clear();
         }
 
@@ -259,7 +247,7 @@ namespace Main.Scripts.Player
             ref var data = ref dataHolder.GetPlayerLogicData();
 
             UpdateState(ref data, PlayerState.Active);
-            passiveSkillsManager.OnSpawn();
+            effectsManager.OnSpawn();
         }
 
         public PlayerState GetPlayerState()
@@ -275,23 +263,20 @@ namespace Main.Scripts.Player
             {
                 case GameLoopPhase.PlayerInputPhase:
                     break;
-                case GameLoopPhase.EffectsRemoveFinishedPhase:
-                    OnEffectsRemoveFinishedPhase();
-                    break;
                 case GameLoopPhase.SkillActivationPhase:
                 case GameLoopPhase.SkillUpdatePhase:
                 case GameLoopPhase.SkillSpawnPhase:
+                    effectsManager.OnGameLoopPhase(phase);
                     activeSkillsManager.OnGameLoopPhase(phase);
-                    passiveSkillsManager.OnGameLoopPhase(phase);
                     break;
                 case GameLoopPhase.EffectsApplyPhase:
-                    OnEffectsApplyPhase();
-                    break;
-                case GameLoopPhase.EffectsUpdatePhase:
-                    OnEffectsUpdatePhase();
+                    effectsManager.OnGameLoopPhase(phase);
                     break;
                 case GameLoopPhase.ApplyActionsPhase:
                     OnApplyActionsPhase();
+                    break;
+                case GameLoopPhase.EffectsRemoveFinishedPhase:
+                    effectsManager.OnGameLoopPhase(phase);
                     break;
                 case GameLoopPhase.PhysicsUpdatePhase:
                     OnPhysicsUpdatePhase();
@@ -304,31 +289,12 @@ namespace Main.Scripts.Player
                     break;
                 case GameLoopPhase.VisualStateUpdatePhase:
                     OnVisualStateUpdatePhase();
+                    effectsManager.OnGameLoopPhase(phase);
                     activeSkillsManager.OnGameLoopPhase(phase);
-                    passiveSkillsManager.OnGameLoopPhase(phase);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(phase), phase, null);
             }
-        }
-
-        private void OnEffectsRemoveFinishedPhase()
-        {
-            effectsManager.RemoveFinishedEffects();
-        }
-
-        private void OnEffectsApplyPhase()
-        {
-            foreach (var effectsCombination in effectActions)
-            {
-                effectsManager.AddEffects(effectsCombination.Effects); //todo effectActions внутрь effectsManager-а
-            }
-            effectActions.Clear();
-        }
-
-        private void OnEffectsUpdatePhase()
-        {
-            effectsManager.UpdateEffects();
         }
 
         private void OnApplyActionsPhase()
@@ -495,8 +461,7 @@ namespace Main.Scripts.Player
                 if (objectContext.HasStateAuthority)
                 {
                     UpdateState(ref playerLogicData, PlayerState.Dead);
-                    //todo мы не можем гарантировать порядок нанесения урона, поэтому не можем определить кто именно нанёс смертельный удар
-                    passiveSkillsManager.OnDead(null);
+                    effectsManager.OnDead();
                 }
             }
         }
@@ -722,7 +687,7 @@ namespace Main.Scripts.Player
 
         private void ApplyDamage(ref PlayerLogicData playerLogicData, ref DamageActionData actionData)
         {
-            passiveSkillsManager.OnTakenDamage(actionData.damageValue, actionData.damageOwner);
+            effectsManager.OnTakenDamage(actionData.damageValue, actionData.damageOwner);
 
             if (playerLogicData.health - actionData.damageValue < HEALTH_THRESHOLD)
             {
@@ -764,7 +729,7 @@ namespace Main.Scripts.Player
         {
             playerLogicData.health = Math.Min(playerLogicData.health + actionData.healValue, playerLogicData.maxHealth);
 
-            passiveSkillsManager.OnTakenHeal(objectContext.StateAuthority, actionData.healValue, actionData.healOwner);
+            effectsManager.OnTakenHeal(objectContext.StateAuthority, actionData.healValue, actionData.healOwner);
             if (healthChangeDisplayManager != null)
             {
                 healthChangeDisplayManager.ApplyHeal(actionData.healValue);
@@ -773,7 +738,7 @@ namespace Main.Scripts.Player
 
         public void AddEffects(EffectsCombination effectsCombination)
         {
-            effectActions.Add(effectsCombination);
+            effectsManager.AddEffects(effectsCombination);
         }
 
         public void OnPickUp(DropType dropType)
@@ -829,8 +794,7 @@ namespace Main.Scripts.Player
         public interface DataHolder :
             EffectsManager.DataHolder,
             ActiveSkillsManager.DataHolder,
-            HealthChangeDisplayManager.DataHolder,
-            PassiveSkillsManager.DataHolder
+            HealthChangeDisplayManager.DataHolder
         {
             public ref PlayerLogicData GetPlayerLogicData();
         }

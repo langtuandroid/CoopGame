@@ -1,129 +1,139 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Fusion;
 using Main.Scripts.Core.Architecture;
-using Main.Scripts.Effects.PeriodicEffects;
-using Main.Scripts.Effects.PeriodicEffects.Handlers;
-using Main.Scripts.Effects.PeriodicEffects.Handlers.Damage;
-using Main.Scripts.Effects.PeriodicEffects.Handlers.Heal;
+using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Effects.Stats;
 using Main.Scripts.Effects.Stats.Modifiers;
+using Main.Scripts.Effects.TriggerEffects;
+using Main.Scripts.Effects.TriggerEffects.Triggers;
+using Main.Scripts.Skills.Charge;
+using Main.Scripts.Skills.Common.Controller;
+using UnityEngine;
+using UnityEngine.Pool;
 
 namespace Main.Scripts.Effects
 {
-    public class EffectsManager: EffectDataChangeListener
+    public class EffectsManager
     {
         private DataHolder dataHolder;
         private EventListener eventListener;
-        private NetworkObject objectContext = default!;
+        private NetworkObject objectContext = null!;
+        private bool isPlayerOwner;
+        private EffectsConfig config;
 
-        private EffectsBank effectsBank = default!;
-        
-        private Dictionary<int, ActiveEffectData> unlimitedEffectDataMap = new();
-        private Dictionary<int, ActiveEffectData> limitedEffectDataMap = new();
+        private EffectsBank effectsBank = null!;
+        private SkillChargeManager skillChargeManager = null!;
+
+        private Dictionary<EffectType, Dictionary<int, ActiveEffectData>> unlimitedEffectDataMap = new();
+        private Dictionary<EffectType, Dictionary<int, ActiveEffectData>> limitedEffectDataMap = new();
         private float[] statConstAdditiveSums = new float[(int)StatType.ReservedDoNotUse];
         private float[] statPercentAdditiveSums = new float[(int)StatType.ReservedDoNotUse];
 
-        private Dictionary<PeriodicEffectType, PeriodicEffectsHandler> periodicEffectsHandlers = new();
-        private List<List<ActiveEffectData>> periodicEffectsDataToHandle = new();
-        private List<int> endedEffectIds = new();
+        private Dictionary<int, EffectSkillController> passiveSkillControllersMap = new();
+        private HashSet<EffectType> triggersToActivate = new();
+        private List<EffectsCombination> effectAddActions = new();
+
         private HashSet<StatType> updatedStatTypes = new();
+        private List<int> removedEffectIds = new();
 
         public EffectsManager(
             DataHolder dataHolder,
-            EventListener eventListener,
-            object effectsTarget
+            EventListener eventListener
         )
         {
             this.dataHolder = dataHolder;
             this.eventListener = eventListener;
 
-            InitEffectsHandlers(effectsTarget);
+            foreach (var triggerType in Enum.GetValues(typeof(EffectType)).Cast<EffectType>())
+            {
+                unlimitedEffectDataMap[triggerType] = new Dictionary<int, ActiveEffectData>();
+                limitedEffectDataMap[triggerType] = new Dictionary<int, ActiveEffectData>();
+            }
         }
 
-        public void Spawned(NetworkObject objectContext)
+        public static void OnValidate(string name, ref EffectsConfig config)
+        {
+            foreach (var effectsCombination in config.InitialEffects)
+            {
+                if (effectsCombination == null)
+                {
+                    throw new ArgumentNullException(
+                        $"{name}: has empty value in PassiveSkillsConfig::InitialEffects");
+                }
+
+                foreach (var effectConfig in effectsCombination.Effects)
+                {
+                    if (effectConfig is TriggerEffectConfig triggerEffectConfig)
+                    {
+                        SkillConfigsValidationHelper.Validate(triggerEffectConfig.SkillControllerConfig);
+                    }
+                }
+            }
+        }
+
+        public void Spawned(
+            NetworkObject objectContext,
+            bool isPlayerOwner,
+            ref EffectsConfig config
+        )
         {
             this.objectContext = objectContext;
+            this.isPlayerOwner = isPlayerOwner;
+            this.config = config;
             effectsBank = dataHolder.GetCachedComponent<EffectsBank>();
-            dataHolder.SetEffectDataChangeListener(this);
+            skillChargeManager = dataHolder.GetCachedComponent<SkillChargeManager>();
         }
 
         public void Despawned(NetworkRunner runner, bool hasState)
         {
             ResetState();
 
-            objectContext = default!;
-            effectsBank = default!;
-
-            dataHolder.SetEffectDataChangeListener(null);
+            objectContext = null!;
+            effectsBank = null!;
+            skillChargeManager = null!;
         }
 
         public void ResetOnRespawn()
         {
-            dataHolder.ResetAllEffectData();
+            ResetState();
         }
 
         private void ResetState()
         {
-            endedEffectIds.Clear();
             updatedStatTypes.Clear();
-                
-            unlimitedEffectDataMap.Clear();
-            limitedEffectDataMap.Clear();
+            effectAddActions.Clear();
+
+            foreach (var (_, passiveSkillController) in passiveSkillControllersMap)
+            {
+                passiveSkillController.Despawned();
+                passiveSkillController.Release();
+                GenericPool<EffectSkillController>.Release(passiveSkillController);
+            }
+
+            passiveSkillControllersMap.Clear();
+
+            foreach (var (_, typedEffectsMap) in unlimitedEffectDataMap)
+            {
+                typedEffectsMap.Clear();
+            }
+
+            foreach (var (_, typedEffectsMap) in limitedEffectDataMap)
+            {
+                typedEffectsMap.Clear();
+            }
+
             Array.Fill(statConstAdditiveSums, 0f);
             Array.Fill(statPercentAdditiveSums, 0f);
         }
 
-        public void UpdateEffects()
+
+        public void ApplyInitialEffects()
         {
-            foreach (var periodicEffectsList in periodicEffectsDataToHandle)
+            foreach (var effects in config.InitialEffects)
             {
-                periodicEffectsList.Clear();
-            }
-
-            foreach (var (_, data) in unlimitedEffectDataMap)
-            {
-                if (effectsBank.GetEffect(data.EffectId) is PeriodicEffectBase periodicEffect)
-                {
-                    periodicEffectsDataToHandle[(int)periodicEffect.PeriodicEffectType].Add(data);
-                }
-            }
-
-            foreach (var (_, data) in limitedEffectDataMap)
-            {
-                if (effectsBank.GetEffect(data.EffectId) is PeriodicEffectBase periodicEffect)
-                {
-                    periodicEffectsDataToHandle[(int)periodicEffect.PeriodicEffectType].Add(data);
-                }
-            }
-
-            foreach (var dataList in periodicEffectsDataToHandle)
-            {
-                foreach (var data in dataList)
-                {
-                    if (effectsBank.GetEffect(data.EffectId) is PeriodicEffectBase periodicEffect)
-                    {
-                        HandlePeriodicEffect(periodicEffect, data.StartTick, data.StackCount);
-                    }
-                }
-            }
-        }
-
-        public void AddEffects(IEnumerable<EffectBase> effects)
-        {
-            updatedStatTypes.Clear();
-            foreach (var effect in effects)
-            {
-                AddEffect(effect);
-                if (effect is StatModifierEffect modifier)
-                {
-                    updatedStatTypes.Add(modifier.StatType);
-                }
-            }
-
-            foreach (var statType in updatedStatTypes)
-            {
-                eventListener.OnUpdatedStatModifiers(statType);
+                ApplyEffects(effects.Effects);
             }
         }
 
@@ -135,139 +145,78 @@ namespace Main.Scripts.Effects
 
             return (defaultStatValue + constAdditive) * (percentAdditive + 100) * 0.01f;
         }
-        
-        public void OnUpdateEffectData(int effectId, ref ActiveEffectData activeEffectData, bool isUnlimitedEffect)
+
+        public void OnGameLoopPhase(GameLoopPhase phase)
         {
-            if (isUnlimitedEffect)
+            switch (phase)
             {
-                unlimitedEffectDataMap[effectId] = activeEffectData;
-            }
-            else
-            {
-                limitedEffectDataMap[effectId] = activeEffectData;
-            }
-        }
-
-        public void OnRemoveLimitedEffectData(int effectId)
-        {
-            limitedEffectDataMap.Remove(effectId);
-        }
-
-        public void OnUpdateStatAdditiveSum(StatType statType, float constValue, float percentValue)
-        {
-            statConstAdditiveSums[(int)statType] = constValue;
-            statPercentAdditiveSums[(int)statType] = percentValue;
-        }
-
-        public void OnResetAllEffectData()
-        {
-            ResetState();
-        }
-
-        private void InitEffectsHandlers(object effectsTarget)
-        {
-            periodicEffectsHandlers.Add(PeriodicEffectType.Damage, new DamagePeriodicEffectsHandler());
-            periodicEffectsHandlers.Add(PeriodicEffectType.Heal, new HealPeriodicEffectsHandler());
-
-            foreach (var (_, effectsHandler) in periodicEffectsHandlers)
-            {
-                effectsHandler.TrySetTarget(effectsTarget);
-            }
-
-            var typesCount = Enum.GetValues(typeof(PeriodicEffectType)).Length;
-            for (var i = 0; i < typesCount; i++)
-            {
-                periodicEffectsDataToHandle.Add(new List<ActiveEffectData>());
-            }
-        }
-
-        private void HandlePeriodicEffect(PeriodicEffectBase periodicEffect, int startTick, int stackCount)
-        {
-            var tick = objectContext.Runner.Tick;
-
-            if ((tick - startTick) % periodicEffect.FrequencyTicks == 0)
-            {
-                periodicEffectsHandlers[periodicEffect.PeriodicEffectType].HandleEffect(periodicEffect, stackCount);
-            }
-        }
-
-        private void AddEffect(EffectBase effect)
-        {
-            var startTick = objectContext.Runner.Tick;
-            var endTick = 0;
-            var effectId = effectsBank.GetEffectId(effect);
-            ActiveEffectData? currentData = null;
-            if (effect.DurationTicks > 0)
-            {
-                endTick = startTick + effect.DurationTicks;
-                if (limitedEffectDataMap.ContainsKey(effectId))
-                {
-                    currentData = limitedEffectDataMap[effectId];
-                }
-            }
-            else
-            {
-                if (unlimitedEffectDataMap.ContainsKey(effectId))
-                {
-                    currentData = unlimitedEffectDataMap[effectId];
-                }
-            }
-
-
-            var newData = new ActiveEffectData(
-                effectId: effectId,
-                startTick: startTick,
-                endTick: endTick,
-                stackCount: Math.Min(currentData?.StackCount ?? 0 + 1, effect.MaxStackCount)
-            );
-
-            if (newData.EndTick > 0)
-            {
-                dataHolder.UpdateEffectData(newData.EffectId, ref newData, false);
-            }
-            else
-            {
-                dataHolder.UpdateEffectData(newData.EffectId, ref newData, true);
-            }
-
-            if (currentData?.StackCount != newData.StackCount && effect is StatModifierEffect modifier)
-            {
-                ApplyNewStatModifier(modifier);
-            }
-        }
-
-        private void ApplyNewStatModifier(StatModifierEffect modifierEffect)
-        {
-            var statType = modifierEffect.StatType;
-
-            dataHolder.UpdateStatAdditiveSum(
-                statType: statType,
-                constValue: statConstAdditiveSums[(int)statType] + modifierEffect.ConstAdditive,
-                percentValue: statPercentAdditiveSums[(int)statType] + modifierEffect.PercentAdditive
-            );
-        }
-
-        public void RemoveFinishedEffects()
-        {
-            endedEffectIds.Clear();
-            updatedStatTypes.Clear();
-
-            foreach (var (id, effectData) in limitedEffectDataMap)
-            {
-                if (objectContext.Runner.Tick > effectData.EndTick)
-                {
-                    endedEffectIds.Add(id);
-                    if (effectsBank.GetEffect(effectData.EffectId) is StatModifierEffect modifier)
+                case GameLoopPhase.SkillActivationPhase:
+                    ActivateTriggerEffects();
+                    break;
+                case GameLoopPhase.SkillUpdatePhase:
+                case GameLoopPhase.SkillSpawnPhase:
+                case GameLoopPhase.VisualStateUpdatePhase:
+                    foreach (var (_, skillController) in passiveSkillControllersMap)
                     {
-                        RemoveStatModifier(modifier, effectData.StackCount);
-                        updatedStatTypes.Add(modifier.StatType);
+                        skillController.OnGameLoopPhase(phase);
+                    }
+
+                    break;
+                case GameLoopPhase.EffectsApplyPhase:
+                    foreach (var effectAddAction in effectAddActions)
+                    {
+                        ApplyEffects(effectAddAction.Effects);
+                    }
+
+                    effectAddActions.Clear();
+                    break;
+                case GameLoopPhase.EffectsRemoveFinishedPhase:
+                    RemoveFinishedEffects();
+                    break;
+            }
+        }
+
+        private void ActivateTriggerEffects()
+        {
+            triggersToActivate.Add(EffectType.CooldownTrigger);
+            foreach (var triggerType in triggersToActivate)
+            {
+                foreach (var (_, data) in unlimitedEffectDataMap[triggerType])
+                {
+                    if (effectsBank.GetEffect(data.EffectId) is TriggerEffectConfig triggerEffect)
+                    {
+                        HandleTriggerEffect(in data, triggerEffect);
+                    }
+                }
+
+                foreach (var (_, data) in limitedEffectDataMap[EffectType.CooldownTrigger])
+                {
+                    if (effectsBank.GetEffect(data.EffectId) is TriggerEffectConfig triggerEffect)
+                    {
+                        HandleTriggerEffect(in data, triggerEffect);
                     }
                 }
             }
 
-            foreach (var id in endedEffectIds)
+            triggersToActivate.Clear();
+        }
+
+        public void AddEffects(EffectsCombination effectsCombination)
+        {
+            effectAddActions.Add(effectsCombination);
+        }
+
+        private void ApplyEffects(IEnumerable<EffectConfigBase> effects)
+        {
+            updatedStatTypes.Clear();
+
+            foreach (var effect in effects)
             {
-                dataHolder.RemoveLimitedEffectData(id);
+                ApplyEffect(effect);
+                if (effect is StatModifierEffectConfig modifier)
+                {
+                    updatedStatTypes.Add(modifier.StatType);
+                }
             }
 
             foreach (var statType in updatedStatTypes)
@@ -276,18 +225,213 @@ namespace Main.Scripts.Effects
             }
         }
 
-        private void RemoveStatModifier(StatModifierEffect modifierEffect, int stackCount)
+        private void ApplyEffect(EffectConfigBase effectConfig)
         {
-            var statType = modifierEffect.StatType;
-            
-            dataHolder.UpdateStatAdditiveSum(
+            var startTick = objectContext.Runner.Tick;
+            var endTick = 0;
+            var effectId = effectsBank.GetEffectId(effectConfig);
+            var effectType = GetEffectType(effectConfig);
+            ActiveEffectData? currentData = null;
+            if (effectConfig.DurationTicks > 0)
+            {
+                endTick = startTick + effectConfig.DurationTicks;
+                if (limitedEffectDataMap.TryGetValue(effectType, out var typedLimitedMap)
+                    && typedLimitedMap.ContainsKey(effectId))
+                {
+                    currentData = typedLimitedMap[effectId];
+                }
+            }
+            else
+            {
+                if (unlimitedEffectDataMap.TryGetValue(effectType, out var typedUnlimitedMap)
+                    && typedUnlimitedMap.ContainsKey(effectId))
+                {
+                    currentData = typedUnlimitedMap[effectId];
+                }
+            }
+
+
+            var newData = new ActiveEffectData(
+                effectId: effectId,
+                startTick: startTick,
+                endTick: endTick,
+                stackCount: Math.Min(currentData?.StackCount ?? 0 + 1, effectConfig.MaxStackCount)
+            );
+
+            if (effectConfig.IsUnlimited)
+            {
+                unlimitedEffectDataMap[GetEffectType(effectConfig)][effectId] = newData;
+            }
+            else
+            {
+                limitedEffectDataMap[GetEffectType(effectConfig)][effectId] = newData;
+            }
+
+            if (currentData?.StackCount != newData.StackCount && effectConfig is StatModifierEffectConfig modifier)
+            {
+                ApplyNewStatModifier(modifier);
+            }
+        }
+
+        private void ApplyNewStatModifier(StatModifierEffectConfig modifierEffectConfig)
+        {
+            var statType = modifierEffectConfig.StatType;
+
+            UpdateStatAdditiveSum(
                 statType: statType,
-                constValue: Math.Max(0, statConstAdditiveSums[(int)statType] - modifierEffect.ConstAdditive * stackCount),
-                percentValue: Math.Max(0, statPercentAdditiveSums[(int)statType] - modifierEffect.PercentAdditive * stackCount)
+                constValue: statConstAdditiveSums[(int)statType] + modifierEffectConfig.ConstAdditive,
+                percentValue: statPercentAdditiveSums[(int)statType] + modifierEffectConfig.PercentAdditive
             );
         }
 
-        public interface DataHolder : ComponentsHolder, EffectDataChanger {}
+        private void UpdateStatAdditiveSum(StatType statType, float constValue, float percentValue)
+        {
+            statConstAdditiveSums[(int)statType] = constValue;
+            statPercentAdditiveSums[(int)statType] = percentValue;
+        }
+
+        private void HandleTriggerEffect(in ActiveEffectData data, TriggerEffectConfig triggerEffectConfig)
+        {
+            if (!passiveSkillControllersMap.TryGetValue(data.EffectId, out var passiveSkillController))
+            {
+                passiveSkillController = GenericPool<EffectSkillController>.Get();
+
+                passiveSkillController.Init(
+                    passiveSkillTrigger: triggerEffectConfig.Trigger,
+                    skillControllerConfig: triggerEffectConfig.SkillControllerConfig,
+                    selfUnitTransform: objectContext.transform,
+                    alliesLayerMask: config.AlliesLayerMask,
+                    opponentsLayerMask: config.OpponentsLayerMask
+                );
+                passiveSkillController.Spawned(objectContext, isPlayerOwner);
+                passiveSkillControllersMap[data.EffectId] = passiveSkillController;
+            }
+
+            var selectedTarget = (NetworkObject?)null; //todo поддержать мульти таргет
+
+            switch (passiveSkillController.ActivationType)
+            {
+                case SkillActivationType.WithUnitTarget when selectedTarget != null:
+                    passiveSkillController.Activate(skillChargeManager.ChargeLevel, data.StackCount);
+                    passiveSkillController.ApplyUnitTarget(selectedTarget);
+                    passiveSkillController.Execute();
+                    break;
+                case SkillActivationType.WithUnitTarget when selectedTarget == null:
+                    Debug.LogError("PassiveSkillController: ActivationType is UnitTarget and SelectedTarget is null");
+                    break;
+                case SkillActivationType.Instantly:
+                    passiveSkillController.Activate(skillChargeManager.ChargeLevel, data.StackCount);
+                    break;
+                case SkillActivationType.WithMapPointTarget:
+                    Debug.LogError("PassiveSkillController: ActivationType MapPointTarget is not supported");
+                    break;
+                case SkillActivationType.WithPowerCharge:
+                    Debug.LogError("PassiveSkillController: ActivationType PowerCharge is not supported");
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private void RemoveFinishedEffects()
+        {
+            updatedStatTypes.Clear();
+            removedEffectIds.Clear();
+
+            foreach (var (_, typedLimitedEffectsMap) in limitedEffectDataMap)
+            {
+                foreach (var (effectId, effectData) in typedLimitedEffectsMap)
+                {
+                    if (objectContext.Runner.Tick > effectData.EndTick)
+                    {
+                        if (effectsBank.GetEffect(effectData.EffectId) is StatModifierEffectConfig modifier)
+                        {
+                            RemoveStatModifier(modifier, effectData.StackCount);
+                            updatedStatTypes.Add(modifier.StatType);
+                        }
+
+                        if (passiveSkillControllersMap.TryGetValue(effectId, out var passiveSkillController))
+                        {
+                            passiveSkillControllersMap.Remove(effectId);
+                            passiveSkillController.Despawned();
+                            passiveSkillController.Release();
+                            GenericPool<EffectSkillController>.Release(passiveSkillController);
+                        }
+
+                        removedEffectIds.Add(effectId);
+                    }
+                }
+
+                foreach (var effectId in removedEffectIds)
+                {
+                    typedLimitedEffectsMap.Remove(effectId);
+                }
+            }
+
+            foreach (var statType in updatedStatTypes)
+            {
+                eventListener.OnUpdatedStatModifiers(statType);
+            }
+        }
+
+        private void RemoveStatModifier(StatModifierEffectConfig modifierEffectConfig, int stackCount)
+        {
+            var statType = modifierEffectConfig.StatType;
+
+            UpdateStatAdditiveSum(
+                statType: statType,
+                constValue: Math.Max(0,
+                    statConstAdditiveSums[(int)statType] - modifierEffectConfig.ConstAdditive * stackCount),
+                percentValue: Math.Max(0,
+                    statPercentAdditiveSums[(int)statType] - modifierEffectConfig.PercentAdditive * stackCount)
+            );
+        }
+
+        public void OnSpawn()
+        {
+            triggersToActivate.Add(EffectType.SpawnTrigger);
+        }
+
+        public void OnDead()
+        {
+            triggersToActivate.Add(EffectType.DeadTrigger);
+        }
+
+        public void OnTakenDamage(float damageValue, NetworkObject? damageOwner)
+        {
+            triggersToActivate.Add(EffectType.TakenDamageTrigger);
+        }
+
+        public void OnTakenHeal(PlayerRef skillOwner, float healValue, NetworkObject? healOwner)
+        {
+            triggersToActivate.Add(EffectType.TakenHealTrigger);
+        }
+
+        private EffectType GetEffectType(EffectConfigBase effectConfig)
+        {
+            if (effectConfig is StatModifierEffectConfig)
+            {
+                return EffectType.StatModifier;
+            }
+
+            if (effectConfig is TriggerEffectConfig triggerEffectConfig)
+            {
+                return triggerEffectConfig.Trigger switch
+                {
+                    OnCooldownEffectTrigger => EffectType.CooldownTrigger,
+                    SpawnEffectTrigger => EffectType.SpawnTrigger,
+                    DeadEffectTrigger => EffectType.DeadTrigger,
+                    TakenDamageEffectTrigger => EffectType.TakenDamageTrigger,
+                    TakenHealEffectTrigger => EffectType.TakenHealTrigger,
+                    _ => throw new ArgumentOutOfRangeException(nameof(triggerEffectConfig.Trigger),
+                        triggerEffectConfig.Trigger, null)
+                };
+            }
+
+            throw new ArgumentException($"Effect type {effectConfig.GetType()} is not implemented");
+        }
+
+        public interface DataHolder : ComponentsHolder { }
 
         public interface EventListener
         {

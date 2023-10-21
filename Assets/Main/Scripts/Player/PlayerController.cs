@@ -13,7 +13,6 @@ using Main.Scripts.Core.Simulation;
 using Main.Scripts.Customization;
 using Main.Scripts.Drop;
 using Main.Scripts.Effects;
-using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui.HealthChangeDisplay;
 using Main.Scripts.Player.Config;
 using Main.Scripts.Skills.ActiveSkills;
@@ -56,20 +55,17 @@ namespace Main.Scripts.Player
         [Networked]
         private ref HealthChangeDisplayData healthChangeDisplayData => ref MakeRef<HealthChangeDisplayData>();
         
-        private EffectDataChangeListener? effectDataChangeListener;
-
         private PlayerLogicDelegate playerLogicDelegate = default!;
 
         private GameLoopPhase[] gameLoopPhases =
         {
-            GameLoopPhase.EffectsRemoveFinishedPhase,
             GameLoopPhase.PlayerInputPhase,
             GameLoopPhase.SkillActivationPhase,
             GameLoopPhase.SkillSpawnPhase,
             GameLoopPhase.SkillUpdatePhase,
             GameLoopPhase.EffectsApplyPhase,
-            GameLoopPhase.EffectsUpdatePhase,
             GameLoopPhase.ApplyActionsPhase,
+            GameLoopPhase.EffectsRemoveFinishedPhase,
             GameLoopPhase.PhysicsUpdatePhase,
             GameLoopPhase.PhysicsUnitsLookPhase,
             GameLoopPhase.AOIUpdatePhase,
@@ -232,11 +228,6 @@ namespace Main.Scripts.Player
         public T GetCachedComponent<T>() where T : Component
         {
             return (T)cachedComponents[typeof(T)];
-        }
-        
-        public void SetEffectDataChangeListener(EffectDataChangeListener? effectDataChangeListener)
-        {
-            this.effectDataChangeListener = effectDataChangeListener;
         }
 
         public ref PlayerLogicData GetPlayerLogicData()
@@ -404,50 +395,6 @@ namespace Main.Scripts.Player
                 durationTicks = durationTicks
             };
             playerLogicDelegate.AddDash(ref data);
-        }
-        
-        public void UpdateEffectData(int effectId, ref ActiveEffectData activeEffectData, bool isUnlimitedEffect)
-        {
-            RPC_UpdateEffectData(effectId, activeEffectData, isUnlimitedEffect);
-        }
-
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_UpdateEffectData(int effectId, ActiveEffectData activeEffectData, NetworkBool isUnlimitedEffect)
-        {
-            effectDataChangeListener?.OnUpdateEffectData(effectId, ref activeEffectData, isUnlimitedEffect);
-        }
-
-        public void RemoveLimitedEffectData(int effectId)
-        {
-            RPC_RemoveLimitedEffectData(effectId);
-        }
-
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_RemoveLimitedEffectData(int effectId)
-        {
-            effectDataChangeListener?.OnRemoveLimitedEffectData(effectId);
-        }
-
-        public void UpdateStatAdditiveSum(StatType statType, float constValue, float percentValue)
-        {
-            RPC_UpdateStatAdditiveSum(statType, constValue, percentValue);
-        }
-
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_UpdateStatAdditiveSum(StatType statType, float constValue, float percentValue)
-        {
-            effectDataChangeListener?.OnUpdateStatAdditiveSum(statType, constValue, percentValue);
-        }
-
-        public void ResetAllEffectData()
-        {
-            RPC_ResetAllEffectData();
-        }
-
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_ResetAllEffectData()
-        {
-            effectDataChangeListener?.OnResetAllEffectData();
         }
     }
 }

@@ -10,6 +10,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
             ModifierIdsBank bank,
             ref HeroData heroData,
             int chargeLevel,
+            int stackCount,
             int powerChargeLevel,
             SkillActionTriggerBase config,
             out SkillActionTriggerBase resolvedConfig
@@ -29,6 +30,9 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
                         case PowerChargeModifier:
                             modifierLevel = powerChargeLevel;
                             break;
+                        case StackCountModifier:
+                            modifierLevel = stackCount;
+                            break;
                     }
                 }
 
@@ -39,6 +43,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
                     bank,
                     ref heroData,
                     chargeLevel,
+                    stackCount,
                     powerChargeLevel,
                     trigger,
                     out resolvedConfig

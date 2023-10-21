@@ -10,6 +10,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
             ModifierIdsBank bank,
             ref HeroData heroData,
             int chargeLevel,
+            int stackCount,
             int powerChargeLevel,
             List<SkillFindTargetsStrategyBase> configs,
             List<SkillFindTargetsStrategyBase> resolvedConfigs
@@ -31,6 +32,9 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
                             case PowerChargeModifier:
                                 modifierLevel = powerChargeLevel;
                                 break;
+                            case StackCountModifier:
+                                modifierLevel = stackCount;
+                                break;
                         }
                     }
                     
@@ -42,6 +46,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
                         bank,
                         ref heroData,
                         chargeLevel,
+                        stackCount,
                         powerChargeLevel,
                         findTargetsStrategies.Value,
                         resolvedConfigs

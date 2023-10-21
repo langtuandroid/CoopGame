@@ -16,7 +16,7 @@ namespace Main.Scripts.Skills.Common.Controller
     public class SkillController
     {
         private NetworkObject objectContext = null!;
-        private SkillControllerConfig skillControllerConfig;
+        private SkillControllerConfig skillControllerConfig = null!;
         private PlayerRef ownerId;
 
         private Listener? listener;
@@ -28,6 +28,7 @@ namespace Main.Scripts.Skills.Common.Controller
         private int powerChargeLevel;
         private NetworkObject? selectedUnit;
         private int chargeLevel;
+        private int stackCount;
         private TickTimer skillRunningTimer;
         private TickTimer castTimer;
         private bool isActivating;
@@ -37,7 +38,7 @@ namespace Main.Scripts.Skills.Common.Controller
         
         private HashSet<SkillComponent> skillComponents = new();
         
-        private Transform selfUnitTransform;
+        private Transform selfUnitTransform = null!;
         private LayerMask alliesLayerMask;
         private LayerMask opponentsLayerMask;
 
@@ -54,7 +55,7 @@ namespace Main.Scripts.Skills.Common.Controller
         public SkillActivationType ActivationType => skillControllerConfig.ActivationType;
         public UnitTargetType SelectionTargetType => skillControllerConfig.SelectionTargetType;
 
-        public SkillController(
+        public void Init(
             SkillControllerConfig skillControllerConfig,
             Transform selfUnitTransform,
             LayerMask alliesLayerMask,
@@ -73,14 +74,23 @@ namespace Main.Scripts.Skills.Common.Controller
             ownerId = isPlayerOwner ? objectContext.StateAuthority : default;
             skillComponentsPoolHelper = LevelContext.Instance.ThrowWhenNull().SkillComponentsPoolHelper;
         }
+        
+        
+        public void Release()
+        {
+            skillControllerConfig = null!;
+            selfUnitTransform = null!;
+            alliesLayerMask = default;
+            opponentsLayerMask = default;
+        }
 
-        public void Despawned(NetworkRunner runner, bool hasState)
+        public void Despawned()
         {
             ResetOnFinish();
             
             objectContext = null!;
             skillComponentsPoolHelper = null!;
-            cooldownTimer = default!;
+            cooldownTimer = default;
 
             spawnActions.Clear();
         }
@@ -126,7 +136,7 @@ namespace Main.Scripts.Skills.Common.Controller
             }
         }
 
-        public bool Activate(int chargeLevel)
+        public bool Activate(int chargeLevel, int stackCount)
         {
             if (isActivating || IsSkillRunning || !cooldownTimer.ExpiredOrNotRunning(objectContext.Runner))
             {
@@ -136,6 +146,7 @@ namespace Main.Scripts.Skills.Common.Controller
             isActivating = true;
             activationTick = objectContext.Runner.Tick;
             this.chargeLevel = chargeLevel;
+            this.stackCount = stackCount;
 
             switch (skillControllerConfig.ActivationType)
             {
@@ -208,6 +219,10 @@ namespace Main.Scripts.Skills.Common.Controller
 
         private int GetPowerChargeProgress()
         {
+            if (skillControllerConfig.TicksToFullPowerCharge == 0)
+            {
+                return 100;
+            }
             return Math.Min(
                 100,
                 (int)(100 * (objectContext.Runner.Tick - activationTick) / (float)skillControllerConfig.TicksToFullPowerCharge)
@@ -440,6 +455,7 @@ namespace Main.Scripts.Skills.Common.Controller
                     rotation: rotation,
                     ownerId: ownerId,
                     chargeLevel: chargeLevel,
+                    stackCount: stackCount,
                     initialMapPoint: initialMapPoint,
                     dynamicMapPoint: dynamicMapPoint,
                     powerChargeLevel: powerChargeLevel,

@@ -1,7 +1,6 @@
 using Main.Scripts.Effects;
 using Main.Scripts.Skills.ActiveSkills;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Main.Scripts.Player.Config
 {
@@ -17,6 +16,8 @@ namespace Main.Scripts.Player.Config
         [Min(0f)]
         private float moveSpeed;
         [SerializeField]
+        private ActiveSkillType enableAutoAttackFor;
+        [SerializeField]
         private ActiveSkillsConfig activeSkillsConfig;
         [SerializeField]
         private EffectsConfig effectsConfig;
@@ -25,6 +26,7 @@ namespace Main.Scripts.Player.Config
         public uint MaxHealth => maxHealth;
         public float MoveSpeed => moveSpeed;
         public ref ActiveSkillsConfig ActiveSkillsConfig => ref activeSkillsConfig;
+        public ActiveSkillType EnableAutoAttackFor => enableAutoAttackFor;
         public ref EffectsConfig EffectsConfig => ref effectsConfig;
 
         private void OnValidate()

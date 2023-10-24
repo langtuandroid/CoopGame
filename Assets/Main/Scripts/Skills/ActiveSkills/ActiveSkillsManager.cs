@@ -338,6 +338,12 @@ namespace Main.Scripts.Skills.ActiveSkills
             return data.currentSkillState;
         }
 
+        public ActiveSkillType GetCurrentSkillType()
+        {
+            ref var data = ref dataHolder.GetActiveSkillsData();
+            return data.currentSkillType;
+        }
+
         public int GetSkillCooldownLeftTicks(ActiveSkillType skillType)
         {
             return getSkillByType(skillType)?.GetCooldownLeftTicks() ?? 0;

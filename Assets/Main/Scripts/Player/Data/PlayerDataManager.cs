@@ -213,9 +213,13 @@ namespace Main.Scripts.Player.Data
             var currentLevel = heroData.Modifiers.ModifiersLevel[modifierToken];
             if (currentLevel != level)
             {
-                heroData.UsedSkillPoints = (uint)((int)heroData.UsedSkillPoints - currentLevel + level);
-                heroData.Modifiers.ModifiersLevel.Set(modifierToken, level);
-                UpdatePlayerData(ref heroData);
+                var usedSkillPoints = (int)heroData.UsedSkillPoints - currentLevel + level;
+                if (usedSkillPoints >= 0 && usedSkillPoints <= heroData.MaxSkillPoints)
+                {
+                    heroData.UsedSkillPoints = (uint)usedSkillPoints;
+                    heroData.Modifiers.ModifiersLevel.Set(modifierToken, level);
+                    UpdatePlayerData(ref heroData);
+                }
             }
         }
 

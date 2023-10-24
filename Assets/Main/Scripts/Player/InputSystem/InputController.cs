@@ -233,6 +233,11 @@ namespace Main.Scripts.Player.InputSystem
                     {
                         playerController.SkillBtnReleased(skillType);
                     }
+
+                    if (input.Buttons.IsSet(skillButton))
+                    {
+                        playerController.SkillBtnHolding(skillType);
+                    }
                 }
 
                 if (pressedButtons.IsSet(NetworkInputData.BUTTON_INTERACT) && interactionController != null)
@@ -264,7 +269,7 @@ namespace Main.Scripts.Player.InputSystem
             return skillButton switch
             {
                 NetworkInputData.BUTTON_FIRE_PRIMARY => ActiveSkillType.PRIMARY,
-                NetworkInputData.BUTTON_FIRE_SECONDARY => ActiveSkillType.PRIMARY,
+                NetworkInputData.BUTTON_FIRE_SECONDARY => ActiveSkillType.NONE,
                 NetworkInputData.BUTTON_CAST_DASH_SKILL => ActiveSkillType.DASH,
                 NetworkInputData.BUTTON_CAST_FIRST_SKILL => ActiveSkillType.FIRST_SKILL,
                 NetworkInputData.BUTTON_CAST_SECOND_SKILL => ActiveSkillType.SECOND_SKILL,

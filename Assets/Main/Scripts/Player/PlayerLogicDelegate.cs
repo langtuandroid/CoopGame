@@ -541,11 +541,21 @@ namespace Main.Scripts.Player
 
         public void SkillBtnReleased(ActiveSkillType type)
         {
+            if (type != activeSkillsManager.GetCurrentSkillType()) return;
+            
             switch (activeSkillsManager.GetCurrentSkillState())
             {
                 case ActiveSkillState.WaitingForPowerCharge:
                     activeSkillsManager.AddExecuteCurrentSkill();
                     break;
+            }
+        }
+        
+        public void SkillBtnHolding(ActiveSkillType type)
+        {
+            if (heroConfig.EnableAutoAttackFor == type)
+            {
+                SkillBtnPressed(type);
             }
         }
 

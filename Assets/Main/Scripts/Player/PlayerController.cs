@@ -210,6 +210,11 @@ namespace Main.Scripts.Player
             playerLogicDelegate.SkillBtnReleased(type);
         }
 
+        public void SkillBtnHolding(ActiveSkillType type)
+        {
+            playerLogicDelegate.SkillBtnHolding(type);
+        }
+
         public void OnPrimaryButtonClicked()
         {
             playerLogicDelegate.OnPrimaryButtonClicked();

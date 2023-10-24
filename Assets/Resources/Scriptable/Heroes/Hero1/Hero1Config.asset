@@ -15,6 +15,7 @@ MonoBehaviour:
   id: Hero1
   maxHealth: 150
   moveSpeed: 6
+  enableAutoAttackFor: 0
   activeSkillsConfig:
     AlliesLayerMask:
       serializedVersion: 2

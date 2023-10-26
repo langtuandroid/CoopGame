@@ -24,7 +24,7 @@ namespace Main.Scripts.Effects
         private EffectsConfig config;
 
         private EffectsBank effectsBank = null!;
-        private SkillChargeManager skillChargeManager = null!;
+        private SkillHeatLevelManager skillHeatLevelManager = null!;
 
         private Dictionary<EffectType, Dictionary<int, ActiveEffectData>> unlimitedEffectDataMap = new();
         private Dictionary<EffectType, Dictionary<int, ActiveEffectData>> limitedEffectDataMap = new();
@@ -83,7 +83,7 @@ namespace Main.Scripts.Effects
             this.isPlayerOwner = isPlayerOwner;
             this.config = config;
             effectsBank = dataHolder.GetCachedComponent<EffectsBank>();
-            skillChargeManager = dataHolder.GetCachedComponent<SkillChargeManager>();
+            skillHeatLevelManager = dataHolder.GetCachedComponent<SkillHeatLevelManager>();
         }
 
         public void Despawned(NetworkRunner runner, bool hasState)
@@ -92,7 +92,7 @@ namespace Main.Scripts.Effects
 
             objectContext = null!;
             effectsBank = null!;
-            skillChargeManager = null!;
+            skillHeatLevelManager = null!;
         }
 
         public void ResetOnRespawn()
@@ -153,8 +153,9 @@ namespace Main.Scripts.Effects
                 case GameLoopPhase.SkillActivationPhase:
                     ActivateTriggerEffects();
                     break;
-                case GameLoopPhase.SkillUpdatePhase:
+                case GameLoopPhase.SkillCheckCastFinished:
                 case GameLoopPhase.SkillSpawnPhase:
+                case GameLoopPhase.SkillUpdatePhase:
                 case GameLoopPhase.VisualStateUpdatePhase:
                     foreach (var (_, skillController) in passiveSkillControllersMap)
                     {
@@ -312,7 +313,7 @@ namespace Main.Scripts.Effects
             switch (passiveSkillController.ActivationType)
             {
                 case SkillActivationType.WithUnitTarget when selectedTarget != null:
-                    passiveSkillController.Activate(skillChargeManager.ChargeLevel, data.StackCount);
+                    passiveSkillController.Activate(skillHeatLevelManager.HeatLevel, data.StackCount);
                     passiveSkillController.ApplyUnitTarget(selectedTarget);
                     passiveSkillController.Execute();
                     break;
@@ -320,7 +321,7 @@ namespace Main.Scripts.Effects
                     Debug.LogError("PassiveSkillController: ActivationType is UnitTarget and SelectedTarget is null");
                     break;
                 case SkillActivationType.Instantly:
-                    passiveSkillController.Activate(skillChargeManager.ChargeLevel, data.StackCount);
+                    passiveSkillController.Activate(skillHeatLevelManager.HeatLevel, data.StackCount);
                     break;
                 case SkillActivationType.WithMapPointTarget:
                     Debug.LogError("PassiveSkillController: ActivationType MapPointTarget is not supported");

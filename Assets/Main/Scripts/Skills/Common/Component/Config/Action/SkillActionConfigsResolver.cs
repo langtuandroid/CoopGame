@@ -12,6 +12,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
             int heatLevel,
             int stackCount,
             int powerChargeLevel,
+            int executionChargeLevel,
             List<SkillActionBase> configs,
             List<SkillActionBase> resolvedConfigs
         )
@@ -25,6 +26,9 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
                     {
                         switch (modifiableConfig.Modifier)
                         {
+                            case ExecutionChargeModifier:
+                                modifierLevel = executionChargeLevel;
+                                break;
                             case ModifierId modifierId:
                                 var modifierKey = bank.GetModifierIdToken(modifierId);
                                 modifierLevel = heroData.Modifiers.ModifiersLevel[modifierKey];
@@ -47,6 +51,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
                         heatLevel,
                         stackCount,
                         powerChargeLevel,
+                        executionChargeLevel,
                         actions.Value,
                         resolvedConfigs
                     );

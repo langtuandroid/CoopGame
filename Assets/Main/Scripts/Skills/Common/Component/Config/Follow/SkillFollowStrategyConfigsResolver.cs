@@ -9,9 +9,10 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
         public static void ResolveEnabledModifiers(
             ModifierIdsBank bank,
             ref HeroData heroData,
-            int chargeLevel,
+            int heatLevel,
             int stackCount,
             int powerChargeLevel,
+            int executionChargeLevel,
             SkillFollowStrategyBase config,
             out SkillFollowStrategyBase resolvedConfig
         )
@@ -19,10 +20,13 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
             if (config is ModifiableSkillFollowStrategies modifiableConfig)
             {
                 var modifierLevel = 0;
-                if (chargeLevel >= modifiableConfig.Modifier.HeatLevel)
+                if (heatLevel >= modifiableConfig.Modifier.HeatLevel)
                 {
                     switch (modifiableConfig.Modifier)
                     {
+                        case ExecutionChargeModifier:
+                            modifierLevel = executionChargeLevel;
+                            break;
                         case ModifierId modifierId:
                             var modifierKey = bank.GetModifierIdToken(modifierId);
                             modifierLevel = heroData.Modifiers.ModifiersLevel[modifierKey];
@@ -42,9 +46,10 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
                 ResolveEnabledModifiers(
                     bank,
                     ref heroData,
-                    chargeLevel,
+                    heatLevel,
                     stackCount,
                     powerChargeLevel,
+                    executionChargeLevel,
                     followStrategy,
                     out resolvedConfig
                 );

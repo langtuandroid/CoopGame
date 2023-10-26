@@ -68,6 +68,7 @@ namespace Main.Scripts.Enemies
         {
             GameLoopPhase.StrategyPhase,
             GameLoopPhase.SkillActivationPhase,
+            GameLoopPhase.SkillCheckCastFinished,
             GameLoopPhase.SkillSpawnPhase,
             GameLoopPhase.SkillUpdatePhase,
             GameLoopPhase.EffectsApplyPhase,
@@ -203,8 +204,9 @@ namespace Main.Scripts.Enemies
                     OnStrategyPhase();
                     break;
                 case GameLoopPhase.SkillActivationPhase:
-                case GameLoopPhase.SkillUpdatePhase:
+                case GameLoopPhase.SkillCheckCastFinished:
                 case GameLoopPhase.SkillSpawnPhase:
+                case GameLoopPhase.SkillUpdatePhase:
                     effectsManager.OnGameLoopPhase(phase);
                     activeSkillsManager.OnGameLoopPhase(phase);
                     break;

@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a018385efac42f2862a17526a4f5478, type: 3}
-  m_Name: PowerChargeModifier
+  m_Script: {fileID: 11500000, guid: 0d95a6b87239450ca7fe220272c487f4, type: 3}
+  m_Name: PeriodicTrigger
   m_EditorClassIdentifier: 
-  heatLevel: 1
+  frequencyTicks: 1

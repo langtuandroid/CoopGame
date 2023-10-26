@@ -17,7 +17,7 @@ namespace Main.Scripts.Skills.ActiveSkills
         private DataHolder dataHolder;
         private EventListener eventListener;
         private Transform transform;
-        private SkillChargeManager skillChargeManager = null!;
+        private SkillHeatLevelManager skillHeatLevelManager = null!;
         private NetworkObject objectContext = null!;
 
         private Dictionary<ActiveSkillType, SkillController> skillControllersMap = new();
@@ -71,7 +71,7 @@ namespace Main.Scripts.Skills.ActiveSkills
         {
             this.objectContext = objectContext;
             this.config = config;
-            skillChargeManager = dataHolder.GetCachedComponent<SkillChargeManager>();
+            skillHeatLevelManager = dataHolder.GetCachedComponent<SkillHeatLevelManager>();
 
             InitSkillControllers();
 
@@ -124,7 +124,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             }
 
             objectContext = null!;
-            skillChargeManager = null!;
+            skillHeatLevelManager = null!;
         }
 
         public void Render()
@@ -154,6 +154,15 @@ namespace Main.Scripts.Skills.ActiveSkills
             shouldCancelCurrentSkill = true;
         }
 
+        public void ApplyHolding(ActiveSkillType skillType)
+        {
+            var currentSkillType = GetCurrentSkillType();
+            if (currentSkillType != skillType || GetCurrentSkillState() != ActiveSkillState.Attacking) return;
+
+            var skillController = GetSkillByType(skillType);
+            skillController?.ApplyHolding();
+        }
+
         public void OnGameLoopPhase(GameLoopPhase phase)
         {
             switch (phase)
@@ -163,8 +172,9 @@ namespace Main.Scripts.Skills.ActiveSkills
                     ActivateSkill();
                     ExecuteCurrentSkill();
                     break;
-                case GameLoopPhase.SkillUpdatePhase:
+                case GameLoopPhase.SkillCheckCastFinished:
                 case GameLoopPhase.SkillSpawnPhase:
+                case GameLoopPhase.SkillUpdatePhase:
                 case GameLoopPhase.VisualStateUpdatePhase:
                     foreach (var (_, skillController) in skillControllersMap)
                     {
@@ -208,14 +218,14 @@ namespace Main.Scripts.Skills.ActiveSkills
                 return;
             }
 
-            var skill = getSkillByType(skillType);
+            var skill = GetSkillByType(skillType);
             if (skill == null)
             {
                 return;
             }
 
             data.currentSkillType = skillType;
-            skill.Activate(skillChargeManager.ChargeLevel, 0);
+            skill.Activate(skillHeatLevelManager.HeatLevel, 0);
             var skillState = GetCurrentSkillState();
             if (shouldExecute
                 && skillState is ActiveSkillState.WaitingForTarget or ActiveSkillState.WaitingForPoint)
@@ -231,7 +241,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             
             ref var data = ref dataHolder.GetActiveSkillsData();
 
-            var skill = getSkillByType(data.currentSkillType);
+            var skill = GetSkillByType(data.currentSkillType);
             if (skill == null || data.currentSkillState
                     is not ActiveSkillState.WaitingForPoint
                     and not ActiveSkillState.WaitingForTarget
@@ -258,7 +268,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             
             ref var data = ref dataHolder.GetActiveSkillsData();
 
-            var skill = getSkillByType(data.currentSkillType);
+            var skill = GetSkillByType(data.currentSkillType);
             if (skill == null || data.currentSkillState
                     is not ActiveSkillState.WaitingForPoint
                     and not ActiveSkillState.WaitingForTarget
@@ -278,7 +288,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             data.targetMapPosition = targetMapPosition;
             foreach (var skillType in Enum.GetValues(typeof(ActiveSkillType)).Cast<ActiveSkillType>())
             {
-                var skill = getSkillByType(skillType);
+                var skill = GetSkillByType(skillType);
                 if (skill == null)
                 {
                     continue;
@@ -295,7 +305,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             data.unitTargetId = unitTargetId;
             foreach (var skillType in Enum.GetValues(typeof(ActiveSkillType)).Cast<ActiveSkillType>())
             {
-                var skill = getSkillByType(skillType);
+                var skill = GetSkillByType(skillType);
                 if (skill == null)
                 {
                     continue;
@@ -313,7 +323,7 @@ namespace Main.Scripts.Skills.ActiveSkills
         {
             ref var data = ref dataHolder.GetActiveSkillsData();
 
-            var skill = getSkillByType(data.currentSkillType);
+            var skill = GetSkillByType(data.currentSkillType);
             if (skill == null || data.currentSkillState
                     is not ActiveSkillState.WaitingForPoint
                     and not ActiveSkillState.WaitingForTarget
@@ -329,7 +339,7 @@ namespace Main.Scripts.Skills.ActiveSkills
         {
             ref var data = ref dataHolder.GetActiveSkillsData();
 
-            return getSkillByType(data.currentSkillType)?.IsDisabledMove() ?? false;
+            return GetSkillByType(data.currentSkillType)?.IsDisabledMove() ?? false;
         }
 
         public ActiveSkillState GetCurrentSkillState()
@@ -346,7 +356,7 @@ namespace Main.Scripts.Skills.ActiveSkills
 
         public int GetSkillCooldownLeftTicks(ActiveSkillType skillType)
         {
-            return getSkillByType(skillType)?.GetCooldownLeftTicks() ?? 0;
+            return GetSkillByType(skillType)?.GetCooldownLeftTicks() ?? 0;
         }
 
         private void UpdateSkillState(ref ActiveSkillsData data, ActiveSkillState skillState)
@@ -365,7 +375,7 @@ namespace Main.Scripts.Skills.ActiveSkills
 
         public void OnSkillCooldownChanged(SkillController skill)
         {
-            var type = getTypeBySkill(skill);
+            var type = GetTypeBySkill(skill);
             var cooldownLeftTicks = skill.GetCooldownLeftTicks();
             eventListener.OnSkillCooldownChanged(type, cooldownLeftTicks);
         }
@@ -378,7 +388,7 @@ namespace Main.Scripts.Skills.ActiveSkills
         )
         {
             eventListener.OnPowerChargeProgressChanged(
-                getTypeBySkill(skill),
+                GetTypeBySkill(skill),
                 isCharging,
                 powerChargeLevel,
                 powerChargeProgress
@@ -432,12 +442,12 @@ namespace Main.Scripts.Skills.ActiveSkills
             data.currentSkillState = ActiveSkillState.NotAttacking;
         }
 
-        private SkillController? getSkillByType(ActiveSkillType skillType)
+        private SkillController? GetSkillByType(ActiveSkillType skillType)
         {
             return skillControllersMap.GetValueOrDefault(skillType);
         }
 
-        private ActiveSkillType getTypeBySkill(SkillController skill)
+        private ActiveSkillType GetTypeBySkill(SkillController skill)
         {
             return skillTypesMap[skill];
         }

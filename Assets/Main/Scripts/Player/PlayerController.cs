@@ -61,6 +61,7 @@ namespace Main.Scripts.Player
         {
             GameLoopPhase.PlayerInputPhase,
             GameLoopPhase.SkillActivationPhase,
+            GameLoopPhase.SkillCheckCastFinished,
             GameLoopPhase.SkillSpawnPhase,
             GameLoopPhase.SkillUpdatePhase,
             GameLoopPhase.EffectsApplyPhase,
@@ -127,7 +128,7 @@ namespace Main.Scripts.Player
             effectsBank = globalResources.EffectsBank;
             cachedComponents[typeof(EffectsBank)] = effectsBank;
             cachedComponents[typeof(HeroConfigsBank)] = globalResources.HeroConfigsBank;
-            cachedComponents[typeof(SkillChargeManager)] = levelContext.SkillChargeManager;
+            cachedComponents[typeof(SkillHeatLevelManager)] = levelContext.SkillHeatLevelManager;
             playerLogicDelegate.Spawned(Object);
             
             playersHolder = levelContext.PlayersHolder;
@@ -162,7 +163,7 @@ namespace Main.Scripts.Player
             effectsBank = default!;
             cachedComponents.Remove(typeof(EffectsBank));
             cachedComponents.Remove(typeof(HeroConfigsBank));
-            cachedComponents.Remove(typeof(SkillChargeManager));
+            cachedComponents.Remove(typeof(SkillHeatLevelManager));
 
             OnPlayerStateChangedEvent.RemoveAllListeners();
             playerLogicDelegate.Despawned(runner, hasState);

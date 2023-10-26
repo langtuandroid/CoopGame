@@ -7,26 +7,26 @@ using Main.Scripts.UI.Windows.HUD.HotBar.HotBarIcons;
 
 namespace Main.Scripts.UI.Windows.HUD
 {
-    public class HUDPresenterImpl : HUDContract.HotBarPresenter, SkillsOwner.Listener, SkillChargeManager.Listener
+    public class HUDPresenterImpl : HUDContract.HotBarPresenter, SkillsOwner.Listener, SkillHeatLevelManager.Listener
     {
         private HUDContract.HotBarView view;
         private HotBarIconDataHolder dataHolder;
         private SkillsOwner skillsOwner;
-        private SkillChargeManager skillChargeManager;
+        private SkillHeatLevelManager skillHeatLevelManager;
         private int tickRate;
 
         public HUDPresenterImpl(
             HUDContract.HotBarView view,
             HotBarIconDataHolder dataHolder,
             SkillsOwner skillsOwner,
-            SkillChargeManager skillChargeManager,
+            SkillHeatLevelManager skillHeatLevelManager,
             int tickRate
         )
         {
             this.view = view;
             this.dataHolder = dataHolder;
             this.skillsOwner = skillsOwner;
-            this.skillChargeManager = skillChargeManager;
+            this.skillHeatLevelManager = skillHeatLevelManager;
             this.tickRate = tickRate;
         }
 
@@ -49,7 +49,7 @@ namespace Main.Scripts.UI.Windows.HUD
             OnChargeInfoChanged();
             OnPowerChargeProgressChanged(false, 0, 0);
             skillsOwner.AddSkillListener(this);
-            skillChargeManager.AddListener(this);
+            skillHeatLevelManager.AddListener(this);
             view.SetVisibility(true);
         }
 
@@ -57,7 +57,7 @@ namespace Main.Scripts.UI.Windows.HUD
         {
             view.SetVisibility(false);
             skillsOwner.RemoveSkillListener(this);
-            skillChargeManager.RemoveListener(this);
+            skillHeatLevelManager.RemoveListener(this);
         }
 
         public void OnActiveSkillCooldownChanged(ActiveSkillType skillType, int cooldownLeftTicks)
@@ -74,10 +74,10 @@ namespace Main.Scripts.UI.Windows.HUD
 
         public void OnChargeInfoChanged()
         {
-            var chargeLevel = skillChargeManager.ChargeLevel;
-            var progressPercent = skillChargeManager.ChargeProgress;
-            var charProgressTarget = skillChargeManager.GetProgressForNextLevel();
-            var isMaxLevel = skillChargeManager.IsMaxChargeLevel;
+            var chargeLevel = skillHeatLevelManager.HeatLevel;
+            var progressPercent = skillHeatLevelManager.HeatProgress;
+            var charProgressTarget = skillHeatLevelManager.GetProgressForNextLevel();
+            var isMaxLevel = skillHeatLevelManager.IsMaxChargeLevel;
             view.OnChargeInfoChanged(chargeLevel, progressPercent, charProgressTarget, isMaxLevel);
         }
 

@@ -10,9 +10,10 @@ namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
         public static void ResolveEnabledModifiers(
             ModifierIdsBank modifierIdsBank,
             ref HeroData heroData,
-            int chargeLevel,
+            int heatLevel,
             int stackCount,
             int powerChargeLevel,
+            int executionChargeLevel,
             SkillActionsPack actionsPackConfig,
             SkillActionsPackData resolvedDataOut
         )
@@ -21,9 +22,10 @@ namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
             SkillFindTargetsStrategiesConfigsResolver.ResolveEnabledModifiers(
                 modifierIdsBank,
                 ref heroData,
-                chargeLevel,
+                heatLevel,
                 stackCount,
                 powerChargeLevel,
+                executionChargeLevel,
                 actionsPackConfig.FindTargetsStrategies,
                 resolvedDataOut.FindTargetsStrategies
             );
@@ -32,9 +34,10 @@ namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
             SkillActionConfigsResolver.ResolveEnabledModifiers(
                 modifierIdsBank,
                 ref heroData,
-                chargeLevel,
+                heatLevel,
                 stackCount,
                 powerChargeLevel,
+                executionChargeLevel,
                 actionsPackConfig.Actions,
                 resolvedDataOut.Actions
             );

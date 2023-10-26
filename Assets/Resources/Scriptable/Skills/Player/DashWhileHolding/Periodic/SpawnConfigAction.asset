@@ -9,7 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a018385efac42f2862a17526a4f5478, type: 3}
-  m_Name: PowerChargeModifier
+  m_Script: {fileID: 11500000, guid: 6c60efedbc3c45198e98a01cec21c8e6, type: 3}
+  m_Name: SpawnConfigAction
   m_EditorClassIdentifier: 
-  heatLevel: 1
+  spawnPointType: 0
+  spawnDirectionType: 0
+  skillConfig: {fileID: 11400000, guid: 9311cc1aa85cdc54c9b47f7cb2cfc268, type: 2}

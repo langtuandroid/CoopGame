@@ -24,7 +24,7 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 256
     PrimarySkillConfig: {fileID: 11400000, guid: fc8209fbf7f947049b68101db58b5d8c, type: 2}
-    DashSkillConfig: {fileID: 11400000, guid: 975a24afc35ee8a4fb750463e96c92dd, type: 2}
+    DashSkillConfig: {fileID: 11400000, guid: 5f8f92a45fcfac34080542eb56b33681, type: 2}
     FirstSkillConfig: {fileID: 11400000, guid: 9c45539eb9b82db4c882f02f7cc493b1, type: 2}
     SecondSkillConfig: {fileID: 11400000, guid: 17c8584b985740441a6039183415b6c6, type: 2}
     ThirdSkillConfig: {fileID: 11400000, guid: b7fed8c02bc5bdf40ba323e60c826d20, type: 2}

@@ -7,6 +7,7 @@ using Main.Scripts.Skills.Common;
 using Main.Scripts.Skills.Common.Component;
 using Main.Scripts.UI.Windows.HUD;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Main.Scripts.Levels
 {
@@ -23,7 +24,7 @@ namespace Main.Scripts.Levels
         [SerializeField]
         private NavigationManager navigationManager = null!;
         [SerializeField]
-        private SkillChargeManager skillChargeManager = null!;
+        private SkillHeatLevelManager skillHeatLevelManager = null!;
         [SerializeField]
         private SkillVisualManager skillVisualManager = null!;
         [SerializeField]
@@ -33,7 +34,7 @@ namespace Main.Scripts.Levels
         public EnemiesManager EnemiesManager => enemiesManager;
         public GameLoopManager GameLoopManager => gameLoopManager;
         public NavigationManager NavigationManager => navigationManager;
-        public SkillChargeManager SkillChargeManager => skillChargeManager;
+        public SkillHeatLevelManager SkillHeatLevelManager => skillHeatLevelManager;
         public SkillVisualManager SkillVisualManager => skillVisualManager;
         public HUDScreen HudScreen => hudScreen;
 

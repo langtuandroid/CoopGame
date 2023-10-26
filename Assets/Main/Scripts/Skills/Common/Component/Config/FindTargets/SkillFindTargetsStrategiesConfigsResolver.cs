@@ -9,9 +9,10 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
         public static void ResolveEnabledModifiers(
             ModifierIdsBank bank,
             ref HeroData heroData,
-            int chargeLevel,
+            int heatLevel,
             int stackCount,
             int powerChargeLevel,
+            int executionChargeLevel,
             List<SkillFindTargetsStrategyBase> configs,
             List<SkillFindTargetsStrategyBase> resolvedConfigs
         )
@@ -21,10 +22,13 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
                 if (config is ModifiableSkillFindTargetsStrategies modifiableConfig)
                 {
                     var modifierLevel = 0;
-                    if (chargeLevel >= modifiableConfig.Modifier.HeatLevel)
+                    if (heatLevel >= modifiableConfig.Modifier.HeatLevel)
                     {
                         switch (modifiableConfig.Modifier)
                         {
+                            case ExecutionChargeModifier:
+                                modifierLevel = executionChargeLevel;
+                                break;
                             case ModifierId modifierId:
                                 var modifierKey = bank.GetModifierIdToken(modifierId);
                                 modifierLevel = heroData.Modifiers.ModifiersLevel[modifierKey];
@@ -45,9 +49,10 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
                     ResolveEnabledModifiers(
                         bank,
                         ref heroData,
-                        chargeLevel,
+                        heatLevel,
                         stackCount,
                         powerChargeLevel,
+                        executionChargeLevel,
                         findTargetsStrategies.Value,
                         resolvedConfigs
                     );

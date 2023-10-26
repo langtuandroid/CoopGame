@@ -27,9 +27,10 @@ namespace Main.Scripts.Skills.Common.Controller
         private Vector3 dynamicMapPoint;
         private int powerChargeLevel;
         private NetworkObject? selectedUnit;
-        private int chargeLevel;
+        private int heatLevel;
         private int stackCount;
         private TickTimer skillRunningTimer;
+        private bool continueRunningWhileHolding;
         private TickTimer castTimer;
         private bool isActivating;
         private Tick activationTick;
@@ -46,8 +47,9 @@ namespace Main.Scripts.Skills.Common.Controller
 
         private GameLoopPhase[] gameLoopPhases =
         {
-            GameLoopPhase.SkillUpdatePhase,
+            GameLoopPhase.SkillCheckCastFinished,
             GameLoopPhase.SkillSpawnPhase,
+            GameLoopPhase.SkillUpdatePhase,
             GameLoopPhase.VisualStateUpdatePhase
         };
 
@@ -136,7 +138,7 @@ namespace Main.Scripts.Skills.Common.Controller
             }
         }
 
-        public bool Activate(int chargeLevel, int stackCount)
+        public bool Activate(int heatLevel, int stackCount)
         {
             if (isActivating || IsSkillRunning || !cooldownTimer.ExpiredOrNotRunning(objectContext.Runner))
             {
@@ -145,7 +147,7 @@ namespace Main.Scripts.Skills.Common.Controller
 
             isActivating = true;
             activationTick = objectContext.Runner.Tick;
-            this.chargeLevel = chargeLevel;
+            this.heatLevel = heatLevel;
             this.stackCount = stackCount;
 
             switch (skillControllerConfig.ActivationType)
@@ -190,6 +192,17 @@ namespace Main.Scripts.Skills.Common.Controller
             selectedUnit = unitTarget;
         }
 
+        public void ApplyHolding()
+        {
+            if (!IsSkillRunning || !skillControllerConfig.ContinueRunningWhileHolding) return;
+            
+            continueRunningWhileHolding = true;
+            foreach (var skillComponent in skillComponents)
+            {
+                skillComponent.ApplyHolding();
+            }
+        }
+
         public void Execute()
         {
             if (!isActivating)
@@ -209,12 +222,11 @@ namespace Main.Scripts.Skills.Common.Controller
 
             skillRunningTimer = TickTimer.CreateFromTicks(objectContext.Runner, skillControllerConfig.CastDurationTicks + skillControllerConfig.ExecutionDurationTicks);
             castTimer = TickTimer.CreateFromTicks(objectContext.Runner, skillControllerConfig.CastDurationTicks);
+            continueRunningWhileHolding = skillControllerConfig.ContinueRunningWhileHolding;
 
             listener?.OnSkillStartCasting(this);
 
             AddSpawnActions(skillControllerConfig.RunOnCastSkillConfigs);
-
-            CheckCastFinished();
         }
 
         private int GetPowerChargeProgress()
@@ -245,6 +257,9 @@ namespace Main.Scripts.Skills.Common.Controller
         {
             switch (phase)
             {
+                case GameLoopPhase.SkillCheckCastFinished:
+                    CheckCastFinished();
+                    break;
                 case GameLoopPhase.SkillSpawnPhase:
                     OnSpawnPhase();
                     break;
@@ -267,9 +282,12 @@ namespace Main.Scripts.Skills.Common.Controller
 
         private void OnSkillUpdatePhase()
         {
-            CheckCastFinished();
+            if (!IsSkillRunning) return;
 
-            if (skillRunningTimer.Expired(objectContext.Runner))
+            var stopRunningByLackHolding = skillControllerConfig.ContinueRunningWhileHolding && !continueRunningWhileHolding;
+            continueRunningWhileHolding = false;
+
+            if (skillRunningTimer.Expired(objectContext.Runner) || stopRunningByLackHolding)
             {
                 ResetOnFinish();
 
@@ -366,6 +384,7 @@ namespace Main.Scripts.Skills.Common.Controller
             initialMapPoint = default;
             dynamicMapPoint = default;
             powerChargeLevel = default;
+            continueRunningWhileHolding = default;
 
             foreach (var skillComponent in skillComponents)
             {
@@ -454,11 +473,12 @@ namespace Main.Scripts.Skills.Common.Controller
                     position: position,
                     rotation: rotation,
                     ownerId: ownerId,
-                    chargeLevel: chargeLevel,
+                    heatLevel: heatLevel,
                     stackCount: stackCount,
                     initialMapPoint: initialMapPoint,
                     dynamicMapPoint: dynamicMapPoint,
                     powerChargeLevel: powerChargeLevel,
+                    executionChargeLevel: 0,
                     selfUnitId: objectContext.Id,
                     selectedUnitId: selectedUnit != null ? selectedUnit.Id : default,
                     alliesLayerMask: alliesLayerMask,
@@ -472,11 +492,13 @@ namespace Main.Scripts.Skills.Common.Controller
 
         private void OnSpawnNewSkillComponent(SkillComponent spawnedSkillComponent)
         {
+            spawnedSkillComponent.OnReadyToRelease += OnReadyToReleaseSkillComponent;
             skillComponents.Add(spawnedSkillComponent);
         }
 
         private void OnReadyToReleaseSkillComponent(SkillComponent skillComponent)
         {
+            skillComponent.OnReadyToRelease -= OnReadyToReleaseSkillComponent;
             skillComponents.Remove(skillComponent);
         }
 

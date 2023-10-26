@@ -169,7 +169,7 @@ MonoBehaviour:
   enemiesManager: {fileID: 6333978886437609963}
   gameLoopManager: {fileID: 2320060828885581111}
   navigationManager: {fileID: 2736966943557648070}
-  skillChargeManager: {fileID: 7076939479648465617}
+  skillHeatLevelManager: {fileID: 7076939479648465617}
   skillVisualManager: {fileID: 6148969258022852307}
   hudScreen: {fileID: 5782299537849891571}
 --- !u!114 &2736966943557648070

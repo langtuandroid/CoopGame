@@ -21,6 +21,12 @@ namespace Main.Scripts.Skills.Common.Component.Config
         [Min(0)]
         private int durationTicks;
         [SerializeField]
+        private bool startNewExecutionCharging;
+        [SerializeField]
+        private int[] executionChargeStepValues = null!;
+        [SerializeField]
+        private bool continueRunningWhileHolding;
+        [SerializeField]
         private SkillInterruptStrategy interruptStrategy;
 
         public SkillSpawnPointType SpawnPointType => spawnPointType;
@@ -29,6 +35,9 @@ namespace Main.Scripts.Skills.Common.Component.Config
         public SkillFollowStrategyBase FollowStrategy => followStrategy;
         public List<SkillTriggerPack> TriggerPacks => triggerPacks;
         public int DurationTicks => durationTicks;
+        public bool StartNewExecutionCharging => startNewExecutionCharging;
+        public int[] ExecutionChargeStepValues => executionChargeStepValues;
+        public bool ContinueRunningWhileHolding => continueRunningWhileHolding;
         public SkillInterruptStrategy InterruptStrategy => interruptStrategy;
     }
 }

@@ -97,7 +97,7 @@ namespace Main.Scripts.Enemies
             effectsBank = globalResources.EffectsBank;
             mobConfigsBank = globalResources.MobConfigsBank;
 
-            cachedComponents[typeof(SkillChargeManager)] = levelContext.SkillChargeManager;
+            cachedComponents[typeof(SkillHeatLevelManager)] = levelContext.SkillHeatLevelManager;
             cachedComponents[typeof(NavigationManager)] = levelContext.NavigationManager;
             cachedComponents[typeof(EffectsBank)] = effectsBank;
             cachedComponents[typeof(MobConfigsBank)] = mobConfigsBank;
@@ -110,7 +110,7 @@ namespace Main.Scripts.Enemies
             base.Despawned(runner, hasState);
             effectsBank = null!;
             mobConfigsBank = null!;
-            cachedComponents.Remove(typeof(SkillChargeManager));
+            cachedComponents.Remove(typeof(SkillHeatLevelManager));
             cachedComponents.Remove(typeof(NavigationManager));
             cachedComponents.Remove(typeof(EffectsBank));
             cachedComponents.Remove(typeof(MobConfigsBank));

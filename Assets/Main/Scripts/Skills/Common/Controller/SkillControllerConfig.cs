@@ -29,10 +29,12 @@ namespace Main.Scripts.Skills.Common.Controller
         [SerializeField]
         private bool disableMoveOnCast;
         [SerializeField]
-        [Min(0)]
+        [Min(1)]
         private int executionDurationTicks;
         [SerializeField]
         private bool disableMoveOnExecution;
+        [SerializeField]
+        private bool continueRunningWhileHolding;
         [SerializeField]
         [Min(0)]
         private int cooldownTicks;
@@ -48,6 +50,7 @@ namespace Main.Scripts.Skills.Common.Controller
         public bool DisableMoveOnCast => disableMoveOnCast;
         public int ExecutionDurationTicks => executionDurationTicks;
         public bool DisableMoveOnExecution => disableMoveOnExecution;
+        public bool ContinueRunningWhileHolding => continueRunningWhileHolding;
         public int CooldownTicks => cooldownTicks;
     }
 }

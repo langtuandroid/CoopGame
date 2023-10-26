@@ -9,7 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a018385efac42f2862a17526a4f5478, type: 3}
-  m_Name: PowerChargeModifier
+  m_Script: {fileID: 11500000, guid: 5d752ba6ca1945169ed27d700872423d, type: 3}
+  m_Name: PeriodicActionsPack
   m_EditorClassIdentifier: 
-  heatLevel: 1
+  findTargetsStrategies: []
+  actions:
+  - {fileID: 11400000, guid: a360f4bf7bdc64047a5aa4048a3bba55, type: 2}

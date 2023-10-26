@@ -46,7 +46,7 @@ namespace Main.Scripts.UI.Windows.HUD
                 var hotBarIconDataHolder = GlobalResources.Instance.ThrowWhenNull().HotBarIconDataHolder;
                 var runner = RoomManager.Instance.ThrowWhenNull().Runner;
                 var levelContext = LevelContext.Instance.ThrowWhenNull();
-                var skillChargeManager = levelContext.SkillChargeManager;
+                var skillHeatLevelManager = levelContext.SkillHeatLevelManager;
                 var playersHolder = levelContext.PlayersHolder;
                 var skillOwner = playersHolder.Get(runner.LocalPlayer)
                     .GetInterface<SkillsOwner>().ThrowWhenNull();
@@ -56,7 +56,7 @@ namespace Main.Scripts.UI.Windows.HUD
                     view: this,
                     dataHolder: hotBarIconDataHolder,
                     skillsOwner: skillOwner,
-                    skillChargeManager: skillChargeManager,
+                    skillHeatLevelManager: skillHeatLevelManager,
                     tickRate: tickRate
                 );
             }

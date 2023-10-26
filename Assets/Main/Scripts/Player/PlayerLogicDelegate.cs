@@ -264,8 +264,9 @@ namespace Main.Scripts.Player
                 case GameLoopPhase.PlayerInputPhase:
                     break;
                 case GameLoopPhase.SkillActivationPhase:
-                case GameLoopPhase.SkillUpdatePhase:
+                case GameLoopPhase.SkillCheckCastFinished:
                 case GameLoopPhase.SkillSpawnPhase:
+                case GameLoopPhase.SkillUpdatePhase:
                     effectsManager.OnGameLoopPhase(phase);
                     activeSkillsManager.OnGameLoopPhase(phase);
                     break;
@@ -553,6 +554,7 @@ namespace Main.Scripts.Player
         
         public void SkillBtnHolding(ActiveSkillType type)
         {
+            activeSkillsManager.ApplyHolding(type);
             if (heroConfig.EnableAutoAttackFor == type)
             {
                 SkillBtnPressed(type);

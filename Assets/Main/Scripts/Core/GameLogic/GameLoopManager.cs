@@ -29,6 +29,7 @@ namespace Main.Scripts.Core.GameLogic
             GameLoopPhase.StrategyPhase,
             GameLoopPhase.SkillChargeUpdate,
             GameLoopPhase.SkillActivationPhase,
+            GameLoopPhase.SkillCheckCastFinished,
             GameLoopPhase.SkillSpawnPhase,
             GameLoopPhase.SkillUpdatePhase,
             GameLoopPhase.SkillVisualSpawnPhase,

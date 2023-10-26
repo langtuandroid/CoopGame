@@ -36,7 +36,7 @@ namespace Main.Scripts.Skills.Common.Component
         private static readonly Type CLICK_TRIGGER_TYPE = typeof(ClickSkillActionTrigger);
 
         private ModifierIdsBank modifierIdsBank = null!;
-        private SkillChargeManager skillChargeManager = null!;
+        private SkillHeatLevelManager skillHeatLevelManager = null!;
         private SkillVisualManager skillVisualManager = null!;
         private SkillComponentsPoolHelper skillComponentsPoolHelper = null!;
         private GameLoopManager gameLoopManager = null!;
@@ -45,11 +45,12 @@ namespace Main.Scripts.Skills.Common.Component
         
         private NetworkRunner runner = null!;
         private PlayerRef ownerId;
-        private int chargeLevel;
+        private int heatLevel;
         private int stackCount;
         private Vector3 initialMapPoint;
         private Vector3 dynamicMapPoint;
         private int powerChargeLevel;
+        private int executionChargeLevel;
         private NetworkId selfUnitId;
         private NetworkId selectedUnitId;
         private int alliesLayerMask;
@@ -57,6 +58,7 @@ namespace Main.Scripts.Skills.Common.Component
 
         private int startSkillTick;
         private TickTimer lifeTimer;
+        private bool continueRunningWhileHolding;
         private TickTimer triggerTimer;
         private Dictionary<Type, int> activatedTriggersCountMap = new();
         private bool shouldStop;
@@ -102,11 +104,12 @@ namespace Main.Scripts.Skills.Common.Component
             Vector3 position,
             Quaternion rotation,
             PlayerRef ownerId,
-            int chargeLevel,
+            int heatLevel,
             int stackCount,
             Vector3 initialMapPoint,
             Vector3 dynamicMapPoint,
             int powerChargeLevel,
+            int executionChargeLevel,
             NetworkId selfUnitId,
             NetworkId selectedUnitId,
             LayerMask alliesLayerMask,
@@ -118,11 +121,12 @@ namespace Main.Scripts.Skills.Common.Component
             Position = position;
             Rotation = rotation;
             this.ownerId = ownerId;
-            this.chargeLevel = chargeLevel;
+            this.heatLevel = heatLevel;
             this.stackCount = stackCount;
             this.initialMapPoint = initialMapPoint;
             this.dynamicMapPoint = dynamicMapPoint;
             this.powerChargeLevel = powerChargeLevel;
+            this.executionChargeLevel = executionChargeLevel;
             this.selfUnitId = selfUnitId;
             this.selectedUnitId = selectedUnitId;
             this.alliesLayerMask = alliesLayerMask;
@@ -135,7 +139,7 @@ namespace Main.Scripts.Skills.Common.Component
             
             var resources = GlobalResources.Instance.ThrowWhenNull();
             modifierIdsBank = resources.ModifierIdsBank;
-            skillChargeManager = levelContext.SkillChargeManager;
+            skillHeatLevelManager = levelContext.SkillHeatLevelManager;
             skillVisualManager = levelContext.SkillVisualManager;
 
             this.skillConfig = skillConfig;
@@ -160,9 +164,10 @@ namespace Main.Scripts.Skills.Common.Component
             SkillFollowStrategyConfigsResolver.ResolveEnabledModifiers(
                 modifierIdsBank,
                 ref heroData,
-                chargeLevel,
+                heatLevel,
                 stackCount,
                 powerChargeLevel,
+                executionChargeLevel,
                 skillConfig.FollowStrategy,
                 out followStrategy
             );
@@ -172,9 +177,10 @@ namespace Main.Scripts.Skills.Common.Component
                 SkillActionTriggerConfigsResolver.ResolveEnabledModifiers(
                     modifierIdsBank,
                     ref heroData,
-                    chargeLevel,
+                    heatLevel,
                     stackCount,
                     powerChargeLevel,
+                    executionChargeLevel,
                     skillTriggerPack.ActionTrigger,
                     out var resolvedActionTrigger
                 );
@@ -191,9 +197,10 @@ namespace Main.Scripts.Skills.Common.Component
                     SkillActionsPackResolver.ResolveEnabledModifiers(
                         modifierIdsBank,
                         ref heroData,
-                        chargeLevel,
+                        heatLevel,
                         stackCount,
                         powerChargeLevel,
+                        executionChargeLevel,
                         skillActionsPack,
                         resolvedDataOut
                     );
@@ -274,7 +281,7 @@ namespace Main.Scripts.Skills.Common.Component
         private void Reset()
         {
             modifierIdsBank = null!;
-            skillChargeManager = null!;
+            skillHeatLevelManager = null!;
             skillVisualManager = null!;
             skillComponentsPoolHelper = null!;
             gameLoopManager = null!;
@@ -289,6 +296,7 @@ namespace Main.Scripts.Skills.Common.Component
             
             
             lifeTimer = default;
+            continueRunningWhileHolding = default;
             triggerTimer = default;
             activatedTriggersCountMap.Clear();
             collisionDetectedTargets.Clear();
@@ -386,6 +394,7 @@ namespace Main.Scripts.Skills.Common.Component
             {
                 startSkillTick = runner.Tick;
                 lifeTimer = TickTimer.CreateFromTicks(runner, skillConfig.DurationTicks);
+                continueRunningWhileHolding = skillConfig.ContinueRunningWhileHolding;
 
                 if (triggerPacksDataMap.TryGetValue(TIMER_TRIGGER_TYPE, out var triggerPackData)
                     && triggerPackData.ActionTrigger is TimerSkillActionTrigger timerTrigger)
@@ -407,7 +416,10 @@ namespace Main.Scripts.Skills.Common.Component
                 CheckPeriodicTrigger();
             }
 
-            if (lifeTimer.Expired(runner) || shouldStop)
+            var stopRunningByLackHolding = skillConfig.ContinueRunningWhileHolding && !continueRunningWhileHolding;
+            continueRunningWhileHolding = false;
+
+            if (lifeTimer.Expired(runner) || shouldStop || stopRunningByLackHolding)
             {
                 lifeTimer = default;
 
@@ -458,6 +470,38 @@ namespace Main.Scripts.Skills.Common.Component
             if (shouldStop) return;
             
             dynamicMapPoint = mapPoint;
+        }
+
+        public void ApplyHolding()
+        {
+            if (shouldStop || !skillConfig.ContinueRunningWhileHolding) return;
+            
+            continueRunningWhileHolding = true;
+        }
+
+        
+        private int GetExecutionChargeLevel(int executionChargeProgress)
+        {
+            var level = 0;
+            var executionChargeStepValues = skillConfig.ExecutionChargeStepValues;
+            while (level < executionChargeStepValues.Length && executionChargeProgress >= executionChargeStepValues[level])
+            {
+                level++;
+            }
+
+            return level;
+        }
+
+        private int GetExecutionChargeProgress()
+        {
+            if (skillConfig.DurationTicks == 0)
+            {
+                return 0;
+            }
+            return Math.Min(
+                100,
+                (int)(100 * (runner.Tick - startSkillTick) / (float)skillConfig.DurationTicks)
+            );
         }
 
         public void OnClickTrigger()
@@ -642,7 +686,7 @@ namespace Main.Scripts.Skills.Common.Component
                 switch (action)
                 {
                     case AddChargeAction addChargeAction:
-                        skillChargeManager.AddCharge(addChargeAction.ChargeValue);
+                        skillHeatLevelManager.AddCharge(addChargeAction.ChargeValue);
                         break;
                     case ApplyEffectsSkillAction applyEffectsAction
                         when actionTarget.TryGetInterface<Affectable>(out var affectable):
@@ -741,17 +785,22 @@ namespace Main.Scripts.Skills.Common.Component
                         break;
                     case SpawnConfigSkillAction spawnConfigSkillAction:
                         var skillComponent = skillComponentsPoolHelper.Get();
+                        var currentExecutionChargeLevel = skillConfig.StartNewExecutionCharging
+                            ? GetExecutionChargeLevel(GetExecutionChargeProgress())
+                            : executionChargeLevel;
+                        
                         skillComponent.Init(
                             skillConfig: spawnConfigSkillAction.SkillConfig,
                             runner: runner,
                             position: spawnPosition,
                             rotation: spawnRotation,
                             ownerId: ownerId,
-                            chargeLevel: chargeLevel,
+                            heatLevel: heatLevel,
                             stackCount: stackCount,
                             initialMapPoint: initialMapPoint,
                             dynamicMapPoint: dynamicMapPoint,
                             powerChargeLevel: powerChargeLevel,
+                            executionChargeLevel: currentExecutionChargeLevel,
                             selfUnitId: selfUnitId,
                             selectedUnitId: selectedUnitId,
                             alliesLayerMask: alliesLayerMask,

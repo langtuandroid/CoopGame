@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Main.Scripts.Skills.Charge
 {
-    public class SkillChargeManager : GameLoopEntityNetworked
+    public class SkillHeatLevelManager : GameLoopEntityNetworked
     {
         private const int MAX_CHARGE_LEVEL = 5;
 
@@ -46,13 +46,13 @@ namespace Main.Scripts.Skills.Charge
         };
 
         [Networked]
-        private int chargeLevel { get; set; } = 1;
+        private int heatLevel { get; set; } = 1;
         [Networked]
-        private int chargeProgress { get; set; }
+        private int heatProgress { get; set; }
 
-        public int ChargeLevel => chargeLevel;
-        public int ChargeProgress => chargeProgress;
-        public bool IsMaxChargeLevel => chargeLevel == MAX_CHARGE_LEVEL;
+        public int HeatLevel => heatLevel;
+        public int HeatProgress => heatProgress;
+        public bool IsMaxChargeLevel => heatLevel == MAX_CHARGE_LEVEL;
 
         public override void OnGameLoopPhase(GameLoopPhase phase)
         {
@@ -79,21 +79,21 @@ namespace Main.Scripts.Skills.Charge
             }
 
             var decreaseValue = Runner.Tick % decreaseProgressFrequencyTicks == 0 ? decreaseProgressValue : 0;
-            chargeProgress = Math.Max(0, chargeProgress + addChargeValue - decreaseValue);
+            heatProgress = Math.Max(0, heatProgress + addChargeValue - decreaseValue);
             addChargeValue = 0;
 
             var progressForNextLevel = GetProgressForNextLevel();
 
-            if (chargeProgress >= progressForNextLevel)
+            if (heatProgress >= progressForNextLevel)
             {
-                chargeLevel++;
+                heatLevel++;
                 if (IsMaxChargeLevel)
                 {
-                    chargeProgress = 0;
+                    heatProgress = 0;
                 }
                 else
                 {
-                    chargeProgress -= progressForNextLevel;
+                    heatProgress -= progressForNextLevel;
                 }
             }
         }
@@ -105,14 +105,14 @@ namespace Main.Scripts.Skills.Charge
                 return 0;
             }
 
-            return chargeLevel switch
+            return heatLevel switch
             {
                 1 => progressForLevel2,
                 2 => progressForLevel3,
                 3 => progressForLevel4,
                 4 => progressForLevel5,
                 _ => throw new Exception(
-                    $"Doesn't have value of charge progress need for ChargeLevel {chargeLevel + 1}")
+                    $"Doesn't have value of charge progress need for ChargeLevel {heatLevel + 1}")
             };
         }
 

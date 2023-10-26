@@ -7,6 +7,7 @@ namespace Main.Scripts.Core.GameLogic.Phases
         StrategyPhase,
         SkillChargeUpdate,
         SkillActivationPhase,
+        SkillCheckCastFinished,
         SkillSpawnPhase,
         SkillUpdatePhase,
         SkillVisualSpawnPhase,

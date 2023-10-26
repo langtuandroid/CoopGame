@@ -65,5 +65,46 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
                 resolvedConfig = config;
             }
         }
+        
+        public static void ResolveEnabledModifiers(
+            int stackCount,
+            int powerChargeLevel,
+            int executionChargeLevel,
+            SkillFollowStrategyBase config,
+            out SkillFollowStrategyBase resolvedConfig
+        )
+        {
+            if (config is ModifiableSkillFollowStrategies modifiableConfig)
+            {
+                var modifierLevel = modifiableConfig.Modifier switch
+                {
+                    ExecutionChargeModifier => executionChargeLevel,
+                    PowerChargeModifier => powerChargeLevel,
+                    StackCountModifier => stackCount,
+                    _ => 0
+                };
+
+                var followStrategy =
+                    modifiableConfig.FollowStrategyByModifierLevel[modifierLevel];
+
+                ResolveEnabledModifiers(
+                    stackCount,
+                    powerChargeLevel,
+                    executionChargeLevel,
+                    followStrategy,
+                    out resolvedConfig
+                );
+
+                if (resolvedConfig == null)
+                {
+                    throw new Exception(
+                        $"Resolved config cannot be null. Check {modifiableConfig.name} config.");
+                }
+            }
+            else
+            {
+                resolvedConfig = config;
+            }
+        }
     }
 }

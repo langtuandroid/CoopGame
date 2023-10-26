@@ -63,5 +63,44 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
                 }
             }
         }
+        
+        public static void ResolveEnabledModifiers(
+            int stackCount,
+            int powerChargeLevel,
+            int executionChargeLevel,
+            List<SkillFindTargetsStrategyBase> configs,
+            List<SkillFindTargetsStrategyBase> resolvedConfigs
+        )
+        {
+            foreach (var config in configs)
+            {
+                if (config is ModifiableSkillFindTargetsStrategies modifiableConfig)
+                {
+                    var modifierLevel = modifiableConfig.Modifier switch
+                    {
+                        ExecutionChargeModifier => executionChargeLevel,
+                        PowerChargeModifier => powerChargeLevel,
+                        StackCountModifier => stackCount,
+                        _ => 0
+                    };
+
+                    var findTargetsStrategies =
+                        modifiableConfig
+                            .FindTargetsStrategiesByModifierLevel[modifierLevel];
+
+                    ResolveEnabledModifiers(
+                        stackCount,
+                        powerChargeLevel,
+                        executionChargeLevel,
+                        findTargetsStrategies.Value,
+                        resolvedConfigs
+                    );
+                }
+                else
+                {
+                    resolvedConfigs.Add(config);
+                }
+            }
+        }
     }
 }

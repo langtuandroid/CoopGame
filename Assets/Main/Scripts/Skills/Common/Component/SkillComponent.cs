@@ -219,11 +219,23 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void ResolveConfigWithoutHeroData()
         {
-            followStrategy = skillConfig.FollowStrategy;
+            SkillFollowStrategyConfigsResolver.ResolveEnabledModifiers(
+                stackCount,
+                powerChargeLevel,
+                executionChargeLevel,
+                skillConfig.FollowStrategy,
+                out followStrategy
+            );
             
             foreach (var skillTriggerPack in skillConfig.TriggerPacks)
             {
-                var resolvedActionTrigger = skillTriggerPack.ActionTrigger;
+                SkillActionTriggerConfigsResolver.ResolveEnabledModifiers(
+                    stackCount,
+                    powerChargeLevel,
+                    executionChargeLevel,
+                    skillTriggerPack.ActionTrigger,
+                    out var resolvedActionTrigger
+                );
                 var triggerType = resolvedActionTrigger.GetType();
 
                 var actionsPackList = ListPool<SkillActionsPackData>.Get();
@@ -231,9 +243,16 @@ namespace Main.Scripts.Skills.Common.Component
                 foreach (var skillActionsPack in skillTriggerPack.ActionsPackList)
                 {
                     var resolvedDataOut = GenericPool<SkillActionsPackData>.Get();
+                    resolvedDataOut.FindTargetsStrategies = ListPool<SkillFindTargetsStrategyBase>.Get();
+                    resolvedDataOut.Actions = ListPool<SkillActionBase>.Get();
 
-                    resolvedDataOut.Actions = skillActionsPack.Actions;
-                    resolvedDataOut.FindTargetsStrategies = skillActionsPack.FindTargetsStrategies;
+                    SkillActionsPackResolver.ResolveEnabledModifiers(
+                        stackCount,
+                        powerChargeLevel,
+                        executionChargeLevel,
+                        skillActionsPack,
+                        resolvedDataOut
+                    );
 
                     actionsPackList.Add(resolvedDataOut);
                 }

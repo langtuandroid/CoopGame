@@ -42,5 +42,32 @@ namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
                 resolvedDataOut.Actions
             );
         }
+        
+        public static void ResolveEnabledModifiers(
+            int stackCount,
+            int powerChargeLevel,
+            int executionChargeLevel,
+            SkillActionsPack actionsPackConfig,
+            SkillActionsPackData resolvedDataOut
+        )
+        {
+            resolvedDataOut.FindTargetsStrategies.Clear();
+            SkillFindTargetsStrategiesConfigsResolver.ResolveEnabledModifiers(
+                stackCount,
+                powerChargeLevel,
+                executionChargeLevel,
+                actionsPackConfig.FindTargetsStrategies,
+                resolvedDataOut.FindTargetsStrategies
+            );
+            
+            resolvedDataOut.Actions.Clear();
+            SkillActionConfigsResolver.ResolveEnabledModifiers(
+                stackCount,
+                powerChargeLevel,
+                executionChargeLevel,
+                actionsPackConfig.Actions,
+                resolvedDataOut.Actions
+            );
+        }
     }
 }

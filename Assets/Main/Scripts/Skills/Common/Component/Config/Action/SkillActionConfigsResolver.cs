@@ -62,5 +62,43 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
                 }
             }
         }
+        
+        public static void ResolveEnabledModifiers(
+            int stackCount,
+            int powerChargeLevel,
+            int executionChargeLevel,
+            List<SkillActionBase> configs,
+            List<SkillActionBase> resolvedConfigs
+        )
+        {
+            foreach (var config in configs)
+            {
+                if (config is ModifiableSkillActions modifiableConfig)
+                {
+                    var modifierLevel = modifiableConfig.Modifier switch
+                    {
+                        ExecutionChargeModifier => executionChargeLevel,
+                        PowerChargeModifier => powerChargeLevel,
+                        StackCountModifier => stackCount,
+                        _ => 0
+                    };
+
+                    var actions =
+                        modifiableConfig.ActionsByModifierLevel[modifierLevel];
+                    
+                    ResolveEnabledModifiers(
+                        stackCount,
+                        powerChargeLevel,
+                        executionChargeLevel,
+                        actions.Value,
+                        resolvedConfigs
+                    );
+                }
+                else
+                {
+                    resolvedConfigs.Add(config);
+                }
+            }
+        }
     }
 }

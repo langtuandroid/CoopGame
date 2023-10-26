@@ -65,5 +65,46 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
                 resolvedConfig = config;
             }
         }
+        
+        public static void ResolveEnabledModifiers(
+            int stackCount,
+            int powerChargeLevel,
+            int executionChargeLevel,
+            SkillActionTriggerBase config,
+            out SkillActionTriggerBase resolvedConfig
+        )
+        {
+            if (config is ModifiableSkillActionTriggers modifiableConfig)
+            {
+                var modifierLevel = modifiableConfig.Modifier switch
+                {
+                    ExecutionChargeModifier => executionChargeLevel,
+                    PowerChargeModifier => powerChargeLevel,
+                    StackCountModifier => stackCount,
+                    _ => 0
+                };
+
+                var trigger =
+                    modifiableConfig.TriggerByModifierLevel[modifierLevel];
+
+                ResolveEnabledModifiers(
+                    stackCount,
+                    powerChargeLevel,
+                    executionChargeLevel,
+                    trigger,
+                    out resolvedConfig
+                );
+
+                if (resolvedConfig == null)
+                {
+                    throw new Exception(
+                        $"Resolved config cannot be null. Check {modifiableConfig.name} config");
+                }
+            }
+            else
+            {
+                resolvedConfig = config;
+            }
+        }
     }
 }

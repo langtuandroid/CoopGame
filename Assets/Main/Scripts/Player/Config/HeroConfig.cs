@@ -11,7 +11,7 @@ namespace Main.Scripts.Player.Config
         private string id = null!;
         [SerializeField]
         [Min(1)]
-        private uint maxHealth;
+        private uint maxHealth = 1;
         [SerializeField]
         [Min(0f)]
         private float moveSpeed;

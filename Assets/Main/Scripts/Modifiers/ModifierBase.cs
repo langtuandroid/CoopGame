@@ -6,7 +6,7 @@ namespace Main.Scripts.Modifiers
     {
         [SerializeField]
         [Min(1)]
-        private int heatLevel;
+        private int heatLevel = 1;
         public int HeatLevel => heatLevel;
     }
 }

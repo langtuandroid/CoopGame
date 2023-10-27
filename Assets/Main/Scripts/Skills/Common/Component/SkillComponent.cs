@@ -53,6 +53,7 @@ namespace Main.Scripts.Skills.Common.Component
         private int executionChargeLevel;
         private NetworkId selfUnitId;
         private NetworkId selectedUnitId;
+        private List<NetworkId> targetUnitIdsList = new();
         private int alliesLayerMask;
         private int opponentsLayerMask;
 
@@ -70,10 +71,11 @@ namespace Main.Scripts.Skills.Common.Component
         private Dictionary<Type, SkillTriggerPackData> triggerPacksDataMap = new();
 
         private HashSet<GameObject> findTargetHitObjectsSet = new();
+        private HashSet<List<NetworkId>> targetUnitIdsListsToRelease = new();
 
         private NetworkObject? selfUnit;
         private NetworkObject? selectedUnit;
-        private List<SpawnSkillActionBase> spawnActions = new();
+        private List<SpawnSkillActionData> spawnActions = new();
         private RaycastHit[] raycasts = new RaycastHit[100];
         private Collider[] colliders = new Collider[100];
         private Vector3 skillPositionOnCollisionTriggered;
@@ -112,6 +114,7 @@ namespace Main.Scripts.Skills.Common.Component
             int executionChargeLevel,
             NetworkId selfUnitId,
             NetworkId selectedUnitId,
+            IEnumerable<NetworkId> targetUnitIdsList,
             LayerMask alliesLayerMask,
             LayerMask opponentsLayerMask,
             Action<SkillComponent>? onSpawnNewSkillComponent
@@ -130,6 +133,7 @@ namespace Main.Scripts.Skills.Common.Component
             this.selfUnitId = selfUnitId;
             this.selectedUnitId = selectedUnitId;
             this.alliesLayerMask = alliesLayerMask;
+            this.targetUnitIdsList.AddRange(targetUnitIdsList);
             this.opponentsLayerMask = opponentsLayerMask;
             this.onSpawnNewSkillComponent = onSpawnNewSkillComponent;
 
@@ -312,6 +316,7 @@ namespace Main.Scripts.Skills.Common.Component
             selectedUnitId = default;
             selfUnit = null;
             selectedUnit = null;
+            targetUnitIdsList.Clear();
             
             
             lifeTimer = default;
@@ -326,8 +331,14 @@ namespace Main.Scripts.Skills.Common.Component
             visualToken = -1;
             
             findTargetHitObjectsSet.Clear();
+            targetUnitIdsListsToRelease.Clear();
             triggerPacksDataMap.Clear();
 
+            foreach (var data in spawnActions)
+            {
+                data.targetUnitIdsList.Clear();
+                ListPool<NetworkId>.Release(data.targetUnitIdsList);
+            }
             spawnActions.Clear();
             isCollisionTriggered = false;
             isClickTriggered = false;
@@ -391,6 +402,10 @@ namespace Main.Scripts.Skills.Common.Component
             if (selectedUnitId.IsValid)
             {
                 selectedUnit = runner.FindObject(selectedUnitId);
+            }
+            else
+            {
+                //todo cancele skill execution when false
             }
 
             if (isCollisionTriggered)
@@ -622,6 +637,16 @@ namespace Main.Scripts.Skills.Common.Component
                         }
 
                         break;
+                    case TargetUnitsSkillFindTargetsStrategy:
+                        foreach (var targetId in targetUnitIdsList)
+                        {
+                            var networkObject = runner.FindObject(targetId);
+                            if (networkObject != null)
+                            {
+                                findTargetHitObjectsSet.Add(networkObject.gameObject);
+                            }
+                        }
+                        break;
                 }
             }
 
@@ -692,13 +717,28 @@ namespace Main.Scripts.Skills.Common.Component
         private void ExecuteActions(SkillActionsPackData actionsPackData, int activatedTriggersCount)
         {
             var actionTargets = FindActionTargets(actionsPackData.FindTargetsStrategies);
+
+            var targetIdsList = ListPool<NetworkId>.Get();
+            foreach (var target in actionTargets)
+            {
+                if (target.TryGetComponent<NetworkObject>(out var networkObject))
+                {
+                    targetIdsList.Add(networkObject.Id);
+                }
+            }
+            
             foreach (var action in actionsPackData.Actions)
             {
-                ApplyAction(action, actionTargets, activatedTriggersCount);
+                ApplyAction(action, actionTargets, targetIdsList, activatedTriggersCount);
             }
         }
 
-        private void ApplyAction(SkillActionBase action, IEnumerable<GameObject> actionTargets, int activatedTriggersCount)
+        private void ApplyAction(
+            SkillActionBase action,
+            IEnumerable<GameObject> actionTargets,
+            List<NetworkId> targetIdsList,
+            int activatedTriggersCount
+        )
         {
             foreach (var actionTarget in actionTargets)
             {
@@ -768,12 +808,36 @@ namespace Main.Scripts.Skills.Common.Component
                         stunnable.AddStun(ref stunActionData);
 
                         break;
+                    case SpawnConfigWithTargetSkillAction spawnWithTargetAction:
+                        if (actionTarget.TryGetComponent<NetworkObject>(out var networkObject))
+                        {
+                            spawnActions.Add(new SpawnSkillActionData
+                            {
+                                spawnAction = spawnWithTargetAction,
+                                selectedUnitId = networkObject.Id,
+                                targetUnitIdsList = targetIdsList
+                            });
+                        }
+
+                        break;
                 }
             }
 
             if (action is SpawnSkillActionBase spawnAction)
             {
-                spawnActions.Add(spawnAction);
+                switch (action)
+                {
+                    case SpawnConfigSkillAction:
+                    case SpawnPrefabSkillAction:
+                    case SpawnSkillVisualAction:
+                        spawnActions.Add(new SpawnSkillActionData
+                        {
+                            spawnAction = spawnAction,
+                            selectedUnitId = selectedUnitId,
+                            targetUnitIdsList = targetIdsList
+                        });
+                        break;
+                }
             }
 
             if (action is StopSkillAction stopAction && activatedTriggersCount >= stopAction.LiveUntilTriggersCount)
@@ -784,8 +848,9 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void OnSpawnPhase()
         {
-            foreach (var spawnAction in spawnActions)
+            foreach (var spawnActionData in spawnActions)
             {
+                var spawnAction = spawnActionData.spawnAction;
                 var spawnPosition = GetPointByType(spawnAction.SpawnPointType);
                 var spawnRotation = Quaternion.LookRotation(GetDirectionByType(spawnAction.SpawnDirectionType));
 
@@ -803,30 +868,22 @@ namespace Main.Scripts.Skills.Common.Component
                         }
                         break;
                     case SpawnConfigSkillAction spawnConfigSkillAction:
-                        var skillComponent = skillComponentsPoolHelper.Get();
-                        var currentExecutionChargeLevel = skillConfig.StartNewExecutionCharging
-                            ? GetExecutionChargeLevel(GetExecutionChargeProgress())
-                            : executionChargeLevel;
-                        
-                        skillComponent.Init(
+                        SpawnSkillConfig(
                             skillConfig: spawnConfigSkillAction.SkillConfig,
-                            runner: runner,
-                            position: spawnPosition,
-                            rotation: spawnRotation,
-                            ownerId: ownerId,
-                            heatLevel: heatLevel,
-                            stackCount: stackCount,
-                            initialMapPoint: initialMapPoint,
-                            dynamicMapPoint: dynamicMapPoint,
-                            powerChargeLevel: powerChargeLevel,
-                            executionChargeLevel: currentExecutionChargeLevel,
-                            selfUnitId: selfUnitId,
-                            selectedUnitId: selectedUnitId,
-                            alliesLayerMask: alliesLayerMask,
-                            opponentsLayerMask: opponentsLayerMask,
-                            onSpawnNewSkillComponent: onSpawnNewSkillComponent
+                            spawnPosition: spawnPosition,
+                            spawnRotation: spawnRotation,
+                            selectedUnitId: spawnActionData.selectedUnitId,
+                            targetUnitIdsList: spawnActionData.targetUnitIdsList
                         );
-                        onSpawnNewSkillComponent?.Invoke(skillComponent);
+                        break;
+                    case SpawnConfigWithTargetSkillAction spawnConfigWithTargetSkillAction:
+                        SpawnSkillConfig(
+                            skillConfig: spawnConfigWithTargetSkillAction.SkillConfig,
+                            spawnPosition: spawnPosition,
+                            spawnRotation: spawnRotation,
+                            selectedUnitId: spawnActionData.selectedUnitId,
+                            targetUnitIdsList: spawnActionData.targetUnitIdsList
+                        );
                         break;
                     case SpawnSkillVisualAction spawnVisualForSkillAction:
                         var token = skillVisualManager.StartVisual(
@@ -837,9 +894,53 @@ namespace Main.Scripts.Skills.Common.Component
                         RefreshVisual(token);
                         break;
                 }
+
+                targetUnitIdsListsToRelease.Add(spawnActionData.targetUnitIdsList);
             }
-            
+
+            foreach (var targetsList in targetUnitIdsListsToRelease)
+            {
+                targetsList.Clear();
+                ListPool<NetworkId>.Release(targetsList);
+            }
+
+            targetUnitIdsListsToRelease.Clear();
             spawnActions.Clear();
+        }
+
+        private void SpawnSkillConfig(
+            SkillConfig skillConfig,
+            Vector3 spawnPosition,
+            Quaternion spawnRotation,
+            NetworkId selectedUnitId,
+            List<NetworkId> targetUnitIdsList
+        )
+        {
+            var skillComponent = skillComponentsPoolHelper.Get();
+            var currentExecutionChargeLevel = skillConfig.StartNewExecutionCharging
+                ? GetExecutionChargeLevel(GetExecutionChargeProgress())
+                : executionChargeLevel;
+
+            skillComponent.Init(
+                skillConfig: skillConfig,
+                runner: runner,
+                position: spawnPosition,
+                rotation: spawnRotation,
+                ownerId: ownerId,
+                heatLevel: heatLevel,
+                stackCount: stackCount,
+                initialMapPoint: initialMapPoint,
+                dynamicMapPoint: dynamicMapPoint,
+                powerChargeLevel: powerChargeLevel,
+                executionChargeLevel: currentExecutionChargeLevel,
+                selfUnitId: selfUnitId,
+                selectedUnitId: selectedUnitId,
+                targetUnitIdsList: targetUnitIdsList,
+                alliesLayerMask: alliesLayerMask,
+                opponentsLayerMask: opponentsLayerMask,
+                onSpawnNewSkillComponent: onSpawnNewSkillComponent
+            );
+            onSpawnNewSkillComponent?.Invoke(skillComponent);
         }
 
         private void RefreshVisual(int token)

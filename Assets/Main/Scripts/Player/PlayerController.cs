@@ -59,11 +59,11 @@ namespace Main.Scripts.Player
 
         private GameLoopPhase[] gameLoopPhases =
         {
+            GameLoopPhase.SkillCheckSkillFinished,
             GameLoopPhase.PlayerInputPhase,
             GameLoopPhase.SkillActivationPhase,
             GameLoopPhase.SkillCheckCastFinished,
             GameLoopPhase.SkillSpawnPhase,
-            GameLoopPhase.SkillUpdatePhase,
             GameLoopPhase.EffectsApplyPhase,
             GameLoopPhase.ApplyActionsPhase,
             GameLoopPhase.EffectsRemoveFinishedPhase,

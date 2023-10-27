@@ -27,6 +27,7 @@ namespace Main.Scripts.Skills.Common.Controller
         private Vector3 dynamicMapPoint;
         private int powerChargeLevel;
         private NetworkObject? selectedUnit;
+        private List<NetworkId> effectTargetsIdList = new();
         private int heatLevel;
         private int stackCount;
         private TickTimer skillRunningTimer;
@@ -47,9 +48,9 @@ namespace Main.Scripts.Skills.Common.Controller
 
         private GameLoopPhase[] gameLoopPhases =
         {
+            GameLoopPhase.SkillCheckSkillFinished,
             GameLoopPhase.SkillCheckCastFinished,
             GameLoopPhase.SkillSpawnPhase,
-            GameLoopPhase.SkillUpdatePhase,
             GameLoopPhase.VisualStateUpdatePhase
         };
 
@@ -138,7 +139,7 @@ namespace Main.Scripts.Skills.Common.Controller
             }
         }
 
-        public bool Activate(int heatLevel, int stackCount)
+        public bool Activate(int heatLevel, int stackCount, List<NetworkId>? effectTargetsIdList)
         {
             if (isActivating || IsSkillRunning || !cooldownTimer.ExpiredOrNotRunning(objectContext.Runner))
             {
@@ -149,6 +150,10 @@ namespace Main.Scripts.Skills.Common.Controller
             activationTick = objectContext.Runner.Tick;
             this.heatLevel = heatLevel;
             this.stackCount = stackCount;
+            if (effectTargetsIdList != null)
+            {
+                this.effectTargetsIdList.AddRange(effectTargetsIdList);
+            }
 
             switch (skillControllerConfig.ActivationType)
             {
@@ -220,7 +225,10 @@ namespace Main.Scripts.Skills.Common.Controller
                 listener?.OnPowerChargeProgressChanged(this, false, 0, 0);
             }
 
-            skillRunningTimer = TickTimer.CreateFromTicks(objectContext.Runner, skillControllerConfig.CastDurationTicks + skillControllerConfig.ExecutionDurationTicks);
+            skillRunningTimer = TickTimer.CreateFromTicks(
+                objectContext.Runner,
+                skillControllerConfig.CastDurationTicks + skillControllerConfig.ExecutionDurationTicks
+            );
             castTimer = TickTimer.CreateFromTicks(objectContext.Runner, skillControllerConfig.CastDurationTicks);
             continueRunningWhileHolding = skillControllerConfig.ContinueRunningWhileHolding;
 
@@ -257,14 +265,14 @@ namespace Main.Scripts.Skills.Common.Controller
         {
             switch (phase)
             {
+                case GameLoopPhase.SkillCheckSkillFinished:
+                    CheckSkillFinished();
+                    break;
                 case GameLoopPhase.SkillCheckCastFinished:
                     CheckCastFinished();
                     break;
                 case GameLoopPhase.SkillSpawnPhase:
                     OnSpawnPhase();
-                    break;
-                case GameLoopPhase.SkillUpdatePhase:
-                    OnSkillUpdatePhase();
                     break;
                 case GameLoopPhase.VisualStateUpdatePhase:
                     OnVisualStateUpdatePhase();
@@ -280,7 +288,13 @@ namespace Main.Scripts.Skills.Common.Controller
             return gameLoopPhases;
         }
 
-        private void OnSkillUpdatePhase()
+        private void OnSpawnPhase()
+        {
+            SpawnSkills(spawnActions);
+            spawnActions.Clear();
+        }
+
+        private void CheckSkillFinished()
         {
             if (!IsSkillRunning) return;
 
@@ -293,12 +307,6 @@ namespace Main.Scripts.Skills.Common.Controller
 
                 listener?.OnSkillFinished(this);
             }
-        }
-
-        private void OnSpawnPhase()
-        {
-            SpawnSkills(spawnActions);
-            spawnActions.Clear();
         }
 
         private void OnVisualStateUpdatePhase()
@@ -381,6 +389,7 @@ namespace Main.Scripts.Skills.Common.Controller
             activationTick = default;
 
             selectedUnit = null;
+            effectTargetsIdList.Clear();
             initialMapPoint = default;
             dynamicMapPoint = default;
             powerChargeLevel = default;
@@ -481,6 +490,7 @@ namespace Main.Scripts.Skills.Common.Controller
                     executionChargeLevel: 0,
                     selfUnitId: objectContext.Id,
                     selectedUnitId: selectedUnit != null ? selectedUnit.Id : default,
+                    targetUnitIdsList: effectTargetsIdList,
                     alliesLayerMask: alliesLayerMask,
                     opponentsLayerMask: opponentsLayerMask,
                     onSpawnNewSkillComponent: OnSpawnNewSkillComponent

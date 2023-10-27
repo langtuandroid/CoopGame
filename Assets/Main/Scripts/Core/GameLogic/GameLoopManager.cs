@@ -25,6 +25,7 @@ namespace Main.Scripts.Core.GameLogic
         private GameLoopPhase[] beforePhysicsPhases =
         {
             GameLoopPhase.SyncTransformBeforeAllPhase,
+            GameLoopPhase.SkillCheckSkillFinished,
             GameLoopPhase.PlayerInputPhase,
             GameLoopPhase.StrategyPhase,
             GameLoopPhase.SkillChargeUpdate,

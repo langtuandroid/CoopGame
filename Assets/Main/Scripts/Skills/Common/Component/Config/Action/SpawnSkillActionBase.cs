@@ -1,4 +1,3 @@
-using Fusion;
 using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Action

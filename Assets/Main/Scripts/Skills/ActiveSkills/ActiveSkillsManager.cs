@@ -172,9 +172,9 @@ namespace Main.Scripts.Skills.ActiveSkills
                     ActivateSkill();
                     ExecuteCurrentSkill();
                     break;
+                case GameLoopPhase.SkillCheckSkillFinished:
                 case GameLoopPhase.SkillCheckCastFinished:
                 case GameLoopPhase.SkillSpawnPhase:
-                case GameLoopPhase.SkillUpdatePhase:
                 case GameLoopPhase.VisualStateUpdatePhase:
                     foreach (var (_, skillController) in skillControllersMap)
                     {
@@ -225,7 +225,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             }
 
             data.currentSkillType = skillType;
-            skill.Activate(skillHeatLevelManager.HeatLevel, 0);
+            skill.Activate(skillHeatLevelManager.HeatLevel, 0, null);
             var skillState = GetCurrentSkillState();
             if (shouldExecute
                 && skillState is ActiveSkillState.WaitingForTarget or ActiveSkillState.WaitingForPoint)

@@ -263,10 +263,10 @@ namespace Main.Scripts.Player
             {
                 case GameLoopPhase.PlayerInputPhase:
                     break;
+                case GameLoopPhase.SkillCheckSkillFinished:
                 case GameLoopPhase.SkillActivationPhase:
                 case GameLoopPhase.SkillCheckCastFinished:
                 case GameLoopPhase.SkillSpawnPhase:
-                case GameLoopPhase.SkillUpdatePhase:
                     effectsManager.OnGameLoopPhase(phase);
                     activeSkillsManager.OnGameLoopPhase(phase);
                     break;

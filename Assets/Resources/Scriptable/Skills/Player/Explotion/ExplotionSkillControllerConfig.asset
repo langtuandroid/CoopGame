@@ -18,8 +18,11 @@ MonoBehaviour:
   activationType: 1
   areaMarker: {fileID: 5057171897305266061, guid: ff0d9b2f39e85dc479ec32ae19e5e951, type: 3}
   selectionTargetType: 0
-  executionDurationTicks: 0
-  disableMoveOnExecution: 0
+  ticksForFullPowerCharge: 0
+  powerChargeStepValues: 
   castDurationTicks: 8
   disableMoveOnCast: 1
+  executionDurationTicks: 1
+  disableMoveOnExecution: 0
+  continueRunningWhileHolding: 0
   cooldownTicks: 72

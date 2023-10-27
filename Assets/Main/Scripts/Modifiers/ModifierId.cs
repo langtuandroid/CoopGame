@@ -7,7 +7,7 @@ namespace Main.Scripts.Modifiers
     {
         [SerializeField]
         [Min(1)]
-        private int upgradeLevels;
+        private int upgradeLevels = 1;
 
         public ushort UpgradeLevels => (ushort) upgradeLevels;
         public string Id { get; private set; } = "";

@@ -32,6 +32,7 @@ namespace Main.Scripts.Effects
         private float[] statPercentAdditiveSums = new float[(int)StatType.ReservedDoNotUse];
 
         private Dictionary<int, EffectSkillController> passiveSkillControllersMap = new();
+        private Dictionary<EffectType, List<NetworkId>> effectTargetsIdMap = new();
         private HashSet<EffectType> triggersToActivate = new();
         private List<EffectsCombination> effectAddActions = new();
 
@@ -50,6 +51,7 @@ namespace Main.Scripts.Effects
             {
                 unlimitedEffectDataMap[triggerType] = new Dictionary<int, ActiveEffectData>();
                 limitedEffectDataMap[triggerType] = new Dictionary<int, ActiveEffectData>();
+                effectTargetsIdMap[triggerType] = new List<NetworkId>();
             }
         }
 
@@ -124,6 +126,11 @@ namespace Main.Scripts.Effects
                 typedEffectsMap.Clear();
             }
 
+            foreach (var (_, targetUnitIdsList) in effectTargetsIdMap)
+            {
+                targetUnitIdsList.Clear();
+            }
+
             Array.Fill(statConstAdditiveSums, 0f);
             Array.Fill(statPercentAdditiveSums, 0f);
         }
@@ -153,9 +160,9 @@ namespace Main.Scripts.Effects
                 case GameLoopPhase.SkillActivationPhase:
                     ActivateTriggerEffects();
                     break;
+                case GameLoopPhase.SkillCheckSkillFinished:
                 case GameLoopPhase.SkillCheckCastFinished:
                 case GameLoopPhase.SkillSpawnPhase:
-                case GameLoopPhase.SkillUpdatePhase:
                 case GameLoopPhase.VisualStateUpdatePhase:
                     foreach (var (_, skillController) in passiveSkillControllersMap)
                     {
@@ -182,11 +189,12 @@ namespace Main.Scripts.Effects
             triggersToActivate.Add(EffectType.CooldownTrigger);
             foreach (var triggerType in triggersToActivate)
             {
+                var effectTargetsIdList = effectTargetsIdMap[triggerType];
                 foreach (var (_, data) in unlimitedEffectDataMap[triggerType])
                 {
                     if (effectsBank.GetEffect(data.EffectId) is TriggerEffectConfig triggerEffect)
                     {
-                        HandleTriggerEffect(in data, triggerEffect);
+                        HandleTriggerEffect(in data, triggerEffect, effectTargetsIdList);
                     }
                 }
 
@@ -194,9 +202,11 @@ namespace Main.Scripts.Effects
                 {
                     if (effectsBank.GetEffect(data.EffectId) is TriggerEffectConfig triggerEffect)
                     {
-                        HandleTriggerEffect(in data, triggerEffect);
+                        HandleTriggerEffect(in data, triggerEffect, effectTargetsIdList);
                     }
                 }
+                
+                effectTargetsIdMap[triggerType].Clear();
             }
 
             triggersToActivate.Clear();
@@ -291,7 +301,11 @@ namespace Main.Scripts.Effects
             statPercentAdditiveSums[(int)statType] = percentValue;
         }
 
-        private void HandleTriggerEffect(in ActiveEffectData data, TriggerEffectConfig triggerEffectConfig)
+        private void HandleTriggerEffect(
+            in ActiveEffectData data,
+            TriggerEffectConfig triggerEffectConfig,
+            List<NetworkId> effectTargetsIdList
+        )
         {
             if (!passiveSkillControllersMap.TryGetValue(data.EffectId, out var passiveSkillController))
             {
@@ -308,20 +322,13 @@ namespace Main.Scripts.Effects
                 passiveSkillControllersMap[data.EffectId] = passiveSkillController;
             }
 
-            var selectedTarget = (NetworkObject?)null; //todo поддержать мульти таргет
-
             switch (passiveSkillController.ActivationType)
             {
-                case SkillActivationType.WithUnitTarget when selectedTarget != null:
-                    passiveSkillController.Activate(skillHeatLevelManager.HeatLevel, data.StackCount);
-                    passiveSkillController.ApplyUnitTarget(selectedTarget);
-                    passiveSkillController.Execute();
-                    break;
-                case SkillActivationType.WithUnitTarget when selectedTarget == null:
-                    Debug.LogError("PassiveSkillController: ActivationType is UnitTarget and SelectedTarget is null");
+                case SkillActivationType.WithUnitTarget:
+                    Debug.LogError("PassiveSkillController: ActivationType WithUnitTarget is not supported");
                     break;
                 case SkillActivationType.Instantly:
-                    passiveSkillController.Activate(skillHeatLevelManager.HeatLevel, data.StackCount);
+                    passiveSkillController.Activate(skillHeatLevelManager.HeatLevel, data.StackCount, effectTargetsIdList);
                     break;
                 case SkillActivationType.WithMapPointTarget:
                     Debug.LogError("PassiveSkillController: ActivationType MapPointTarget is not supported");
@@ -401,11 +408,20 @@ namespace Main.Scripts.Effects
         public void OnTakenDamage(float damageValue, NetworkObject? damageOwner)
         {
             triggersToActivate.Add(EffectType.TakenDamageTrigger);
+            if (damageOwner != null)
+            {
+                effectTargetsIdMap[EffectType.DeadTrigger].Add(damageOwner.Id);
+                effectTargetsIdMap[EffectType.TakenDamageTrigger].Add(damageOwner.Id);
+            }
         }
 
         public void OnTakenHeal(PlayerRef skillOwner, float healValue, NetworkObject? healOwner)
         {
             triggersToActivate.Add(EffectType.TakenHealTrigger);
+            if (healOwner != null)
+            {
+                effectTargetsIdMap[EffectType.TakenHealTrigger].Add(healOwner.Id);
+            }
         }
 
         private EffectType GetEffectType(EffectConfigBase effectConfig)

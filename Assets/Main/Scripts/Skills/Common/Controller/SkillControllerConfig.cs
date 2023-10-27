@@ -30,7 +30,7 @@ namespace Main.Scripts.Skills.Common.Controller
         private bool disableMoveOnCast;
         [SerializeField]
         [Min(1)]
-        private int executionDurationTicks;
+        private int executionDurationTicks = 1;
         [SerializeField]
         private bool disableMoveOnExecution;
         [SerializeField]

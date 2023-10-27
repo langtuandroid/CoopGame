@@ -7,7 +7,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
     {
         [SerializeField]
         [Min(1)]
-        private int liveUntilTriggersCount;
+        private int liveUntilTriggersCount = 1;
 
         public int LiveUntilTriggersCount => liveUntilTriggersCount;
     }

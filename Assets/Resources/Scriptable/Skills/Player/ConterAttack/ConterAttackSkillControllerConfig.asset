@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca3d1d46e4be4df1b28028d25c825374, type: 3}
-  m_Name: BonkSkillControllerConfig
+  m_Name: ConterAttackSkillControllerConfig
   m_EditorClassIdentifier: 
   runOnCastSkillConfigs: []
   runOnExecutionSkillConfigs:
-  - {fileID: 11400000, guid: 3fee7f67db3e2f1498362c5bb395df84, type: 2}
+  - {fileID: 11400000, guid: 387855c45b264694ba3a8848edfa63ae, type: 2}
   activationType: 0
   areaMarker: {fileID: 0}
   selectionTargetType: 0

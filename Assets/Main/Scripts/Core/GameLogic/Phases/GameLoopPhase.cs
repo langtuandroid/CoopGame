@@ -3,6 +3,7 @@ namespace Main.Scripts.Core.GameLogic.Phases
     public enum GameLoopPhase
     {
         SyncTransformBeforeAllPhase,
+        SkillCheckSkillFinished,
         PlayerInputPhase,
         StrategyPhase,
         SkillChargeUpdate,

@@ -67,10 +67,10 @@ namespace Main.Scripts.Enemies
         public readonly GameLoopPhase[] gameLoopPhases =
         {
             GameLoopPhase.StrategyPhase,
+            GameLoopPhase.SkillCheckSkillFinished,
             GameLoopPhase.SkillActivationPhase,
             GameLoopPhase.SkillCheckCastFinished,
             GameLoopPhase.SkillSpawnPhase,
-            GameLoopPhase.SkillUpdatePhase,
             GameLoopPhase.EffectsApplyPhase,
             GameLoopPhase.ApplyActionsPhase,
             GameLoopPhase.EffectsRemoveFinishedPhase,
@@ -203,10 +203,10 @@ namespace Main.Scripts.Enemies
                 case GameLoopPhase.StrategyPhase:
                     OnStrategyPhase();
                     break;
+                case GameLoopPhase.SkillCheckSkillFinished:
                 case GameLoopPhase.SkillActivationPhase:
                 case GameLoopPhase.SkillCheckCastFinished:
                 case GameLoopPhase.SkillSpawnPhase:
-                case GameLoopPhase.SkillUpdatePhase:
                     effectsManager.OnGameLoopPhase(phase);
                     activeSkillsManager.OnGameLoopPhase(phase);
                     break;

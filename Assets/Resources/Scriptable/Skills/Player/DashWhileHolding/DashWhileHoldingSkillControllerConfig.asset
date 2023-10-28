@@ -23,14 +23,15 @@ MonoBehaviour:
   castDurationTicks: 0
   disableMoveOnCast: 0
   castInterruptionData:
-    BySelectedTargetDeath: 0
+    BySelectedTargetDeath: 1
     ByCancel: 0
     ByAnotherSkillActivation: 0
   executionDurationTicks: 72
   disableMoveOnExecution: 0
   executionInterruptionData:
-    BySelectedTargetDeath: 0
+    BySelectedTargetDeath: 1
     ByCancel: 1
     ByAnotherSkillActivation: 1
   continueRunningWhileHolding: 1
   cooldownTicks: 96
+  cooldownStartType: 1

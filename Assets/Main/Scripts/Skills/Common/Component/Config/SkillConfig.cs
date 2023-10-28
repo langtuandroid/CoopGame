@@ -18,25 +18,26 @@ namespace Main.Scripts.Skills.Common.Component.Config
         [SerializeField]
         private List<SkillTriggerPack> triggerPacks = new();
         [SerializeField]
-        [Min(0)]
-        private int durationTicks;
-        [SerializeField]
         private bool startNewExecutionCharging;
         [SerializeField]
         private int[] executionChargeStepValues = null!;
         [SerializeField]
+        [Min(0)]
+        private int durationTicks;
+        [SerializeField]
         private bool continueRunningWhileHolding;
         [SerializeField]
         private bool interruptWithSkillController;
+
 
         public SkillSpawnPointType SpawnPointType => spawnPointType;
         public SkillSpawnDirectionType SpawnDirectionType => spawnDirectionType;
         public SkillDirectionType FollowDirectionType => followDirectionType;
         public SkillFollowStrategyBase FollowStrategy => followStrategy;
         public List<SkillTriggerPack> TriggerPacks => triggerPacks;
-        public int DurationTicks => durationTicks;
         public bool StartNewExecutionCharging => startNewExecutionCharging;
         public int[] ExecutionChargeStepValues => executionChargeStepValues;
+        public int DurationTicks => durationTicks;
         public bool ContinueRunningWhileHolding => continueRunningWhileHolding;
         public bool InterruptWithSkillController => interruptWithSkillController;
     }

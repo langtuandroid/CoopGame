@@ -237,6 +237,10 @@ namespace Main.Scripts.Skills.Common.Controller
                 skillControllerConfig.CastDurationTicks + skillControllerConfig.ExecutionDurationTicks
             );
             castTimer = TickTimer.CreateFromTicks(objectContext.Runner, skillControllerConfig.CastDurationTicks);
+            if (skillControllerConfig.CooldownStartType == SkillCooldownStartType.OnCast)
+            {
+                StartCooldown();
+            }
             continueRunningWhileHolding = skillControllerConfig.ContinueRunningWhileHolding;
 
             listener?.OnSkillStartCasting(this);
@@ -351,11 +355,21 @@ namespace Main.Scripts.Skills.Common.Controller
             if (castTimer.Expired(objectContext.Runner))
             {
                 castTimer = default;
-                cooldownTimer = TickTimer.CreateFromTicks(objectContext.Runner, skillControllerConfig.CooldownTicks);
+                if (skillControllerConfig.CooldownStartType == SkillCooldownStartType.OnExecute)
+                {
+                    StartCooldown();
+                }
+
                 AddSpawnActions(skillControllerConfig.RunOnExecutionSkillConfigs);
                 
                 listener?.OnSkillFinishedCasting(this);
             }
+        }
+
+        private void StartCooldown()
+        {
+            cooldownTimer =
+                TickTimer.CreateFromTicks(objectContext.Runner, skillControllerConfig.CooldownTicks);
         }
 
         public int GetCooldownLeftTicks()

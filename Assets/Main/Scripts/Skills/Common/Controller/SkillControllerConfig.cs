@@ -30,19 +30,21 @@ namespace Main.Scripts.Skills.Common.Controller
         [SerializeField]
         private bool disableMoveOnCast;
         [SerializeField]
-        private SkillInterruptionData castInterruptionData;
+        private SkillInterruptionData castInterruptionData = SkillInterruptionData.DEFAULT;
         [SerializeField]
         [Min(1)]
         private int executionDurationTicks = 1;
         [SerializeField]
         private bool disableMoveOnExecution;
         [SerializeField]
-        private SkillInterruptionData executionInterruptionData;
+        private SkillInterruptionData executionInterruptionData = SkillInterruptionData.DEFAULT;
         [SerializeField]
         private bool continueRunningWhileHolding;
         [SerializeField]
         [Min(0)]
         private int cooldownTicks;
+        [SerializeField]
+        private SkillCooldownStartType cooldownStartType = SkillCooldownStartType.OnExecute;
 
         public List<SkillConfig> RunOnCastSkillConfigs => runOnCastSkillConfigs;
         public List<SkillConfig> RunOnExecutionSkillConfigs => runOnExecutionSkillConfigs;
@@ -59,5 +61,6 @@ namespace Main.Scripts.Skills.Common.Controller
         public ref SkillInterruptionData ExecutionInterruptionData => ref executionInterruptionData;
         public bool ContinueRunningWhileHolding => continueRunningWhileHolding;
         public int CooldownTicks => cooldownTicks;
+        public SkillCooldownStartType CooldownStartType => cooldownStartType;
     }
 }

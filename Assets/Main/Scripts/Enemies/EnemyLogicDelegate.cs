@@ -16,6 +16,7 @@ using Main.Scripts.Mobs.Config;
 using Main.Scripts.Mobs.Config.Block.Action;
 using Main.Scripts.Skills;
 using Main.Scripts.Skills.ActiveSkills;
+using Main.Scripts.Skills.Common.Controller.Interruption;
 using Pathfinding;
 using UnityEngine;
 
@@ -367,6 +368,11 @@ namespace Main.Scripts.Enemies
             {
                 if (objectContext.HasStateAuthority)
                 {
+                    effectsManager.AddEffectsInterruption(SkillInterruptionType.OwnerDead);
+                    activeSkillsManager.AddInterruptCurrentSkill(SkillInterruptionType.OwnerDead);
+                    
+                    effectsManager.OnDead();
+                    
                     eventListener.OnEnemyDead();
                     shouldDespawn = true;
                 }
@@ -538,11 +544,15 @@ namespace Main.Scripts.Enemies
 
         private void ApplyKnockBack(ref KnockBackActionData actionData)
         {
+            effectsManager.AddEffectsInterruption(SkillInterruptionType.OwnerStunned);
+            activeSkillsManager.AddInterruptCurrentSkill(SkillInterruptionType.OwnerStunned);
             rigidbody3D.AddForce(actionData.force);
         }
 
         public void AddStun(ref StunActionData data)
         {
+            effectsManager.AddEffectsInterruption(SkillInterruptionType.OwnerStunned);
+            activeSkillsManager.AddInterruptCurrentSkill(SkillInterruptionType.OwnerStunned);
             stunActions.Add(data);
         }
 

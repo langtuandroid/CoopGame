@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a71e4967503d490faccfe305398e1e1d, type: 3}
-  m_Name: DamageAction2
+  m_Script: {fileID: 11500000, guid: 8f535f3098ca48028d15422cfc6bbd73, type: 3}
+  m_Name: HealAction1
   m_EditorClassIdentifier: 
-  damageValue: 2
+  healValue: 1

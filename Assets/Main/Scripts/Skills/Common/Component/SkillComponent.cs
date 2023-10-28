@@ -402,10 +402,10 @@ namespace Main.Scripts.Skills.Common.Component
             if (selectedUnitId.IsValid)
             {
                 selectedUnit = runner.FindObject(selectedUnitId);
-            }
-            else
-            {
-                //todo cancele skill execution when false
+                if (selectedUnit == null)
+                {
+                    shouldStop = true;
+                }
             }
 
             if (isCollisionTriggered)
@@ -547,9 +547,9 @@ namespace Main.Scripts.Skills.Common.Component
 
         public void TryInterrupt()
         {
-            if (shouldStop) return;
-            
-            //todo
+            if (shouldStop || !skillConfig.InterruptWithSkillController) return;
+
+            shouldStop = true;
         }
 
         public void OnLostControl()
@@ -848,6 +848,10 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void OnSpawnPhase()
         {
+            var currentExecutionChargeLevel = skillConfig.StartNewExecutionCharging
+                ? GetExecutionChargeLevel(GetExecutionChargeProgress())
+                : executionChargeLevel;
+            
             foreach (var spawnActionData in spawnActions)
             {
                 var spawnAction = spawnActionData.spawnAction;
@@ -872,6 +876,7 @@ namespace Main.Scripts.Skills.Common.Component
                             skillConfig: spawnConfigSkillAction.SkillConfig,
                             spawnPosition: spawnPosition,
                             spawnRotation: spawnRotation,
+                            executionChargeLevel: currentExecutionChargeLevel,
                             selectedUnitId: spawnActionData.selectedUnitId,
                             targetUnitIdsList: spawnActionData.targetUnitIdsList
                         );
@@ -881,6 +886,7 @@ namespace Main.Scripts.Skills.Common.Component
                             skillConfig: spawnConfigWithTargetSkillAction.SkillConfig,
                             spawnPosition: spawnPosition,
                             spawnRotation: spawnRotation,
+                            executionChargeLevel: currentExecutionChargeLevel,
                             selectedUnitId: spawnActionData.selectedUnitId,
                             targetUnitIdsList: spawnActionData.targetUnitIdsList
                         );
@@ -912,14 +918,12 @@ namespace Main.Scripts.Skills.Common.Component
             SkillConfig skillConfig,
             Vector3 spawnPosition,
             Quaternion spawnRotation,
+            int executionChargeLevel,
             NetworkId selectedUnitId,
             List<NetworkId> targetUnitIdsList
         )
         {
             var skillComponent = skillComponentsPoolHelper.Get();
-            var currentExecutionChargeLevel = skillConfig.StartNewExecutionCharging
-                ? GetExecutionChargeLevel(GetExecutionChargeProgress())
-                : executionChargeLevel;
 
             skillComponent.Init(
                 skillConfig: skillConfig,
@@ -932,7 +936,7 @@ namespace Main.Scripts.Skills.Common.Component
                 initialMapPoint: initialMapPoint,
                 dynamicMapPoint: dynamicMapPoint,
                 powerChargeLevel: powerChargeLevel,
-                executionChargeLevel: currentExecutionChargeLevel,
+                executionChargeLevel: executionChargeLevel,
                 selfUnitId: selfUnitId,
                 selectedUnitId: selectedUnitId,
                 targetUnitIdsList: targetUnitIdsList,

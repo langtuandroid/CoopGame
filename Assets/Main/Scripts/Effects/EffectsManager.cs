@@ -10,6 +10,7 @@ using Main.Scripts.Effects.TriggerEffects;
 using Main.Scripts.Effects.TriggerEffects.Triggers;
 using Main.Scripts.Skills.Charge;
 using Main.Scripts.Skills.Common.Controller;
+using Main.Scripts.Skills.Common.Controller.Interruption;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -35,6 +36,7 @@ namespace Main.Scripts.Effects
         private Dictionary<EffectType, List<NetworkId>> effectTargetsIdMap = new();
         private HashSet<EffectType> triggersToActivate = new();
         private List<EffectsCombination> effectAddActions = new();
+        private SkillInterruptionType interruptionTypes;
 
         private HashSet<StatType> updatedStatTypes = new();
         private List<int> removedEffectIds = new();
@@ -106,6 +108,7 @@ namespace Main.Scripts.Effects
         {
             updatedStatTypes.Clear();
             effectAddActions.Clear();
+            interruptionTypes = default;
 
             foreach (var (_, passiveSkillController) in passiveSkillControllersMap)
             {
@@ -158,6 +161,7 @@ namespace Main.Scripts.Effects
             switch (phase)
             {
                 case GameLoopPhase.SkillActivationPhase:
+                    ApplyEffectsInterruption();
                     ActivateTriggerEffects();
                     break;
                 case GameLoopPhase.SkillCheckSkillFinished:
@@ -393,6 +397,21 @@ namespace Main.Scripts.Effects
                 percentValue: Math.Max(0,
                     statPercentAdditiveSums[(int)statType] - modifierEffectConfig.PercentAdditive * stackCount)
             );
+        }
+
+        public void AddEffectsInterruption(SkillInterruptionType interruptionType)
+        {
+            interruptionTypes |= interruptionType;
+        }
+
+        private void ApplyEffectsInterruption()
+        {
+            if (interruptionTypes == 0) return;
+
+            foreach (var (_, skillController) in passiveSkillControllersMap)
+            {
+                skillController.TryInterrupt(interruptionTypes);
+            }
         }
 
         public void OnSpawn()

@@ -7,6 +7,7 @@ using Main.Scripts.Core.GameLogic.Phases;
 using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills.Charge;
 using Main.Scripts.Skills.Common.Controller;
+using Main.Scripts.Skills.Common.Controller.Interruption;
 using UnityEngine;
 
 namespace Main.Scripts.Skills.ActiveSkills
@@ -27,6 +28,7 @@ namespace Main.Scripts.Skills.ActiveSkills
         private ActivateSkillActionData activateSkillActionData;
         private bool shouldExecuteCurrentSkill;
         private bool shouldCancelCurrentSkill;
+        private SkillInterruptionType interruptionTypes;
 
         public ActiveSkillsManager(
             DataHolder dataHolder,
@@ -125,6 +127,7 @@ namespace Main.Scripts.Skills.ActiveSkills
 
             objectContext = null!;
             skillHeatLevelManager = null!;
+            interruptionTypes = default;
         }
 
         public void Render()
@@ -154,6 +157,11 @@ namespace Main.Scripts.Skills.ActiveSkills
             shouldCancelCurrentSkill = true;
         }
 
+        public void AddInterruptCurrentSkill(SkillInterruptionType interruptionType)
+        {
+            interruptionTypes |= interruptionType;
+        }
+
         public void ApplyHolding(ActiveSkillType skillType)
         {
             var currentSkillType = GetCurrentSkillType();
@@ -168,7 +176,8 @@ namespace Main.Scripts.Skills.ActiveSkills
             switch (phase)
             {
                 case GameLoopPhase.SkillActivationPhase:
-                    CancelCurrentSkill();
+                    CancelSkillActivation();
+                    InterruptSkill();
                     ActivateSkill();
                     ExecuteCurrentSkill();
                     break;
@@ -213,13 +222,20 @@ namespace Main.Scripts.Skills.ActiveSkills
 
             ref var data = ref dataHolder.GetActiveSkillsData();
 
-            if (data.currentSkillState != ActiveSkillState.NotAttacking)
+            var skill = GetSkillByType(skillType);
+            if (skill == null)
             {
                 return;
             }
 
-            var skill = GetSkillByType(skillType);
-            if (skill == null)
+            var currentSkill = GetSkillByType(data.currentSkillType);
+            if (!skill.CanActivate() || (
+                    data.currentSkillState != ActiveSkillState.NotAttacking && (
+                        currentSkill == null
+                        || !currentSkill.TryInterrupt(SkillInterruptionType.AnotherSkillActivation)
+                    )
+                )
+               )
             {
                 return;
             }
@@ -261,7 +277,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             skill.Execute();
         }
 
-        private void CancelCurrentSkill()
+        private void CancelSkillActivation()
         {
             if (!shouldCancelCurrentSkill) return;
             shouldCancelCurrentSkill = false;
@@ -279,6 +295,18 @@ namespace Main.Scripts.Skills.ActiveSkills
             }
 
             skill.CancelActivation();
+        }
+
+        private void InterruptSkill()
+        {
+            if (interruptionTypes == 0) return;
+            
+            ref var data = ref dataHolder.GetActiveSkillsData();
+
+            var skill = GetSkillByType(data.currentSkillType);
+
+            skill?.TryInterrupt(interruptionTypes);
+            interruptionTypes = default;
         }
 
         public void ApplyTargetMapPosition(Vector3 targetMapPosition)
@@ -438,6 +466,15 @@ namespace Main.Scripts.Skills.ActiveSkills
             ref var data = ref dataHolder.GetActiveSkillsData();
 
             UpdateSkillState(ref data, ActiveSkillState.Canceled);
+            data.currentSkillType = ActiveSkillType.NONE;
+            data.currentSkillState = ActiveSkillState.NotAttacking;
+        }
+
+        public void OnSkillInterrupted(SkillController skill)
+        {
+            ref var data = ref dataHolder.GetActiveSkillsData();
+            
+            UpdateSkillState(ref data, ActiveSkillState.Interrupted);
             data.currentSkillType = ActiveSkillType.NONE;
             data.currentSkillState = ActiveSkillState.NotAttacking;
         }

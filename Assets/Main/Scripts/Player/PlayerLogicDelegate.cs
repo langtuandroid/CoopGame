@@ -17,6 +17,7 @@ using Main.Scripts.Player.Data;
 using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills;
 using Main.Scripts.Skills.ActiveSkills;
+using Main.Scripts.Skills.Common.Controller.Interruption;
 using Main.Scripts.UI.Gui;
 using Main.Scripts.Utils;
 using Pathfinding.RVO;
@@ -383,7 +384,7 @@ namespace Main.Scripts.Player
             healthChangeDisplayManager?.OnAfterPhysicsSteps();
         }
 
-        public void SetDirections(ref Vector2 moveDirection, ref Vector2 aimDirection)
+        public void SetDirections(in Vector2 moveDirection, in Vector2 aimDirection)
         {
             ref var data = ref dataHolder.GetPlayerLogicData();
 
@@ -461,6 +462,8 @@ namespace Main.Scripts.Player
             {
                 if (objectContext.HasStateAuthority)
                 {
+                    effectsManager.AddEffectsInterruption(SkillInterruptionType.OwnerDead);
+                    activeSkillsManager.AddInterruptCurrentSkill(SkillInterruptionType.OwnerDead);
                     UpdateState(ref playerLogicData, PlayerState.Dead);
                     effectsManager.OnDead();
                 }
@@ -530,6 +533,8 @@ namespace Main.Scripts.Player
             switch (activeSkillsManager.GetCurrentSkillState())
             {
                 case ActiveSkillState.NotAttacking:
+                case ActiveSkillState.Casting:
+                case ActiveSkillState.Attacking:
                     activeSkillsManager.AddActivateSkill(type, false);
                     break;
                 case ActiveSkillState.WaitingForPoint:
@@ -558,6 +563,22 @@ namespace Main.Scripts.Player
             if (heroConfig.EnableAutoAttackFor == type)
             {
                 SkillBtnPressed(type);
+            }
+        }
+
+        public void OnCancelButtonClicked()
+        {
+            switch (activeSkillsManager.GetCurrentSkillState())
+            {
+                case ActiveSkillState.Casting:
+                case ActiveSkillState.Attacking:
+                    activeSkillsManager.AddInterruptCurrentSkill(SkillInterruptionType.Cancel);
+                    break;
+                case ActiveSkillState.WaitingForPoint:
+                case ActiveSkillState.WaitingForTarget:
+                case ActiveSkillState.WaitingForPowerCharge:
+                    activeSkillsManager.AddCancelCurrentSkill();
+                    break;
             }
         }
 

@@ -221,6 +221,11 @@ namespace Main.Scripts.Player.InputSystem
                     playerController.OnPrimaryButtonClicked();
                 }
 
+                if (pressedButtons.IsSet(NetworkInputData.BUTTON_FIRE_SECONDARY))
+                {
+                    playerController.OnCancelButtonClicked();
+                }
+
                 foreach (var skillButton in NetworkInputData.SKILL_BUTTONS)
                 {
                     var skillType = GetSkillByButton(skillButton);
@@ -260,7 +265,7 @@ namespace Main.Scripts.Player.InputSystem
 
                 var moveDirectionNormalized = input.moveDirection.normalized;
                 var aimDirectionNormalized = input.aimDirection.normalized;
-                playerController.SetDirections(ref moveDirectionNormalized, ref aimDirectionNormalized);
+                playerController.SetDirections(in moveDirectionNormalized, in aimDirectionNormalized);
             }
         }
 

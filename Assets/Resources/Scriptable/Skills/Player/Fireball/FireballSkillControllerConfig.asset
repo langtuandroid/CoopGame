@@ -22,6 +22,15 @@ MonoBehaviour:
   powerChargeStepValues: 1e0000004600000064000000
   castDurationTicks: 8
   disableMoveOnCast: 0
+  castInterruptionData:
+    IsInterruptBySelectedTargetDeath: 0
+    IsInterruptByCancellation: 0
+    IsInterruptByAnotherSkillActivation: 1
   executionDurationTicks: 5
   disableMoveOnExecution: 0
+  executionInterruptionData:
+    IsInterruptBySelectedTargetDeath: 0
+    IsInterruptByCancellation: 0
+    IsInterruptByAnotherSkillActivation: 1
+  continueRunningWhileHolding: 0
   cooldownTicks: 24

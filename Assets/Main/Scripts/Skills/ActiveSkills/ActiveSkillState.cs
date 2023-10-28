@@ -10,5 +10,6 @@
         WaitingForPowerCharge,
         Finished,
         Canceled,
+        Interrupted,
     }
 }

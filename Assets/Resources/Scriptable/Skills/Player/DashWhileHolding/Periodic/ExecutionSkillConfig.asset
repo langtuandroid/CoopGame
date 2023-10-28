@@ -24,4 +24,4 @@ MonoBehaviour:
   startNewExecutionCharging: 1
   executionChargeStepValues: 1e00000046000000
   continueRunningWhileHolding: 1
-  interruptStrategy: 0
+  interruptWithSkillController: 1

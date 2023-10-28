@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills.Common.Component.Config;
+using Main.Scripts.Skills.Common.Controller.Interruption;
 using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Controller
@@ -29,10 +30,14 @@ namespace Main.Scripts.Skills.Common.Controller
         [SerializeField]
         private bool disableMoveOnCast;
         [SerializeField]
+        private SkillInterruptionData castInterruptionData;
+        [SerializeField]
         [Min(1)]
         private int executionDurationTicks = 1;
         [SerializeField]
         private bool disableMoveOnExecution;
+        [SerializeField]
+        private SkillInterruptionData executionInterruptionData;
         [SerializeField]
         private bool continueRunningWhileHolding;
         [SerializeField]
@@ -48,8 +53,10 @@ namespace Main.Scripts.Skills.Common.Controller
         public int[] PowerChargeStepValues => powerChargeStepValues;
         public int CastDurationTicks => castDurationTicks;
         public bool DisableMoveOnCast => disableMoveOnCast;
+        public ref SkillInterruptionData CastInterruptionData => ref castInterruptionData;
         public int ExecutionDurationTicks => executionDurationTicks;
         public bool DisableMoveOnExecution => disableMoveOnExecution;
+        public ref SkillInterruptionData ExecutionInterruptionData => ref executionInterruptionData;
         public bool ContinueRunningWhileHolding => continueRunningWhileHolding;
         public int CooldownTicks => cooldownTicks;
     }

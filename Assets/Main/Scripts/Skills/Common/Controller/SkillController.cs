@@ -7,6 +7,7 @@ using Main.Scripts.Levels;
 using Main.Scripts.Player.InputSystem.Target;
 using Main.Scripts.Skills.Common.Component;
 using Main.Scripts.Skills.Common.Component.Config;
+using Main.Scripts.Skills.Common.Controller.Interruption;
 using Main.Scripts.Utils;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -26,6 +27,7 @@ namespace Main.Scripts.Skills.Common.Controller
         private Vector3 initialMapPoint;
         private Vector3 dynamicMapPoint;
         private int powerChargeLevel;
+        private NetworkId selectedUnitId;
         private NetworkObject? selectedUnit;
         private List<NetworkId> effectTargetsIdList = new();
         private int heatLevel;
@@ -139,9 +141,14 @@ namespace Main.Scripts.Skills.Common.Controller
             }
         }
 
+        public bool CanActivate()
+        {
+            return !isActivating && !IsSkillRunning && cooldownTimer.ExpiredOrNotRunning(objectContext.Runner);
+        }
+
         public bool Activate(int heatLevel, int stackCount, List<NetworkId>? effectTargetsIdList)
         {
-            if (isActivating || IsSkillRunning || !cooldownTimer.ExpiredOrNotRunning(objectContext.Runner))
+            if (!CanActivate())
             {
                 return false;
             }
@@ -195,6 +202,7 @@ namespace Main.Scripts.Skills.Common.Controller
             if (!isActivating) return;
 
             selectedUnit = unitTarget;
+            selectedUnitId = unitTarget.Id;
         }
 
         public void ApplyHolding()
@@ -220,7 +228,6 @@ namespace Main.Scripts.Skills.Common.Controller
             isActivating = false;
             if (ActivationType == SkillActivationType.WithPowerCharge)
             {
-                powerChargeLevel = GetPowerChargeLevel(GetPowerChargeProgress());
                 //todo мб можно вынести в стейт обновления визуала
                 listener?.OnPowerChargeProgressChanged(this, false, 0, 0);
             }
@@ -266,6 +273,7 @@ namespace Main.Scripts.Skills.Common.Controller
             switch (phase)
             {
                 case GameLoopPhase.SkillCheckSkillFinished:
+                    CheckSelectedTargetDead();
                     CheckSkillFinished();
                     break;
                 case GameLoopPhase.SkillCheckCastFinished:
@@ -292,6 +300,16 @@ namespace Main.Scripts.Skills.Common.Controller
         {
             SpawnSkills(spawnActions);
             spawnActions.Clear();
+        }
+
+        private void CheckSelectedTargetDead()
+        {
+            if (!IsSkillRunning || skillControllerConfig.ActivationType != SkillActivationType.WithUnitTarget) return;
+            
+            if (selectedUnitId.IsValid && (selectedUnit == null || selectedUnit.Id != selectedUnitId))
+            {
+                TryInterrupt(SkillInterruptionType.SelectedTargetDead);
+            }
         }
 
         private void CheckSkillFinished()
@@ -354,24 +372,67 @@ namespace Main.Scripts.Skills.Common.Controller
             }
         }
 
-        public bool TryInterrupt()
+        public void CancelActivation()
         {
-            //todo доделать
+            if (!isActivating) return;
+
+            if (skillControllerConfig.ActivationType == SkillActivationType.WithPowerCharge)
+            {
+                listener?.OnPowerChargeProgressChanged(this, false, 0, 0);
+            }
+
+            ResetOnFinish();
+
+            listener?.OnSkillCanceled(this);
+        }
+
+        public bool TryInterrupt(SkillInterruptionType interruptionType)
+        {
+            if (!skillRunningTimer.IsRunning) return false;
+
+            ref var interruptionData = ref castTimer.IsRunning
+                ? ref skillControllerConfig.CastInterruptionData
+                : ref skillControllerConfig.ExecutionInterruptionData;
+            
+            var shouldInterrupt = false;
+            
+            if (interruptionType.HasFlag(SkillInterruptionType.OwnerDead))
+            {
+                shouldInterrupt = true;
+            }
+
+            if (interruptionType.HasFlag(SkillInterruptionType.OwnerStunned))
+            {
+                shouldInterrupt = true;
+            }
+
+            if (interruptionType.HasFlag(SkillInterruptionType.SelectedTargetDead))
+            {
+                shouldInterrupt |= interruptionData.BySelectedTargetDeath;
+            }
+
+            if (interruptionType.HasFlag(SkillInterruptionType.AnotherSkillActivation))
+            {
+                shouldInterrupt |= interruptionData.ByAnotherSkillActivation;
+            }
+
+            if (interruptionType.HasFlag(SkillInterruptionType.Cancel))
+            {
+                shouldInterrupt |= interruptionData.ByCancel;
+            }
+            
+            if (!shouldInterrupt) return false;
+            
             foreach (var skillComponent in skillComponents)
             {
                 skillComponent.TryInterrupt();
             }
 
-            return false;
-        }
-
-        public void CancelActivation()
-        {
-            if (!isActivating) return;
-
             ResetOnFinish();
+            
+            listener?.OnSkillInterrupted(this);
 
-            listener?.OnSkillCanceled(this);
+            return true;
         }
 
         public bool IsDisabledMove()
@@ -389,6 +450,7 @@ namespace Main.Scripts.Skills.Common.Controller
             activationTick = default;
 
             selectedUnit = null;
+            selectedUnitId = default;
             effectTargetsIdList.Clear();
             initialMapPoint = default;
             dynamicMapPoint = default;
@@ -489,7 +551,7 @@ namespace Main.Scripts.Skills.Common.Controller
                     powerChargeLevel: powerChargeLevel,
                     executionChargeLevel: 0,
                     selfUnitId: objectContext.Id,
-                    selectedUnitId: selectedUnit != null ? selectedUnit.Id : default,
+                    selectedUnitId: selectedUnitId,
                     targetUnitIdsList: effectTargetsIdList,
                     alliesLayerMask: alliesLayerMask,
                     opponentsLayerMask: opponentsLayerMask,
@@ -523,6 +585,7 @@ namespace Main.Scripts.Skills.Common.Controller
             public void OnSkillFinishedCasting(SkillController skill);
             public void OnSkillFinished(SkillController skill);
             public void OnSkillCanceled(SkillController skill);
+            public void OnSkillInterrupted(SkillController skill);
         }
     }
 }

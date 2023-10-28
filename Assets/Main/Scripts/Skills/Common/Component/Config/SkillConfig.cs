@@ -27,7 +27,7 @@ namespace Main.Scripts.Skills.Common.Component.Config
         [SerializeField]
         private bool continueRunningWhileHolding;
         [SerializeField]
-        private SkillInterruptStrategy interruptStrategy;
+        private bool interruptWithSkillController;
 
         public SkillSpawnPointType SpawnPointType => spawnPointType;
         public SkillSpawnDirectionType SpawnDirectionType => spawnDirectionType;
@@ -38,6 +38,6 @@ namespace Main.Scripts.Skills.Common.Component.Config
         public bool StartNewExecutionCharging => startNewExecutionCharging;
         public int[] ExecutionChargeStepValues => executionChargeStepValues;
         public bool ContinueRunningWhileHolding => continueRunningWhileHolding;
-        public SkillInterruptStrategy InterruptStrategy => interruptStrategy;
+        public bool InterruptWithSkillController => interruptWithSkillController;
     }
 }

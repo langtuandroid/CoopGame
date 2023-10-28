@@ -196,9 +196,9 @@ namespace Main.Scripts.Player
             return gameLoopPhases;
         }
 
-        public void SetDirections(ref Vector2 moveDirection, ref Vector2 aimDirection)
+        public void SetDirections(in Vector2 moveDirection, in Vector2 aimDirection)
         {
-            playerLogicDelegate.SetDirections(ref moveDirection, ref aimDirection);
+            playerLogicDelegate.SetDirections(in moveDirection, in aimDirection);
         }
 
         public void SkillBtnPressed(ActiveSkillType type)
@@ -214,6 +214,11 @@ namespace Main.Scripts.Player
         public void SkillBtnHolding(ActiveSkillType type)
         {
             playerLogicDelegate.SkillBtnHolding(type);
+        }
+
+        public void OnCancelButtonClicked()
+        {
+            playerLogicDelegate.OnCancelButtonClicked();
         }
 
         public void OnPrimaryButtonClicked()

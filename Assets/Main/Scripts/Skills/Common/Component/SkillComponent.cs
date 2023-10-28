@@ -550,6 +550,7 @@ namespace Main.Scripts.Skills.Common.Component
             if (shouldStop || !skillConfig.InterruptWithSkillController) return;
 
             shouldStop = true;
+            RefreshVisual(-1);
         }
 
         public void OnLostControl()

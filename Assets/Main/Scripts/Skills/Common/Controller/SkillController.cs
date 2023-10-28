@@ -32,11 +32,11 @@ namespace Main.Scripts.Skills.Common.Controller
         private List<NetworkId> effectTargetsIdList = new();
         private int heatLevel;
         private int stackCount;
-        private TickTimer skillRunningTimer;
+        private TickTimer executionTimer;
         private bool continueRunningWhileHolding;
         private TickTimer castTimer;
         private bool isActivating;
-        private Tick activationTick;
+        private Tick castStartTick;
 
         private TickTimer cooldownTimer;
         
@@ -56,7 +56,7 @@ namespace Main.Scripts.Skills.Common.Controller
             GameLoopPhase.VisualStateUpdatePhase
         };
 
-        public bool IsSkillRunning => skillRunningTimer.IsRunning;
+        private bool IsSkillRunning => castTimer.IsRunning || executionTimer.IsRunning;
         public SkillActivationType ActivationType => skillControllerConfig.ActivationType;
         public UnitTargetType SelectionTargetType => skillControllerConfig.SelectionTargetType;
 
@@ -154,7 +154,6 @@ namespace Main.Scripts.Skills.Common.Controller
             }
 
             isActivating = true;
-            activationTick = objectContext.Runner.Tick;
             this.heatLevel = heatLevel;
             this.stackCount = stackCount;
             if (effectTargetsIdList != null)
@@ -172,9 +171,6 @@ namespace Main.Scripts.Skills.Common.Controller
                     break;
                 case SkillActivationType.WithUnitTarget:
                     listener?.OnSkillWaitingForUnitTarget(this);
-                    break;
-                case SkillActivationType.WithPowerCharge:
-                    listener?.OnSkillWaitingForPowerCharge(this);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -207,8 +203,9 @@ namespace Main.Scripts.Skills.Common.Controller
 
         public void ApplyHolding()
         {
-            if (!IsSkillRunning || !skillControllerConfig.ContinueRunningWhileHolding) return;
-            
+            var holdingType = skillControllerConfig.HoldingType;
+            if (!IsSkillRunning || holdingType == SkillHoldingType.None) return;
+
             continueRunningWhileHolding = true;
             foreach (var skillComponent in skillComponents)
             {
@@ -226,22 +223,15 @@ namespace Main.Scripts.Skills.Common.Controller
             if (IsSkillRunning) return;
 
             isActivating = false;
-            if (ActivationType == SkillActivationType.WithPowerCharge)
-            {
-                //todo мб можно вынести в стейт обновления визуала
-                listener?.OnPowerChargeProgressChanged(this, false, 0, 0);
-            }
 
-            skillRunningTimer = TickTimer.CreateFromTicks(
-                objectContext.Runner,
-                skillControllerConfig.CastDurationTicks + skillControllerConfig.ExecutionDurationTicks
-            );
             castTimer = TickTimer.CreateFromTicks(objectContext.Runner, skillControllerConfig.CastDurationTicks);
+            castStartTick = objectContext.Runner.Tick;
+            
             if (skillControllerConfig.CooldownStartType == SkillCooldownStartType.OnCast)
             {
                 StartCooldown();
             }
-            continueRunningWhileHolding = skillControllerConfig.ContinueRunningWhileHolding;
+            continueRunningWhileHolding = skillControllerConfig.HoldingType != SkillHoldingType.None;
 
             listener?.OnSkillStartCasting(this);
 
@@ -256,7 +246,7 @@ namespace Main.Scripts.Skills.Common.Controller
             }
             return Math.Min(
                 100,
-                (int)(100 * (objectContext.Runner.Tick - activationTick) / (float)skillControllerConfig.TicksToFullPowerCharge)
+                (int)(100 * (objectContext.Runner.Tick - castStartTick) / (float)skillControllerConfig.TicksToFullPowerCharge)
             );
         }
 
@@ -320,10 +310,13 @@ namespace Main.Scripts.Skills.Common.Controller
         {
             if (!IsSkillRunning) return;
 
-            var stopRunningByLackHolding = skillControllerConfig.ContinueRunningWhileHolding && !continueRunningWhileHolding;
+            var stopRunningByLackHolding =
+                skillControllerConfig.HoldingType == SkillHoldingType.RunningDuration
+                && !continueRunningWhileHolding;
+
             continueRunningWhileHolding = false;
 
-            if (skillRunningTimer.Expired(objectContext.Runner) || stopRunningByLackHolding)
+            if (executionTimer.Expired(objectContext.Runner) || stopRunningByLackHolding)
             {
                 ResetOnFinish();
 
@@ -343,7 +336,7 @@ namespace Main.Scripts.Skills.Common.Controller
                 listener?.OnSkillCooldownChanged(this);
             }
 
-            if (isActivating && ActivationType == SkillActivationType.WithPowerCharge)
+            if (castTimer.IsRunning && skillControllerConfig.HoldingType == SkillHoldingType.PowerChargeOnCast)
             {
                 var powerChargeProgress = GetPowerChargeProgress();
                 listener?.OnPowerChargeProgressChanged(this, true, GetPowerChargeLevel(powerChargeProgress), powerChargeProgress);
@@ -352,9 +345,26 @@ namespace Main.Scripts.Skills.Common.Controller
 
         private void CheckCastFinished()
         {
-            if (castTimer.Expired(objectContext.Runner))
+            if (!castTimer.IsRunning) return;
+
+            var powerChargeFinished =
+                skillControllerConfig.HoldingType == SkillHoldingType.PowerChargeOnCast
+                && !continueRunningWhileHolding;
+
+            if (castTimer.Expired(objectContext.Runner) || powerChargeFinished)
             {
                 castTimer = default;
+                executionTimer = TickTimer.CreateFromTicks(
+                    objectContext.Runner,
+                    skillControllerConfig.ExecutionDurationTicks
+                );
+
+                if (skillControllerConfig.HoldingType == SkillHoldingType.PowerChargeOnCast)
+                {
+                    powerChargeLevel = GetPowerChargeLevel(GetPowerChargeProgress());
+                    listener?.OnPowerChargeProgressChanged(this, false, 0, 0);
+                }
+
                 if (skillControllerConfig.CooldownStartType == SkillCooldownStartType.OnExecute)
                 {
                     StartCooldown();
@@ -390,19 +400,14 @@ namespace Main.Scripts.Skills.Common.Controller
         {
             if (!isActivating) return;
 
-            if (skillControllerConfig.ActivationType == SkillActivationType.WithPowerCharge)
-            {
-                listener?.OnPowerChargeProgressChanged(this, false, 0, 0);
-            }
-
             ResetOnFinish();
 
             listener?.OnSkillCanceled(this);
         }
 
-        public bool TryInterrupt(SkillInterruptionType interruptionType)
+        public bool TryInterrupt(SkillInterruptionType interruptionTypes)
         {
-            if (!skillRunningTimer.IsRunning) return false;
+            if (!IsSkillRunning) return false;
 
             ref var interruptionData = ref castTimer.IsRunning
                 ? ref skillControllerConfig.CastInterruptionData
@@ -410,32 +415,37 @@ namespace Main.Scripts.Skills.Common.Controller
             
             var shouldInterrupt = false;
             
-            if (interruptionType.HasFlag(SkillInterruptionType.OwnerDead))
+            if (interruptionTypes.HasFlag(SkillInterruptionType.OwnerDead))
             {
                 shouldInterrupt = true;
             }
 
-            if (interruptionType.HasFlag(SkillInterruptionType.OwnerStunned))
+            if (interruptionTypes.HasFlag(SkillInterruptionType.OwnerStunned))
             {
                 shouldInterrupt = true;
             }
 
-            if (interruptionType.HasFlag(SkillInterruptionType.SelectedTargetDead))
+            if (interruptionTypes.HasFlag(SkillInterruptionType.SelectedTargetDead))
             {
                 shouldInterrupt |= interruptionData.BySelectedTargetDeath;
             }
 
-            if (interruptionType.HasFlag(SkillInterruptionType.AnotherSkillActivation))
+            if (interruptionTypes.HasFlag(SkillInterruptionType.AnotherSkillActivation))
             {
                 shouldInterrupt |= interruptionData.ByAnotherSkillActivation;
             }
 
-            if (interruptionType.HasFlag(SkillInterruptionType.Cancel))
+            if (interruptionTypes.HasFlag(SkillInterruptionType.Cancel))
             {
                 shouldInterrupt |= interruptionData.ByCancel;
             }
             
             if (!shouldInterrupt) return false;
+
+            if (castTimer.IsRunning && skillControllerConfig.HoldingType == SkillHoldingType.PowerChargeOnCast)
+            {
+                listener?.OnPowerChargeProgressChanged(this, false, 0, 0);
+            }
             
             foreach (var skillComponent in skillComponents)
             {
@@ -459,9 +469,9 @@ namespace Main.Scripts.Skills.Common.Controller
         private void ResetOnFinish()
         {
             castTimer = default;
-            skillRunningTimer = default;
+            executionTimer = default;
             isActivating = false;
-            activationTick = default;
+            castStartTick = default;
 
             selectedUnit = null;
             selectedUnitId = default;

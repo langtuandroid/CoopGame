@@ -25,6 +25,8 @@ namespace Main.Scripts.Skills.Common.Controller
         [SerializeField]
         private int[] powerChargeStepValues = null!;
         [SerializeField]
+        private SkillHoldingType holdingType;
+        [SerializeField]
         [Min(0)]
         private int castDurationTicks;
         [SerializeField]
@@ -39,8 +41,6 @@ namespace Main.Scripts.Skills.Common.Controller
         [SerializeField]
         private SkillInterruptionData executionInterruptionData = SkillInterruptionData.DEFAULT;
         [SerializeField]
-        private bool continueRunningWhileHolding;
-        [SerializeField]
         [Min(0)]
         private int cooldownTicks;
         [SerializeField]
@@ -53,13 +53,13 @@ namespace Main.Scripts.Skills.Common.Controller
         public UnitTargetType SelectionTargetType => selectionTargetType;
         public int TicksToFullPowerCharge => ticksForFullPowerCharge;
         public int[] PowerChargeStepValues => powerChargeStepValues;
+        public SkillHoldingType HoldingType => holdingType;
         public int CastDurationTicks => castDurationTicks;
         public bool DisableMoveOnCast => disableMoveOnCast;
         public ref SkillInterruptionData CastInterruptionData => ref castInterruptionData;
         public int ExecutionDurationTicks => executionDurationTicks;
         public bool DisableMoveOnExecution => disableMoveOnExecution;
         public ref SkillInterruptionData ExecutionInterruptionData => ref executionInterruptionData;
-        public bool ContinueRunningWhileHolding => continueRunningWhileHolding;
         public int CooldownTicks => cooldownTicks;
         public SkillCooldownStartType CooldownStartType => cooldownStartType;
     }

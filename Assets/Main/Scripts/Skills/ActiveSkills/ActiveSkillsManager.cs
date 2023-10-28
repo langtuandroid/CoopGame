@@ -165,7 +165,11 @@ namespace Main.Scripts.Skills.ActiveSkills
         public void ApplyHolding(ActiveSkillType skillType)
         {
             var currentSkillType = GetCurrentSkillType();
-            if (currentSkillType != skillType || GetCurrentSkillState() != ActiveSkillState.Attacking) return;
+            if (currentSkillType != skillType
+                || GetCurrentSkillState()
+                    is not ActiveSkillState.Attacking
+                    and not ActiveSkillState.Casting
+               ) return;
 
             var skillController = GetSkillByType(skillType);
             skillController?.ApplyHolding();
@@ -299,7 +303,7 @@ namespace Main.Scripts.Skills.ActiveSkills
 
         private void InterruptSkill()
         {
-            if (interruptionTypes == 0) return;
+            if (interruptionTypes == default) return;
             
             ref var data = ref dataHolder.GetActiveSkillsData();
 

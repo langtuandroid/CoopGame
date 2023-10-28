@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 708574db76a74ebe87e92ea04b52a2a5, type: 3}
+  m_Name: SkillConfig
+  m_EditorClassIdentifier: 
+  spawnPointType: 0
+  spawnDirectionType: 4
+  followDirectionType: 0
+  followStrategy: {fileID: 11400000, guid: ac57cec94d073b144ae680414a870691, type: 2}
+  triggerPacks:
+  - ActionTrigger: {fileID: 11400000, guid: 19dbf92fb648d37409727eefa84f90b2, type: 2}
+    ActionsPackList:
+    - {fileID: 11400000, guid: 9e2fd84f44ae23445bf44930d0738910, type: 2}
+  - ActionTrigger: {fileID: 11400000, guid: 4c795e7f280516249bf4d109092e6876, type: 2}
+    ActionsPackList:
+    - {fileID: 11400000, guid: 5127bc5c5f0df1b44bb20e164a3b9faf, type: 2}
+  startNewExecutionCharging: 0
+  executionChargeStepValues: 
+  durationTicks: 120
+  continueRunningWhileHolding: 0
+  interruptWithSkillController: 0

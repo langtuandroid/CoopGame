@@ -10,29 +10,29 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca3d1d46e4be4df1b28028d25c825374, type: 3}
-  m_Name: DashWhileHoldingSkillControllerConfig
+  m_Name: TornadoSkillControllerConfig
   m_EditorClassIdentifier: 
   runOnCastSkillConfigs: []
   runOnExecutionSkillConfigs:
-  - {fileID: 11400000, guid: 978bfcd45bbeb994289945f3da57abd6, type: 2}
+  - {fileID: 11400000, guid: 58a4b83fb6abe8349bccdc95b2302e98, type: 2}
   activationType: 0
   areaMarker: {fileID: 0}
   selectionTargetType: 0
   ticksForFullPowerCharge: 0
   powerChargeStepValues: 
-  holdingType: 2
-  castDurationTicks: 0
-  disableMoveOnCast: 0
+  holdingType: 0
+  castDurationTicks: 12
+  disableMoveOnCast: 1
   castInterruptionData:
     BySelectedTargetDeath: 1
-    ByCancel: 0
+    ByCancel: 1
     ByAnotherSkillActivation: 0
-  executionDurationTicks: 72
+  executionDurationTicks: 1
   disableMoveOnExecution: 0
   executionInterruptionData:
     BySelectedTargetDeath: 1
-    ByCancel: 1
-    ByAnotherSkillActivation: 1
-  continueRunningWhileHolding: 1
-  cooldownTicks: 96
+    ByCancel: 0
+    ByAnotherSkillActivation: 0
+  continueRunningWhileHolding: 0
+  cooldownTicks: 24
   cooldownStartType: 1

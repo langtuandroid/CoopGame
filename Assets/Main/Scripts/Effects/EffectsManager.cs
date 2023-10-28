@@ -337,9 +337,6 @@ namespace Main.Scripts.Effects
                 case SkillActivationType.WithMapPointTarget:
                     Debug.LogError("PassiveSkillController: ActivationType MapPointTarget is not supported");
                     break;
-                case SkillActivationType.WithPowerCharge:
-                    Debug.LogError("PassiveSkillController: ActivationType PowerCharge is not supported");
-                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

@@ -426,6 +426,8 @@ namespace Main.Scripts.Enemies
                     break;
                 case ActiveSkillState.Canceled:
                     break;
+                case ActiveSkillState.Interrupted:
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(state), state, null);
             }

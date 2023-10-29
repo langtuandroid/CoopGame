@@ -581,8 +581,7 @@ namespace Main.Scripts.Skills.Common.Controller
                     opponentsLayerMask: opponentsLayerMask,
                     onSpawnNewSkillComponent: OnSpawnNewSkillComponent
                 );
-
-                skillComponents.Add(skillComponent);
+                OnSpawnNewSkillComponent(skillComponent);
             }
         }
 

@@ -130,12 +130,16 @@ namespace Main.Scripts.Player
             effectsManager.Spawned(
                 objectContext: objectContext,
                 isPlayerOwner: true,
-                config: ref heroConfig.EffectsConfig
+                config: ref heroConfig.EffectsConfig,
+                alliesLayerMask: heroConfig.AlliesLayerMask,
+                opponentsLayerMask: heroConfig.OpponentsLayerMask
             );
             activeSkillsManager.Spawned(
                 objectContext: objectContext,
                 isPlayerOwner: true,
-                config: ref heroConfig.ActiveSkillsConfig
+                config: ref heroConfig.ActiveSkillsConfig,
+                alliesLayerMask: heroConfig.AlliesLayerMask,
+                opponentsLayerMask: heroConfig.OpponentsLayerMask
             );
             healthChangeDisplayManager?.Spawned(objectContext);
 

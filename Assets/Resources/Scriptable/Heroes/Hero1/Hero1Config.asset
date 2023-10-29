@@ -17,23 +17,16 @@ MonoBehaviour:
   moveSpeed: 6
   enableAutoAttackFor: 0
   activeSkillsConfig:
-    AlliesLayerMask:
-      serializedVersion: 2
-      m_Bits: 128
-    OpponentsLayerMask:
-      serializedVersion: 2
-      m_Bits: 256
     PrimarySkillConfig: {fileID: 11400000, guid: fc8209fbf7f947049b68101db58b5d8c, type: 2}
     DashSkillConfig: {fileID: 11400000, guid: 5f8f92a45fcfac34080542eb56b33681, type: 2}
     FirstSkillConfig: {fileID: 11400000, guid: 9c45539eb9b82db4c882f02f7cc493b1, type: 2}
     SecondSkillConfig: {fileID: 11400000, guid: 63ac8a08a39c3fd4a868c2b853dcf24d, type: 2}
     ThirdSkillConfig: {fileID: 11400000, guid: b7fed8c02bc5bdf40ba323e60c826d20, type: 2}
   effectsConfig:
-    AlliesLayerMask:
-      serializedVersion: 2
-      m_Bits: 128
-    OpponentsLayerMask:
-      serializedVersion: 2
-      m_Bits: 256
-    InitialEffects:
-    - {fileID: 11400000, guid: d6c5a8afcdc979a4ca229db02eb545aa, type: 2}
+    InitialEffects: []
+  alliesLayerMask:
+    serializedVersion: 2
+    m_Bits: 128
+  opponentsLayerMask:
+    serializedVersion: 2
+    m_Bits: 256

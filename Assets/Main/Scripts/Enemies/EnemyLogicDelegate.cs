@@ -122,12 +122,16 @@ namespace Main.Scripts.Enemies
             effectsManager.Spawned(
                 objectContext: objectContext,
                 isPlayerOwner: false,
-                config: ref mobConfig.EffectsConfig
+                config: ref mobConfig.EffectsConfig,
+                alliesLayerMask: mobConfig.AlliesLayerMask,
+                opponentsLayerMask: mobConfig.OpponentsLayerMask
             );
             activeSkillsManager.Spawned(
                 objectContext: objectContext,
                 isPlayerOwner: false,
-                config: ref mobConfig.ActiveSkillsConfig
+                config: ref mobConfig.ActiveSkillsConfig,
+                alliesLayerMask: mobConfig.AlliesLayerMask,
+                opponentsLayerMask: mobConfig.OpponentsLayerMask
             );
 
             logicBlockDelegate = MobBlockDelegateHelper.Create(mobConfig.LogicBlockConfig);

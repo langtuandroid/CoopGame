@@ -21,6 +21,10 @@ namespace Main.Scripts.Player.Config
         private ActiveSkillsConfig activeSkillsConfig;
         [SerializeField]
         private EffectsConfig effectsConfig;
+        [SerializeField]
+        private LayerMask alliesLayerMask;
+        [SerializeField]
+        private LayerMask opponentsLayerMask;
 
         public string Id => id;
         public uint MaxHealth => maxHealth;
@@ -28,6 +32,8 @@ namespace Main.Scripts.Player.Config
         public ref ActiveSkillsConfig ActiveSkillsConfig => ref activeSkillsConfig;
         public ActiveSkillType EnableAutoAttackFor => enableAutoAttackFor;
         public ref EffectsConfig EffectsConfig => ref effectsConfig;
+        public LayerMask AlliesLayerMask => alliesLayerMask;
+        public LayerMask OpponentsLayerMask => opponentsLayerMask;
 
         private void OnValidate()
         {

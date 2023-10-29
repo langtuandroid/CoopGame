@@ -7,8 +7,6 @@ namespace Main.Scripts.Skills.ActiveSkills
     [Serializable]
     public struct ActiveSkillsConfig
     {
-        public LayerMask AlliesLayerMask;
-        public LayerMask OpponentsLayerMask;
         public SkillControllerConfig? PrimarySkillConfig;
         public SkillControllerConfig? DashSkillConfig;
         public SkillControllerConfig? FirstSkillConfig;

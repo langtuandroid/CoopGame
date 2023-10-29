@@ -23,6 +23,8 @@ namespace Main.Scripts.Effects
         private NetworkObject objectContext = null!;
         private bool isPlayerOwner;
         private EffectsConfig config;
+        private LayerMask alliesLayerMask;
+        private LayerMask opponentsLayerMask;
 
         private EffectsBank effectsBank = null!;
         private SkillHeatLevelManager skillHeatLevelManager = null!;
@@ -61,14 +63,14 @@ namespace Main.Scripts.Effects
         {
             foreach (var effectsCombination in config.InitialEffects)
             {
-                if (effectsCombination == null)
+                foreach (var effectConfig in config.InitialEffects)
                 {
-                    throw new ArgumentNullException(
-                        $"{name}: has empty value in PassiveSkillsConfig::InitialEffects");
-                }
-
-                foreach (var effectConfig in effectsCombination.Effects)
-                {
+                    if (effectsCombination == null)
+                    {
+                        throw new ArgumentNullException(
+                            $"{name}: has empty value in EffectsConfig::InitialEffects");
+                    }
+                    
                     if (effectConfig is TriggerEffectConfig triggerEffectConfig)
                     {
                         SkillConfigsValidationHelper.Validate(triggerEffectConfig.SkillControllerConfig);
@@ -80,12 +82,16 @@ namespace Main.Scripts.Effects
         public void Spawned(
             NetworkObject objectContext,
             bool isPlayerOwner,
-            ref EffectsConfig config
+            ref EffectsConfig config,
+            LayerMask alliesLayerMask,
+            LayerMask opponentsLayerMask
         )
         {
             this.objectContext = objectContext;
             this.isPlayerOwner = isPlayerOwner;
             this.config = config;
+            this.alliesLayerMask = alliesLayerMask;
+            this.opponentsLayerMask = opponentsLayerMask;
             effectsBank = dataHolder.GetCachedComponent<EffectsBank>();
             skillHeatLevelManager = dataHolder.GetCachedComponent<SkillHeatLevelManager>();
         }
@@ -97,6 +103,8 @@ namespace Main.Scripts.Effects
             objectContext = null!;
             effectsBank = null!;
             skillHeatLevelManager = null!;
+            alliesLayerMask = default;
+            opponentsLayerMask = default;
         }
 
         public void ResetOnRespawn()
@@ -141,10 +149,7 @@ namespace Main.Scripts.Effects
 
         public void ApplyInitialEffects()
         {
-            foreach (var effects in config.InitialEffects)
-            {
-                ApplyEffects(effects.Effects);
-            }
+            ApplyEffects(config.InitialEffects);
         }
 
         public float GetModifiedValue(StatType statType, float defaultStatValue)
@@ -319,8 +324,8 @@ namespace Main.Scripts.Effects
                     passiveSkillTrigger: triggerEffectConfig.Trigger,
                     skillControllerConfig: triggerEffectConfig.SkillControllerConfig,
                     selfUnitTransform: objectContext.transform,
-                    alliesLayerMask: config.AlliesLayerMask,
-                    opponentsLayerMask: config.OpponentsLayerMask
+                    alliesLayerMask: alliesLayerMask,
+                    opponentsLayerMask: opponentsLayerMask
                 );
                 passiveSkillController.Spawned(objectContext, isPlayerOwner);
                 passiveSkillControllersMap[data.EffectId] = passiveSkillController;

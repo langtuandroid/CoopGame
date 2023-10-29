@@ -20,6 +20,8 @@ namespace Main.Scripts.Skills.ActiveSkills
         private Transform transform;
         private SkillHeatLevelManager skillHeatLevelManager = null!;
         private NetworkObject objectContext = null!;
+        private LayerMask alliesLayerMask;
+        private LayerMask opponentsLayerMask;
 
         private Dictionary<ActiveSkillType, SkillController> skillControllersMap = new();
         private Dictionary<SkillController, ActiveSkillType> skillTypesMap = new();
@@ -68,12 +70,16 @@ namespace Main.Scripts.Skills.ActiveSkills
         public void Spawned(
             NetworkObject objectContext,
             bool isPlayerOwner,
-            ref ActiveSkillsConfig config
+            ref ActiveSkillsConfig config,
+            LayerMask alliesLayerMask,
+            LayerMask opponentsLayerMask
         )
         {
             this.objectContext = objectContext;
             this.config = config;
             skillHeatLevelManager = dataHolder.GetCachedComponent<SkillHeatLevelManager>();
+            this.alliesLayerMask = alliesLayerMask;
+            this.opponentsLayerMask = opponentsLayerMask;
 
             InitSkillControllers();
 
@@ -128,6 +134,8 @@ namespace Main.Scripts.Skills.ActiveSkills
             objectContext = null!;
             skillHeatLevelManager = null!;
             interruptionTypes = default;
+            alliesLayerMask = default;
+            opponentsLayerMask = default;
         }
 
         public void Render()
@@ -221,8 +229,8 @@ namespace Main.Scripts.Skills.ActiveSkills
             skillController.Init(
                 skillControllerConfig: skillControllerConfig,
                 selfUnitTransform: transform,
-                alliesLayerMask: config.AlliesLayerMask,
-                opponentsLayerMask: config.OpponentsLayerMask
+                alliesLayerMask: alliesLayerMask,
+                opponentsLayerMask: opponentsLayerMask
             );
             skillControllersMap[skillType] = skillController;
             skillTypesMap[skillController] = skillType;

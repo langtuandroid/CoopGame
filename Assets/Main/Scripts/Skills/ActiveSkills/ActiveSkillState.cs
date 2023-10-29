@@ -7,7 +7,6 @@
         Attacking,
         WaitingForPoint,
         WaitingForTarget,
-        WaitingForPowerCharge,
         Finished,
         Canceled,
         Interrupted,

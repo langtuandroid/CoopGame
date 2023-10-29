@@ -1,4 +1,5 @@
 using Fusion;
+using Main.Scripts.Helpers.HeroAnimation;
 using UnityEngine;
 
 namespace Main.Scripts.Player
@@ -28,7 +29,9 @@ namespace Main.Scripts.Player
         [Networked]
         public Vector3 dashDirection { get; set; }
         [Networked]
-        public PlayerAnimationState lastAnimationState { get; set; }
+        public HeroAnimationType animationType { get; set; }
+        [Networked]
+        public int animationIndex { get; set; }
         [Networked]
         public int animationTriggerId { get; set; }
     }

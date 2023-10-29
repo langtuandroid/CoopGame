@@ -284,8 +284,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             var skill = GetSkillByType(data.currentSkillType);
             if (skill == null || data.currentSkillState
                     is not ActiveSkillState.WaitingForPoint
-                    and not ActiveSkillState.WaitingForTarget
-                    and not ActiveSkillState.WaitingForPowerCharge)
+                    and not ActiveSkillState.WaitingForTarget)
             {
                 Debug.LogError("Incorrect skill state");
                 return;
@@ -311,8 +310,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             var skill = GetSkillByType(data.currentSkillType);
             if (skill == null || data.currentSkillState
                     is not ActiveSkillState.WaitingForPoint
-                    and not ActiveSkillState.WaitingForTarget
-                    and not ActiveSkillState.WaitingForPowerCharge)
+                    and not ActiveSkillState.WaitingForTarget)
             {
                 Debug.LogError("Incorrect skill state");
                 return;
@@ -378,8 +376,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             var skill = GetSkillByType(data.currentSkillType);
             if (skill == null || data.currentSkillState
                     is not ActiveSkillState.WaitingForPoint
-                    and not ActiveSkillState.WaitingForTarget
-                    and not ActiveSkillState.WaitingForPowerCharge)
+                    and not ActiveSkillState.WaitingForTarget)
             {
                 throw new Exception("Incorrect skill state");
             }
@@ -477,13 +474,6 @@ namespace Main.Scripts.Skills.ActiveSkills
 
             UpdateSkillState(ref data, ActiveSkillState.WaitingForTarget);
             ApplyUnitTarget(data.unitTargetId);
-        }
-
-        public void OnSkillWaitingForPowerCharge(SkillController skill)
-        {
-            ref var data = ref dataHolder.GetActiveSkillsData();
-            
-            UpdateSkillState(ref data, ActiveSkillState.WaitingForPowerCharge);
         }
 
         public void OnSkillStartCasting(SkillController skill)

@@ -15,6 +15,7 @@ MonoBehaviour:
   id: Hero2
   maxHealth: 200
   moveSpeed: 8
+  animatorController: {fileID: 9100000, guid: 9acc2aabeabe7d845a34eb7015b8174e, type: 2}
   enableAutoAttackFor: 1
   activeSkillsConfig:
     PrimarySkillConfig: {fileID: 11400000, guid: 19b2a881f8e5307418719c74a37e1364, type: 2}

@@ -1,5 +1,6 @@
 using Main.Scripts.Effects;
 using Main.Scripts.Skills.ActiveSkills;
+using UnityEditor.Animations;
 using UnityEngine;
 
 namespace Main.Scripts.Player.Config
@@ -16,6 +17,8 @@ namespace Main.Scripts.Player.Config
         [Min(0f)]
         private float moveSpeed;
         [SerializeField]
+        private AnimatorController animatorController = null!;
+        [SerializeField]
         private ActiveSkillType enableAutoAttackFor;
         [SerializeField]
         private ActiveSkillsConfig activeSkillsConfig;
@@ -29,6 +32,7 @@ namespace Main.Scripts.Player.Config
         public string Id => id;
         public uint MaxHealth => maxHealth;
         public float MoveSpeed => moveSpeed;
+        public AnimatorController AnimatorController => animatorController;
         public ref ActiveSkillsConfig ActiveSkillsConfig => ref activeSkillsConfig;
         public ActiveSkillType EnableAutoAttackFor => enableAutoAttackFor;
         public ref EffectsConfig EffectsConfig => ref effectsConfig;
@@ -39,6 +43,11 @@ namespace Main.Scripts.Player.Config
         {
             EffectsManager.OnValidate(name, ref EffectsConfig);
             ActiveSkillsManager.OnValidate(ref ActiveSkillsConfig);
+
+            if (animatorController == null)
+            {
+                Debug.LogError($"{name}: Animator Controller must be not null");
+            }
         }
     }
 }

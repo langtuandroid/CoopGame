@@ -12,6 +12,7 @@ using Main.Scripts.Effects;
 using Main.Scripts.Effects.Stats;
 using Main.Scripts.Gui;
 using Main.Scripts.Gui.HealthChangeDisplay;
+using Main.Scripts.Helpers.HeroAnimation;
 using Main.Scripts.Player.Config;
 using Main.Scripts.Player.Data;
 using Main.Scripts.Player.InputSystem.Target;
@@ -38,9 +39,6 @@ namespace Main.Scripts.Player
         ActiveSkillsManager.EventListener,
         SkillsOwner
     {
-        private static readonly int MOVE_X_ANIM = Animator.StringToHash("MoveX");
-        private static readonly int MOVE_Z_ANIM = Animator.StringToHash("MoveZ");
-        private static readonly int ATTACK_ANIM = Animator.StringToHash("Attack");
         private static readonly float HEALTH_THRESHOLD = 0.01f;
 
         private DataHolder dataHolder;
@@ -51,7 +49,7 @@ namespace Main.Scripts.Player
         private Rigidbody rigidbody;
         private RVOController rvoController;
         private Collider collider;
-        private Animator animator;
+        private HeroAnimator heroAnimator;
 
         private ActiveSkillsManager activeSkillsManager;
         private EffectsManager effectsManager;
@@ -70,7 +68,6 @@ namespace Main.Scripts.Player
         private int lastAnimationTriggerId;
 
         private InteractionInfoView interactionInfoView = null!;
-        private PlayerAnimationState currentAnimationState;
 
         private float moveAcceleration = 200f;
 
@@ -93,7 +90,7 @@ namespace Main.Scripts.Player
             rigidbody = dataHolder.GetCachedComponent<Rigidbody>();
             rvoController = dataHolder.GetCachedComponent<RVOController>();
             collider = dataHolder.GetCachedComponent<Collider>();
-            animator = dataHolder.GetCachedComponent<Animator>();
+            heroAnimator = new HeroAnimator(dataHolder.GetCachedComponent<Animator>());
 
             characterCustomization = dataHolder.GetCachedComponent<CharacterCustomizationSkinned>();
 
@@ -141,6 +138,7 @@ namespace Main.Scripts.Player
                 alliesLayerMask: heroConfig.AlliesLayerMask,
                 opponentsLayerMask: heroConfig.OpponentsLayerMask
             );
+            heroAnimator.SetController(heroConfig.AnimatorController);
             healthChangeDisplayManager?.Spawned(objectContext);
 
             playerDataManager = PlayerDataManager.Instance.ThrowWhenNull();
@@ -155,7 +153,6 @@ namespace Main.Scripts.Player
             InitState(ref data);
 
             healthBar.SetMaxHealth((uint)Math.Max(0, data.maxHealth));
-
 
             interactionInfoView = new InteractionInfoView(interactionInfoDoc, "F", "Resurrect");
 
@@ -201,7 +198,6 @@ namespace Main.Scripts.Player
             ClearActions();
             
             lastAnimationTriggerId = default;
-            currentAnimationState = default;
             objectContext = null!;
             playerDataManager = null!;
             interactionInfoView = null!;
@@ -574,7 +570,6 @@ namespace Main.Scripts.Player
                     break;
                 case ActiveSkillState.WaitingForPoint:
                 case ActiveSkillState.WaitingForTarget:
-                case ActiveSkillState.WaitingForPowerCharge:
                     activeSkillsManager.AddCancelCurrentSkill();
                     break;
             }
@@ -610,13 +605,17 @@ namespace Main.Scripts.Player
 
         public void OnActiveSkillStateChanged(ActiveSkillType type, ActiveSkillState state)
         {
-            ref var data = ref dataHolder.GetPlayerLogicData();
-
-            //todo распилить анимацию каста фаербола на каст и моментальную атаку 
-            if (state is ActiveSkillState.Casting && type != ActiveSkillType.DASH)
+            switch (state)
             {
-                data.lastAnimationState = PlayerAnimationState.PrimaryCasting;
-                data.animationTriggerId++;
+                case ActiveSkillState.WaitingForPoint:
+                case ActiveSkillState.WaitingForTarget:
+                    //todo start waiting animation
+                    break;
+                case ActiveSkillState.Finished:
+                case ActiveSkillState.Canceled:
+                case ActiveSkillState.Interrupted:
+                    heroAnimator.Reset();
+                    break;
             }
         }
 
@@ -624,12 +623,7 @@ namespace Main.Scripts.Player
         {
             if (lastAnimationTriggerId < data.animationTriggerId)
             {
-                switch (data.lastAnimationState)
-                {
-                    case PlayerAnimationState.PrimaryCasting:
-                        animator.SetTrigger(ATTACK_ANIM);
-                        break;
-                }
+                heroAnimator.StartAnimation(data.animationType, data.animationIndex);
             }
 
             lastAnimationTriggerId = data.animationTriggerId;
@@ -681,8 +675,7 @@ namespace Main.Scripts.Player
                 moveX = (float)Math.Sin(animationAngle);
             }
 
-            animator.SetFloat(MOVE_X_ANIM, moveX);
-            animator.SetFloat(MOVE_Z_ANIM, moveZ);
+            heroAnimator.SetMoveAnimation(moveX, moveZ);
         }
 
         public float GetMaxHealth()
@@ -811,7 +804,23 @@ namespace Main.Scripts.Player
             int animationIndex
         )
         {
-            //todo start animation
+            ref var data = ref dataHolder.GetPlayerLogicData();
+
+            var isCastState = state == ActiveSkillState.Casting;
+            
+            var animationType = type switch
+            {
+                ActiveSkillType.NONE => HeroAnimationType.None,
+                ActiveSkillType.PRIMARY => isCastState ? HeroAnimationType.PrimaryCast : HeroAnimationType.PrimaryExecute,
+                ActiveSkillType.DASH => isCastState ? HeroAnimationType.SecondaryCast : HeroAnimationType.SecondaryExecute,
+                ActiveSkillType.FIRST_SKILL => isCastState ? HeroAnimationType.FirstCast : HeroAnimationType.FirstExecute,
+                ActiveSkillType.SECOND_SKILL => isCastState ? HeroAnimationType.SecondCast : HeroAnimationType.SecondExecute,
+                ActiveSkillType.THIRD_SKILL => isCastState ? HeroAnimationType.ThirdCast : HeroAnimationType.ThirdExecute,
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            };
+            data.animationType = animationType;
+            data.animationIndex = animationIndex;
+            data.animationTriggerId++;
         }
 
         public bool CanActivateSkill(ActiveSkillType skillType)

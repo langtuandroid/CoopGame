@@ -13,6 +13,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
             int stackCount,
             int powerChargeLevel,
             int executionChargeLevel,
+            int clicksCount,
             SkillActionTriggerBase config,
             out SkillActionTriggerBase resolvedConfig
         )
@@ -37,6 +38,9 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
                         case StackCountModifier:
                             modifierLevel = stackCount;
                             break;
+                        case ClicksCountModifier:
+                            modifierLevel = clicksCount;
+                            break;
                     }
                 }
 
@@ -50,6 +54,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
                     stackCount,
                     powerChargeLevel,
                     executionChargeLevel,
+                    clicksCount,
                     trigger,
                     out resolvedConfig
                 );

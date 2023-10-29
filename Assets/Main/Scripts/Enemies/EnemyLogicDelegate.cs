@@ -413,10 +413,8 @@ namespace Main.Scripts.Enemies
                 case ActiveSkillState.NotAttacking:
                     break;
                 case ActiveSkillState.Casting:
-                    enemyData.animationTriggerId++;
                     break;
                 case ActiveSkillState.Attacking:
-                    enemyData.animationTriggerId++;
                     break;
                 case ActiveSkillState.WaitingForPoint:
                     break;
@@ -430,6 +428,28 @@ namespace Main.Scripts.Enemies
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(state), state, null);
+            }
+        }
+
+        public void OnStartAnimationRequest(
+            ActiveSkillType type,
+            ActiveSkillState state,
+            int animationIndex
+        )
+        {
+            ref var enemyData = ref dataHolder.GetEnemyData();
+
+            var animationsList = state switch
+            {
+                ActiveSkillState.Casting => mobConfig.ActiveSkillAnimationsMap[type].CastSkillAnimationsList,
+                ActiveSkillState.Attacking => mobConfig.ActiveSkillAnimationsMap[type].ExecutionSkillAnimationsList,
+                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+            };
+
+            if (animationsList.Count > animationIndex)
+            {
+                enemyData.animationTriggerId++;
+                enemyData.animationIndex = mobConfig.AnimationIndexMap[animationsList[animationIndex]];
             }
         }
 
@@ -591,31 +611,8 @@ namespace Main.Scripts.Enemies
 
             if (lastAnimationTriggerId < enemyData.animationTriggerId)
             {
-                switch (newAnimationState)
-                {
-                    case EnemyAnimationState.Attacking:
-                        if (mobConfig.ActiveSkillAnimationsMap.ContainsKey(ActiveSkillType.PRIMARY))
-                        {
-                            var animation = mobConfig.ActiveSkillAnimationsMap[ActiveSkillType.PRIMARY].ExecutionSkillAnimation;
-                            if (animation != null)
-                            {
-                                meshAnimator.speed = 1f;
-                                meshAnimator.Play(mobConfig.AnimationIndexMap[animation]);
-                            }
-                        }
-                        break;
-                    case EnemyAnimationState.Casting:
-                        if (mobConfig.ActiveSkillAnimationsMap.ContainsKey(ActiveSkillType.PRIMARY))
-                        {
-                            var animation = mobConfig.ActiveSkillAnimationsMap[ActiveSkillType.PRIMARY].CastSkillAnimation;
-                            if (animation != null)
-                            {
-                                meshAnimator.speed = 1f;
-                                meshAnimator.Play(mobConfig.AnimationIndexMap[animation]);
-                            }
-                        }
-                        break;
-                }
+                meshAnimator.speed = 1f;
+                meshAnimator.Play(enemyData.animationIndex);
             }
 
             lastAnimationTriggerId = enemyData.animationTriggerId;

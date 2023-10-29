@@ -548,13 +548,7 @@ namespace Main.Scripts.Player
         public void SkillBtnReleased(ActiveSkillType type)
         {
             if (type != activeSkillsManager.GetCurrentSkillType()) return;
-            
-            switch (activeSkillsManager.GetCurrentSkillState())
-            {
-                case ActiveSkillState.WaitingForPowerCharge:
-                    activeSkillsManager.AddExecuteCurrentSkill();
-                    break;
-            }
+            //todo если не нужно - удалить
         }
         
         public void SkillBtnHolding(ActiveSkillType type)
@@ -586,6 +580,10 @@ namespace Main.Scripts.Player
         {
             switch (activeSkillsManager.GetCurrentSkillState())
             {
+                case ActiveSkillState.Casting:
+                case ActiveSkillState.Attacking:
+                    activeSkillsManager.ApplyClickAction();
+                    break;
                 case ActiveSkillState.WaitingForPoint:
                 case ActiveSkillState.WaitingForTarget:
                     activeSkillsManager.AddExecuteCurrentSkill();
@@ -801,6 +799,15 @@ namespace Main.Scripts.Player
             {
                 listener.OnPowerChargeProgressChanged(isCharging, powerChargeLevel, powerChargeProgress);
             }
+        }
+
+        public void OnStartAnimationRequest(
+            ActiveSkillType type,
+            ActiveSkillState state,
+            int animationIndex
+        )
+        {
+            //todo start animation
         }
 
         public bool CanActivateSkill(ActiveSkillType skillType)

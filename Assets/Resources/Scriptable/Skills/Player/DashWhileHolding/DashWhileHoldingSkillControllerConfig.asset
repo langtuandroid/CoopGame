@@ -32,7 +32,6 @@ MonoBehaviour:
   executionInterruptionData:
     BySelectedTargetDeath: 1
     ByCancel: 1
-    ByAnotherSkillActivation: 1
-  continueRunningWhileHolding: 1
+    ByAnotherSkillActivation: 0
   cooldownTicks: 96
   cooldownStartType: 1

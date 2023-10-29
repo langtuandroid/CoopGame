@@ -13,6 +13,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
             int stackCount,
             int powerChargeLevel,
             int executionChargeLevel,
+            int clicksCount,
             SkillFollowStrategyBase config,
             out SkillFollowStrategyBase resolvedConfig
         )
@@ -37,6 +38,9 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
                         case StackCountModifier:
                             modifierLevel = stackCount;
                             break;
+                        case ClicksCountModifier:
+                            modifierLevel = clicksCount;
+                            break;
                     }
                 }
                 
@@ -50,6 +54,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
                     stackCount,
                     powerChargeLevel,
                     executionChargeLevel,
+                    clicksCount,
                     followStrategy,
                     out resolvedConfig
                 );

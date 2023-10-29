@@ -424,7 +424,7 @@ namespace Main.Scripts.Effects
         public void OnTakenDamage(float damageValue, NetworkObject? damageOwner)
         {
             triggersToActivate.Add(EffectType.TakenDamageTrigger);
-            if (damageOwner != null)
+            if (damageOwner != null && damageOwner != objectContext)
             {
                 effectTargetsIdMap[EffectType.DeadTrigger].Add(damageOwner.Id);
                 effectTargetsIdMap[EffectType.TakenDamageTrigger].Add(damageOwner.Id);
@@ -434,7 +434,7 @@ namespace Main.Scripts.Effects
         public void OnTakenHeal(PlayerRef skillOwner, float healValue, NetworkObject? healOwner)
         {
             triggersToActivate.Add(EffectType.TakenHealTrigger);
-            if (healOwner != null)
+            if (healOwner != null && healOwner != objectContext)
             {
                 effectTargetsIdMap[EffectType.TakenHealTrigger].Add(healOwner.Id);
             }

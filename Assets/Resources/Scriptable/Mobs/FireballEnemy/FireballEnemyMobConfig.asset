@@ -21,8 +21,9 @@ MonoBehaviour:
     RunAnimation: {fileID: 11400000, guid: 4352de620b999db4fb5a595b1a0a3310, type: 2}
     SkillAnimationsData:
     - SkillType: 1
-      CastSkillAnimation: {fileID: 11400000, guid: cc04c3f80723bcd4bb7ad14498db11bc, type: 2}
-      ExecutionSkillAnimation: {fileID: 0}
+      CastSkillAnimationsList:
+      - {fileID: 11400000, guid: cc04c3f80723bcd4bb7ad14498db11bc, type: 2}
+      ExecutionSkillAnimationsList: []
   activeSkillsConfig:
     AlliesLayerMask:
       serializedVersion: 2

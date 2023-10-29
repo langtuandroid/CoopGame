@@ -239,7 +239,7 @@ namespace Main.Scripts.Player.InputSystem
                         playerController.SkillBtnReleased(skillType);
                     }
 
-                    if (input.Buttons.IsSet(skillButton))
+                    if (!pressedButtons.IsSet(skillButton) && input.Buttons.IsSet(skillButton))
                     {
                         playerController.SkillBtnHolding(skillType);
                     }

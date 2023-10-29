@@ -13,6 +13,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
             int stackCount,
             int powerChargeLevel,
             int executionChargeLevel,
+            int clicksCount,
             List<SkillActionBase> configs,
             List<SkillActionBase> resolvedConfigs
         )
@@ -39,6 +40,9 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
                             case StackCountModifier:
                                 modifierLevel = stackCount;
                                 break;
+                            case ClicksCountModifier:
+                                modifierLevel = clicksCount;
+                                break;
                         }
                     }
                     
@@ -52,6 +56,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
                         stackCount,
                         powerChargeLevel,
                         executionChargeLevel,
+                        clicksCount,
                         actions.Value,
                         resolvedConfigs
                     );

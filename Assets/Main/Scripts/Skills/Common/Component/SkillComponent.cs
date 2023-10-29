@@ -61,6 +61,7 @@ namespace Main.Scripts.Skills.Common.Component
         private TickTimer lifeTimer;
         private bool continueRunningWhileHolding;
         private TickTimer triggerTimer;
+        private int clicksCount;
         private Dictionary<Type, int> activatedTriggersCountMap = new();
         private bool shouldStop;
 
@@ -83,11 +84,14 @@ namespace Main.Scripts.Skills.Common.Component
         private bool isClickTriggered;
         private int visualToken = -1;
 
-        private Action<SkillComponent>? onSpawnNewSkillComponent;
+        private Listener? listener;
+        public event Action<SkillComponent>? OnPrepareToRelease;
         public event Action<SkillComponent>? OnReadyToRelease;
         
         public Vector3 Position { get; private set; }
         public Quaternion Rotation { get; private set; }
+
+        public bool IsDisableMove => skillConfig.DisableMoveWhileRunning; 
 
         private GameLoopPhase[] gameLoopPhases =
         {
@@ -112,12 +116,13 @@ namespace Main.Scripts.Skills.Common.Component
             Vector3 dynamicMapPoint,
             int powerChargeLevel,
             int executionChargeLevel,
+            int clicksCount,
             NetworkId selfUnitId,
             NetworkId selectedUnitId,
             IEnumerable<NetworkId> targetUnitIdsList,
             LayerMask alliesLayerMask,
             LayerMask opponentsLayerMask,
-            Action<SkillComponent>? onSpawnNewSkillComponent
+            Listener? listener
         )
         {
             this.runner = runner;
@@ -130,12 +135,13 @@ namespace Main.Scripts.Skills.Common.Component
             this.dynamicMapPoint = dynamicMapPoint;
             this.powerChargeLevel = powerChargeLevel;
             this.executionChargeLevel = executionChargeLevel;
+            this.clicksCount = clicksCount;
             this.selfUnitId = selfUnitId;
             this.selectedUnitId = selectedUnitId;
             this.alliesLayerMask = alliesLayerMask;
             this.targetUnitIdsList.AddRange(targetUnitIdsList);
             this.opponentsLayerMask = opponentsLayerMask;
-            this.onSpawnNewSkillComponent = onSpawnNewSkillComponent;
+            this.listener = listener;
 
             var levelContext = LevelContext.Instance.ThrowWhenNull();
             skillComponentsPoolHelper = levelContext.SkillComponentsPoolHelper;
@@ -160,7 +166,14 @@ namespace Main.Scripts.Skills.Common.Component
                 ResolveConfigWithoutHeroData();
             }
 
+            if (skillConfig.ResetClicksCount)
+            {
+                this.clicksCount = 0;
+            }
+
             levelContext.GameLoopManager.AddListener(this);
+            
+            listener?.OnSpawnNewSkillComponent(this);
         }
 
         private void ResolveConfigWithHeroData(ref HeroData heroData)
@@ -172,6 +185,7 @@ namespace Main.Scripts.Skills.Common.Component
                 stackCount,
                 powerChargeLevel,
                 executionChargeLevel,
+                clicksCount,
                 skillConfig.FollowStrategy,
                 out followStrategy
             );
@@ -185,6 +199,7 @@ namespace Main.Scripts.Skills.Common.Component
                     stackCount,
                     powerChargeLevel,
                     executionChargeLevel,
+                    clicksCount,
                     skillTriggerPack.ActionTrigger,
                     out var resolvedActionTrigger
                 );
@@ -205,6 +220,7 @@ namespace Main.Scripts.Skills.Common.Component
                         stackCount,
                         powerChargeLevel,
                         executionChargeLevel,
+                        clicksCount,
                         skillActionsPack,
                         resolvedDataOut
                     );
@@ -345,7 +361,7 @@ namespace Main.Scripts.Skills.Common.Component
 
             followStrategy = null!;
 
-            onSpawnNewSkillComponent = null;
+            listener = null;
         }
 
         public void OnGameLoopPhase(GameLoopPhase phase)
@@ -495,6 +511,7 @@ namespace Main.Scripts.Skills.Common.Component
         {
             if (shouldStop && spawnActions.Count == 0)
             {
+                OnPrepareToRelease?.Invoke(this);
                 OnReadyToRelease?.Invoke(this);
             }
         }
@@ -542,6 +559,7 @@ namespace Main.Scripts.Skills.Common.Component
         {
             if (shouldStop) return;
 
+            clicksCount++;
             isClickTriggered = true;
         }
 
@@ -555,7 +573,7 @@ namespace Main.Scripts.Skills.Common.Component
 
         public void OnLostControl()
         {
-            onSpawnNewSkillComponent = null;
+            listener = null;
         }
 
         private void UpdatePosition()
@@ -841,9 +859,18 @@ namespace Main.Scripts.Skills.Common.Component
                 }
             }
 
+            if (action is StartOwnerAnimationSkillAction startAnimationSkillAction)
+            {
+                listener?.OnStartAnimationRequest(startAnimationSkillAction.AnimationIndex);
+            }
+
             if (action is StopSkillAction stopAction && activatedTriggersCount >= stopAction.LiveUntilTriggersCount)
             {
                 shouldStop = true;
+                if (stopAction.StopControllerExecution)
+                {
+                    listener?.OnStopSkillExecutionRequest();
+                }
             }
         }
 
@@ -852,7 +879,7 @@ namespace Main.Scripts.Skills.Common.Component
             var currentExecutionChargeLevel = skillConfig.StartNewExecutionCharging
                 ? GetExecutionChargeLevel(GetExecutionChargeProgress())
                 : executionChargeLevel;
-            
+
             foreach (var spawnActionData in spawnActions)
             {
                 var spawnAction = spawnActionData.spawnAction;
@@ -878,6 +905,7 @@ namespace Main.Scripts.Skills.Common.Component
                             spawnPosition: spawnPosition,
                             spawnRotation: spawnRotation,
                             executionChargeLevel: currentExecutionChargeLevel,
+                            clicksCount: clicksCount,
                             selectedUnitId: spawnActionData.selectedUnitId,
                             targetUnitIdsList: spawnActionData.targetUnitIdsList
                         );
@@ -888,6 +916,7 @@ namespace Main.Scripts.Skills.Common.Component
                             spawnPosition: spawnPosition,
                             spawnRotation: spawnRotation,
                             executionChargeLevel: currentExecutionChargeLevel,
+                            clicksCount: clicksCount,
                             selectedUnitId: spawnActionData.selectedUnitId,
                             targetUnitIdsList: spawnActionData.targetUnitIdsList
                         );
@@ -920,6 +949,7 @@ namespace Main.Scripts.Skills.Common.Component
             Vector3 spawnPosition,
             Quaternion spawnRotation,
             int executionChargeLevel,
+            int clicksCount,
             NetworkId selectedUnitId,
             List<NetworkId> targetUnitIdsList
         )
@@ -938,14 +968,14 @@ namespace Main.Scripts.Skills.Common.Component
                 dynamicMapPoint: dynamicMapPoint,
                 powerChargeLevel: powerChargeLevel,
                 executionChargeLevel: executionChargeLevel,
+                clicksCount: clicksCount,
                 selfUnitId: selfUnitId,
                 selectedUnitId: selectedUnitId,
                 targetUnitIdsList: targetUnitIdsList,
                 alliesLayerMask: alliesLayerMask,
                 opponentsLayerMask: opponentsLayerMask,
-                onSpawnNewSkillComponent: onSpawnNewSkillComponent
+                listener: listener
             );
-            onSpawnNewSkillComponent?.Invoke(skillComponent);
         }
 
         private void RefreshVisual(int token)
@@ -1163,6 +1193,15 @@ namespace Main.Scripts.Skills.Common.Component
             {
                 return Id.GetHashCode();
             }
+        }
+
+        public interface Listener
+        {
+            public void OnSpawnNewSkillComponent(SkillComponent skillComponent);
+
+            public void OnStartAnimationRequest(int animationIndex);
+
+            public void OnStopSkillExecutionRequest();
         }
     }
 }

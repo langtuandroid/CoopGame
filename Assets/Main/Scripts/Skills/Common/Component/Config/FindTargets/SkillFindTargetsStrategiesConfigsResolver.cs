@@ -13,6 +13,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
             int stackCount,
             int powerChargeLevel,
             int executionChargeLevel,
+            int clicksCount,
             List<SkillFindTargetsStrategyBase> configs,
             List<SkillFindTargetsStrategyBase> resolvedConfigs
         )
@@ -39,6 +40,9 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
                             case StackCountModifier:
                                 modifierLevel = stackCount;
                                 break;
+                            case ClicksCountModifier:
+                                modifierLevel = clicksCount;
+                                break;
                         }
                     }
                     
@@ -53,6 +57,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
                         stackCount,
                         powerChargeLevel,
                         executionChargeLevel,
+                        clicksCount,
                         findTargetsStrategies.Value,
                         resolvedConfigs
                     );

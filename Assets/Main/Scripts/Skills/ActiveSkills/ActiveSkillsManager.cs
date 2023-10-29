@@ -175,6 +175,18 @@ namespace Main.Scripts.Skills.ActiveSkills
             skillController?.ApplyHolding();
         }
 
+        public void ApplyClickAction()
+        {
+            var currentSkillType = GetCurrentSkillType();
+            if (GetCurrentSkillState()
+                is not ActiveSkillState.Attacking
+                and not ActiveSkillState.Casting
+               ) return;
+
+            var skillController = GetSkillByType(currentSkillType);
+            skillController?.OnClickTrigger();
+        }
+
         public void OnGameLoopPhase(GameLoopPhase phase)
         {
             switch (phase)
@@ -371,7 +383,7 @@ namespace Main.Scripts.Skills.ActiveSkills
         {
             ref var data = ref dataHolder.GetActiveSkillsData();
 
-            return GetSkillByType(data.currentSkillType)?.IsDisabledMove() ?? false;
+            return GetSkillByType(data.currentSkillType)?.IsDisableMove() ?? false;
         }
 
         public ActiveSkillState GetCurrentSkillState()
@@ -424,6 +436,30 @@ namespace Main.Scripts.Skills.ActiveSkills
                 isCharging,
                 powerChargeLevel,
                 powerChargeProgress
+            );
+        }
+
+        public void OnStartAnimationRequest(SkillController skill, int animationIndex)
+        {
+            ref var data = ref dataHolder.GetActiveSkillsData();
+
+            var skillType = GetTypeBySkill(skill);
+            if (data.currentSkillType != skillType)
+            {
+                throw new Exception(
+                    $"SkillType {skillType} is not current skillType. Current skill type is {data.currentSkillType}");
+            }
+
+            if (data.currentSkillState is not ActiveSkillState.Attacking and not ActiveSkillState.Casting)
+            {
+                throw new Exception(
+                    $"Skill state is not Attacking or Casting. Current skill state is {data.currentSkillState}");
+            }
+
+            eventListener.OnStartAnimationRequest(
+                skillType,
+                data.currentSkillState,
+                animationIndex
             );
         }
 
@@ -514,6 +550,12 @@ namespace Main.Scripts.Skills.ActiveSkills
                 bool isCharging,
                 int powerChargeLevel,
                 int powerChargeProgress
+            ) { }
+
+            public void OnStartAnimationRequest(
+                ActiveSkillType type,
+                ActiveSkillState state,
+                int animationIndex
             ) { }
         }
     }

@@ -8,7 +8,10 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
         [SerializeField]
         [Min(1)]
         private int liveUntilTriggersCount = 1;
+        [SerializeField]
+        private bool stopControllerExecution;
 
         public int LiveUntilTriggersCount => liveUntilTriggersCount;
+        public bool StopControllerExecution => stopControllerExecution;
     }
 }

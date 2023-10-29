@@ -14,7 +14,7 @@ using Object = UnityEngine.Object;
 
 namespace Main.Scripts.Skills.Common.Controller
 {
-    public class SkillController
+    public class SkillController : SkillComponent.Listener
     {
         private NetworkObject objectContext = null!;
         private SkillControllerConfig skillControllerConfig = null!;
@@ -34,9 +34,11 @@ namespace Main.Scripts.Skills.Common.Controller
         private int stackCount;
         private TickTimer executionTimer;
         private bool continueRunningWhileHolding;
+        private bool stopExecutionByStopAction;
         private TickTimer castTimer;
         private bool isActivating;
         private Tick castStartTick;
+        private int disableMoveByComponentsCount;
 
         private TickTimer cooldownTimer;
         
@@ -234,6 +236,7 @@ namespace Main.Scripts.Skills.Common.Controller
             continueRunningWhileHolding = skillControllerConfig.HoldingType != SkillHoldingType.None;
 
             listener?.OnSkillStartCasting(this);
+            listener?.OnStartAnimationRequest(this, 0);
 
             AddSpawnActions(skillControllerConfig.RunOnCastSkillConfigs);
         }
@@ -316,7 +319,7 @@ namespace Main.Scripts.Skills.Common.Controller
 
             continueRunningWhileHolding = false;
 
-            if (executionTimer.Expired(objectContext.Runner) || stopRunningByLackHolding)
+            if (executionTimer.Expired(objectContext.Runner) || stopRunningByLackHolding || stopExecutionByStopAction)
             {
                 ResetOnFinish();
 
@@ -373,6 +376,7 @@ namespace Main.Scripts.Skills.Common.Controller
                 AddSpawnActions(skillControllerConfig.RunOnExecutionSkillConfigs);
                 
                 listener?.OnSkillFinishedCasting(this);
+                listener?.OnStartAnimationRequest(this, 0);
             }
         }
 
@@ -387,9 +391,10 @@ namespace Main.Scripts.Skills.Common.Controller
             return cooldownTimer.RemainingTicks(objectContext.Runner) ?? 0;
         }
 
-        //todo
         public void OnClickTrigger()
         {
+            if (!IsSkillRunning) return;
+                
             foreach (var skillComponent in skillComponents)
             {
                 skillComponent.OnClickTrigger();
@@ -459,11 +464,12 @@ namespace Main.Scripts.Skills.Common.Controller
             return true;
         }
 
-        public bool IsDisabledMove()
+        public bool IsDisableMove()
         {
             var isDisableOnCast = skillControllerConfig.DisableMoveOnCast && !castTimer.ExpiredOrNotRunning(objectContext.Runner);
             var isDisableOnExecution = skillControllerConfig.DisableMoveOnExecution && IsSkillRunning;
-            return isDisableOnCast || isDisableOnExecution;
+            var isDisableBySkillComponents = disableMoveByComponentsCount > 0;
+            return isDisableOnCast || isDisableOnExecution || isDisableBySkillComponents;
         }
 
         private void ResetOnFinish()
@@ -472,6 +478,7 @@ namespace Main.Scripts.Skills.Common.Controller
             executionTimer = default;
             isActivating = false;
             castStartTick = default;
+            disableMoveByComponentsCount = default;
 
             selectedUnit = null;
             selectedUnitId = default;
@@ -480,11 +487,12 @@ namespace Main.Scripts.Skills.Common.Controller
             dynamicMapPoint = default;
             powerChargeLevel = default;
             continueRunningWhileHolding = default;
+            stopExecutionByStopAction = default;
 
             foreach (var skillComponent in skillComponents)
             {
                 skillComponent.OnLostControl();
-                skillComponent.OnReadyToRelease -= OnReadyToReleaseSkillComponent;
+                skillComponent.OnReadyToRelease -= OnPrepareToReleaseSkillComponent;
             }
             skillComponents.Clear();
         }
@@ -574,26 +582,49 @@ namespace Main.Scripts.Skills.Common.Controller
                     dynamicMapPoint: dynamicMapPoint,
                     powerChargeLevel: powerChargeLevel,
                     executionChargeLevel: 0,
+                    clicksCount: 0,
                     selfUnitId: objectContext.Id,
                     selectedUnitId: selectedUnitId,
                     targetUnitIdsList: effectTargetsIdList,
                     alliesLayerMask: alliesLayerMask,
                     opponentsLayerMask: opponentsLayerMask,
-                    onSpawnNewSkillComponent: OnSpawnNewSkillComponent
+                    listener: this
                 );
-                OnSpawnNewSkillComponent(skillComponent);
             }
         }
 
-        private void OnSpawnNewSkillComponent(SkillComponent spawnedSkillComponent)
+        public void OnSpawnNewSkillComponent(SkillComponent spawnedSkillComponent)
         {
-            spawnedSkillComponent.OnReadyToRelease += OnReadyToReleaseSkillComponent;
+            spawnedSkillComponent.OnPrepareToRelease += OnPrepareToReleaseSkillComponent;
+            if (spawnedSkillComponent.IsDisableMove)
+            {
+                disableMoveByComponentsCount++;
+            }
+
             skillComponents.Add(spawnedSkillComponent);
         }
 
-        private void OnReadyToReleaseSkillComponent(SkillComponent skillComponent)
+        public void OnStartAnimationRequest(int animationIndex)
         {
-            skillComponent.OnReadyToRelease -= OnReadyToReleaseSkillComponent;
+            listener?.OnStartAnimationRequest(this, animationIndex);
+        }
+
+        public void OnStopSkillExecutionRequest()
+        {
+            if (executionTimer.IsRunning)
+            {
+                stopExecutionByStopAction = true;
+            }
+        }
+
+        private void OnPrepareToReleaseSkillComponent(SkillComponent skillComponent)
+        {
+            if (skillComponent.IsDisableMove)
+            {
+                disableMoveByComponentsCount--;
+            }
+
+            skillComponent.OnPrepareToRelease -= OnPrepareToReleaseSkillComponent;
             skillComponents.Remove(skillComponent);
         }
 
@@ -601,9 +632,10 @@ namespace Main.Scripts.Skills.Common.Controller
         {
             public void OnSkillCooldownChanged(SkillController skill);
             public void OnPowerChargeProgressChanged(SkillController skill, bool isCharging, int powerChargeLevel, int powerChargeProgress);
+
+            public void OnStartAnimationRequest(SkillController skill, int animationIndex);
             public void OnSkillWaitingForPointTarget(SkillController skill);
             public void OnSkillWaitingForUnitTarget(SkillController skill);
-            public void OnSkillWaitingForPowerCharge(SkillController skill);
             public void OnSkillStartCasting(SkillController skill);
             public void OnSkillFinishedCasting(SkillController skill);
             public void OnSkillFinished(SkillController skill);

@@ -10,18 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 708574db76a74ebe87e92ea04b52a2a5, type: 3}
-  m_Name: ExecutionSkillConfig
+  m_Name: SkillConfig
   m_EditorClassIdentifier: 
   spawnPointType: 0
   spawnDirectionType: 0
   followDirectionType: 0
   followStrategy: {fileID: 11400000, guid: 3dd27e4fa2ef1b84f943915d04efaf99, type: 2}
   triggerPacks:
-  - ActionTrigger: {fileID: 11400000, guid: c1ba459acfc18b444860c5297edb6185, type: 2}
+  - ActionTrigger: {fileID: 11400000, guid: 19dbf92fb648d37409727eefa84f90b2, type: 2}
     ActionsPackList:
-    - {fileID: 11400000, guid: 6e1c86c37900ed94d90bd19f1b74ba76, type: 2}
-  durationTicks: 72
-  startNewExecutionCharging: 1
-  executionChargeStepValues: 1e00000046000000
-  continueRunningWhileHolding: 1
-  interruptWithSkillController: 1
+    - {fileID: 11400000, guid: a07b7648b3e6fdc45b53bd1a4c24fcc5, type: 2}
+  startNewExecutionCharging: 0
+  executionChargeStepValues: 
+  resetClicksCount: 0
+  durationTicks: 0
+  disableMoveOnRunning: 0
+  continueRunningWhileHolding: 0
+  interruptWithSkillController: 0

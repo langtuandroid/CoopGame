@@ -72,16 +72,14 @@ namespace Main.Scripts.Mobs.Config
 
             foreach (var skillAnimationData in animations.SkillAnimationsData)
             {
-                if (skillAnimationData.CastSkillAnimation != null)
+                foreach (var animation in skillAnimationData.CastSkillAnimationsList)
                 {
-                    var animation = skillAnimationData.CastSkillAnimation;
                     AnimationIndexMap[animation] = animationsList.Count;
                     animationsList.Add(animation);
                 }
 
-                if (skillAnimationData.ExecutionSkillAnimation != null)
+                foreach (var animation in skillAnimationData.ExecutionSkillAnimationsList)
                 {
-                    var animation = skillAnimationData.ExecutionSkillAnimation;
                     AnimationIndexMap[animation] = animationsList.Count;
                     animationsList.Add(animation);
                 }

@@ -14,6 +14,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
             int stackCount,
             int powerChargeLevel,
             int executionChargeLevel,
+            int clicksCount,
             SkillActionsPack actionsPackConfig,
             SkillActionsPackData resolvedDataOut
         )
@@ -26,6 +27,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
                 stackCount,
                 powerChargeLevel,
                 executionChargeLevel,
+                clicksCount,
                 actionsPackConfig.FindTargetsStrategies,
                 resolvedDataOut.FindTargetsStrategies
             );
@@ -38,6 +40,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.ActionsPack
                 stackCount,
                 powerChargeLevel,
                 executionChargeLevel,
+                clicksCount,
                 actionsPackConfig.Actions,
                 resolvedDataOut.Actions
             );

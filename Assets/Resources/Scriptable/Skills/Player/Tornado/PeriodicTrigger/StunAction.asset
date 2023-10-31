@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a5307a5da204b12877d1908c4ae9c1e, type: 3}
   m_Name: StunAction
   m_EditorClassIdentifier: 
-  durationTicks: 12
+  durationTicks: {fileID: 11400000, guid: 3ff67eb38d9612f4987a8ce26a4ab35e, type: 2}

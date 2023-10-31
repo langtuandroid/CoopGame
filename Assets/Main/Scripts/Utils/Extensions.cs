@@ -81,6 +81,11 @@ namespace Main.Scripts.Utils
         public static bool IsSceneReady(this NetworkRunner runner)
         {
             return runner.SceneManager.IsReady(runner);
-        } 
+        }
+
+        public static int RoundToInt(this float value)
+        {
+            return (int)Math.Round(value);
+        }
     }
 }

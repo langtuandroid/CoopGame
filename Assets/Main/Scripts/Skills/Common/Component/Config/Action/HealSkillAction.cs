@@ -1,4 +1,6 @@
+using Main.Scripts.Skills.Common.Component.Config.Value;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Action
 {
@@ -6,9 +8,13 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
     public class HealSkillAction : SkillActionBase
     {
         [SerializeField]
-        [Min(0f)]
-        private float healValue;
+        private SkillValue healValue = null!;
 
-        public float HealValue => healValue;
+        public SkillValue HealValue => healValue;
+        
+        private void OnValidate()
+        {
+            Assert.IsTrue(healValue != null, $"{name}: Heal value must be not null");
+        }
     }
 }

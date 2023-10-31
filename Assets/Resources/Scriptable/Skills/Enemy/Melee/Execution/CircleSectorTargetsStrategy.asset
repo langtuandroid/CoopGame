@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   originPoint: 1
   directionType: 5
-  radius: 3
-  angle: 120
+  directionAngleOffset: {fileID: 11400000, guid: b4b48abe83a36dc40ae8e5af3e3cccf5, type: 2}
+  radius: {fileID: 11400000, guid: a1680a376e0c1c34db262c608155cbd7, type: 2}
+  angle: {fileID: 11400000, guid: 29a408a375f9650458483b197072ac2f, type: 2}
   targetType: 0

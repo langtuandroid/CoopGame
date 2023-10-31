@@ -1,5 +1,7 @@
 using Main.Scripts.Player.InputSystem.Target;
+using Main.Scripts.Skills.Common.Component.Config.Value;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
 {
@@ -9,13 +11,17 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
         [SerializeField]
         private SkillPointType originPoint;
         [SerializeField]
-        [Min(0f)]
-        private float radius = 1f;
+        private SkillValue radius = null!;
         [SerializeField]
         private UnitTargetType targetType;
 
         public SkillPointType OriginPoint => originPoint;
-        public float Radius => radius;
+        public SkillValue Radius => radius;
         public UnitTargetType TargetType => targetType;
+        
+        private void OnValidate()
+        {
+            Assert.IsTrue(radius != null, $"{name}: Radius value must be not null");
+        }
     }
 }

@@ -1,4 +1,6 @@
+using Main.Scripts.Skills.Common.Component.Config.Value;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Follow
 {
@@ -8,13 +10,18 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
         [SerializeField]
         private SkillDirectionType moveDirectionType;
         [SerializeField]
-        private float directionAngleOffset;
+        private SkillValue directionAngleOffset = null!;
         [SerializeField]
-        [Min(0f)]
-        private float speed;
+        private SkillValue speed = null!;
 
         public SkillDirectionType MoveDirectionType => moveDirectionType;
-        public float DirectionAngleOffset => directionAngleOffset;
-        public float Speed => speed;
+        public SkillValue DirectionAngleOffset => directionAngleOffset;
+        public SkillValue Speed => speed;
+        
+        private void OnValidate()
+        {
+            Assert.IsTrue(directionAngleOffset != null, $"{name}: Direction Angle Offset value must be not null");
+            Assert.IsTrue(speed != null, $"{name}: Speed value must be not null");
+        }
     }
 }

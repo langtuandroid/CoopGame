@@ -23,5 +23,10 @@ MonoBehaviour:
   - ActionTrigger: {fileID: 11400000, guid: ac84fb09a99bb8c4c81df2c0da1082e1, type: 2}
     ActionsPackList:
     - {fileID: 11400000, guid: 7a9260e796f13ca4bb6487a5da6a70f3, type: 2}
-  durationTicks: 24
-  interruptStrategy: 0
+  startNewExecutionCharging: 0
+  executionChargeStepValues: 
+  resetClicksCount: 0
+  durationTicks: {fileID: 11400000, guid: 62ec4d0962f48944f96f76e7498a6c86, type: 2}
+  disableMoveWhileRunning: 0
+  continueRunningWhileHolding: 0
+  interruptWithSkillController: 0

@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9f60b605a1d4f23bc2e8d96ec5d363f, type: 3}
   m_Name: CollisionTrigger
   m_EditorClassIdentifier: 
-  radius: 0.5
+  radius: {fileID: 11400000, guid: 3e5bc81d4ead2a44aba4abcb8acae6f9, type: 2}
+  isAffectTargetsOnlyOneTime: 0
   targetType: 0
   triggerByDecorationsLayer:
     serializedVersion: 2

@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: DashAction2
   m_EditorClassIdentifier: 
   directionType: 6
-  speed: 20
-  durationTicks: 1
+  speed: {fileID: 11400000, guid: e714405a51b5c214db2ea356b327932e, type: 2}
+  durationTicks: {fileID: 11400000, guid: da2a8166188cba74c89923165394ff83, type: 2}

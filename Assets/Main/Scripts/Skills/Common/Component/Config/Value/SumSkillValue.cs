@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Value
 {
-[CreateAssetMenu(fileName = "SumSkillValue", menuName = "Skill/Value/Sum")]
+[CreateAssetMenu(fileName = "SumValue", menuName = "Skill/Value/Sum")]
 public class SumSkillValue : SkillValue
 {
     [SerializeField]

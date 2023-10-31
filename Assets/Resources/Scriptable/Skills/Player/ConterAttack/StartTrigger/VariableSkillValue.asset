@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09255933227e448da24be776249e1174, type: 3}
   m_Name: VariableSkillValue
   m_EditorClassIdentifier: 
-  percentValue: 500
-  percentFromVariable: 2
+  multiplier: 5
+  variableType: 0

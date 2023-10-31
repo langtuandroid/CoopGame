@@ -53,6 +53,7 @@ namespace Main.Scripts.Skills.Common.Component
         private Vector3 dynamicMapPoint;
         private int powerChargeLevel;
         private int executionChargeLevel;
+        private int executionChargeProgress;
         private NetworkId selfUnitId;
         private NetworkId selectedUnitId;
         private int selectedTargetEffectValue;
@@ -63,6 +64,7 @@ namespace Main.Scripts.Skills.Common.Component
 
         private int startSkillTick;
         private TickTimer lifeTimer;
+        private int durationTicks;
         private bool continueRunningWhileHolding;
         private TickTimer triggerTimer;
         private int clicksCount;
@@ -120,6 +122,7 @@ namespace Main.Scripts.Skills.Common.Component
             Vector3 dynamicMapPoint,
             int powerChargeLevel,
             int executionChargeLevel,
+            int executionChargeProgress,
             int clicksCount,
             NetworkId selfUnitId,
             NetworkId selectedUnitId,
@@ -141,6 +144,7 @@ namespace Main.Scripts.Skills.Common.Component
             this.dynamicMapPoint = dynamicMapPoint;
             this.powerChargeLevel = powerChargeLevel;
             this.executionChargeLevel = executionChargeLevel;
+            this.executionChargeProgress = executionChargeProgress;
             this.clicksCount = clicksCount;
             this.selfUnitId = selfUnitId;
             this.selectedUnitId = selectedUnitId;
@@ -351,6 +355,7 @@ namespace Main.Scripts.Skills.Common.Component
             
             
             lifeTimer = default;
+            durationTicks = default;
             continueRunningWhileHolding = default;
             triggerTimer = default;
             activatedTriggersCountMap.Clear();
@@ -458,13 +463,14 @@ namespace Main.Scripts.Skills.Common.Component
             if (!lifeTimer.IsRunning)
             {
                 startSkillTick = runner.Tick;
-                lifeTimer = TickTimer.CreateFromTicks(runner, skillConfig.DurationTicks);
+                durationTicks = skillConfig.DurationTicks.Resolve(this).RoundToInt();
+                lifeTimer = TickTimer.CreateFromTicks(runner, durationTicks);
                 continueRunningWhileHolding = skillConfig.ContinueRunningWhileHolding;
 
                 if (triggerPacksDataMap.TryGetValue(TIMER_TRIGGER_TYPE, out var triggerPackData)
                     && triggerPackData.ActionTrigger is TimerSkillActionTrigger timerTrigger)
                 {
-                    triggerTimer = TickTimer.CreateFromTicks(runner, timerTrigger.DelayTicks);
+                    triggerTimer = TickTimer.CreateFromTicks(runner, timerTrigger.DelayTicks.Resolve(this).RoundToInt());
                 }
 
                 ExecuteTriggerPack(START_TRIGGER_TYPE);
@@ -502,7 +508,7 @@ namespace Main.Scripts.Skills.Common.Component
 
             if (triggerPacksDataMap.TryGetValue(PERIODIC_TRIGGER_TYPE, out var triggerPackData)
                 && triggerPackData.ActionTrigger is PeriodicSkillActionTrigger periodicTrigger
-                && ticksFromStart % periodicTrigger.FrequencyTicks == 0)
+                && ticksFromStart % periodicTrigger.FrequencyTicks.Resolve(this) == 0)
             {
                 ExecuteTriggerPack(PERIODIC_TRIGGER_TYPE);
             }
@@ -560,13 +566,13 @@ namespace Main.Scripts.Skills.Common.Component
 
         private int GetExecutionChargeProgress()
         {
-            if (skillConfig.DurationTicks == 0)
+            if (durationTicks == 0)
             {
                 return 0;
             }
             return Math.Min(
                 100,
-                (int)(100 * (runner.Tick - startSkillTick) / (float)skillConfig.DurationTicks)
+                (int)(100 * (runner.Tick - startSkillTick) / (float)durationTicks)
             );
         }
 
@@ -602,7 +608,7 @@ namespace Main.Scripts.Skills.Common.Component
             {
                 var targetPoint = GetPointByType(moveToTargetStrategy.MoveTo);
                 var deltaPosition = targetPoint - Position;
-                var moveDelta = deltaPosition.normalized * moveToTargetStrategy.Speed * PhysicsManager.DeltaTime;
+                var moveDelta = deltaPosition.normalized * moveToTargetStrategy.Speed.Resolve(this) * PhysicsManager.DeltaTime;
 
                 if (deltaPosition.sqrMagnitude <= moveDelta.sqrMagnitude)
                 {
@@ -617,8 +623,8 @@ namespace Main.Scripts.Skills.Common.Component
             if (followStrategy is MoveToDirectionSkillFollowStrategy moveToDirectionStrategy)
             {
                 var direction = GetDirectionByType(moveToDirectionStrategy.MoveDirectionType);
-                direction = Quaternion.AngleAxis(moveToDirectionStrategy.DirectionAngleOffset, Vector3.up) * direction;
-                Position += direction * moveToDirectionStrategy.Speed * PhysicsManager.DeltaTime;
+                direction = Quaternion.AngleAxis(moveToDirectionStrategy.DirectionAngleOffset.Resolve(this), Vector3.up) * direction;
+                Position += direction * moveToDirectionStrategy.Speed.Resolve(this) * PhysicsManager.DeltaTime;
             }
         }
 
@@ -694,7 +700,7 @@ namespace Main.Scripts.Skills.Common.Component
             {
                 var hitsCount = Physics.OverlapSphereNonAlloc(
                     position: Position,
-                    radius: collisionTrigger.Radius,
+                    radius: collisionTrigger.Radius.Resolve(this),
                     results: colliders,
                     layerMask: GetLayerMaskByType(collisionTrigger.TargetType) |
                                collisionTrigger.TriggerByDecorationsLayer
@@ -778,8 +784,8 @@ namespace Main.Scripts.Skills.Common.Component
             {
                 switch (action)
                 {
-                    case AddChargeAction addChargeAction:
-                        skillHeatLevelManager.AddCharge(addChargeAction.ChargeValue.Resolve(this, actionTarget));
+                    case HeatChargeAction addChargeAction:
+                        skillHeatLevelManager.AddCharge(addChargeAction.ChargeValue.Resolve(this, actionTarget).RoundToInt());
                         break;
                     case ApplyEffectsSkillAction applyEffectsAction
                         when actionTarget.TryGetInterface<Affectable>(out var affectable):
@@ -795,7 +801,7 @@ namespace Main.Scripts.Skills.Common.Component
                         var damageActionData = new DamageActionData
                         {
                             damageOwner = selfUnit,
-                            damageValue = damageAction.DamageValue
+                            damageValue = damageAction.DamageValue.Resolve(this, actionTarget)
                         };
                         damageable.AddDamage(ref damageActionData);
 
@@ -806,7 +812,7 @@ namespace Main.Scripts.Skills.Common.Component
                         var skillPosition =
                             isCollisionTriggered ? skillPositionOnCollisionTriggered : Position;
                         var direction = actionTarget.transform.position - skillPosition;
-                        var knockBackActionData = new KnockBackActionData { force = direction.normalized * forceAction.ForceValue };
+                        var knockBackActionData = new KnockBackActionData { force = direction.normalized * forceAction.ForceValue.Resolve(this, actionTarget) };
                         knockable.AddKnockBack(ref knockBackActionData);
 
                         break;
@@ -815,7 +821,7 @@ namespace Main.Scripts.Skills.Common.Component
                         var healActionData = new HealActionData
                         {
                             healOwner = selfUnit,
-                            healValue = healAction.HealValue
+                            healValue = healAction.HealValue.Resolve(this, actionTarget)
                         };
                         healable.AddHeal(ref healActionData);
 
@@ -827,8 +833,8 @@ namespace Main.Scripts.Skills.Common.Component
                         var dashActionData = new DashActionData
                         {
                             direction = directionByType,
-                            speed = dashAction.Speed,
-                            durationTicks = dashAction.DurationTicks
+                            speed = dashAction.Speed.Resolve(this, actionTarget),
+                            durationTicks = dashAction.DurationTicks.Resolve(this, actionTarget).RoundToInt()
                         };
                         dashable.AddDash(ref dashActionData);
 
@@ -837,7 +843,7 @@ namespace Main.Scripts.Skills.Common.Component
                         when actionTarget.TryGetInterface(out ObjectWithGettingStun stunnable):
                         var stunActionData = new StunActionData
                         {
-                            durationTicks = stunAction.DurationTicks
+                            durationTicks = stunAction.DurationTicks.Resolve(this, actionTarget).RoundToInt()
                         };
                         stunnable.AddStun(ref stunActionData);
 
@@ -891,9 +897,14 @@ namespace Main.Scripts.Skills.Common.Component
 
         private void OnSpawnPhase()
         {
+            var currentExecutionChargeProgress = skillConfig.StartNewExecutionCharging
+                ? GetExecutionChargeProgress()
+                : executionChargeProgress;
+            
             var currentExecutionChargeLevel = skillConfig.StartNewExecutionCharging
-                ? GetExecutionChargeLevel(GetExecutionChargeProgress())
+                ? GetExecutionChargeLevel(currentExecutionChargeProgress)
                 : executionChargeLevel;
+            
 
             foreach (var spawnActionData in spawnActions)
             {
@@ -920,6 +931,7 @@ namespace Main.Scripts.Skills.Common.Component
                             spawnPosition: spawnPosition,
                             spawnRotation: spawnRotation,
                             executionChargeLevel: currentExecutionChargeLevel,
+                            executionChargeProgress: currentExecutionChargeProgress,
                             clicksCount: clicksCount,
                             selectedUnitId: spawnActionData.selectedUnitId,
                             selectedTargetEffectValue: selectedTargetEffectValue,
@@ -937,6 +949,7 @@ namespace Main.Scripts.Skills.Common.Component
                             spawnPosition: spawnPosition,
                             spawnRotation: spawnRotation,
                             executionChargeLevel: currentExecutionChargeLevel,
+                            executionChargeProgress: currentExecutionChargeProgress,
                             clicksCount: clicksCount,
                             selectedUnitId: spawnActionData.selectedUnitId,
                             selectedTargetEffectValue: effectValue,
@@ -972,6 +985,7 @@ namespace Main.Scripts.Skills.Common.Component
             Vector3 spawnPosition,
             Quaternion spawnRotation,
             int executionChargeLevel,
+            int executionChargeProgress,
             int clicksCount,
             NetworkId selectedUnitId,
             int selectedTargetEffectValue,
@@ -993,6 +1007,7 @@ namespace Main.Scripts.Skills.Common.Component
                 dynamicMapPoint: dynamicMapPoint,
                 powerChargeLevel: powerChargeLevel,
                 executionChargeLevel: executionChargeLevel,
+                executionChargeProgress: executionChargeProgress,
                 clicksCount: clicksCount,
                 selfUnitId: selfUnitId,
                 selectedUnitId: selectedUnitId,
@@ -1104,7 +1119,7 @@ namespace Main.Scripts.Skills.Common.Component
 
             var hitsCount = Physics.OverlapSphereNonAlloc(
                 position: origin,
-                radius: strategyConfig.Radius,
+                radius: strategyConfig.Radius.Resolve(this),
                 results: colliders,
                 layerMask: GetLayerMaskByType(strategyConfig.TargetType),
                 queryTriggerInteraction: QueryTriggerInteraction.Ignore
@@ -1130,21 +1145,22 @@ namespace Main.Scripts.Skills.Common.Component
             var origin = GetPointByType(strategyConfig.OriginPoint);
 
             var direction = GetDirectionByType(strategyConfig.DirectionType);
-            direction = Quaternion.AngleAxis(strategyConfig.DirectionAngleOffset, Vector3.up) * direction;
+            direction = Quaternion.AngleAxis(strategyConfig.DirectionAngleOffset.Resolve(this), Vector3.up) * direction;
 
-            var raycastsCount = Mathf.CeilToInt(strategyConfig.Angle / ANGLE_STEP) *
-                                Mathf.CeilToInt(strategyConfig.Radius / DISTANCE_STEP_MULTIPLIER);
+            var raycastsCount = Mathf.CeilToInt(strategyConfig.Angle.Resolve(this) / ANGLE_STEP) *
+                                Mathf.CeilToInt(strategyConfig.Radius.Resolve(this) / DISTANCE_STEP_MULTIPLIER);
 
             for (var i = 0; i <= raycastsCount; i++)
             {
-                var rotateAngle = -strategyConfig.Angle / 2f + i * strategyConfig.Angle / raycastsCount;
+                var rotateAngle = -strategyConfig.Angle.Resolve(this) / 2f
+                    + i * strategyConfig.Angle.Resolve(this) / raycastsCount;
                 var raycastDirection = Quaternion.AngleAxis(rotateAngle, Vector3.up) * direction;
 
                 var hitsCount = Physics.RaycastNonAlloc(
                     origin: origin,
                     direction: raycastDirection,
                     results: raycasts,
-                    maxDistance: strategyConfig.Radius,
+                    maxDistance: strategyConfig.Radius.Resolve(this),
                     layerMask: GetLayerMaskByType(strategyConfig.TargetType),
                     queryTriggerInteraction: QueryTriggerInteraction.Ignore
                 );
@@ -1166,13 +1182,13 @@ namespace Main.Scripts.Skills.Common.Component
         {
             var origin = GetPointByType(strategyConfig.OriginPoint);
             var direction = GetDirectionByType(strategyConfig.DirectionType);
-            direction = Quaternion.AngleAxis(strategyConfig.DirectionAngleOffset, Vector3.up) * direction;
+            direction = Quaternion.AngleAxis(strategyConfig.DirectionAngleOffset.Resolve(this), Vector3.up) * direction;
             
-            var originForwardOffset = strategyConfig.OriginForwardOffset;
+            var originForwardOffset = strategyConfig.OriginForwardOffset.Resolve(this);
 
-            var center = origin + direction * (originForwardOffset + strategyConfig.Length / 2f);
+            var center = origin + direction * (originForwardOffset + strategyConfig.Length.Resolve(this) / 2f);
 
-            var extents = new Vector3(strategyConfig.Width / 2f, 1f, strategyConfig.Length / 2f);
+            var extents = new Vector3(strategyConfig.Width.Resolve(this) / 2f, 1f, strategyConfig.Length.Resolve(this) / 2f);
 
             var hitsCount = Physics.OverlapBoxNonAlloc(
                 center: center,
@@ -1202,27 +1218,11 @@ namespace Main.Scripts.Skills.Common.Component
             return Rotation * Vector3.forward;
         }
 
-        public int GetValue(SkillVariableType variableType, GameObject? target)
+        public int GetCommonValue(SkillCommonVariableType variableType, GameObject? target)
         {
-            HealthProvider healthProvider;
-
             switch (variableType)
             {
-                case SkillVariableType.MaxHP:
-                    if (selfUnit != null && selfUnit.TryGetInterface(out healthProvider))
-                    {
-                        return (int)healthProvider.GetMaxHealth();
-                    }
-
-                    return 0;
-                case SkillVariableType.CurrentHP:
-                    if (selfUnit != null && selfUnit.TryGetInterface(out healthProvider))
-                    {
-                        return (int)healthProvider.GetCurrentHealth();
-                    }
-
-                    return 0;
-                case SkillVariableType.TakenEffectValue:
+                case SkillCommonVariableType.TakenEffectValue:
                     if (targetEffectValues.Count > 0
                         && target != null
                         && target.TryGetComponent<NetworkObject>(out var networkObject)
@@ -1233,6 +1233,51 @@ namespace Main.Scripts.Skills.Common.Component
                     }
 
                     return selectedTargetEffectValue;
+                case SkillCommonVariableType.HeatLevel:
+                    return heatLevel;
+                case SkillCommonVariableType.PowerChargeLevel:
+                    return powerChargeLevel;
+                case SkillCommonVariableType.ExecutionChargeLevel:
+                    return executionChargeLevel;
+                case SkillCommonVariableType.ExecutionChargeProgress:
+                    return executionChargeProgress;
+                case SkillCommonVariableType.ClicksCount:
+                    return clicksCount;
+                case SkillCommonVariableType.StackCount:
+                    return stackCount;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(variableType), variableType, null);
+            }
+        }
+
+        public int GetTargetValue(SkillTargetVariableType variableType, SkillTargetType targetType, GameObject? foundTarget)
+        {
+            var target = targetType switch
+            {
+                SkillTargetType.SelfTarget => selfUnit != null ? selfUnit.gameObject : null,
+                SkillTargetType.SelectedTarget => selectedUnit != null ? selectedUnit.gameObject : null,
+                SkillTargetType.FoundTarget => foundTarget,
+                _ => throw new ArgumentOutOfRangeException(nameof(targetType), targetType, null)
+            };
+            
+            HealthProvider healthProvider;
+
+            switch (variableType)
+            {
+                case SkillTargetVariableType.MaxHP:
+                    if (target != null && target.TryGetInterface(out healthProvider))
+                    {
+                        return (int)healthProvider.GetMaxHealth();
+                    }
+
+                    return 0;
+                case SkillTargetVariableType.CurrentHP:
+                    if (target != null && target.TryGetInterface(out healthProvider))
+                    {
+                        return (int)healthProvider.GetCurrentHealth();
+                    }
+
+                    return 0;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(variableType), variableType, null);
             }

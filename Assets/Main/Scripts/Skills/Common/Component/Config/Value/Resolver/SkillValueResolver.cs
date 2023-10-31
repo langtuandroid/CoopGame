@@ -6,7 +6,7 @@ namespace Main.Scripts.Skills.Common.Component.Config.Value.Resolver
 {
 public static class SkillValueResolver
 {
-    public static int Resolve(SkillValue value, SkillVariableProvider skillVariableProvider, GameObject? target)
+    public static float Resolve(SkillValue value, SkillVariableProvider skillVariableProvider, GameObject? target)
     {
         switch (value)
         {
@@ -15,14 +15,21 @@ public static class SkillValueResolver
             case SumSkillValue sumSkillValue:
                 return Resolve(sumSkillValue.ValueA, skillVariableProvider, target)
                        + Resolve(sumSkillValue.ValueB, skillVariableProvider, target);
-            case VariableSkillValue variableSkillValue:
-                return skillVariableProvider.GetValue(variableSkillValue.PercentFromVariable, target)
-                       * variableSkillValue.PercentValue
-                       / 100;
-            case RandomSkillValue randomSkillValue:
-                return Random.Range(randomSkillValue.Min, randomSkillValue.Max);
+            case CommonVariableSkillValue variableSkillValue:
+                return skillVariableProvider.GetCommonValue(variableSkillValue.VariableType, target) *
+                       variableSkillValue.Multiplier;
+            case TargetVariableSkillValue variableTargetSkillValue:
+                return skillVariableProvider.GetTargetValue(
+                    variableTargetSkillValue.VariableType,
+                    variableTargetSkillValue.TargetType,
+                    target
+                ) * variableTargetSkillValue.Multiplier;
+            case RandomFloatSkillValue randomFloatSkillValue:
+                return Random.Range(randomFloatSkillValue.Min, randomFloatSkillValue.Max);
+            case RandomIntSkillValue randomIntSkillValue:
+                return Random.Range(randomIntSkillValue.Min, randomIntSkillValue.Max);
             case DistanceSkillValue distanceSkillValue:
-                return (int)Vector3.Distance(
+                return Vector3.Distance(
                     skillVariableProvider.GetPointByType(distanceSkillValue.PointA),
                     skillVariableProvider.GetPointByType(distanceSkillValue.PointB)
                 );

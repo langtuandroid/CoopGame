@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Main.Scripts.Skills.Common.Component.Config.Follow;
+using Main.Scripts.Skills.Common.Component.Config.Value;
 using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component.Config
@@ -24,8 +25,7 @@ namespace Main.Scripts.Skills.Common.Component.Config
         [SerializeField]
         private bool resetClicksCount;
         [SerializeField]
-        [Min(0)]
-        private int durationTicks;
+        private SkillValue durationTicks = null!;
         [SerializeField]
         private bool disableMoveWhileRunning;
         [SerializeField]
@@ -42,7 +42,7 @@ namespace Main.Scripts.Skills.Common.Component.Config
         public bool StartNewExecutionCharging => startNewExecutionCharging;
         public int[] ExecutionChargeStepValues => executionChargeStepValues;
         public bool ResetClicksCount => resetClicksCount;
-        public int DurationTicks => durationTicks;
+        public SkillValue DurationTicks => durationTicks;
         public bool DisableMoveWhileRunning => disableMoveWhileRunning;
         public bool ContinueRunningWhileHolding => continueRunningWhileHolding;
         public bool InterruptWithSkillController => interruptWithSkillController;

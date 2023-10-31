@@ -1,4 +1,6 @@
+using Main.Scripts.Skills.Common.Component.Config.Value;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Trigger
 {
@@ -6,9 +8,13 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
     public class TimerSkillActionTrigger : SkillActionTriggerBase
     {
         [SerializeField]
-        [Min(0)]
-        private int delayTicks;
+        private SkillValue delayTicks = null!;
 
-        public int DelayTicks => delayTicks;
+        public SkillValue DelayTicks => delayTicks;
+
+        private void OnValidate()
+        {
+            Assert.IsTrue(delayTicks != null, $"{name}: Delay Ticks value must be not null");
+        }
     }
 }

@@ -25,6 +25,8 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 5127bc5c5f0df1b44bb20e164a3b9faf, type: 2}
   startNewExecutionCharging: 0
   executionChargeStepValues: 
-  durationTicks: 120
+  resetClicksCount: 0
+  durationTicks: {fileID: 11400000, guid: a087589605fbf5a48a30cc5c7a75bb00, type: 2}
+  disableMoveWhileRunning: 0
   continueRunningWhileHolding: 0
   interruptWithSkillController: 0

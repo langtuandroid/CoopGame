@@ -1,4 +1,6 @@
+using Main.Scripts.Skills.Common.Component.Config.Value;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Action
 {
@@ -8,13 +10,18 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
         [SerializeField]
         private SkillDirectionType directionType;
         [SerializeField]
-        private float speed;
+        private SkillValue speed = null!;
         [SerializeField]
-        [Min(0)]
-        private int durationTicks;
+        private SkillValue durationTicks = null!;
 
         public SkillDirectionType DirectionType => directionType;
-        public float Speed => speed;
-        public int DurationTicks => durationTicks;
+        public SkillValue Speed => speed;
+        public SkillValue DurationTicks => durationTicks;
+        
+        private void OnValidate()
+        {
+            Assert.IsTrue(speed != null, $"{name}: Speed value must be not null");
+            Assert.IsTrue(durationTicks != null, $"{name}: Duration Ticks value must be not null");
+        }
     }
 }

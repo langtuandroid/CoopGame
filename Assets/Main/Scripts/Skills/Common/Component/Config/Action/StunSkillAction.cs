@@ -1,4 +1,6 @@
+using Main.Scripts.Skills.Common.Component.Config.Value;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Action
 {
@@ -6,9 +8,13 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
     public class StunSkillAction : SkillActionBase
     {
         [SerializeField]
-        [Min(0)]
-        private int durationTicks;
+        private SkillValue durationTicks = null!;
 
-        public int DurationTicks => durationTicks;
+        public SkillValue DurationTicks => durationTicks;
+        
+        private void OnValidate()
+        {
+            Assert.IsTrue(durationTicks != null, $"{name}: Duration Ticks value must be not null");
+        }
     }
 }

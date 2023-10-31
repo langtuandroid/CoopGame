@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 611ae19d463241c89a86fb7a2deed805, type: 3}
   m_Name: AddChargeAction
   m_EditorClassIdentifier: 
-  chargeValue: 20
+  chargeValue: {fileID: 11400000, guid: da2a8166188cba74c89923165394ff83, type: 2}

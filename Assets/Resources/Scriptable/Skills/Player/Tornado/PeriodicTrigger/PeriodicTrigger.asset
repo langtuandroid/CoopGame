@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d95a6b87239450ca7fe220272c487f4, type: 3}
   m_Name: PeriodicTrigger
   m_EditorClassIdentifier: 
-  frequencyTicks: 24
+  frequencyTicks: {fileID: 11400000, guid: a6e487a0349a98e42818f89f830fc398, type: 2}

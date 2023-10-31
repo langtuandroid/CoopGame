@@ -23,7 +23,7 @@ MonoBehaviour:
   startNewExecutionCharging: 0
   executionChargeStepValues: 
   resetClicksCount: 0
-  durationTicks: 0
-  disableMoveOnRunning: 0
+  durationTicks: {fileID: 11400000, guid: b4b48abe83a36dc40ae8e5af3e3cccf5, type: 2}
+  disableMoveWhileRunning: 0
   continueRunningWhileHolding: 0
   interruptWithSkillController: 0

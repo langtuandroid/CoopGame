@@ -1,4 +1,6 @@
+using Main.Scripts.Skills.Common.Component.Config.Value;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Trigger
 {
@@ -6,9 +8,13 @@ namespace Main.Scripts.Skills.Common.Component.Config.Trigger
     public class PeriodicSkillActionTrigger : SkillActionTriggerBase
     {
         [SerializeField]
-        [Min(1)]
-        private int frequencyTicks = 24;
+        private SkillValue frequencyTicks = null!;
 
-        public int FrequencyTicks => frequencyTicks;
+        public SkillValue FrequencyTicks => frequencyTicks;
+
+        private void OnValidate()
+        {
+            Assert.IsTrue(frequencyTicks != null, $"{name}: Frequency Ticks value must be not null");
+        }
     }
 }

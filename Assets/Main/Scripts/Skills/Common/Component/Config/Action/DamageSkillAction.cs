@@ -1,4 +1,6 @@
+using Main.Scripts.Skills.Common.Component.Config.Value;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Action
 {
@@ -6,9 +8,13 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
     public class DamageSkillAction : SkillActionBase
     {
         [SerializeField]
-        [Min(0f)]
-        private float damageValue;
+        private SkillValue damageValue = null!;
 
-        public float DamageValue => damageValue;
+        public SkillValue DamageValue => damageValue;
+        
+        private void OnValidate()
+        {
+            Assert.IsTrue(damageValue != null, $"{name}: Damage value must be not null");
+        }
     }
 }

@@ -1,5 +1,7 @@
 using Main.Scripts.Player.InputSystem.Target;
+using Main.Scripts.Skills.Common.Component.Config.Value;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
 {
@@ -11,24 +13,30 @@ namespace Main.Scripts.Skills.Common.Component.Config.FindTargets
         [SerializeField]
         private SkillDirectionType directionType;
         [SerializeField]
-        private float directionAngleOffset;
+        private SkillValue directionAngleOffset = null!;
         [SerializeField]
-        private float originForwardOffset;
+        private SkillValue originForwardOffset = null!;
         [SerializeField]
-        [Min(0f)]
-        private float length;
+        private SkillValue length = null!;
         [SerializeField]
-        [Min(0f)]
-        private float width;
+        private SkillValue width = null!;
         [SerializeField]
         private UnitTargetType targetType;
 
         public SkillPointType OriginPoint => originPoint;
         public SkillDirectionType DirectionType => directionType;
-        public float DirectionAngleOffset => directionAngleOffset;
-        public float OriginForwardOffset => originForwardOffset;
-        public float Length => length;
-        public float Width => width;
+        public SkillValue DirectionAngleOffset => directionAngleOffset;
+        public SkillValue OriginForwardOffset => originForwardOffset;
+        public SkillValue Length => length;
+        public SkillValue Width => width;
         public UnitTargetType TargetType => targetType;
+        
+        private void OnValidate()
+        {
+            Assert.IsTrue(directionAngleOffset != null, $"{name}: Direction Angle Offset value must be not null");
+            Assert.IsTrue(originForwardOffset != null, $"{name}: Origin Forward Offset value must be not null");
+            Assert.IsTrue(length != null, $"{name}: Length value must be not null");
+            Assert.IsTrue(width != null, $"{name}: Width value must be not null");
+        }
     }
 }

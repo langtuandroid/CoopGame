@@ -1,4 +1,6 @@
+using Main.Scripts.Skills.Common.Component.Config.Value;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Follow
 {
@@ -8,10 +10,15 @@ namespace Main.Scripts.Skills.Common.Component.Config.Follow
         [SerializeField]
         private SkillPointType moveTo;
         [SerializeField]
-        [Min(0f)]
-        private float speed;
+        private SkillValue speed = null!;
 
         public SkillPointType MoveTo => moveTo;
-        public float Speed => speed;
+        public SkillValue Speed => speed;
+        
+                
+        private void OnValidate()
+        {
+            Assert.IsTrue(speed != null, $"{name}: Speed value must be not null");
+        }
     }
 }

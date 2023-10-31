@@ -597,6 +597,7 @@ namespace Main.Scripts.Skills.Common.Controller
                     dynamicMapPoint: dynamicMapPoint,
                     powerChargeLevel: powerChargeLevel,
                     executionChargeLevel: 0,
+                    executionChargeProgress: 0,
                     clicksCount: 0,
                     selfUnitId: objectContext.Id,
                     selectedUnitId: selectedUnitId,

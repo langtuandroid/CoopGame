@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: AroundPointTargetsStrategy
   m_EditorClassIdentifier: 
   originPoint: 0
-  radius: 3
+  radius: {fileID: 11400000, guid: db56a9fa68f1c5d469921a72d1c76c91, type: 2}
   targetType: 0

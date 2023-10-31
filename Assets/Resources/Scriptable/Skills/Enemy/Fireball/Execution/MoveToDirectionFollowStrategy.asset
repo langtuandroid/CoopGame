@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: MoveToDirectionFollowStrategy
   m_EditorClassIdentifier: 
   moveDirectionType: 0
-  directionAngleOffset: 0
-  speed: 20
+  directionAngleOffset: {fileID: 11400000, guid: b4b48abe83a36dc40ae8e5af3e3cccf5, type: 2}
+  speed: {fileID: 11400000, guid: 0b66be691c5f2e74cad73dc16cb00cd9, type: 2}

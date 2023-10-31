@@ -1,4 +1,6 @@
+using Main.Scripts.Skills.Common.Component.Config.Value;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Action
 {
@@ -6,9 +8,13 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
     public class ForceSkillAction : SkillActionBase
     {
         [SerializeField]
-        [Min(0f)]
-        private float forceValue;
+        private SkillValue forceValue = null!;
 
-        public float ForceValue => forceValue;
+        public SkillValue ForceValue => forceValue;
+
+        private void OnValidate()
+        {
+            Assert.IsTrue(forceValue != null, $"{name}: Force value must be not null");
+        }
     }
 }

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Main.Scripts.Skills.Common.Component.Config.Follow;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Main.Scripts.Skills.Common.Component.Config
 {

@@ -5,6 +5,7 @@ namespace Main.Scripts.Skills.Common.Component.Config
         SkillPosition,
         SelfUnitTarget,
         SelectedUnitTarget,
+        FoundUnitTarget,
         InitialMapPointTarget,
         DynamicMapPointTarget
     }

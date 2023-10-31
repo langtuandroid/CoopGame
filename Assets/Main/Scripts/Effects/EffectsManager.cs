@@ -36,6 +36,7 @@ namespace Main.Scripts.Effects
 
         private Dictionary<int, EffectSkillController> passiveSkillControllersMap = new();
         private Dictionary<EffectType, List<NetworkId>> effectTargetsIdMap = new();
+        private Dictionary<EffectType, Dictionary<NetworkId, int>> effectTargetValuesMap = new();
         private HashSet<EffectType> triggersToActivate = new();
         private List<EffectsCombination> effectAddActions = new();
         private SkillInterruptionType interruptionTypes;
@@ -56,6 +57,7 @@ namespace Main.Scripts.Effects
                 unlimitedEffectDataMap[triggerType] = new Dictionary<int, ActiveEffectData>();
                 limitedEffectDataMap[triggerType] = new Dictionary<int, ActiveEffectData>();
                 effectTargetsIdMap[triggerType] = new List<NetworkId>();
+                effectTargetValuesMap[triggerType] = new Dictionary<NetworkId, int>();
             }
         }
 
@@ -142,6 +144,11 @@ namespace Main.Scripts.Effects
                 targetUnitIdsList.Clear();
             }
 
+            foreach (var (_, effectTargetValues) in effectTargetValuesMap)
+            {
+                effectTargetValues.Clear();
+            }
+
             Array.Fill(statConstAdditiveSums, 0f);
             Array.Fill(statPercentAdditiveSums, 0f);
         }
@@ -199,11 +206,12 @@ namespace Main.Scripts.Effects
             foreach (var triggerType in triggersToActivate)
             {
                 var effectTargetsIdList = effectTargetsIdMap[triggerType];
+                var effectTargetValues = effectTargetValuesMap[triggerType];
                 foreach (var (_, data) in unlimitedEffectDataMap[triggerType])
                 {
                     if (effectsBank.GetEffect(data.EffectId) is TriggerEffectConfig triggerEffect)
                     {
-                        HandleTriggerEffect(in data, triggerEffect, effectTargetsIdList);
+                        HandleTriggerEffect(in data, triggerEffect, effectTargetsIdList, effectTargetValues);
                     }
                 }
 
@@ -211,11 +219,12 @@ namespace Main.Scripts.Effects
                 {
                     if (effectsBank.GetEffect(data.EffectId) is TriggerEffectConfig triggerEffect)
                     {
-                        HandleTriggerEffect(in data, triggerEffect, effectTargetsIdList);
+                        HandleTriggerEffect(in data, triggerEffect, effectTargetsIdList, effectTargetValues);
                     }
                 }
                 
-                effectTargetsIdMap[triggerType].Clear();
+                effectTargetsIdList.Clear();
+                effectTargetValues.Clear();
             }
 
             triggersToActivate.Clear();
@@ -313,7 +322,8 @@ namespace Main.Scripts.Effects
         private void HandleTriggerEffect(
             in ActiveEffectData data,
             TriggerEffectConfig triggerEffectConfig,
-            List<NetworkId> effectTargetsIdList
+            List<NetworkId> effectTargetsIdList,
+            Dictionary<NetworkId, int> effectTargetValues
         )
         {
             if (!passiveSkillControllersMap.TryGetValue(data.EffectId, out var passiveSkillController))
@@ -337,7 +347,12 @@ namespace Main.Scripts.Effects
                     Debug.LogError("PassiveSkillController: ActivationType WithUnitTarget is not supported");
                     break;
                 case SkillActivationType.Instantly:
-                    passiveSkillController.Activate(skillHeatLevelManager.HeatLevel, data.StackCount, effectTargetsIdList);
+                    passiveSkillController.Activate(
+                        heatLevel: skillHeatLevelManager.HeatLevel,
+                        stackCount: data.StackCount,
+                        effectTargetsIdList: effectTargetsIdList,
+                        effectTargetValues: effectTargetValues
+                    );
                     break;
                 case SkillActivationType.WithMapPointTarget:
                     Debug.LogError("PassiveSkillController: ActivationType MapPointTarget is not supported");
@@ -431,17 +446,18 @@ namespace Main.Scripts.Effects
             triggersToActivate.Add(EffectType.TakenDamageTrigger);
             if (damageOwner != null && damageOwner != objectContext)
             {
-                effectTargetsIdMap[EffectType.DeadTrigger].Add(damageOwner.Id);
                 effectTargetsIdMap[EffectType.TakenDamageTrigger].Add(damageOwner.Id);
+                effectTargetValuesMap[EffectType.TakenDamageTrigger][damageOwner.Id] = (int)damageValue;
             }
         }
 
-        public void OnTakenHeal(PlayerRef skillOwner, float healValue, NetworkObject? healOwner)
+        public void OnTakenHeal(float healValue, NetworkObject? healOwner)
         {
             triggersToActivate.Add(EffectType.TakenHealTrigger);
             if (healOwner != null && healOwner != objectContext)
             {
                 effectTargetsIdMap[EffectType.TakenHealTrigger].Add(healOwner.Id);
+                effectTargetValuesMap[EffectType.TakenHealTrigger][healOwner.Id] = (int)healValue;
             }
         }
 

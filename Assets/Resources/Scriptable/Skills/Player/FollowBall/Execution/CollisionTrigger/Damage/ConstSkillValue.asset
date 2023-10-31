@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 611ae19d463241c89a86fb7a2deed805, type: 3}
-  m_Name: AddChargeAction
+  m_Script: {fileID: 11500000, guid: 9160c30629f94416980d65f46c881381, type: 3}
+  m_Name: ConstSkillValue
   m_EditorClassIdentifier: 
-  chargeValue: {fileID: 11400000, guid: 76ff1a8f8066b2a4eb3ebd8b2e53ddcf, type: 2}
+  constValue: 5

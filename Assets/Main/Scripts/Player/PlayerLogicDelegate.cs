@@ -757,7 +757,7 @@ namespace Main.Scripts.Player
         {
             playerLogicData.health = Math.Min(playerLogicData.health + actionData.healValue, playerLogicData.maxHealth);
 
-            effectsManager.OnTakenHeal(objectContext.StateAuthority, actionData.healValue, actionData.healOwner);
+            effectsManager.OnTakenHeal(actionData.healValue, actionData.healOwner);
             if (healthChangeDisplayManager != null)
             {
                 healthChangeDisplayManager.ApplyHeal(actionData.healValue);

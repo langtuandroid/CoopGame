@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b08cbd8696574077bcd5318aea4b0ab0, type: 3}
   m_Name: MoveToTargetFollowStrategy
   m_EditorClassIdentifier: 
-  moveTo: 4
+  moveTo: 5
   speed: 10

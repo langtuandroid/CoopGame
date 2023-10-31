@@ -24,7 +24,8 @@ MonoBehaviour:
     SecondSkillConfig: {fileID: 11400000, guid: 63ac8a08a39c3fd4a868c2b853dcf24d, type: 2}
     ThirdSkillConfig: {fileID: 11400000, guid: b7fed8c02bc5bdf40ba323e60c826d20, type: 2}
   effectsConfig:
-    InitialEffects: []
+    InitialEffects:
+    - {fileID: 11400000, guid: 5236370e64377c34cb35ada461105ea0, type: 2}
   alliesLayerMask:
     serializedVersion: 2
     m_Bits: 128

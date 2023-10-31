@@ -10,6 +10,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 611ae19d463241c89a86fb7a2deed805, type: 3}
-  m_Name: AddChargeActionLvl0
+  m_Name: AddChargeAction
   m_EditorClassIdentifier: 
-  chargeValue: 10
+  chargeValue: {fileID: 11400000, guid: 2723998b5ff03be4aa488194bb7a3d24, type: 2}

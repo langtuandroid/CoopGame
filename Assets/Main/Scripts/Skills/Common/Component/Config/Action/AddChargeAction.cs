@@ -1,3 +1,4 @@
+using Main.Scripts.Skills.Common.Component.Config.Value;
 using UnityEngine;
 
 namespace Main.Scripts.Skills.Common.Component.Config.Action
@@ -7,8 +8,8 @@ namespace Main.Scripts.Skills.Common.Component.Config.Action
     {
         [SerializeField]
         [Min(0)]
-        private int chargeValue;
+        private SkillValue chargeValue = null!;
 
-        public int ChargeValue => chargeValue;
+        public SkillValue ChargeValue => chargeValue;
     }
 }

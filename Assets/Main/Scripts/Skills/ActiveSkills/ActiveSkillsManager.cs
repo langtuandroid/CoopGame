@@ -265,7 +265,7 @@ namespace Main.Scripts.Skills.ActiveSkills
             }
 
             data.currentSkillType = skillType;
-            skill.Activate(skillHeatLevelManager.HeatLevel, 0, null);
+            skill.Activate(skillHeatLevelManager.HeatLevel);
             var skillState = GetCurrentSkillState();
             if (shouldExecute
                 && skillState is ActiveSkillState.WaitingForTarget or ActiveSkillState.WaitingForPoint)

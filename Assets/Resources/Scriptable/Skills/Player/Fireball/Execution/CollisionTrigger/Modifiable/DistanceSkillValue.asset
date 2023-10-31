@@ -9,7 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 611ae19d463241c89a86fb7a2deed805, type: 3}
-  m_Name: AddChargeActionLvl2
+  m_Script: {fileID: 11500000, guid: 4bc371f898b24b76bcf77e63d33f0ba6, type: 3}
+  m_Name: DistanceSkillValue
   m_EditorClassIdentifier: 
-  chargeValue: 50
+  pointA: 1
+  pointB: 3

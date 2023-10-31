@@ -30,6 +30,7 @@ namespace Main.Scripts.Skills.Common.Controller
         private NetworkId selectedUnitId;
         private NetworkObject? selectedUnit;
         private List<NetworkId> effectTargetsIdList = new();
+        private Dictionary<NetworkId, int> effectTargetValues = new();
         private int heatLevel;
         private int stackCount;
         private TickTimer executionTimer;
@@ -148,7 +149,12 @@ namespace Main.Scripts.Skills.Common.Controller
             return !isActivating && !IsSkillRunning && cooldownTimer.ExpiredOrNotRunning(objectContext.Runner);
         }
 
-        public bool Activate(int heatLevel, int stackCount, List<NetworkId>? effectTargetsIdList)
+        public bool Activate(
+            int heatLevel,
+            int stackCount = 0,
+            List<NetworkId>? effectTargetsIdList = null,
+            Dictionary<NetworkId, int>? effectTargetValues = null
+        )
         {
             if (!CanActivate())
             {
@@ -161,6 +167,14 @@ namespace Main.Scripts.Skills.Common.Controller
             if (effectTargetsIdList != null)
             {
                 this.effectTargetsIdList.AddRange(effectTargetsIdList);
+            }
+
+            if (effectTargetValues != null)
+            {
+                foreach (var (id, value) in effectTargetValues)
+                {
+                    this.effectTargetValues[id] = value;
+                }
             }
 
             switch (skillControllerConfig.ActivationType)
@@ -483,6 +497,7 @@ namespace Main.Scripts.Skills.Common.Controller
             selectedUnit = null;
             selectedUnitId = default;
             effectTargetsIdList.Clear();
+            effectTargetValues.Clear();
             initialMapPoint = default;
             dynamicMapPoint = default;
             powerChargeLevel = default;
@@ -585,7 +600,9 @@ namespace Main.Scripts.Skills.Common.Controller
                     clicksCount: 0,
                     selfUnitId: objectContext.Id,
                     selectedUnitId: selectedUnitId,
+                    selectedTargetEffectValue: 0,
                     targetUnitIdsList: effectTargetsIdList,
+                    targetEffectValues: effectTargetValues,
                     alliesLayerMask: alliesLayerMask,
                     opponentsLayerMask: opponentsLayerMask,
                     listener: this

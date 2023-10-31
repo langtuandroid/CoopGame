@@ -19,6 +19,8 @@ using Main.Scripts.Skills.Common.Component.Config.ActionsPack;
 using Main.Scripts.Skills.Common.Component.Config.Follow;
 using Main.Scripts.Skills.Common.Component.Config.FindTargets;
 using Main.Scripts.Skills.Common.Component.Config.Trigger;
+using Main.Scripts.Skills.Common.Component.Config.Value;
+using Main.Scripts.Skills.Common.Component.Config.Value.Resolver;
 using Main.Scripts.Skills.Common.Component.Visual;
 using Main.Scripts.Utils;
 using UnityEngine;
@@ -26,7 +28,7 @@ using UnityEngine.Pool;
 
 namespace Main.Scripts.Skills.Common.Component
 {
-    public class SkillComponent : GameLoopListener
+    public class SkillComponent : GameLoopListener, SkillVariableProvider
     {
         private static readonly Type START_TRIGGER_TYPE = typeof(StartSkillActionTrigger);
         private static readonly Type FINISH_TRIGGER_TYPE = typeof(FinishSkillActionTrigger);
@@ -53,7 +55,9 @@ namespace Main.Scripts.Skills.Common.Component
         private int executionChargeLevel;
         private NetworkId selfUnitId;
         private NetworkId selectedUnitId;
+        private int selectedTargetEffectValue;
         private List<NetworkId> targetUnitIdsList = new();
+        private Dictionary<NetworkId, int> targetEffectValues = new();
         private int alliesLayerMask;
         private int opponentsLayerMask;
 
@@ -119,7 +123,9 @@ namespace Main.Scripts.Skills.Common.Component
             int clicksCount,
             NetworkId selfUnitId,
             NetworkId selectedUnitId,
+            int selectedTargetEffectValue,
             IEnumerable<NetworkId> targetUnitIdsList,
+            Dictionary<NetworkId, int>? targetEffectValues,
             LayerMask alliesLayerMask,
             LayerMask opponentsLayerMask,
             Listener? listener
@@ -138,8 +144,16 @@ namespace Main.Scripts.Skills.Common.Component
             this.clicksCount = clicksCount;
             this.selfUnitId = selfUnitId;
             this.selectedUnitId = selectedUnitId;
+            this.selectedTargetEffectValue = selectedTargetEffectValue;
             this.alliesLayerMask = alliesLayerMask;
             this.targetUnitIdsList.AddRange(targetUnitIdsList);
+            if (targetEffectValues != null)
+            {
+                foreach (var (id, value) in targetEffectValues)
+                {
+                    this.targetEffectValues[id] = value;
+                }
+            }
             this.opponentsLayerMask = opponentsLayerMask;
             this.listener = listener;
 
@@ -333,6 +347,7 @@ namespace Main.Scripts.Skills.Common.Component
             selfUnit = null;
             selectedUnit = null;
             targetUnitIdsList.Clear();
+            targetEffectValues.Clear();
             
             
             lifeTimer = default;
@@ -764,7 +779,7 @@ namespace Main.Scripts.Skills.Common.Component
                 switch (action)
                 {
                     case AddChargeAction addChargeAction:
-                        skillHeatLevelManager.AddCharge(addChargeAction.ChargeValue);
+                        skillHeatLevelManager.AddCharge(addChargeAction.ChargeValue.Resolve(this, actionTarget));
                         break;
                     case ApplyEffectsSkillAction applyEffectsAction
                         when actionTarget.TryGetInterface<Affectable>(out var affectable):
@@ -907,10 +922,16 @@ namespace Main.Scripts.Skills.Common.Component
                             executionChargeLevel: currentExecutionChargeLevel,
                             clicksCount: clicksCount,
                             selectedUnitId: spawnActionData.selectedUnitId,
-                            targetUnitIdsList: spawnActionData.targetUnitIdsList
+                            selectedTargetEffectValue: selectedTargetEffectValue,
+                            targetUnitIdsList: spawnActionData.targetUnitIdsList,
+                            targetEffectValues: targetEffectValues
                         );
                         break;
                     case SpawnConfigWithTargetSkillAction spawnConfigWithTargetSkillAction:
+                        if (!targetEffectValues.TryGetValue(spawnActionData.selectedUnitId, out var effectValue))
+                        {
+                            effectValue = selectedTargetEffectValue;
+                        }
                         SpawnSkillConfig(
                             skillConfig: spawnConfigWithTargetSkillAction.SkillConfig,
                             spawnPosition: spawnPosition,
@@ -918,7 +939,9 @@ namespace Main.Scripts.Skills.Common.Component
                             executionChargeLevel: currentExecutionChargeLevel,
                             clicksCount: clicksCount,
                             selectedUnitId: spawnActionData.selectedUnitId,
-                            targetUnitIdsList: spawnActionData.targetUnitIdsList
+                            selectedTargetEffectValue: effectValue,
+                            targetUnitIdsList: spawnActionData.targetUnitIdsList,
+                            targetEffectValues: null
                         );
                         break;
                     case SpawnSkillVisualAction spawnVisualForSkillAction:
@@ -951,7 +974,9 @@ namespace Main.Scripts.Skills.Common.Component
             int executionChargeLevel,
             int clicksCount,
             NetworkId selectedUnitId,
-            List<NetworkId> targetUnitIdsList
+            int selectedTargetEffectValue,
+            List<NetworkId> targetUnitIdsList,
+            Dictionary<NetworkId, int>? targetEffectValues
         )
         {
             var skillComponent = skillComponentsPoolHelper.Get();
@@ -971,7 +996,9 @@ namespace Main.Scripts.Skills.Common.Component
                 clicksCount: clicksCount,
                 selfUnitId: selfUnitId,
                 selectedUnitId: selectedUnitId,
+                selectedTargetEffectValue: selectedTargetEffectValue,
                 targetUnitIdsList: targetUnitIdsList,
+                targetEffectValues: targetEffectValues,
                 alliesLayerMask: alliesLayerMask,
                 opponentsLayerMask: opponentsLayerMask,
                 listener: listener
@@ -988,7 +1015,7 @@ namespace Main.Scripts.Skills.Common.Component
             visualToken = token;
         }
 
-        private Vector3 GetPointByType(SkillPointType pointType)
+        public Vector3 GetPointByType(SkillPointType pointType, GameObject? foundTarget = null)
         {
             switch (pointType)
             {
@@ -1000,7 +1027,8 @@ namespace Main.Scripts.Skills.Common.Component
 
                 case SkillPointType.SelectedUnitTarget:
                     return selectedUnit != null ? selectedUnit.transform.position : Position;
-
+                case SkillPointType.FoundUnitTarget:
+                    return foundTarget != null ? foundTarget.transform.position : Position;
                 case SkillPointType.InitialMapPointTarget:
                     return initialMapPoint;
 
@@ -1172,6 +1200,42 @@ namespace Main.Scripts.Skills.Common.Component
         private Vector3 GetForward()
         {
             return Rotation * Vector3.forward;
+        }
+
+        public int GetValue(SkillVariableType variableType, GameObject? target)
+        {
+            HealthProvider healthProvider;
+
+            switch (variableType)
+            {
+                case SkillVariableType.MaxHP:
+                    if (selfUnit != null && selfUnit.TryGetInterface(out healthProvider))
+                    {
+                        return (int)healthProvider.GetMaxHealth();
+                    }
+
+                    return 0;
+                case SkillVariableType.CurrentHP:
+                    if (selfUnit != null && selfUnit.TryGetInterface(out healthProvider))
+                    {
+                        return (int)healthProvider.GetCurrentHealth();
+                    }
+
+                    return 0;
+                case SkillVariableType.TakenEffectValue:
+                    if (targetEffectValues.Count > 0
+                        && target != null
+                        && target.TryGetComponent<NetworkObject>(out var networkObject)
+                        && targetEffectValues.TryGetValue(networkObject.Id, out var value)
+                    )
+                    {
+                        return value;
+                    }
+
+                    return selectedTargetEffectValue;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(variableType), variableType, null);
+            }
         }
 
         private struct CollisionTargetData

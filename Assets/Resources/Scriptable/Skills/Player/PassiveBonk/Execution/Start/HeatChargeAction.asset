@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 611ae19d463241c89a86fb7a2deed805, type: 3}
   m_Name: HeatChargeAction
   m_EditorClassIdentifier: 
-  chargeValue: {fileID: 11400000, guid: 6733ebbcbf8ce4e4bbc4f43cd73a3aec, type: 2}
+  chargeValue: {fileID: 11400000, guid: c26b231ec9f08e74db52f04f08d42b12, type: 2}

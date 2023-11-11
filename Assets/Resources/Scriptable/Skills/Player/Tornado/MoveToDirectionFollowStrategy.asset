@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveDirectionType: 0
   directionAngleOffset: {fileID: 11400000, guid: b4b48abe83a36dc40ae8e5af3e3cccf5, type: 2}
-  speed: {fileID: 11400000, guid: da2a8166188cba74c89923165394ff83, type: 2}
+  speed: {fileID: 11400000, guid: c26b231ec9f08e74db52f04f08d42b12, type: 2}

@@ -358,6 +358,7 @@ namespace Main.Scripts.Player
 
         private void OnAOIUpdatePhase()
         {
+            //todo проверить корректность работы AOI
             if (objectContext.HasStateAuthority)
             {
                 objectContext.Runner.AddPlayerAreaOfInterest(objectContext.StateAuthority, transform.position + Vector3.forward * 5,

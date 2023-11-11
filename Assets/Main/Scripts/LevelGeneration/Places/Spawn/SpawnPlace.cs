@@ -1,9 +1,8 @@
 using System;
 using Main.Scripts.LevelGeneration.Chunk;
-using Main.Scripts.LevelGeneration.Places.Spawn;
 using UnityEngine;
 
-namespace Main.Scripts.LevelGeneration.Places
+namespace Main.Scripts.LevelGeneration.Places.Spawn
 {
 public class SpawnPlace : Place
 {
@@ -57,7 +56,7 @@ public class SpawnPlace : Place
         }
     }
 
-    public override void FillMap(IChunk[][] map)
+    public override void FillMap(IChunk?[][] map)
     {
         GetBounds(
             out var minX,

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Main.Scripts.LevelGeneration.Chunk;
 using TriangleNet;
@@ -21,7 +20,6 @@ public class NavMeshChunkBuilder
         );
         
         var polygon = new Polygon();
-        var pointsList = new List<Vector2>();
 
         for (var i = 0; i < map.Length; i++)
         {
@@ -42,7 +40,7 @@ public class NavMeshChunkBuilder
         return mesh;
     }
 
-    private Mesh GenerateNavMesh(TriangleNetMesh triangleNetMesh, QualityOptions options = null)
+    private Mesh GenerateNavMesh(TriangleNetMesh triangleNetMesh, QualityOptions? options = null)
     {
         if (options != null)
         {

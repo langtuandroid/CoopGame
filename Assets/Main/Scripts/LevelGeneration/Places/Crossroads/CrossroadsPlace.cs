@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Main.Scripts.LevelGeneration.Chunk;
 using UnityEngine;
 
@@ -6,6 +7,8 @@ namespace Main.Scripts.LevelGeneration.Places.Crossroads
 {
 public class CrossroadsPlace : Place
 {
+    private List<Place> roadToPlacesList = new();
+
     public int Radius { get; }
 
     public CrossroadsPlace(
@@ -14,6 +17,16 @@ public class CrossroadsPlace : Place
     ) : base(position)
     {
         Radius = radius;
+    }
+
+    public void AddRoadToPlace(Place place)
+    {
+        roadToPlacesList.Add(place);
+    }
+
+    public List<Place> GetRoadsToPlacesList()
+    {
+        return roadToPlacesList;
     }
 
     public override void GetBounds(out int minX, out int maxX, out int minY, out int maxY)
@@ -25,7 +38,7 @@ public class CrossroadsPlace : Place
     }
 
     public override void FillMap(
-        IChunk[][] map
+        IChunk?[][] map
     )
     {
         GetBounds(
@@ -43,7 +56,7 @@ public class CrossroadsPlace : Place
                     + Math.Pow(Math.Abs(y - Position.y) - 0.25f, 2)
                     <= Radius * Radius)
                 {
-                    map[x][y] = new CrossroadsChunk(this);
+                    map[x][y] ??= new CrossroadsChunk(this);
                 }
             }
         }

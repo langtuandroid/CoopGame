@@ -20,7 +20,7 @@ public abstract class Place
     );
 
     public abstract void FillMap(
-        IChunk[][] map
+        IChunk?[][] map
     );
 }
 }

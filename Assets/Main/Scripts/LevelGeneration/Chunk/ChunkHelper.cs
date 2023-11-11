@@ -5,7 +5,7 @@ namespace Main.Scripts.LevelGeneration.Chunk
 public static class ChunkHelper
 {
     public static ChunkConnectionType GetChunkConnectionTypes(
-        IChunk[][] map,
+        IChunk?[][] map,
         int x,
         int y
     )
@@ -57,7 +57,7 @@ public static class ChunkHelper
         return connectionTypes;
     }
 
-    private static bool IsNotOutside(IChunk[][] map, int x, int y)
+    private static bool IsNotOutside(IChunk?[][] map, int x, int y)
     {
         return map[x][y] != null && map[x][y] is not OutsideChunk;
     }

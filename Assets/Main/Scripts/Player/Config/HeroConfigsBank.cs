@@ -28,14 +28,11 @@ namespace Main.Scripts.Player.Config
 
         private void OnValidate()
         {
-            heroConfigs.Clear();
-
-            var heroConfigsObjects = Resources.LoadAll("Scriptable/Heroes", typeof(HeroConfig));
-            foreach (var heroConfig in heroConfigsObjects)
+            foreach (var heroConfig in heroConfigs)
             {
-                if (heroConfig is HeroConfig config)
+                if (heroConfig == null)
                 {
-                    heroConfigs.Add(config);
+                    throw new ArgumentException($"heroConfigs has null value in HeroConfigsBank");
                 }
             }
         }

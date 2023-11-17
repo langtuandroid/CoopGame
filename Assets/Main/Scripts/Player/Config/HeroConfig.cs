@@ -1,6 +1,5 @@
 using Main.Scripts.Effects;
 using Main.Scripts.Skills.ActiveSkills;
-using UnityEditor.Animations;
 using UnityEngine;
 
 namespace Main.Scripts.Player.Config
@@ -17,7 +16,7 @@ namespace Main.Scripts.Player.Config
         [Min(0f)]
         private float moveSpeed;
         [SerializeField]
-        private AnimatorController animatorController = null!;
+        private RuntimeAnimatorController animatorController = null!;
         [SerializeField]
         private ActiveSkillType enableAutoAttackFor;
         [SerializeField]
@@ -32,7 +31,7 @@ namespace Main.Scripts.Player.Config
         public string Id => id;
         public uint MaxHealth => maxHealth;
         public float MoveSpeed => moveSpeed;
-        public AnimatorController AnimatorController => animatorController;
+        public RuntimeAnimatorController AnimatorController => animatorController;
         public ref ActiveSkillsConfig ActiveSkillsConfig => ref activeSkillsConfig;
         public ActiveSkillType EnableAutoAttackFor => enableAutoAttackFor;
         public ref EffectsConfig EffectsConfig => ref effectsConfig;

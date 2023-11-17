@@ -1,5 +1,4 @@
 using System;
-using UnityEditor.Animations;
 using UnityEngine;
 
 namespace Main.Scripts.Helpers.HeroAnimation
@@ -28,7 +27,7 @@ public class HeroAnimator
         this.animator = animator;
     }
 
-    public void SetController(AnimatorController controller)
+    public void SetController(RuntimeAnimatorController controller)
     {
         animator.runtimeAnimatorController = controller;
     }

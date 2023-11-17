@@ -20,17 +20,15 @@ public class RoadChunkController : MonoBehaviour
 
     public void Init(
         RoadChunk roadChunk,
-        int chunkSize,
-        int offsetX,
-        int offsetY
+        int chunkSize
     )
     {
         propertyBlock.SetVector(
             FromPointRoad,
             new Vector4(
-                roadChunk.FromPoint.x * chunkSize - offsetX,
+                roadChunk.FromPoint.x * chunkSize,
                 0,
-                roadChunk.FromPoint.y * chunkSize - offsetY,
+                roadChunk.FromPoint.y * chunkSize,
                 0
             )
         );
@@ -38,9 +36,9 @@ public class RoadChunkController : MonoBehaviour
         propertyBlock.SetVector(
             ToPointRoad,
             new Vector4(
-                roadChunk.ToPoint.x * chunkSize - offsetX,
+                roadChunk.ToPoint.x * chunkSize,
                 0,
-                roadChunk.ToPoint.y * chunkSize - offsetY,
+                roadChunk.ToPoint.y * chunkSize,
                 0
             )
         );

@@ -266,7 +266,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 728333655}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.69023734, y: 2.706253, z: -11.896821}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -290,6 +290,7 @@ MonoBehaviour:
   roadChunkPrefab: {fileID: 5522137496619403848, guid: 56d8c3c93e7b955498939a1715bfc1e9, type: 3}
   crossroadsChunkPrefab: {fileID: -5165224759451096194, guid: 8127220fa5c335341afc278a9ffc11ed, type: 3}
   outsideChunkPrefab: {fileID: 4732238774183500298, guid: 5e8022a8820b4484bad474e3da7ed49c, type: 3}
+  decorationsPack: {fileID: 11400000, guid: c36445ef1fc78934aa1c81c86e100390, type: 2}
   pathfinder: {fileID: 1997973129}
 --- !u!1 &1877352441
 GameObject:
@@ -453,7 +454,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1997973127}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 718.76135, y: -1188.7814, z: 148.52219}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

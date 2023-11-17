@@ -1,4 +1,5 @@
 using System.Linq;
+using Fusion;
 using Main.Scripts.LevelGeneration.Chunk;
 using TriangleNet;
 using TriangleNet.Geometry;
@@ -10,15 +11,11 @@ namespace Main.Scripts.LevelGeneration.NavMesh
 public class NavMeshChunkBuilder
 {
 
-    public Mesh GenerateNavMesh(IChunk[][] map)
+    public Mesh GenerateNavMesh(
+        IChunk[][] map,
+        int chunkSize
+    )
     {
-        var chunkSize = 10;
-        
-        var centerOffset = new Vector2(
-            -map.Length * chunkSize / 2 - chunkSize / 2,
-            -map[0].Length * chunkSize / 2 - chunkSize / 2
-        );
-        
         var polygon = new Polygon();
 
         for (var i = 0; i < map.Length; i++)
@@ -26,7 +23,7 @@ public class NavMeshChunkBuilder
             for (var j = 0; j < map[i].Length; j++)
             {
                 map[i][j].AddChunkNavMesh(
-                    new Vector2(i * chunkSize, j * chunkSize) + centerOffset,
+                    new Vector2(i * chunkSize - chunkSize / 2f, j * chunkSize - chunkSize / 2f),
                     chunkSize,
                     polygon
                 );

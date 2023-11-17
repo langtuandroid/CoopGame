@@ -26,9 +26,7 @@ public class CrossroadsChunkController : MonoBehaviour
 
     public void Init(
         CrossroadsChunk crossroadsChunk,
-        int chunkSize,
-        int offsetX,
-        int offsetY
+        int chunkSize
     )
     {
         var crossroadsPlace = crossroadsChunk.CrossroadsPlace;
@@ -39,9 +37,9 @@ public class CrossroadsChunkController : MonoBehaviour
         propertyBlock.SetVector(
             FromPointRoad,
             new Vector4(
-                crossroadsPosition.x * chunkSize - offsetX,
+                crossroadsPosition.x * chunkSize,
                 0,
-                crossroadsPosition.y * chunkSize - offsetY,
+                crossroadsPosition.y * chunkSize,
                 0
             )
         );
@@ -50,9 +48,9 @@ public class CrossroadsChunkController : MonoBehaviour
         propertyBlock.SetVector(
             ToPointRoad1,
             new Vector4(
-                roadsList[0].Position.x * chunkSize - offsetX,
+                roadsList[0].Position.x * chunkSize,
                 0,
-                roadsList[0].Position.y * chunkSize - offsetY,
+                roadsList[0].Position.y * chunkSize,
                 0
             )
         );
@@ -64,9 +62,9 @@ public class CrossroadsChunkController : MonoBehaviour
             propertyBlock.SetVector(
                 ToPointRoad2,
                 new Vector4(
-                    roadsList[1].Position.x * chunkSize - offsetX,
+                    roadsList[1].Position.x * chunkSize,
                     0,
-                    roadsList[1].Position.y * chunkSize - offsetY,
+                    roadsList[1].Position.y * chunkSize,
                     0
                 )
             );
@@ -79,9 +77,9 @@ public class CrossroadsChunkController : MonoBehaviour
             propertyBlock.SetVector(
                 ToPointRoad3,
                 new Vector4(
-                    roadsList[2].Position.x * chunkSize - offsetX,
+                    roadsList[2].Position.x * chunkSize,
                     0,
-                    roadsList[2].Position.y * chunkSize - offsetY,
+                    roadsList[2].Position.y * chunkSize,
                     0
                 )
             );
@@ -94,16 +92,27 @@ public class CrossroadsChunkController : MonoBehaviour
             propertyBlock.SetVector(
                 ToPointRoad4,
                 new Vector4(
-                    roadsList[3].Position.x * chunkSize - offsetX,
+                    roadsList[3].Position.x * chunkSize,
                     0,
-                    roadsList[3].Position.y * chunkSize - offsetY,
+                    roadsList[3].Position.y * chunkSize,
                     0
                 )
             );
         }
 
-
         groundRenderer.SetPropertyBlock(propertyBlock);
+
+        var decorationConfig = crossroadsChunk.GetDecorationConfig();
+        if (decorationConfig != null)
+        {
+            var decorationPosition = crossroadsChunk.GetDecorationPosition();
+            Instantiate(
+                original: decorationConfig.DecorationPrefab,
+                position: transform.position + new Vector3(decorationPosition.x, 0, decorationPosition.y),
+                rotation: Quaternion.identity,
+                parent: transform
+            );
+        }
     }
 }
 }

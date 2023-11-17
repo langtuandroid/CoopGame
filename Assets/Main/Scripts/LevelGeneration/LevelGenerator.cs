@@ -6,6 +6,7 @@ using Main.Scripts.LevelGeneration.Configs;
 using Main.Scripts.LevelGeneration.NavMesh;
 using Main.Scripts.LevelGeneration.Places;
 using Main.Scripts.LevelGeneration.Places.Crossroads;
+using Main.Scripts.LevelGeneration.Places.EscortFinish;
 using Main.Scripts.LevelGeneration.Places.Outside;
 using Main.Scripts.LevelGeneration.Places.Road;
 using Main.Scripts.LevelGeneration.Places.Spawn;
@@ -18,7 +19,7 @@ namespace Main.Scripts.LevelGeneration
 public class LevelGenerator : MonoBehaviour
 {
     [SerializeField]
-    private int chunkSize = 10;
+    private int chunkSize = 15;
     [SerializeField]
     private EscortLevelGenerationConfig escortLevelGenerationConfig = null!;
     [SerializeField]
@@ -27,6 +28,8 @@ public class LevelGenerator : MonoBehaviour
     private CrossroadsChunkController crossroadsChunkPrefab = null!;
     [SerializeField]
     private OutsideChunkController outsideChunkPrefab = null!;
+    [SerializeField]
+    private DecorationsPack decorationsPack = null!;
     [SerializeField]
     private AstarPath pathfinder = default!;
 
@@ -73,13 +76,6 @@ public class LevelGenerator : MonoBehaviour
 
         GenerateNavMesh(map);
 
-
-        // RandomGeneration(map);
-        var xChunksCount = map.Length;
-        var yChunksCount = map[0].Length;
-
-        var xHalfSize = chunkSize * xChunksCount / 2;
-        var yHalfSize = chunkSize * yChunksCount / 2;
         for (var x = 0; x < map.Length; x++)
         {
             for (var y = 0; y < map[x].Length; y++)
@@ -91,15 +87,13 @@ public class LevelGenerator : MonoBehaviour
                         case RoadChunk roadChunk:
                             var roadController = Instantiate(
                                 original: roadChunkPrefab,
-                                position: new Vector3(x * chunkSize - xHalfSize, 0, y * chunkSize - yHalfSize),
+                                position: new Vector3(x * chunkSize, 0, y * chunkSize),
                                 rotation: Quaternion.identity
                             );
 
                             roadController.Init(
                                 roadChunk,
-                                chunkSize,
-                                xHalfSize,
-                                yHalfSize
+                                chunkSize
                             );
 
                             spawnedObjects.Add(roadController.gameObject);
@@ -107,15 +101,13 @@ public class LevelGenerator : MonoBehaviour
                         case CrossroadsChunk crossroadsChunk:
                             var crossroadsController = Instantiate(
                                 original: crossroadsChunkPrefab,
-                                position: new Vector3(x * chunkSize - xHalfSize, 0, y * chunkSize - yHalfSize),
+                                position: new Vector3(x * chunkSize, 0, y * chunkSize),
                                 rotation: Quaternion.identity
                             );
 
                             crossroadsController.Init(
                                 crossroadsChunk,
-                                chunkSize,
-                                xHalfSize,
-                                yHalfSize
+                                chunkSize
                             );
 
                             spawnedObjects.Add(crossroadsController.gameObject);
@@ -128,7 +120,7 @@ public class LevelGenerator : MonoBehaviour
 
                     var outsideChunkController = Instantiate(
                         original: outsideChunkPrefab,
-                        position: new Vector3(x * chunkSize - xHalfSize, 0, y * chunkSize - yHalfSize),
+                        position: new Vector3(x * chunkSize, 0, y * chunkSize),
                         rotation: Quaternion.identity
                     );
                     outsideChunkController.Init(seed, chunkConnectionTypes);
@@ -260,7 +252,7 @@ public class LevelGenerator : MonoBehaviour
 
         foreach (var place in places)
         {
-            place.FillMap(map);
+            place.FillMap(map, chunkSize, decorationsPack, ref random);
         }
 
         var roads = mapData.Roads;
@@ -269,6 +261,7 @@ public class LevelGenerator : MonoBehaviour
         {
             FillRoad(
                 map,
+                in random,
                 places[roads[i].Key].Position,
                 places[roads[i].Value].Position,
                 minRoadWidth,
@@ -291,7 +284,7 @@ public class LevelGenerator : MonoBehaviour
     private void GenerateNavMesh(IChunk[][] map)
     {
         var navMeshChunkBuilder = new NavMeshChunkBuilder();
-        var navMesh = navMeshChunkBuilder.GenerateNavMesh(map);
+        var navMesh = navMeshChunkBuilder.GenerateNavMesh(map, chunkSize);
 
         for (var i = 0; i < pathfinder.graphs.Length; i++)
         {
@@ -306,6 +299,7 @@ public class LevelGenerator : MonoBehaviour
 
     private void FillRoad(
         IChunk?[][] map,
+        in NetworkRNG random,
         Vector2Int pointA,
         Vector2Int pointB,
         int minRoadWidth,

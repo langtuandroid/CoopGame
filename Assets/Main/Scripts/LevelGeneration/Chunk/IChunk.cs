@@ -1,3 +1,4 @@
+using Main.Scripts.LevelGeneration.Configs;
 using TriangleNet.Geometry;
 using UnityEngine;
 
@@ -10,5 +11,16 @@ public interface IChunk
         float chunkSize,
         Polygon polygon
     );
+
+    public void AddDecoration(
+        DecorationConfig decorationConfig,
+        Vector2 Position
+    );
+
+    public DecorationConfig? GetDecorationConfig();
+    public Vector2 GetDecorationPosition();
+    public void SetOccupiedByDecoration(bool occupied);
+
+    public bool CanAddDecoration();
 }
 }

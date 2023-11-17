@@ -1,5 +1,6 @@
 using System;
 using Main.Scripts.LevelGeneration.Chunk;
+using Main.Scripts.LevelGeneration.Configs;
 using TriangleNet;
 using TriangleNet.Geometry;
 using UnityEngine;
@@ -55,8 +56,33 @@ public class OutsideChunk : IChunk
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        
+
         ListPool<Vector2>.Release(pointsList);
+    }
+
+    public void AddDecoration(DecorationConfig decorationConfig, Vector2 Position)
+    {
+        throw new NotImplementedException();
+    }
+
+    public DecorationConfig? GetDecorationConfig()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Vector2 GetDecorationPosition()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void SetOccupiedByDecoration(bool occupied)
+    {
+        throw new NotImplementedException();
+    }
+
+    public bool CanAddDecoration()
+    {
+        throw new NotImplementedException();
     }
 }
 }

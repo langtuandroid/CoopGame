@@ -1,9 +1,10 @@
 using System;
+using Fusion;
 using Main.Scripts.LevelGeneration.Chunk;
-using Main.Scripts.LevelGeneration.Places.EscortFinish;
+using Main.Scripts.LevelGeneration.Configs;
 using UnityEngine;
 
-namespace Main.Scripts.LevelGeneration.Places
+namespace Main.Scripts.LevelGeneration.Places.EscortFinish
 {
 public class EscortFinishPlace : Place
 {
@@ -57,7 +58,12 @@ public class EscortFinishPlace : Place
         }
     }
     
-    public override void FillMap(IChunk[][] map)
+    public override void FillMap(
+        IChunk?[][] map,
+        int chunkSize,
+        DecorationsPack decorationsPack,
+        ref NetworkRNG random
+    )
     {
         GetBounds(
             out var minX,

@@ -1,4 +1,6 @@
+using System;
 using Main.Scripts.LevelGeneration.Chunk;
+using Main.Scripts.LevelGeneration.Configs;
 using TriangleNet;
 using TriangleNet.Geometry;
 using UnityEngine;
@@ -14,20 +16,46 @@ public class EscortFinishChunk : IChunk
     {
         EscortFinishPlace = escortFinishPlace;
     }
-    
-    public void AddChunkNavMesh(Vector2 position, float chunkSize, Polygon polygon)
+
+    public void AddChunkNavMesh(
+        Vector2 position,
+        float chunkSize,
+        Polygon polygon
+    )
     {
         var pointsList = ListPool<Vector2>.Get();
-        
+
         pointsList.Add(new Vector2(position.x, position.y));
         pointsList.Add(new Vector2(position.x, position.y + chunkSize));
         pointsList.Add(new Vector2(position.x + chunkSize, position.y + chunkSize));
         pointsList.Add(new Vector2(position.x + chunkSize, position.y));
-        
+
         polygon.Add(pointsList);
-        
+
         pointsList.Clear();
         ListPool<Vector2>.Release(pointsList);
+    }
+
+    public void AddDecoration(DecorationConfig decorationConfig, Vector2 Position)
+    {
+        throw new NotImplementedException();
+    }
+
+    public DecorationConfig? GetDecorationConfig()
+    {
+        return null;
+    }
+
+    public Vector2 GetDecorationPosition()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void SetOccupiedByDecoration(bool occupied) { }
+
+    public bool CanAddDecoration()
+    {
+        return false;
     }
 }
 }

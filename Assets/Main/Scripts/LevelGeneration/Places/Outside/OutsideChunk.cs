@@ -10,15 +10,19 @@ namespace Main.Scripts.LevelGeneration.Places.Outside
 {
 public class OutsideChunk : IChunk
 {
+    public int HeightLevel;
     public OutsideChunkFillData FillData { get; }
 
-    public OutsideChunk(OutsideChunkFillData fillData)
+    public OutsideChunk(int heightLevel, OutsideChunkFillData fillData)
     {
         FillData = fillData;
+        HeightLevel = heightLevel;
     }
 
     public void AddChunkNavMesh(Vector2 position, float chunkSize, Polygon polygon)
     {
+        if (HeightLevel > 1) return;
+        
         var pointsList = ListPool<Vector2>.Get();
 
         switch (FillData.centerType)

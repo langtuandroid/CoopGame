@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Main.Scripts.LevelGeneration.Places.Outside
 {
-public class OutsideChunkController : MonoBehaviour
+public class WaterOutsideChunkController : MonoBehaviour
 {
     [SerializeField]
     private float chunkSize;
@@ -20,7 +20,7 @@ public class OutsideChunkController : MonoBehaviour
     [SerializeField]
     private GameObject centerInner = null!;
 
-    public void Init(int seed, ChunkConnectionType connectionTypes)
+    public void Init(OutsideChunk outsideChunk, ChunkConnectionType connectionTypes)
     {
         var hasTopSide = connectionTypes.HasFlag(ChunkConnectionType.TopSide);
         var hasRightSide = connectionTypes.HasFlag(ChunkConnectionType.RightSide);
@@ -115,7 +115,7 @@ public class OutsideChunkController : MonoBehaviour
             );
         }
 
-        if (!hasAnyCenterInner || hasLeftTopCorner)
+        if (!hasAnyCenterInner || hasLeftTopCenter)
         {
             SpawnCorner(
                 new Vector3(sideOffset, 0, -sideOffset),

@@ -574,7 +574,8 @@ MonoBehaviour:
   escortLevelGenerationConfig: {fileID: 11400000, guid: 6614df84b8f1c13489cd41b1603dbc99, type: 2}
   roadChunkPrefab: {fileID: 5522137496619403848, guid: 56d8c3c93e7b955498939a1715bfc1e9, type: 3}
   crossroadsChunkPrefab: {fileID: -5165224759451096194, guid: 8127220fa5c335341afc278a9ffc11ed, type: 3}
-  outsideChunkPrefab: {fileID: 4732238774183500298, guid: 5e8022a8820b4484bad474e3da7ed49c, type: 3}
+  hillOutsideChunkPrefab: {fileID: 6323461660289151787, guid: faa4de427809a18429b9a4cdc8ea63c5, type: 3}
+  waterOutsideChunkPrefab: {fileID: 4732238774183500298, guid: 5e8022a8820b4484bad474e3da7ed49c, type: 3}
   decorationsPack: {fileID: 11400000, guid: c36445ef1fc78934aa1c81c86e100390, type: 2}
   pathfinder: {fileID: 999388874}
 --- !u!114 &999388874 stripped

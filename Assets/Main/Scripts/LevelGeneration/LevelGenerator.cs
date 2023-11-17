@@ -27,7 +27,9 @@ public class LevelGenerator : MonoBehaviour
     [SerializeField]
     private CrossroadsChunkController crossroadsChunkPrefab = null!;
     [SerializeField]
-    private OutsideChunkController outsideChunkPrefab = null!;
+    private HillOutsideChunkController hillOutsideChunkPrefab = null!;
+    [SerializeField]
+    private WaterOutsideChunkController waterOutsideChunkPrefab = null!;
     [SerializeField]
     private DecorationsPack decorationsPack = null!;
     [SerializeField]
@@ -80,51 +82,49 @@ public class LevelGenerator : MonoBehaviour
         {
             for (var y = 0; y < map[x].Length; y++)
             {
-                if (map[x][y] is not OutsideChunk)
+                switch (map[x][y])
                 {
-                    switch (map[x][y])
-                    {
-                        case RoadChunk roadChunk:
-                            var roadController = Instantiate(
-                                original: roadChunkPrefab,
-                                position: new Vector3(x * chunkSize, 0, y * chunkSize),
-                                rotation: Quaternion.identity
-                            );
+                    case RoadChunk roadChunk:
+                        var roadController = Instantiate(
+                            original: roadChunkPrefab,
+                            position: new Vector3(x * chunkSize, 0, y * chunkSize),
+                            rotation: Quaternion.identity
+                        );
 
-                            roadController.Init(
-                                roadChunk,
-                                chunkSize
-                            );
+                        roadController.Init(
+                            roadChunk,
+                            chunkSize
+                        );
 
-                            spawnedObjects.Add(roadController.gameObject);
-                            break;
-                        case CrossroadsChunk crossroadsChunk:
-                            var crossroadsController = Instantiate(
-                                original: crossroadsChunkPrefab,
-                                position: new Vector3(x * chunkSize, 0, y * chunkSize),
-                                rotation: Quaternion.identity
-                            );
+                        spawnedObjects.Add(roadController.gameObject);
+                        break;
+                    case CrossroadsChunk crossroadsChunk:
+                        var crossroadsController = Instantiate(
+                            original: crossroadsChunkPrefab,
+                            position: new Vector3(x * chunkSize, 0, y * chunkSize),
+                            rotation: Quaternion.identity
+                        );
 
-                            crossroadsController.Init(
-                                crossroadsChunk,
-                                chunkSize
-                            );
+                        crossroadsController.Init(
+                            crossroadsChunk,
+                            chunkSize
+                        );
 
-                            spawnedObjects.Add(crossroadsController.gameObject);
-                            break;
-                    }
-                }
-                else
-                {
-                    var chunkConnectionTypes = ChunkHelper.GetChunkConnectionTypes(map, x, y);
+                        spawnedObjects.Add(crossroadsController.gameObject);
+                        break;
+                    case OutsideChunk outsideChunk:
+                        var chunkConnectionTypes =
+                            ChunkHelper.GetChunkConnectionTypes(map, x, y,
+                                chunk => ChunkHelper.IsLowerHeightLevel(chunk, outsideChunk.HeightLevel));
 
-                    var outsideChunkController = Instantiate(
-                        original: outsideChunkPrefab,
-                        position: new Vector3(x * chunkSize, 0, y * chunkSize),
-                        rotation: Quaternion.identity
-                    );
-                    outsideChunkController.Init(seed, chunkConnectionTypes);
-                    spawnedObjects.Add(outsideChunkController.gameObject);
+                        var outsideChunkController = Instantiate(
+                            original: hillOutsideChunkPrefab,
+                            position: new Vector3(x * chunkSize, 0, y * chunkSize),
+                            rotation: Quaternion.identity
+                        );
+                        outsideChunkController.Init(outsideChunk, chunkConnectionTypes);
+                        spawnedObjects.Add(outsideChunkController.gameObject);
+                        break;
                 }
             }
         }
@@ -274,11 +274,77 @@ public class LevelGenerator : MonoBehaviour
             for (var j = 0; j < map[i].Length; j++)
             {
                 //todo сделать ленивую инициализацию, генерировать только близлежащие к рабочим тайлам для генерации навмеша
-                map[i][j] ??= new OutsideChunk(OutsideChunkHelper.GetChunkFillData(ChunkHelper.GetChunkConnectionTypes(map, i, j)));
+                var minHeightLevel = int.MaxValue;
+                var maxHeightLevel = 2;
+
+                if (i > 0)
+                {
+                    minHeightLevel = GetMinHeightLevel(minHeightLevel, map[i - 1][j]);
+                }
+
+                if (i < map.Length - 1)
+                {
+                    minHeightLevel = GetMinHeightLevel(minHeightLevel, map[i + 1][j]);
+                }
+
+                if (j > 0)
+                {
+                    minHeightLevel = GetMinHeightLevel(minHeightLevel, map[i][j - 1]);
+                }
+
+                if (j < map[i].Length - 1)
+                {
+                    minHeightLevel = GetMinHeightLevel(minHeightLevel, map[i][j + 1]);
+                }
+
+                if (i > 0 && j > 0)
+                {
+                    minHeightLevel = GetMinHeightLevel(minHeightLevel, map[i - 1][j - 1]);
+                }
+
+                if (i > 0 && j < map[i].Length - 1)
+                {
+                    minHeightLevel = GetMinHeightLevel(minHeightLevel, map[i - 1][j + 1]);
+                }
+
+                if (i < map.Length - 1 && j > 0)
+                {
+                    minHeightLevel = GetMinHeightLevel(minHeightLevel, map[i + 1][j - 1]);
+                }
+
+                if (i < map.Length - 1 && j < map[i].Length - 1)
+                {
+                    minHeightLevel = GetMinHeightLevel(minHeightLevel, map[i + 1][j + 1]);
+                }
+
+                if (minHeightLevel == int.MaxValue)
+                {
+                    minHeightLevel = 0;
+                }
+
+                var heightLevel = random.RangeInclusive(1, Math.Min(minHeightLevel + 1, maxHeightLevel));
+                map[i][j] ??= new OutsideChunk(
+                    heightLevel: heightLevel,
+                    fillData: OutsideChunkHelper.GetChunkFillData(
+                        ChunkHelper.GetChunkConnectionTypes(map, i, j, ChunkHelper.IsNotOutside))
+                );
             }
         }
 
         return map!;
+    }
+
+    private int GetMinHeightLevel(int minHeightLevel, IChunk? chunk)
+    {
+        if (chunk != null)
+        {
+            return Math.Min(
+                minHeightLevel,
+                chunk is OutsideChunk topOutsideChunk ? topOutsideChunk.HeightLevel : 0
+            );
+        }
+
+        return minHeightLevel;
     }
 
     private void GenerateNavMesh(IChunk[][] map)
@@ -340,7 +406,7 @@ public class LevelGenerator : MonoBehaviour
                 {
                     if (x - k > 0 && map[x - k][y] == null)
                     {
-                        map[x - k][y] = new RoadChunk(fromPoint, toPoint);;
+                        map[x - k][y] = new RoadChunk(fromPoint, toPoint);
                     }
                 }
 
@@ -349,7 +415,7 @@ public class LevelGenerator : MonoBehaviour
                 {
                     if (x + k < map.Length - 1 && map[x + k][y] == null)
                     {
-                        map[x + k][y] = new RoadChunk(fromPoint, toPoint);;
+                        map[x + k][y] = new RoadChunk(fromPoint, toPoint);
                     }
                 }
             }
@@ -371,7 +437,7 @@ public class LevelGenerator : MonoBehaviour
                 {
                     if (y - k >= 0 && map[x][y - k] == null)
                     {
-                        map[x][y - k] = new RoadChunk(fromPoint, toPoint);;
+                        map[x][y - k] = new RoadChunk(fromPoint, toPoint);
                     }
                 }
 
@@ -380,7 +446,7 @@ public class LevelGenerator : MonoBehaviour
                 {
                     if (y + k < map[x].Length && map[x][y + k] == null)
                     {
-                        map[x][y + k] = new RoadChunk(fromPoint, toPoint);;
+                        map[x][y + k] = new RoadChunk(fromPoint, toPoint);
                     }
                 }
             }

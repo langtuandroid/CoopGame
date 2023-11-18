@@ -1,3 +1,4 @@
+using System;
 using Fusion;
 using Main.Scripts.Utils;
 using UnityEngine;
@@ -9,7 +10,8 @@ namespace Main.Scripts.Player
         public static PlayerCamera? Instance { get; private set; } 
         
         // damp velocity of camera
-        Vector3 _velocity;
+        private Vector3 targetMoveVelocity;
+        private Vector3 stretchVelocity;
 
         // camera target
         Transform? _target;
@@ -21,10 +23,16 @@ namespace Main.Scripts.Player
         [SerializeField]
         private float pitch = -40;
         [SerializeField]
+        private float offsetZ;
+        [SerializeField]
         private float cameraStretch = 0.1f;
+        [SerializeField]
+        private float maxOffset = 0.5f;
 
         [SerializeField]
-        float runningSmoothTime = 0.95f;
+        float targetMoveSmoothTime;
+        [SerializeField]
+        float stretchSmoothTime;
 
         [SerializeField]
         Transform dummyRig = default!;
@@ -33,7 +41,7 @@ namespace Main.Scripts.Player
         Transform dummyTarget = default!;
 
         private Camera camComponent = default!;
-        private Vector3 cursorPosition;
+        private Vector3 deltaStretch;
 
         void Awake()
         {
@@ -59,18 +67,22 @@ namespace Main.Scripts.Player
                 // Cursor.lockState = CursorLockMode.Confined;
                 Cursor.lockState = CursorLockMode.None;
 
-                var plane = new Plane(_target.up, _target.position);
-
-                CursorUtils.getCursorWorldPosition(camComponent, plane, out cursorPosition);
+                var cursorOffset = CursorUtils.GetCursorOffsetNormalized();
+                cursorOffset = new Vector3(
+                    Math.Clamp(cursorOffset.x / maxOffset, -1, 1),
+                    0,
+                    Math.Clamp(cursorOffset.z / maxOffset, -1, 1)
+                );
 
                 CalculateCameraTransform(_target, pitch, distance, out var pos, out var rot);
-                var deltaStretch = cameraStretch * (cursorPosition - _target.position);
-                deltaStretch.z *= deltaStretch.z > 0 ? 0.4f : 2f; //fix fov difference stretching
-                pos += deltaStretch;
+                var newDeltaStretch = cameraStretch * cursorOffset;
+                // deltaStretch.z *= deltaStretch.z > 0 ? 0.4f : 2f; //fix fov difference stretching
 
                 if (allowSmoothing)
                 {
-                    pos = Vector3.SmoothDamp(transform.position, pos, ref _velocity, runningSmoothTime);
+                    deltaStretch = Vector3.SmoothDamp(deltaStretch, newDeltaStretch, ref stretchVelocity, stretchSmoothTime);
+                    pos += deltaStretch + Vector3.forward * offsetZ;
+                    pos = Vector3.SmoothDamp(transform.position, pos, ref targetMoveVelocity, targetMoveSmoothTime);
                 }
 
                 transform.position = pos;

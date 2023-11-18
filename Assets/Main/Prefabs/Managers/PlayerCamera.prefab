@@ -48,10 +48,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cam: {fileID: 9134720782864012363}
-  distance: 30
+  distance: 33
   pitch: -45
-  cameraStretch: 0.15
-  runningSmoothTime: 0.1
+  offsetZ: -1
+  cameraStretch: 0.8
+  maxOffset: 0.9
+  targetMoveSmoothTime: 0.05
+  stretchSmoothTime: 0.1
   dummyRig: {fileID: 400004}
   dummyTarget: {fileID: 400002}
 --- !u!1 &100002

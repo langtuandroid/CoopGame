@@ -191,7 +191,8 @@ namespace Main.Scripts.Player.InputSystem
                 moveDelta += Vector2.right;
             }
 
-            var mapPoint = MousePositionHelper.GetMapPoint(mouseRayMask);
+            var plane = new Plane(transform.up, transform.position);
+            CursorUtils.GetCursorWorldPosition(Camera.main, plane, out var mapPoint);
 
             var aimDirection = mapPoint - playerController.transform.position;
             aimDelta = new Vector2(aimDirection.x, aimDirection.z);

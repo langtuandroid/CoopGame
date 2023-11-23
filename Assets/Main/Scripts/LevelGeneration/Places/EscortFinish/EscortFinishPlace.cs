@@ -57,11 +57,10 @@ public class EscortFinishPlace : Place
                 throw new ArgumentOutOfRangeException();
         }
     }
-    
+
     public override void FillMap(
         IChunk?[][] map,
         int chunkSize,
-        DecorationsPack decorationsPack,
         ref NetworkRNG random
     )
     {
@@ -79,6 +78,12 @@ public class EscortFinishPlace : Place
                 map[x][y] = new EscortFinishChunk(this);
             }
         }
+    }
+    
+    
+    public override void FillDecorations(IChunk?[][] map, int chunkSize, DecorationsPack decorationsPack, ref NetworkRNG random)
+    {
+        
     }
 }
 }

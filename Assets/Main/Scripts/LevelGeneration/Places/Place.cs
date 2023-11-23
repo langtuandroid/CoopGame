@@ -24,6 +24,12 @@ public abstract class Place
     public abstract void FillMap(
         IChunk?[][] map,
         int chunkSize,
+        ref NetworkRNG random
+    );
+
+    public abstract void FillDecorations(
+        IChunk?[][] map,
+        int chunkSize,
         DecorationsPack decorationsPack,
         ref NetworkRNG random
     );

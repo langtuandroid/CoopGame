@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be2f7e96986042b28568e6060b7ef26f, type: 3}
+  m_Name: LevelStyleConfig
+  m_EditorClassIdentifier: 
+  roadChunkPrefab: {fileID: 5522137496619403848, guid: 56d8c3c93e7b955498939a1715bfc1e9, type: 3}
+  crossroadsChunkPrefab: {fileID: -5165224759451096194, guid: 8127220fa5c335341afc278a9ffc11ed, type: 3}
+  hillOutsideChunkPrefab: {fileID: 6323461660289151787, guid: faa4de427809a18429b9a4cdc8ea63c5, type: 3}
+  waterOutsideChunkPrefab: {fileID: 4732238774183500298, guid: 5e8022a8820b4484bad474e3da7ed49c, type: 3}
+  decorationsPack: {fileID: 11400000, guid: c36445ef1fc78934aa1c81c86e100390, type: 2}

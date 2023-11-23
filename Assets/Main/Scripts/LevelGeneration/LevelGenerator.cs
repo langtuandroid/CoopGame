@@ -3,134 +3,49 @@ using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.LevelGeneration.Chunk;
 using Main.Scripts.LevelGeneration.Configs;
-using Main.Scripts.LevelGeneration.NavMesh;
 using Main.Scripts.LevelGeneration.Places;
 using Main.Scripts.LevelGeneration.Places.Crossroads;
 using Main.Scripts.LevelGeneration.Places.EscortFinish;
 using Main.Scripts.LevelGeneration.Places.Outside;
 using Main.Scripts.LevelGeneration.Places.Road;
 using Main.Scripts.LevelGeneration.Places.Spawn;
-using Pathfinding;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace Main.Scripts.LevelGeneration
 {
-public class LevelGenerator : MonoBehaviour
+public class LevelGenerator
 {
-    [SerializeField]
-    private int chunkSize = 15;
-    [SerializeField]
-    private EscortLevelGenerationConfig escortLevelGenerationConfig = null!;
-    [SerializeField]
-    private RoadChunkController roadChunkPrefab = null!;
-    [SerializeField]
-    private CrossroadsChunkController crossroadsChunkPrefab = null!;
-    [SerializeField]
-    private HillOutsideChunkController hillOutsideChunkPrefab = null!;
-    [SerializeField]
-    private WaterOutsideChunkController waterOutsideChunkPrefab = null!;
-    [SerializeField]
-    private DecorationsPack decorationsPack = null!;
-    [SerializeField]
-    private AstarPath pathfinder = default!;
-
-    private NetworkRNG random;
-
-    private List<GameObject> spawnedObjects = new();
-
-    private void Awake()
+    public IChunk[][] Generate(
+        int seed,
+        LevelGenerationConfig levelGenerationConfig,
+        DecorationsPack decorationsPack
+    )
     {
-        var seed = (int)(Random.value * int.MaxValue);
-        Debug.Log($"Seed: {seed}");
-        Generate(seed);
-    }
+        var random = new NetworkRNG(seed);
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
+        var mapData = levelGenerationConfig switch
         {
-            var seed = (int)(Random.value * int.MaxValue);
-            Debug.Log($"Seed: {seed}");
-            Generate(seed);
-        }
-    }
-
-    public void Generate(int seed)
-    {
-        random = new NetworkRNG(seed);
-
-        foreach (var spawnedObject in spawnedObjects)
-        {
-            Destroy(spawnedObject);
-        }
-
-        spawnedObjects.Clear();
-
-
-        var mapData = GenerateEscortMapData(escortLevelGenerationConfig);
+            EscortLevelGenerationConfig escortLevelGenerationConfig => GenerateEscortMapData(ref random, escortLevelGenerationConfig),
+            _ => throw new ArgumentOutOfRangeException(nameof(levelGenerationConfig), levelGenerationConfig, null)
+        };
+        
         var map = GenerateChunks(
             mapData: mapData,
-            minRoadWidth: escortLevelGenerationConfig.MinRoadWidth,
-            maxRoadWidth: escortLevelGenerationConfig.MaxRoadWidth,
-            outlineOffset: escortLevelGenerationConfig.OutlineOffset
+            ref random,
+            chunkSize: levelGenerationConfig.ChunkSize,
+            minRoadWidth: levelGenerationConfig.MinRoadWidth,
+            maxRoadWidth: levelGenerationConfig.MaxRoadWidth,
+            outlineOffset: levelGenerationConfig.OutlineOffset,
+            decorationsPack: decorationsPack
         );
 
-        GenerateNavMesh(map);
-
-        for (var x = 0; x < map.Length; x++)
-        {
-            for (var y = 0; y < map[x].Length; y++)
-            {
-                switch (map[x][y])
-                {
-                    case RoadChunk roadChunk:
-                        var roadController = Instantiate(
-                            original: roadChunkPrefab,
-                            position: new Vector3(x * chunkSize, 0, y * chunkSize),
-                            rotation: Quaternion.identity
-                        );
-
-                        roadController.Init(
-                            roadChunk,
-                            chunkSize
-                        );
-
-                        spawnedObjects.Add(roadController.gameObject);
-                        break;
-                    case CrossroadsChunk crossroadsChunk:
-                        var crossroadsController = Instantiate(
-                            original: crossroadsChunkPrefab,
-                            position: new Vector3(x * chunkSize, 0, y * chunkSize),
-                            rotation: Quaternion.identity
-                        );
-
-                        crossroadsController.Init(
-                            crossroadsChunk,
-                            chunkSize
-                        );
-
-                        spawnedObjects.Add(crossroadsController.gameObject);
-                        break;
-                    case OutsideChunk outsideChunk:
-                        var chunkConnectionTypes =
-                            ChunkHelper.GetChunkConnectionTypes(map, x, y,
-                                chunk => ChunkHelper.IsLowerHeightLevel(chunk, outsideChunk.HeightLevel));
-
-                        var outsideChunkController = Instantiate(
-                            original: hillOutsideChunkPrefab,
-                            position: new Vector3(x * chunkSize, 0, y * chunkSize),
-                            rotation: Quaternion.identity
-                        );
-                        outsideChunkController.Init(outsideChunk, chunkConnectionTypes);
-                        spawnedObjects.Add(outsideChunkController.gameObject);
-                        break;
-                }
-            }
-        }
+        return map;
     }
 
-    private MapData GenerateEscortMapData(EscortLevelGenerationConfig escortConfig)
+    private MapData GenerateEscortMapData(
+        ref NetworkRNG random,
+        EscortLevelGenerationConfig escortConfig
+    )
     {
         var placesList = new List<Place>();
         var roadsList = new List<KeyValuePair<int, int>>();
@@ -201,9 +116,12 @@ public class LevelGenerator : MonoBehaviour
 
     private IChunk[][] GenerateChunks(
         MapData mapData,
+        ref NetworkRNG random,
+        int chunkSize,
         int minRoadWidth,
         int maxRoadWidth,
-        int outlineOffset
+        int outlineOffset,
+        DecorationsPack decorationsPack
     )
     {
         var places = mapData.Places;
@@ -252,7 +170,7 @@ public class LevelGenerator : MonoBehaviour
 
         foreach (var place in places)
         {
-            place.FillMap(map, chunkSize, decorationsPack, ref random);
+            place.FillMap(map, chunkSize, ref random);
         }
 
         var roads = mapData.Roads;
@@ -261,13 +179,21 @@ public class LevelGenerator : MonoBehaviour
         {
             FillRoad(
                 map,
-                in random,
+                ref random,
                 places[roads[i].Key].Position,
                 places[roads[i].Value].Position,
                 minRoadWidth,
                 maxRoadWidth
             );
         }
+
+        GenerateDecorations(
+            map,
+            ref random,
+            places,
+            chunkSize,
+            decorationsPack
+        );
 
         for (var i = 0; i < map.Length; i++)
         {
@@ -347,25 +273,9 @@ public class LevelGenerator : MonoBehaviour
         return minHeightLevel;
     }
 
-    private void GenerateNavMesh(IChunk[][] map)
-    {
-        var navMeshChunkBuilder = new NavMeshChunkBuilder();
-        var navMesh = navMeshChunkBuilder.GenerateNavMesh(map, chunkSize);
-
-        for (var i = 0; i < pathfinder.graphs.Length; i++)
-        {
-            if (pathfinder.graphs[i] is NavMeshGraph navMeshGraph)
-            {
-                navMeshGraph.sourceMesh = navMesh;
-                navMeshGraph.Scan();
-                break;
-            }
-        }
-    }
-
     private void FillRoad(
         IChunk?[][] map,
-        in NetworkRNG random,
+        ref NetworkRNG random,
         Vector2Int pointA,
         Vector2Int pointB,
         int minRoadWidth,
@@ -450,6 +360,20 @@ public class LevelGenerator : MonoBehaviour
                     }
                 }
             }
+        }
+    }
+
+    private void GenerateDecorations(
+        IChunk?[][] map,
+        ref NetworkRNG random,
+        List<Place> places,
+        int chunkSize,
+        DecorationsPack decorationsPack
+    )
+    {
+        foreach (var place in places)
+        {
+            place.FillDecorations(map, chunkSize, decorationsPack, ref random);
         }
     }
 }

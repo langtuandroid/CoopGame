@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Core.Resources;
+using Main.Scripts.LevelGeneration.Configs;
+using Main.Scripts.Levels.Map;
 using Main.Scripts.Levels.Results;
 using Main.Scripts.Player;
 using Main.Scripts.Player.Config;
@@ -9,6 +11,7 @@ using Main.Scripts.Scenarios.Missions;
 using Main.Scripts.Tasks;
 using Main.Scripts.Utils;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Main.Scripts.Levels.Missions
 {
@@ -20,9 +23,16 @@ namespace Main.Scripts.Levels.Missions
         private KillTargetsCountMissionScenario missionScenario = null!;
         [SerializeField]
         private PlaceTargetTask placeTargetTask = null!;
+        [SerializeField]
+        private AstarPath pathfinder = null!;
+        [SerializeField]
+        private LevelGenerationConfig levelGenerationConfig = null!;
+        [SerializeField]
+        private LevelStyleConfig levelStyleConfig = null!;
 
         private PlayerCamera playerCamera = null!;
         private HeroConfigsBank heroConfigsBank = null!;
+        private LevelMapController levelMapController = null!;
 
         private List<PlayerRef> spawnActions = new();
         private MissionState missionState;
@@ -30,6 +40,15 @@ namespace Main.Scripts.Levels.Missions
         private HashSet<PlayerRef> playersReady = new();
 
         private bool isPlayersReady;
+
+        private void Awake()
+        {
+            levelMapController = new LevelMapController(
+                levelGenerationConfig,
+                levelStyleConfig,
+                pathfinder
+            );
+        }
 
         public override void Spawned()
         {
@@ -47,6 +66,8 @@ namespace Main.Scripts.Levels.Missions
                 placeTargetTask.OnTaskCheckChangedEvent.AddListener(OnFinishTaskStatus);
                 missionScenario.OnScenarioFinishedEvent.AddListener(OnMissionScenarioFinished);
             }
+
+            levelMapController.GenerateMap((int)(Random.value * int.MaxValue));
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)
@@ -59,11 +80,22 @@ namespace Main.Scripts.Levels.Missions
             base.Despawned(runner, hasState);
         }
 
-        public override void Render()
+        private void LateUpdate()
         {
-            if (playersHolder.Contains(Runner.LocalPlayer))
+            if (playerCamera != null && playersHolder.Contains(Runner.LocalPlayer))
             {
-                playerCamera.SetTarget(playersHolder.Get(Runner.LocalPlayer).GetComponent<NetworkTransform>().InterpolationTarget.transform);
+                var visibleBoundsSize = playerCamera.GetVisibleBoundsSize();
+                var halfXSize = visibleBoundsSize.x / 2;
+                var halfYSize = visibleBoundsSize.y / 2;
+                
+                var playerPosition = playersHolder.Get(Runner.LocalPlayer).transform.position;
+
+                levelMapController.UpdateChunksVisibilityBounds(
+                    playerPosition.x - halfXSize,
+                    playerPosition.x + halfXSize,
+                    playerPosition.z - halfYSize,
+                    playerPosition.z + halfYSize
+                );
             }
         }
 
@@ -217,7 +249,7 @@ namespace Main.Scripts.Levels.Missions
 
         private void SpawnLocalPlayer(PlayerRef playerRef)
         {
-            Runner.Spawn(
+            var playerController = Runner.Spawn(
                 prefab: playerPrefab,
                 position: Vector3.zero,
                 rotation: Quaternion.identity,
@@ -230,6 +262,7 @@ namespace Main.Scripts.Levels.Missions
                     playerController.OnPlayerStateChangedEvent.AddListener(OnLocalPlayerStateChanged);
                 }
             );
+            playerCamera.SetTarget(playerController.GetComponent<NetworkTransform>().InterpolationTarget.transform);
         }
         
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]

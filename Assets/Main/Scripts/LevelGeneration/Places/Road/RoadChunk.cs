@@ -56,7 +56,7 @@ public class RoadChunk : IChunk
 
     public bool CanAddDecoration()
     {
-        throw new NotImplementedException();
+        return false;
     }
 }
 }

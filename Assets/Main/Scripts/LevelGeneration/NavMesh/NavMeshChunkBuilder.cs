@@ -1,5 +1,4 @@
 using System.Linq;
-using Fusion;
 using Main.Scripts.LevelGeneration.Chunk;
 using TriangleNet;
 using TriangleNet.Geometry;

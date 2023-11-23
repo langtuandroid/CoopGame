@@ -43,7 +43,6 @@ public class CrossroadsPlace : Place
     public override void FillMap(
         IChunk?[][] map,
         int chunkSize,
-        DecorationsPack decorationsPack,
         ref NetworkRNG random
     )
     {
@@ -66,6 +65,17 @@ public class CrossroadsPlace : Place
                 }
             }
         }
+    }
+
+    public override void FillDecorations(IChunk?[][] map, int chunkSize, DecorationsPack decorationsPack,
+        ref NetworkRNG random)
+    {
+        GetBounds(
+            out var minX,
+            out var maxX,
+            out var minY,
+            out var maxY
+        );
 
         for (var decorIndex = 0; decorIndex < 3; decorIndex++)
         {

@@ -36,9 +36,11 @@ namespace Main.Scripts.Player
 
         [SerializeField]
         Transform dummyRig = default!;
-
         [SerializeField]
         Transform dummyTarget = default!;
+
+        [SerializeField]
+        private Vector2 visibilityBoundsSize;
 
         private Camera camComponent = default!;
         private Vector3 deltaStretch;
@@ -100,6 +102,12 @@ namespace Main.Scripts.Player
                 _target = target;
                 UpdateCamera(false);
             }
+        }
+
+        public Vector2 GetVisibleBoundsSize()
+        {
+            //todo высчитывать баундсы из параметров и размеров экрана
+            return visibilityBoundsSize;
         }
 
         private void CalculateCameraTransform(Transform target, float pitch, float distance, out Vector3 pos,

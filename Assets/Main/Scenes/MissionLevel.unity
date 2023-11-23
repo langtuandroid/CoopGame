@@ -288,7 +288,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &601317098
 PrefabInstance:
@@ -300,7 +300,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 6744218354040305137, guid: c8a34f7bdb23c2f4a8acce43168dd0d6, type: 3}
       propertyPath: m_RootOrder
-      value: 5
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 6744218354040305137, guid: c8a34f7bdb23c2f4a8acce43168dd0d6, type: 3}
       propertyPath: m_LocalPosition.x
@@ -392,7 +392,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4054128355429322614, guid: 0f6db77735941f049a0a848135322aec, type: 3}
       propertyPath: m_RootOrder
-      value: 7
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 4054128355429322614, guid: 0f6db77735941f049a0a848135322aec, type: 3}
       propertyPath: m_LocalPosition.x
@@ -449,7 +449,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1097823279733727707, guid: e3ff8d424da4e3647a44c35a869d600d, type: 3}
       propertyPath: m_RootOrder
-      value: 4
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1097823279733727707, guid: e3ff8d424da4e3647a44c35a869d600d, type: 3}
       propertyPath: m_LocalPosition.x
@@ -526,58 +526,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e3ff8d424da4e3647a44c35a869d600d, type: 3}
---- !u!1 &981794248
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 981794250}
-  - component: {fileID: 981794251}
-  m_Layer: 0
-  m_Name: LevelGenerator
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
-  m_IsActive: 1
---- !u!4 &981794250
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 981794248}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &981794251
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 981794248}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c3413d62e3994393b0f22c6a5696dac9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  chunkSize: 10
-  escortLevelGenerationConfig: {fileID: 11400000, guid: 6614df84b8f1c13489cd41b1603dbc99, type: 2}
-  roadChunkPrefab: {fileID: 5522137496619403848, guid: 56d8c3c93e7b955498939a1715bfc1e9, type: 3}
-  crossroadsChunkPrefab: {fileID: -5165224759451096194, guid: 8127220fa5c335341afc278a9ffc11ed, type: 3}
-  hillOutsideChunkPrefab: {fileID: 6323461660289151787, guid: faa4de427809a18429b9a4cdc8ea63c5, type: 3}
-  waterOutsideChunkPrefab: {fileID: 4732238774183500298, guid: 5e8022a8820b4484bad474e3da7ed49c, type: 3}
-  decorationsPack: {fileID: 11400000, guid: c36445ef1fc78934aa1c81c86e100390, type: 2}
-  pathfinder: {fileID: 999388874}
 --- !u!114 &999388874 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 543979156969410548, guid: 2aab6ec2af08f234c9b682b10d82296d, type: 3}
@@ -805,6 +753,9 @@ MonoBehaviour:
   playerPrefab: {fileID: 3130498294766555559, guid: 0adccf08a296b9d4ab62f2205b695f42, type: 3}
   missionScenario: {fileID: 1891384144}
   placeTargetTask: {fileID: 601317099}
+  pathfinder: {fileID: 999388874}
+  levelGenerationConfig: {fileID: 11400000, guid: 6614df84b8f1c13489cd41b1603dbc99, type: 2}
+  levelStyleConfig: {fileID: 11400000, guid: 517d88461c8d67f4eb5eb547e3155e1e, type: 2}
 --- !u!114 &1891384146 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2486019915918659875, guid: 2aab6ec2af08f234c9b682b10d82296d, type: 3}
@@ -857,7 +808,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pathfinder: {fileID: 999388874}
-  navigationGeometryParent: {fileID: 981794250}
+  navigationGeometryParent: {fileID: 0}
   decorationPrefabs:
   - {fileID: 4273614417802531091, guid: 6ec2f75819ad2ee4e9a6ff953451494b, type: 3}
   - {fileID: 1438992088075028192, guid: a1faf8a330f9e8448b7af354072ef174, type: 3}
@@ -885,5 +836,5 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

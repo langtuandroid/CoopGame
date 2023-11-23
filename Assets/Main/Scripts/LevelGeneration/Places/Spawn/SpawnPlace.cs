@@ -61,7 +61,6 @@ public class SpawnPlace : Place
     public override void FillMap(
         IChunk?[][] map,
         int chunkSize,
-        DecorationsPack decorationsPack,
         ref NetworkRNG random
     )
     {
@@ -79,6 +78,11 @@ public class SpawnPlace : Place
                 map[x][y] = new SpawnChunk(this);
             }
         }
+    }
+
+    public override void FillDecorations(IChunk?[][] map, int chunkSize, DecorationsPack decorationsPack, ref NetworkRNG random)
+    {
+        
     }
 }
 }

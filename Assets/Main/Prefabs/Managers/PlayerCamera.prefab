@@ -57,6 +57,7 @@ MonoBehaviour:
   stretchSmoothTime: 0.1
   dummyRig: {fileID: 400004}
   dummyTarget: {fileID: 400002}
+  visibilityBoundsSize: {x: 60, y: 50}
 --- !u!1 &100002
 GameObject:
   m_ObjectHideFlags: 0

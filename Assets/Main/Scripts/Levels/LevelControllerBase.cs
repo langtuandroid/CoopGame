@@ -97,7 +97,8 @@ namespace Main.Scripts.Levels
         {
             if (!isLocalInitializedAfterSceneReady
                 && roomManager.IsPlayerInitialized(Runner.LocalPlayer)
-                && Runner.IsSceneReady())
+                && Runner.IsSceneReady()
+                && IsMapReady())
             {
                 isLocalInitializedAfterSceneReady = true;
                 
@@ -108,6 +109,8 @@ namespace Main.Scripts.Levels
                 levelContext.GameLoopManager.SimulateLoop();
             }
         }
+
+        protected abstract bool IsMapReady();
 
         protected abstract bool IsLevelReady();
 

@@ -9,10 +9,12 @@ namespace Main.Scripts.LevelGeneration.NavMesh
 {
 public class NavMeshChunkBuilder
 {
-
-    public Mesh GenerateNavMesh(
+    public void GenerateNavMesh(
         IChunk?[][] map,
-        int chunkSize
+        int chunkSize,
+        out Vector3[] vertices,
+        out int[] triangles,
+        out Bounds bounds
     )
     {
         var polygon = new Polygon();
@@ -31,49 +33,58 @@ public class NavMeshChunkBuilder
 
         var triangleNetMesh = (TriangleNetMesh)polygon.Triangulate();
 
-        var mesh = GenerateNavMesh(triangleNetMesh);
-
-        return mesh;
+        TriangleToMesh(
+            triangleNetMesh,
+            null,
+            out vertices,
+            out triangles,
+            out bounds
+        );
     }
 
-    private Mesh GenerateNavMesh(TriangleNetMesh triangleNetMesh, QualityOptions? options = null)
+    private void TriangleToMesh(
+        TriangleNetMesh triangleNetMesh,
+        QualityOptions? options,
+        out Vector3[] vertices,
+        out int[] triangles,
+        out Bounds bounds
+    )
     {
         if (options != null)
         {
             triangleNetMesh.Refine(options);
         }
-         
-        Mesh mesh = new Mesh();
-        var triangleNetVerts = triangleNetMesh.Vertices.ToList();
-  
-        var triangles = triangleNetMesh.Triangles;
-       
-        Vector3[] verts = new Vector3[triangleNetVerts.Count];
-        int[] trisIndex = new int[triangles.Count * 3];
 
-        for (int i = 0; i < verts.Length; i++)
+        var triangleNetVerts = triangleNetMesh.Vertices.ToList();
+
+        var trianglesList = triangleNetMesh.Triangles;
+
+        vertices = new Vector3[triangleNetVerts.Count];
+        triangles = new int[trianglesList.Count * 3];
+
+        for (int i = 0; i < vertices.Length; i++)
         {
-            var point = (Vector3) triangleNetVerts[i];
-            verts[i] = new Vector3(point.x, 0, point.y);
+            var point = (Vector3)triangleNetVerts[i];
+            vertices[i] = new Vector3(point.x, 0, point.y);
         }
-            
+
         int k = 0;
-         
-        foreach (var triangle in triangles)
+
+        foreach (var triangle in trianglesList)
         {
             for (int i = 2; i >= 0; i--)
             {
-                trisIndex[k] = triangleNetVerts.IndexOf(triangle.GetVertex(i));
+                triangles[k] = triangleNetVerts.IndexOf(triangle.GetVertex(i));
                 k++;
             }
         }
 
-        mesh.vertices = verts;
-        mesh.triangles = trisIndex;
+        var rectangle = triangleNetMesh.Bounds;
 
-        mesh.RecalculateBounds();
-        mesh.Optimize();
-        return mesh;
+        bounds = new Bounds(
+            new Vector3((rectangle.Left + rectangle.Right) / 2f, 0, (rectangle.Bottom + rectangle.Top) / 2f),
+            new Vector3(rectangle.Right - rectangle.Left, 0, rectangle.Top - rectangle.Bottom)
+        );
     }
 }
 }

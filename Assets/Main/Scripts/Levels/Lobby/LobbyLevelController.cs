@@ -115,6 +115,11 @@ namespace Main.Scripts.Levels.Lobby
             }
         }
 
+        protected override bool IsMapReady()
+        {
+            return true;
+        }
+
         protected override bool IsLevelReady()
         {
             return Runner.IsSceneReady();

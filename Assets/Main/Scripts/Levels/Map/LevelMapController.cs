@@ -8,6 +8,7 @@ using Main.Scripts.LevelGeneration.Places.Crossroads;
 using Main.Scripts.LevelGeneration.Places.Outside;
 using Main.Scripts.LevelGeneration.Places.Road;
 using Pathfinding;
+using UniRx;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -23,7 +24,9 @@ public class LevelMapController
     private LevelStyleConfig levelStyleConfig;
 
     private int seed;
-    
+
+    public bool IsMapReady { get; private set; }
+
     private Dictionary<Vector2Int, GameObject> spawnedObjectsMap = new();
 
     private int spawnedFromXIndex;
@@ -42,43 +45,63 @@ public class LevelMapController
         this.pathfinder = pathfinder;
     }
 
-    public void GenerateMap(int seed)
+    public IObservable<Unit> GenerateMap(int seed)
     {
+        IsMapReady = false;
         this.seed = seed;
+
         foreach (var (_, spawnedObject) in spawnedObjectsMap)
         {
             Object.Destroy(spawnedObject);
         }
 
-        spawnedObjectsMap.Clear();
-
-        spawnedFromXIndex = 0;
-        spawnedToXIndex = 0;
-        spawnedFromYIndex = 0;
-        spawnedToYIndex = 0;
-
-        chunksMap = levelGenerator.Generate(
-            seed,
-            levelGenerationConfig,
-            levelStyleConfig.DecorationsPack
-        );
-
-        GenerateNavMesh(chunksMap);
-    }
-
-    private void GenerateNavMesh(IChunk?[][] map)
-    {
-        var navMesh = navMeshChunkBuilder.GenerateNavMesh(map, levelGenerationConfig.ChunkSize);
-
-        for (var i = 0; i < pathfinder.graphs.Length; i++)
-        {
-            if (pathfinder.graphs[i] is NavMeshGraph navMeshGraph)
+        return Observable.Start(() =>
             {
-                navMeshGraph.sourceMesh = navMesh;
-                navMeshGraph.Scan();
-                break;
-            }
-        }
+                spawnedObjectsMap.Clear();
+
+                spawnedFromXIndex = 0;
+                spawnedToXIndex = 0;
+                spawnedFromYIndex = 0;
+                spawnedToYIndex = 0;
+
+                chunksMap = levelGenerator.Generate(
+                    seed,
+                    levelGenerationConfig,
+                    levelStyleConfig.DecorationsPack
+                );
+
+                navMeshChunkBuilder.GenerateNavMesh(
+                    chunksMap,
+                    levelGenerationConfig.ChunkSize,
+                    out var vertices,
+                    out var triangles,
+                    out var bounds
+                );
+
+                return (vertices, triangles, bounds);
+            })
+            .ObserveOnMainThread()
+            .Do(result =>
+            {
+                var navMesh = new Mesh();
+
+                navMesh.vertices = result.vertices;
+                navMesh.triangles = result.triangles;
+                navMesh.bounds = result.bounds;
+
+                for (var i = 0; i < pathfinder.graphs.Length; i++)
+                {
+                    if (pathfinder.graphs[i] is NavMeshGraph navMeshGraph)
+                    {
+                        navMeshGraph.sourceMesh = navMesh;
+                        navMeshGraph.Scan();
+                        break;
+                    }
+                }
+
+                IsMapReady = true;
+            })
+            .AsUnitObservable();
     }
 
     public void UpdateChunksVisibilityBounds(
@@ -88,6 +111,8 @@ public class LevelMapController
         float maxY
     )
     {
+        if (!IsMapReady) return;
+
         var chunkSize = levelGenerationConfig.ChunkSize;
 
         var fromXIndex = (int)Math.Max(0, Math.Floor(minX / chunkSize));
@@ -133,9 +158,9 @@ public class LevelMapController
     {
         var chunkSize = levelGenerationConfig.ChunkSize;
 
-        for (var x = Math.Max(fromXIndex - 1, 0); x <= Math.Min(toXIndex, chunksMap.Length); x++)
+        for (var x = Math.Max(fromXIndex - 1, 0); x <= Math.Min(toXIndex, chunksMap.Length - 1); x++)
         {
-            for (var y = Math.Max(fromYIndex - 1, 0); y <= Math.Min(toYIndex, chunksMap[x].Length); y++)
+            for (var y = Math.Max(fromYIndex - 1, 0); y <= Math.Min(toYIndex, chunksMap[x].Length - 1); y++)
             {
                 if (chunksMap[x][y] == null)
                 {

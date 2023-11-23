@@ -1,5 +1,6 @@
 using Main.Scripts.LevelGeneration.Configs;
 using Main.Scripts.Levels.Map;
+using UniRx;
 using UnityEngine;
 
 namespace Main.Scripts.Levels.TestGeneration
@@ -70,7 +71,8 @@ public class TestLevelGeneration : MonoBehaviour
 
     private void Generate(int seed)
     {
-        levelMapController.GenerateMap(seed);
+        levelMapController.GenerateMap(seed)
+            .Subscribe();
     }
 }
 }

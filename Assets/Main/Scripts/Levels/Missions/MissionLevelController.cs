@@ -10,6 +10,7 @@ using Main.Scripts.Player.Config;
 using Main.Scripts.Scenarios.Missions;
 using Main.Scripts.Tasks;
 using Main.Scripts.Utils;
+using UniRx;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -33,6 +34,8 @@ namespace Main.Scripts.Levels.Missions
         private PlayerCamera playerCamera = null!;
         private HeroConfigsBank heroConfigsBank = null!;
         private LevelMapController levelMapController = null!;
+
+        private IDisposable? levelGenerationDisposable;
 
         private List<PlayerRef> spawnActions = new();
         private MissionState missionState;
@@ -67,7 +70,9 @@ namespace Main.Scripts.Levels.Missions
                 missionScenario.OnScenarioFinishedEvent.AddListener(OnMissionScenarioFinished);
             }
 
-            levelMapController.GenerateMap((int)(Random.value * int.MaxValue));
+            levelGenerationDisposable = levelMapController
+                .GenerateMap((int)(Random.value * int.MaxValue))
+                .Subscribe();
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)
@@ -76,6 +81,9 @@ namespace Main.Scripts.Levels.Missions
             missionScenario.OnScenarioFinishedEvent.RemoveListener(OnMissionScenarioFinished);
 
             heroConfigsBank = null!;
+            
+            levelGenerationDisposable?.Dispose();
+            levelGenerationDisposable = null;
             
             base.Despawned(runner, hasState);
         }
@@ -156,6 +164,11 @@ namespace Main.Scripts.Levels.Missions
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        protected override bool IsMapReady()
+        {
+            return levelMapController.IsMapReady;
         }
 
         protected override bool IsLevelReady()
@@ -293,6 +306,7 @@ namespace Main.Scripts.Levels.Missions
 
             if (isPlayersReady)
             {
+                //spawn for new connected players
                 RPC_AddSpawnPlayerAction(playerRefReady);
                 return;
             }

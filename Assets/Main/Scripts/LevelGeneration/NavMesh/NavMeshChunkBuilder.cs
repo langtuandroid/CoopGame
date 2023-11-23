@@ -11,7 +11,7 @@ public class NavMeshChunkBuilder
 {
 
     public Mesh GenerateNavMesh(
-        IChunk[][] map,
+        IChunk?[][] map,
         int chunkSize
     )
     {
@@ -21,7 +21,7 @@ public class NavMeshChunkBuilder
         {
             for (var j = 0; j < map[i].Length; j++)
             {
-                map[i][j].AddChunkNavMesh(
+                map[i][j]?.AddChunkNavMesh(
                     new Vector2(i * chunkSize - chunkSize / 2f, j * chunkSize - chunkSize / 2f),
                     chunkSize,
                     polygon

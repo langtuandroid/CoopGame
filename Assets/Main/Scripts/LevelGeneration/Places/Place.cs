@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.LevelGeneration.Chunk;
 using Main.Scripts.LevelGeneration.Configs;
@@ -24,7 +25,8 @@ public abstract class Place
     public abstract void FillMap(
         IChunk?[][] map,
         int chunkSize,
-        ref NetworkRNG random
+        ref NetworkRNG random,
+        HashSet<Vector2Int> nearOutsideChunksSet
     );
 
     public abstract void FillDecorations(

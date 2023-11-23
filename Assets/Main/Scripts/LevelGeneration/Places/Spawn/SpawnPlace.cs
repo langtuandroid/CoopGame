@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.LevelGeneration.Chunk;
 using Main.Scripts.LevelGeneration.Configs;
@@ -61,7 +62,8 @@ public class SpawnPlace : Place
     public override void FillMap(
         IChunk?[][] map,
         int chunkSize,
-        ref NetworkRNG random
+        ref NetworkRNG random,
+        HashSet<Vector2Int> nearOutsideChunksSet
     )
     {
         GetBounds(
@@ -76,6 +78,31 @@ public class SpawnPlace : Place
             for (var y = minY; y <= maxY; y++)
             {
                 map[x][y] = new SpawnChunk(this);
+                nearOutsideChunksSet.Remove(new Vector2Int(x, y));
+            }
+        }
+        
+        for (var x = minX - 1; x <= maxX + 1; x++)
+        {
+            if (map[x][minY - 1] == null)
+            {
+                nearOutsideChunksSet.Add(new Vector2Int(x, minY - 1));
+            }
+            if (map[x][maxY + 1] == null)
+            {
+                nearOutsideChunksSet.Add(new Vector2Int(x, maxY + 1));
+            }
+        }
+
+        for (var y = minY - 1; y <= maxY + 1; y++)
+        {
+            if (map[minX - 1][y] == null)
+            {
+                nearOutsideChunksSet.Add(new Vector2Int(minX - 1, y));
+            }
+            if (map[maxX + 1][y] == null)
+            {
+                nearOutsideChunksSet.Add(new Vector2Int(maxX + 1, y));
             }
         }
     }

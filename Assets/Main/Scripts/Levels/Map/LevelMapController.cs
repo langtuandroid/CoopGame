@@ -16,18 +16,20 @@ namespace Main.Scripts.Levels.Map
 public class LevelMapController
 {
     private AstarPath pathfinder;
-    private IChunk[][] chunksMap = null!;
+    private IChunk?[][] chunksMap = null!;
     private NavMeshChunkBuilder navMeshChunkBuilder = new();
     private LevelGenerator levelGenerator = new();
     private LevelGenerationConfig levelGenerationConfig;
     private LevelStyleConfig levelStyleConfig;
 
+    private int seed;
+    
     private Dictionary<Vector2Int, GameObject> spawnedObjectsMap = new();
 
-    private int spawnedFromXIndex = 0;
-    private int spawnedToXIndex = 0;
-    private int spawnedFromYIndex = 0;
-    private int spawnedToYIndex = 0;
+    private int spawnedFromXIndex;
+    private int spawnedToXIndex;
+    private int spawnedFromYIndex;
+    private int spawnedToYIndex;
 
     public LevelMapController(
         LevelGenerationConfig levelGenerationConfig,
@@ -42,6 +44,7 @@ public class LevelMapController
 
     public void GenerateMap(int seed)
     {
+        this.seed = seed;
         foreach (var (_, spawnedObject) in spawnedObjectsMap)
         {
             Object.Destroy(spawnedObject);
@@ -63,7 +66,7 @@ public class LevelMapController
         GenerateNavMesh(chunksMap);
     }
 
-    private void GenerateNavMesh(IChunk[][] map)
+    private void GenerateNavMesh(IChunk?[][] map)
     {
         var navMesh = navMeshChunkBuilder.GenerateNavMesh(map, levelGenerationConfig.ChunkSize);
 
@@ -129,6 +132,18 @@ public class LevelMapController
     )
     {
         var chunkSize = levelGenerationConfig.ChunkSize;
+
+        for (var x = Math.Max(fromXIndex - 1, 0); x <= Math.Min(toXIndex, chunksMap.Length); x++)
+        {
+            for (var y = Math.Max(fromYIndex - 1, 0); y <= Math.Min(toYIndex, chunksMap[x].Length); y++)
+            {
+                if (chunksMap[x][y] == null)
+                {
+                    levelGenerator.FillOutsideChunk(seed, chunksMap, x, y);
+                }
+            }
+        }
+
         for (var x = fromXIndex; x < toXIndex; x++)
         {
             for (var y = fromYIndex; y < toYIndex; y++)

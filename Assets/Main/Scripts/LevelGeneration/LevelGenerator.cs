@@ -31,6 +31,7 @@ public class LevelGenerator
         
         var map = GenerateChunks(
             mapData: mapData,
+            seed,
             ref random,
             chunkSize: levelGenerationConfig.ChunkSize,
             minRoadWidth: levelGenerationConfig.MinRoadWidth,
@@ -40,6 +41,71 @@ public class LevelGenerator
         );
 
         return map;
+    }
+
+    public void FillOutsideChunk(
+        int seed,
+        IChunk?[][] map,
+        int x,
+        int y
+    )
+    {
+        var minHeightLevel = int.MaxValue;
+        var maxHeightLevel = 2;
+
+        if (x > 0)
+        {
+            minHeightLevel = GetMinHeightLevel(minHeightLevel, map[x - 1][y]);
+        }
+
+        if (x < map.Length - 1)
+        {
+            minHeightLevel = GetMinHeightLevel(minHeightLevel, map[x + 1][y]);
+        }
+
+        if (y > 0)
+        {
+            minHeightLevel = GetMinHeightLevel(minHeightLevel, map[x][y - 1]);
+        }
+
+        if (y < map[x].Length - 1)
+        {
+            minHeightLevel = GetMinHeightLevel(minHeightLevel, map[x][y + 1]);
+        }
+
+        if (x > 0 && y > 0)
+        {
+            minHeightLevel = GetMinHeightLevel(minHeightLevel, map[x - 1][y - 1]);
+        }
+
+        if (x > 0 && y < map[x].Length - 1)
+        {
+            minHeightLevel = GetMinHeightLevel(minHeightLevel, map[x - 1][y + 1]);
+        }
+
+        if (x < map.Length - 1 && y > 0)
+        {
+            minHeightLevel = GetMinHeightLevel(minHeightLevel, map[x + 1][y - 1]);
+        }
+
+        if (x < map.Length - 1 && y < map[x].Length - 1)
+        {
+            minHeightLevel = GetMinHeightLevel(minHeightLevel, map[x + 1][y + 1]);
+        }
+
+        if (minHeightLevel == int.MaxValue)
+        {
+            minHeightLevel = 0;
+        }
+
+        var heightLevel = new NetworkRNG(seed + map[x].Length * y + x)
+            .RangeInclusive(1, Math.Min(minHeightLevel + 1, maxHeightLevel));
+        
+        map[x][y] ??= new OutsideChunk(
+            heightLevel: heightLevel,
+            fillData: OutsideChunkHelper.GetChunkFillData(
+                ChunkHelper.GetChunkConnectionTypes(map, x, y, ChunkHelper.IsNotOutside))
+        );
     }
 
     private MapData GenerateEscortMapData(
@@ -116,6 +182,7 @@ public class LevelGenerator
 
     private IChunk[][] GenerateChunks(
         MapData mapData,
+        int seed,
         ref NetworkRNG random,
         int chunkSize,
         int minRoadWidth,
@@ -168,9 +235,16 @@ public class LevelGenerator
             map[i] = new IChunk?[yChunksCount];
         }
 
+        var nearOutsideChunksSet = new HashSet<Vector2Int>();
+
         foreach (var place in places)
         {
-            place.FillMap(map, chunkSize, ref random);
+            place.FillMap(
+                map,
+                chunkSize,
+                ref random,
+                nearOutsideChunksSet
+            );
         }
 
         var roads = mapData.Roads;
@@ -180,6 +254,7 @@ public class LevelGenerator
             FillRoad(
                 map,
                 ref random,
+                nearOutsideChunksSet,
                 places[roads[i].Key].Position,
                 places[roads[i].Value].Position,
                 minRoadWidth,
@@ -195,66 +270,12 @@ public class LevelGenerator
             decorationsPack
         );
 
-        for (var i = 0; i < map.Length; i++)
+        foreach (var chunkPosition in nearOutsideChunksSet)
         {
-            for (var j = 0; j < map[i].Length; j++)
-            {
-                //todo сделать ленивую инициализацию, генерировать только близлежащие к рабочим тайлам для генерации навмеша
-                var minHeightLevel = int.MaxValue;
-                var maxHeightLevel = 2;
-
-                if (i > 0)
-                {
-                    minHeightLevel = GetMinHeightLevel(minHeightLevel, map[i - 1][j]);
-                }
-
-                if (i < map.Length - 1)
-                {
-                    minHeightLevel = GetMinHeightLevel(minHeightLevel, map[i + 1][j]);
-                }
-
-                if (j > 0)
-                {
-                    minHeightLevel = GetMinHeightLevel(minHeightLevel, map[i][j - 1]);
-                }
-
-                if (j < map[i].Length - 1)
-                {
-                    minHeightLevel = GetMinHeightLevel(minHeightLevel, map[i][j + 1]);
-                }
-
-                if (i > 0 && j > 0)
-                {
-                    minHeightLevel = GetMinHeightLevel(minHeightLevel, map[i - 1][j - 1]);
-                }
-
-                if (i > 0 && j < map[i].Length - 1)
-                {
-                    minHeightLevel = GetMinHeightLevel(minHeightLevel, map[i - 1][j + 1]);
-                }
-
-                if (i < map.Length - 1 && j > 0)
-                {
-                    minHeightLevel = GetMinHeightLevel(minHeightLevel, map[i + 1][j - 1]);
-                }
-
-                if (i < map.Length - 1 && j < map[i].Length - 1)
-                {
-                    minHeightLevel = GetMinHeightLevel(minHeightLevel, map[i + 1][j + 1]);
-                }
-
-                if (minHeightLevel == int.MaxValue)
-                {
-                    minHeightLevel = 0;
-                }
-
-                var heightLevel = random.RangeInclusive(1, Math.Min(minHeightLevel + 1, maxHeightLevel));
-                map[i][j] ??= new OutsideChunk(
-                    heightLevel: heightLevel,
-                    fillData: OutsideChunkHelper.GetChunkFillData(
-                        ChunkHelper.GetChunkConnectionTypes(map, i, j, ChunkHelper.IsNotOutside))
-                );
-            }
+            var x = chunkPosition.x;
+            var y = chunkPosition.y;
+                
+            FillOutsideChunk(seed, map, x, y);
         }
 
         return map!;
@@ -276,6 +297,7 @@ public class LevelGenerator
     private void FillRoad(
         IChunk?[][] map,
         ref NetworkRNG random,
+        HashSet<Vector2Int> nearOutsideChunksSet,
         Vector2Int pointA,
         Vector2Int pointB,
         int minRoadWidth,
@@ -299,6 +321,8 @@ public class LevelGenerator
         var deltaX = Math.Abs(toPoint.x - fromPoint.x);
         var deltaY = Math.Abs(toPoint.y - fromPoint.y);
 
+        Vector2Int chunkPosition;
+        
         if (deltaY > deltaX)
         {
             var stepCoordX = (toPoint.x - fromPoint.x) / (float)deltaY;
@@ -310,6 +334,9 @@ public class LevelGenerator
                 var y = fromPoint.y + i * stepY;
 
                 map[x][y] ??= new RoadChunk(fromPoint, toPoint);
+                chunkPosition = new Vector2Int(x, y);
+                nearOutsideChunksSet.Remove(chunkPosition);
+                AddAroundOutsideChunksToSet(in chunkPosition, map, nearOutsideChunksSet);
 
                 var roadWidth = random.RangeInclusive(minRoadWidth, maxRoadWidth);
                 for (var k = 1; k <= roadWidth / 2; k++)
@@ -317,6 +344,9 @@ public class LevelGenerator
                     if (x - k > 0 && map[x - k][y] == null)
                     {
                         map[x - k][y] = new RoadChunk(fromPoint, toPoint);
+                        chunkPosition = new Vector2Int(x - k, y);
+                        nearOutsideChunksSet.Remove(chunkPosition);
+                        AddAroundOutsideChunksToSet(in chunkPosition, map, nearOutsideChunksSet);
                     }
                 }
 
@@ -326,6 +356,9 @@ public class LevelGenerator
                     if (x + k < map.Length - 1 && map[x + k][y] == null)
                     {
                         map[x + k][y] = new RoadChunk(fromPoint, toPoint);
+                        chunkPosition = new Vector2Int(x + k, y);
+                        nearOutsideChunksSet.Remove(chunkPosition);
+                        AddAroundOutsideChunksToSet(in chunkPosition, map, nearOutsideChunksSet);
                     }
                 }
             }
@@ -341,6 +374,9 @@ public class LevelGenerator
                 var x = fromPoint.x + i * stepX;
 
                 map[x][y] ??= new RoadChunk(fromPoint, toPoint);
+                chunkPosition = new Vector2Int(x, y);
+                nearOutsideChunksSet.Remove(chunkPosition);
+                AddAroundOutsideChunksToSet(in chunkPosition, map, nearOutsideChunksSet);
 
                 var roadWidth = random.RangeInclusive(minRoadWidth, maxRoadWidth);
                 for (var k = 1; k <= roadWidth / 2; k++)
@@ -348,6 +384,9 @@ public class LevelGenerator
                     if (y - k >= 0 && map[x][y - k] == null)
                     {
                         map[x][y - k] = new RoadChunk(fromPoint, toPoint);
+                        chunkPosition = new Vector2Int(x, y - k);
+                        nearOutsideChunksSet.Remove(chunkPosition);
+                        AddAroundOutsideChunksToSet(in chunkPosition, map, nearOutsideChunksSet);
                     }
                 }
 
@@ -357,9 +396,61 @@ public class LevelGenerator
                     if (y + k < map[x].Length && map[x][y + k] == null)
                     {
                         map[x][y + k] = new RoadChunk(fromPoint, toPoint);
+                        chunkPosition = new Vector2Int(x, y + k);
+                        nearOutsideChunksSet.Remove(chunkPosition);
+                        AddAroundOutsideChunksToSet(in chunkPosition, map, nearOutsideChunksSet);
                     }
                 }
             }
+        }
+    }
+
+    private void AddAroundOutsideChunksToSet(
+        in Vector2Int position,
+        IChunk?[][] map,
+        HashSet<Vector2Int> nearOutsideChunksSet
+    )
+    {
+        var x = position.x;
+        var y = position.y;
+        if (x > 0 && map[x - 1][y] == null)
+        {
+            nearOutsideChunksSet.Add(new Vector2Int(x - 1, y));
+        }
+
+        if (x < map.Length - 1 && map[x + 1][y] == null)
+        {
+            nearOutsideChunksSet.Add(new Vector2Int(x + 1, y));
+        }
+
+        if (y > 0 && map[x][y - 1] == null)
+        {
+            nearOutsideChunksSet.Add(new Vector2Int(x, y - 1));
+        }
+
+        if (y < map[x].Length - 1 && map[x][y + 1] == null)
+        {
+            nearOutsideChunksSet.Add(new Vector2Int(x, y + 1));
+        }
+
+        if (x > 0 && y > 0 && map[x - 1][y - 1] == null)
+        {
+            nearOutsideChunksSet.Add(new Vector2Int(x - 1, y - 1));
+        }
+
+        if (x > 0 && y < map[x].Length - 1 && map[x - 1][y + 1] == null)
+        {
+            nearOutsideChunksSet.Add(new Vector2Int(x - 1, y + 1));
+        }
+
+        if (x < map.Length - 1 && y > 0 && map[x + 1][y - 1] == null)
+        {
+            nearOutsideChunksSet.Add(new Vector2Int(x + 1, y - 1));
+        }
+
+        if (x < map.Length - 1 && y < map[x].Length - 1 && map[x + 1][y + 1] == null)
+        {
+            nearOutsideChunksSet.Add(new Vector2Int(x + 1, y + 1));
         }
     }
 

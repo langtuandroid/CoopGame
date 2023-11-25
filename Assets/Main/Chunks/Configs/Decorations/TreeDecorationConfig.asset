@@ -13,4 +13,6 @@ MonoBehaviour:
   m_Name: TreeDecorationConfig
   m_EditorClassIdentifier: 
   decorationPrefab: {fileID: 2176946298522844542, guid: d228640ae3a795b4081d46aa2d530fe4, type: 3}
-  bounds: {x: 12, y: 3}
+  colliderInfo:
+    Type: 1
+    Size: {x: 3, y: 3}

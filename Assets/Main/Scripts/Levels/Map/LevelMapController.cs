@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Main.Scripts.LevelGeneration;
 using Main.Scripts.LevelGeneration.Chunk;
 using Main.Scripts.LevelGeneration.Configs;
+using Main.Scripts.LevelGeneration.Data.Colliders;
 using Main.Scripts.LevelGeneration.NavMesh;
 using Main.Scripts.LevelGeneration.Places.Crossroads;
 using Main.Scripts.LevelGeneration.Places.Outside;
@@ -10,6 +11,7 @@ using Main.Scripts.LevelGeneration.Places.Road;
 using Pathfinding;
 using UniRx;
 using UnityEngine;
+using ColliderType = Main.Scripts.LevelGeneration.Data.Colliders.ColliderType;
 using Object = UnityEngine.Object;
 
 namespace Main.Scripts.Levels.Map
@@ -17,6 +19,7 @@ namespace Main.Scripts.Levels.Map
 public class LevelMapController
 {
     private AstarPath pathfinder;
+    private Transform collidersParent;
     private IChunk?[][] chunksMap = null!;
     private NavMeshChunkBuilder navMeshChunkBuilder = new();
     private LevelGenerator levelGenerator = new();
@@ -27,7 +30,8 @@ public class LevelMapController
 
     public bool IsMapReady { get; private set; }
 
-    private Dictionary<Vector2Int, GameObject> spawnedObjectsMap = new();
+    private Dictionary<Vector2Int, GameObject> spawnedChunksMap = new();
+    private List<GameObject> spawnedColliders = new();
 
     private int spawnedFromXIndex;
     private int spawnedToXIndex;
@@ -37,27 +41,34 @@ public class LevelMapController
     public LevelMapController(
         LevelGenerationConfig levelGenerationConfig,
         LevelStyleConfig levelStyleConfig,
-        AstarPath pathfinder
+        AstarPath pathfinder,
+        Transform collidersParent
     )
     {
         this.levelGenerationConfig = levelGenerationConfig;
         this.levelStyleConfig = levelStyleConfig;
         this.pathfinder = pathfinder;
+        this.collidersParent = collidersParent;
     }
 
     public IObservable<Unit> GenerateMap(int seed)
     {
         IsMapReady = false;
         this.seed = seed;
+        var collidersDataList = new List<ColliderData>();
 
-        foreach (var (_, spawnedObject) in spawnedObjectsMap)
+        foreach (var (_, spawnedObject) in spawnedChunksMap)
         {
             Object.Destroy(spawnedObject);
+        }
+        foreach (var spawnedCollider in spawnedColliders)
+        {
+            Object.Destroy(spawnedCollider);
         }
 
         return Observable.Start(() =>
             {
-                spawnedObjectsMap.Clear();
+                spawnedChunksMap.Clear();
 
                 spawnedFromXIndex = 0;
                 spawnedToXIndex = 0;
@@ -69,6 +80,8 @@ public class LevelMapController
                     levelGenerationConfig,
                     levelStyleConfig.DecorationsPack
                 );
+
+                GetCollidersData(collidersDataList);
 
                 navMeshChunkBuilder.GenerateNavMesh(
                     chunksMap,
@@ -98,6 +111,8 @@ public class LevelMapController
                         break;
                     }
                 }
+
+                SpawnColliders(collidersDataList);
 
                 IsMapReady = true;
             })
@@ -129,14 +144,14 @@ public class LevelMapController
                      || x >= toXIndex
                      || y < fromYIndex
                      || y >= toYIndex)
-                    && spawnedObjectsMap.Remove(new Vector2Int(x, y), out var spawnedObject))
+                    && spawnedChunksMap.Remove(new Vector2Int(x, y), out var spawnedObject))
                 {
                     Object.Destroy(spawnedObject);
                 }
             }
         }
 
-        SpawnPrefabs(
+        SpawnChunks(
             fromXIndex: fromXIndex,
             toXIndex: toXIndex,
             fromYIndex: fromYIndex,
@@ -149,7 +164,7 @@ public class LevelMapController
         spawnedToYIndex = toYIndex;
     }
 
-    private void SpawnPrefabs(
+    private void SpawnChunks(
         int fromXIndex,
         int toXIndex,
         int fromYIndex,
@@ -173,7 +188,7 @@ public class LevelMapController
         {
             for (var y = fromYIndex; y < toYIndex; y++)
             {
-                if (spawnedObjectsMap.ContainsKey(new Vector2Int(x, y)))
+                if (spawnedChunksMap.ContainsKey(new Vector2Int(x, y)))
                 {
                     continue;
                 }
@@ -192,7 +207,7 @@ public class LevelMapController
                             chunkSize
                         );
 
-                        spawnedObjectsMap.Add(new Vector2Int(x, y), roadController.gameObject);
+                        spawnedChunksMap.Add(new Vector2Int(x, y), roadController.gameObject);
                         break;
                     case CrossroadsChunk crossroadsChunk:
                         var crossroadsController = Object.Instantiate(
@@ -206,7 +221,7 @@ public class LevelMapController
                             chunkSize
                         );
 
-                        spawnedObjectsMap.Add(new Vector2Int(x, y), crossroadsController.gameObject);
+                        spawnedChunksMap.Add(new Vector2Int(x, y), crossroadsController.gameObject);
                         break;
                     case OutsideChunk outsideChunk:
                         var chunkConnectionTypes =
@@ -219,9 +234,57 @@ public class LevelMapController
                             rotation: Quaternion.identity
                         );
                         outsideChunkController.Init(outsideChunk, chunkConnectionTypes);
-                        spawnedObjectsMap.Add(new Vector2Int(x, y), outsideChunkController.gameObject);
+                        spawnedChunksMap.Add(new Vector2Int(x, y), outsideChunkController.gameObject);
                         break;
                 }
+            }
+        }
+    }
+
+    private void GetCollidersData(List<ColliderData> collidersDataList)
+    {
+        var chunkSize = levelGenerationConfig.ChunkSize;
+
+        for (var x = 0; x < chunksMap.Length; x++)
+        {
+            for (var y = 0; y < chunksMap[x].Length; y++)
+            {
+                chunksMap[x][y]?.GetColliders(
+                    chunkPosition: new Vector2(x * chunkSize, y * chunkSize),
+                    levelGenerationConfig: levelGenerationConfig,
+                    colliders: collidersDataList
+                );
+            }
+        }
+    }
+
+    private void SpawnColliders(List<ColliderData> collidersDataList)
+    {
+        foreach (var colliderData in collidersDataList)
+        {
+            var position = new Vector3(colliderData.Position.x, 0, colliderData.Position.y);
+            switch (colliderData.Info.Type)
+            {
+                case ColliderType.BOX:
+                    var boxCollider = Object.Instantiate(
+                        original: levelGenerationConfig.BoxCollider,
+                        position: position,
+                        rotation: Quaternion.AngleAxis(colliderData.Rotation, Vector3.up),
+                        parent: collidersParent
+                    );
+                    boxCollider.size = new Vector3(colliderData.Info.Size.x, 1, colliderData.Info.Size.y);
+                    spawnedColliders.Add(boxCollider.gameObject);
+                    break;
+                case ColliderType.SPHERE:
+                    var sphereCollider = Object.Instantiate(
+                        original: levelGenerationConfig.SphereCollider,
+                        position: position,
+                        rotation: Quaternion.AngleAxis(colliderData.Rotation, Vector3.up),
+                        parent: collidersParent
+                    );
+                    sphereCollider.radius = colliderData.Info.Size.x / 2f;
+                    spawnedColliders.Add(sphereCollider.gameObject);
+                    break;
             }
         }
     }

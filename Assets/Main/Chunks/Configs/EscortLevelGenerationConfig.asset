@@ -12,9 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4256cb9c0eda467d953fbf6a2f8a83fa, type: 3}
   m_Name: EscortLevelGenerationConfig
   m_EditorClassIdentifier: 
-  roadLength: 100
-  dividersStep: 15
+  chunkSize: 10
   minRoadWidth: 2
   maxRoadWidth: 4
-  nextPointMaxOffset: 20
   outlineOffset: 1
+  boxCollider: {fileID: -9208339640448120658, guid: 57157c8b50e5cf84ba5ef58c6dc4caab, type: 3}
+  sphereCollider: {fileID: 697090023455308019, guid: b066f91a5223f6e4db559e607053e17e, type: 3}
+  roadLength: 100
+  dividersStep: 15
+  nextPointMaxOffset: 20

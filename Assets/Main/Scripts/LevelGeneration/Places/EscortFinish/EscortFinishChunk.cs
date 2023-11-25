@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using Main.Scripts.LevelGeneration.Chunk;
 using Main.Scripts.LevelGeneration.Configs;
+using Main.Scripts.LevelGeneration.Data.Colliders;
 using TriangleNet;
 using TriangleNet.Geometry;
 using UnityEngine;
@@ -57,5 +59,11 @@ public class EscortFinishChunk : IChunk
     {
         return false;
     }
+
+    public void GetColliders(
+        Vector2 chunkPosition,
+        LevelGenerationConfig levelGenerationConfig,
+        List<ColliderData> colliders
+    ) { }
 }
 }

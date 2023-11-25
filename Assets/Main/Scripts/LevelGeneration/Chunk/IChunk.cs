@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Main.Scripts.LevelGeneration.Configs;
+using Main.Scripts.LevelGeneration.Data.Colliders;
 using TriangleNet.Geometry;
 using UnityEngine;
 
@@ -22,5 +24,11 @@ public interface IChunk
     public void SetOccupiedByDecoration(bool occupied);
 
     public bool CanAddDecoration();
+
+    public void GetColliders(
+        Vector2 chunkPosition,
+        LevelGenerationConfig levelGenerationConfig,
+        List<ColliderData> colliders
+    );
 }
 }

@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using Main.Scripts.LevelGeneration.Chunk;
 using Main.Scripts.LevelGeneration.Configs;
+using Main.Scripts.LevelGeneration.Data.Colliders;
 using TriangleNet;
 using TriangleNet.Geometry;
 using UnityEngine;
@@ -22,7 +24,7 @@ public class OutsideChunk : IChunk
     public void AddChunkNavMesh(Vector2 position, float chunkSize, Polygon polygon)
     {
         if (HeightLevel > 1) return;
-        
+
         var pointsList = ListPool<Vector2>.Get();
 
         switch (FillData.centerType)
@@ -86,7 +88,128 @@ public class OutsideChunk : IChunk
 
     public bool CanAddDecoration()
     {
-        throw new NotImplementedException();
+        return false;
+    }
+
+    public void GetColliders(
+        Vector2 chunkPosition,
+        LevelGenerationConfig levelGenerationConfig,
+        List<ColliderData> colliders
+    )
+    {
+        var centerType = FillData.centerType;
+        var chunkSize = levelGenerationConfig.ChunkSize;
+
+        if (centerType != ChunkCenterType.None)
+        {
+            var colliderSize = new Vector2((float)Math.Sqrt(chunkSize * chunkSize + chunkSize * chunkSize), 1f);
+            var centerOffset = colliderSize.y / 2f * (float)Math.Cos(Mathf.Deg2Rad * 45);
+
+            var colliderData = centerType switch
+            {
+                ChunkCenterType.LeftTop => new ColliderData
+                {
+                    Info = new ColliderInfo
+                    {
+                        Type = ColliderType.BOX,
+                        Size = colliderSize
+                    },
+                    Position = chunkPosition + new Vector2(centerOffset, -centerOffset),
+                    Rotation = -45
+                },
+                ChunkCenterType.RightTop => new ColliderData
+                {
+                    Info = new ColliderInfo
+                    {
+                        Type = ColliderType.BOX,
+                        Size = colliderSize
+                    },
+                    Position = chunkPosition + new Vector2(-centerOffset, -centerOffset),
+                    Rotation = 45
+                },
+                ChunkCenterType.RightBottom => new ColliderData
+                {
+                    Info = new ColliderInfo
+                    {
+                        Type = ColliderType.BOX,
+                        Size = colliderSize
+                    },
+                    Position = chunkPosition + new Vector2(-centerOffset, centerOffset),
+                    Rotation = -45
+                },
+                ChunkCenterType.LeftBottom => new ColliderData
+                {
+                    Info = new ColliderInfo
+                    {
+                        Type = ColliderType.BOX,
+                        Size = colliderSize
+                    },
+                    Position = chunkPosition + new Vector2(centerOffset, centerOffset),
+                    Rotation = 45
+                }
+            };
+            colliders.Add(colliderData);
+        }
+        else
+        {
+            var colliderSize = new Vector2(chunkSize, 1f);
+            var positionOffset = (chunkSize - colliderSize.y) / 2f;
+            if (FillData.TopSide)
+            {
+                colliders.Add(new ColliderData
+                {
+                    Info = new ColliderInfo
+                    {
+                        Type = ColliderType.BOX,
+                        Size = colliderSize
+                    },
+                    Position = chunkPosition + new Vector2(0, positionOffset),
+                    Rotation = 0
+                });
+            }
+
+            if (FillData.RightSide)
+            {
+                colliders.Add(new ColliderData
+                {
+                    Info = new ColliderInfo
+                    {
+                        Type = ColliderType.BOX,
+                        Size = colliderSize
+                    },
+                    Position = chunkPosition + new Vector2(positionOffset, 0),
+                    Rotation = 90
+                });
+            }
+
+            if (FillData.BottomSide)
+            {
+                colliders.Add(new ColliderData
+                {
+                    Info = new ColliderInfo
+                    {
+                        Type = ColliderType.BOX,
+                        Size = colliderSize
+                    },
+                    Position = chunkPosition - new Vector2(0, positionOffset),
+                    Rotation = 0
+                });
+            }
+
+            if (FillData.LeftSide)
+            {
+                colliders.Add(new ColliderData
+                {
+                    Info = new ColliderInfo
+                    {
+                        Type = ColliderType.BOX,
+                        Size = colliderSize
+                    },
+                    Position = chunkPosition - new Vector2(positionOffset, 0),
+                    Rotation = 90
+                });
+            }
+        }
     }
 }
 }

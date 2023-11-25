@@ -163,7 +163,7 @@ public class CrossroadsPlace : Place
                         nextDecorationConfig = decorations[random.RangeExclusive(0, decorations.Count)];
                     }
 
-                    var bounds = nextDecorationConfig.Bounds;
+                    var bounds = nextDecorationConfig.ColliderInfo.Size;
 
                     var maxUnitRadius = GameConstants.MAX_UNIT_RADIUS;
 

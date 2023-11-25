@@ -13,4 +13,6 @@ MonoBehaviour:
   m_Name: CocktusDecorationConfig
   m_EditorClassIdentifier: 
   decorationPrefab: {fileID: 4273614417802531091, guid: 6ec2f75819ad2ee4e9a6ff953451494b, type: 3}
-  bounds: {x: 1.5, y: 0.5}
+  colliderInfo:
+    Type: 0
+    Size: {x: 1.55, y: 0.6}

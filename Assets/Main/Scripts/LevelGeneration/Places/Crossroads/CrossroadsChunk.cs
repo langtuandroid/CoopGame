@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Main.Scripts.LevelGeneration.Chunk;
 using Main.Scripts.LevelGeneration.Configs;
+using Main.Scripts.LevelGeneration.Data.Colliders;
 using TriangleNet;
 using TriangleNet.Geometry;
 using UnityEngine;
@@ -71,7 +72,7 @@ public class CrossroadsChunk : IChunk
 
         if (decorationConfig != null)
         {
-            var bounds = decorationConfig.Bounds;
+            var bounds = decorationConfig.ColliderInfo.Size;
             var halfBoundsX = bounds.x / 2f;
             var halfBoundsY = bounds.y / 2f;
 
@@ -214,6 +215,24 @@ public class CrossroadsChunk : IChunk
 
         polygon.Add(pointsList, true);
         pointsList.Clear();
+    }
+
+    public void GetColliders(
+        Vector2 chunkPosition,
+        LevelGenerationConfig levelGenerationConfig,
+        List<ColliderData> colliders
+    )
+    {
+        if (decorationConfig == null) return;
+
+        colliders.Add(
+            new ColliderData
+            {
+                Info = decorationConfig.ColliderInfo,
+                Position = chunkPosition + decorationPosition,
+                Rotation = 0
+            }
+        );
     }
 }
 }

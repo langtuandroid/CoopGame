@@ -13,4 +13,6 @@ MonoBehaviour:
   m_Name: MashrumDecorationConfig
   m_EditorClassIdentifier: 
   decorationPrefab: {fileID: 8475561782122989127, guid: 02fcf02a536c1aa45b1077e2d319d5ff, type: 3}
-  bounds: {x: 10, y: 10}
+  colliderInfo:
+    Type: 1
+    Size: {x: 3, y: 3}

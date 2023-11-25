@@ -21,7 +21,12 @@ public class TestLevelGeneration : MonoBehaviour
 
     private void Awake()
     {
-        levelMapController = new LevelMapController(levelGenerationConfig, levelStyleConfig, pathfinder);
+        levelMapController = new LevelMapController(
+            levelGenerationConfig: levelGenerationConfig,
+            levelStyleConfig: levelStyleConfig,
+            pathfinder: pathfinder,
+            collidersParent: pathfinder.transform
+        );
 
         var seed = (int)(Random.value * int.MaxValue);
         Debug.Log($"Seed: {seed}");

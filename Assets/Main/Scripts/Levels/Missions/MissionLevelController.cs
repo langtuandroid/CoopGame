@@ -47,9 +47,10 @@ namespace Main.Scripts.Levels.Missions
         private void Awake()
         {
             levelMapController = new LevelMapController(
-                levelGenerationConfig,
-                levelStyleConfig,
-                pathfinder
+                levelGenerationConfig: levelGenerationConfig,
+                levelStyleConfig: levelStyleConfig,
+                pathfinder: pathfinder,
+                collidersParent: pathfinder.transform
             );
         }
 

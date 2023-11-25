@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.LevelGeneration.Chunk;
 using Main.Scripts.LevelGeneration.Configs;
+using Main.Scripts.LevelGeneration.Data;
+using Main.Scripts.LevelGeneration.Data.Colliders;
 using Main.Scripts.LevelGeneration.Places;
 using Main.Scripts.LevelGeneration.Places.Crossroads;
 using Main.Scripts.LevelGeneration.Places.EscortFinish;
@@ -15,32 +17,70 @@ namespace Main.Scripts.LevelGeneration
 {
 public class LevelGenerator
 {
-    public IChunk[][] Generate(
+    public MapData Generate(
         int seed,
         LevelGenerationConfig levelGenerationConfig,
         DecorationsPack decorationsPack
     )
     {
         var random = new NetworkRNG(seed);
+        var chunkSize = levelGenerationConfig.ChunkSize;
 
-        var mapData = levelGenerationConfig switch
+        var mapGraph = levelGenerationConfig switch
         {
             EscortLevelGenerationConfig escortLevelGenerationConfig => GenerateEscortMapData(ref random, escortLevelGenerationConfig),
             _ => throw new ArgumentOutOfRangeException(nameof(levelGenerationConfig), levelGenerationConfig, null)
         };
         
-        var map = GenerateChunks(
-            mapData: mapData,
+        var chunksMap = GenerateChunks(
+            mapGraph: mapGraph,
             seed,
             ref random,
-            chunkSize: levelGenerationConfig.ChunkSize,
+            chunkSize: chunkSize,
             minRoadWidth: levelGenerationConfig.MinRoadWidth,
             maxRoadWidth: levelGenerationConfig.MaxRoadWidth,
             outlineOffset: levelGenerationConfig.OutlineOffset,
             decorationsPack: decorationsPack
         );
 
-        return map;
+        List<Vector3> playerSpawnPositions = null!;
+        PlaceTargetData finishTargetPlace = null!;
+        foreach (var place in mapGraph.Places)
+        {
+            if (place is SpawnPlace spawnPlace)
+            {
+                playerSpawnPositions = spawnPlace.GetPlayerSpawnPositions(chunksSize: chunkSize);
+            }
+
+            if (place is EscortFinishPlace escortFinishPlace)
+            {
+                finishTargetPlace = new PlaceTargetData(
+                    position: new Vector3(escortFinishPlace.Position.x, 0, escortFinishPlace.Position.y) * chunkSize,
+                    colliderInfo: new ColliderInfo
+                    {
+                        Type = ColliderType.BOX,
+                        Size = new Vector2(chunkSize, chunkSize)
+                    }
+                );
+            }
+        }
+
+        if (playerSpawnPositions == null)
+        {
+            throw new Exception("Spawn place is not found");
+        }
+
+        if (finishTargetPlace == null)
+        {
+            throw new Exception("Finish place is not found");
+        }
+
+        return new MapData(
+            mapGraph: mapGraph,
+            chunksMap: chunksMap,
+            playerSpawnPositions: playerSpawnPositions,
+            finishPlaceData: finishTargetPlace
+        );
     }
 
     public void FillOutsideChunk(
@@ -108,13 +148,13 @@ public class LevelGenerator
         );
     }
 
-    private MapData GenerateEscortMapData(
+    private MapGraph GenerateEscortMapData(
         ref NetworkRNG random,
         EscortLevelGenerationConfig escortConfig
     )
     {
         var placesList = new List<Place>();
-        var roadsList = new List<KeyValuePair<int, int>>();
+        var roadsList = new List<RoadData>();
 
         var spawnPlace = new SpawnPlace(
             position: new Vector2Int(0, 0),
@@ -159,7 +199,11 @@ public class LevelGenerator
             }
 
             placesList.Add(place);
-            roadsList.Add(new KeyValuePair<int, int>(placesList.Count - 2, placesList.Count - 1));
+            roadsList.Add(new RoadData
+            {
+                FromIndex = placesList.Count - 2,
+                ToIndex = placesList.Count - 1
+            });
             if (placesList[^2] is CrossroadsPlace crossroadsPlaceFrom)
             {
                 crossroadsPlaceFrom.AddRoadToPlace(placesList[^1]);
@@ -173,15 +217,14 @@ public class LevelGenerator
             Debug.Log($"Point {placesList.Count}: {place.Position}");
         }
 
-        return new MapData
-        {
-            Places = placesList,
-            Roads = roadsList
-        };
+        return new MapGraph(
+            places: placesList,
+            roads: roadsList
+        );
     }
 
     private IChunk[][] GenerateChunks(
-        MapData mapData,
+        MapGraph mapGraph,
         int seed,
         ref NetworkRNG random,
         int chunkSize,
@@ -191,7 +234,7 @@ public class LevelGenerator
         DecorationsPack decorationsPack
     )
     {
-        var places = mapData.Places;
+        var places = mapGraph.Places;
 
         var minX = 0;
         var maxX = 0;
@@ -247,7 +290,7 @@ public class LevelGenerator
             );
         }
 
-        var roads = mapData.Roads;
+        var roads = mapGraph.Roads;
 
         for (var i = 0; i < roads.Count; i++)
         {
@@ -255,8 +298,8 @@ public class LevelGenerator
                 map,
                 ref random,
                 nearOutsideChunksSet,
-                places[roads[i].Key].Position,
-                places[roads[i].Value].Position,
+                places[roads[i].FromIndex].Position,
+                places[roads[i].ToIndex].Position,
                 minRoadWidth,
                 maxRoadWidth
             );

@@ -16,24 +16,26 @@ using Random = UnityEngine.Random;
 
 namespace Main.Scripts.Levels.Missions
 {
-    public class MissionLevelController : LevelControllerBase
+    public class MissionLevelController : LevelControllerBase, PlaceTargetTask.Listener
     {
         [SerializeField]
         private PlayerController playerPrefab = null!;
         [SerializeField]
         private KillTargetsCountMissionScenario missionScenario = null!;
         [SerializeField]
-        private PlaceTargetTask placeTargetTask = null!;
-        [SerializeField]
         private AstarPath pathfinder = null!;
         [SerializeField]
         private LevelGenerationConfig levelGenerationConfig = null!;
         [SerializeField]
         private LevelStyleConfig levelStyleConfig = null!;
+        [SerializeField]
+        private LayerMask playerLayerMask;
 
         private PlayerCamera playerCamera = null!;
         private HeroConfigsBank heroConfigsBank = null!;
         private LevelMapController levelMapController = null!;
+        
+        private PlaceTargetTask? finishPlaceTargetTask;
 
         private IDisposable? levelGenerationDisposable;
 
@@ -67,7 +69,6 @@ namespace Main.Scripts.Levels.Missions
 
             if (HasStateAuthority)
             {
-                placeTargetTask.OnTaskCheckChangedEvent.AddListener(OnFinishTaskStatus);
                 missionScenario.OnScenarioFinishedEvent.AddListener(OnMissionScenarioFinished);
             }
 
@@ -78,7 +79,7 @@ namespace Main.Scripts.Levels.Missions
 
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
-            placeTargetTask.OnTaskCheckChangedEvent.RemoveListener(OnFinishTaskStatus);
+            finishPlaceTargetTask?.SetListener(null);
             missionScenario.OnScenarioFinishedEvent.RemoveListener(OnMissionScenarioFinished);
 
             heroConfigsBank = null!;
@@ -108,6 +109,11 @@ namespace Main.Scripts.Levels.Missions
             }
         }
 
+        public void OnTaskCheckChangedEvent(bool isChecked)
+        {
+            OnFinishTaskStatus(isChecked);
+        }
+
         protected override void OnPlayerInitialized(PlayerRef playerRef)
         {
             
@@ -120,6 +126,17 @@ namespace Main.Scripts.Levels.Missions
 
         protected override void OnLocalPlayerLoaded()
         {
+            if (HasStateAuthority)
+            {
+                var finishPlaceTargetData = levelMapController.GetFinishPlaceTargetData();
+
+                finishPlaceTargetTask = new PlaceTargetTask(
+                    playersHolder: playersHolder,
+                    targetLayerMask: playerLayerMask,
+                    placeTargetData: finishPlaceTargetData);
+                finishPlaceTargetTask.SetListener(this);
+            }
+
             RPC_OnPlayerReady(Runner.LocalPlayer);
         }
 
@@ -135,6 +152,11 @@ namespace Main.Scripts.Levels.Missions
         protected override void OnDespawnPhase()
         {
             
+        }
+
+        protected override void OnPhysicsCheckCollisionsPhase()
+        {
+            finishPlaceTargetTask?.OnPhysicsCheckCollisionsPhase();
         }
 
         protected override void OnLevelStrategyPhase()
@@ -235,9 +257,9 @@ namespace Main.Scripts.Levels.Missions
         {
             missionScenario.OnScenarioFinishedEvent.RemoveListener(OnMissionScenarioFinished);
             
-            if (HasStateAuthority)
+            if (finishPlaceTargetTask != null)
             {
-                OnFinishTaskStatus(placeTargetTask.IsTargetChecked);
+                OnFinishTaskStatus(finishPlaceTargetTask.IsTargetChecked);
             }
         }
 
@@ -245,7 +267,7 @@ namespace Main.Scripts.Levels.Missions
         {
             if (missionScenario.IsFinished && isChecked)
             {
-                placeTargetTask.OnTaskCheckChangedEvent.RemoveListener(OnFinishTaskStatus);
+                finishPlaceTargetTask?.SetListener(null);
 
                 if (missionState == MissionState.Active)
                 {
@@ -263,9 +285,11 @@ namespace Main.Scripts.Levels.Missions
 
         private void SpawnLocalPlayer(PlayerRef playerRef)
         {
+            var spawnPosition = levelMapController.GetPlayerSpawnPosition(playerRef);
+            
             var playerController = Runner.Spawn(
                 prefab: playerPrefab,
-                position: Vector3.zero,
+                position: spawnPosition,
                 rotation: Quaternion.identity,
                 inputAuthority: playerRef,
                 onBeforeSpawned: (networkRunner, playerObject) =>

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using Fusion;
 using Main.Scripts.Core.Resources;
+using Main.Scripts.LevelGeneration.Data;
+using Main.Scripts.LevelGeneration.Data.Colliders;
 using Main.Scripts.Player;
 using Main.Scripts.Player.Config;
 using Main.Scripts.Tasks;
@@ -12,18 +14,20 @@ using Random = UnityEngine.Random;
 
 namespace Main.Scripts.Levels.Lobby
 {
-    public class LobbyLevelController : LevelControllerBase
+    public class LobbyLevelController : LevelControllerBase, PlaceTargetTask.Listener
     {
         [SerializeField]
         private PlayerController playerPrefab = null!;
         [SerializeField]
-        private PlaceTargetTask readyToStartTask = null!;
-        [SerializeField]
         private UIScreenManager screenManager = null!;
+        [SerializeField]
+        private LayerMask playerLayerMask;
         
         private PlayerCamera playerCamera = null!;
         private UIScreenManager uiScreenManager = null!;
         private HeroConfigsBank heroConfigsBank = null!;
+        
+        private PlaceTargetTask? readyToStartTask;
 
         private List<PlayerRef> despawnActions = new();
         private List<SpawnAction> spawnActions = new();
@@ -38,8 +42,24 @@ namespace Main.Scripts.Levels.Lobby
             playerCamera = PlayerCamera.Instance.ThrowWhenNull();
             uiScreenManager = UIScreenManager.Instance.ThrowWhenNull();
             heroConfigsBank = GlobalResources.Instance.ThrowWhenNull().HeroConfigsBank;
-            
-            readyToStartTask.OnTaskCheckChangedEvent.AddListener(OnReadyTargetStatusChanged);
+
+            if (HasStateAuthority)
+            {
+                readyToStartTask = new PlaceTargetTask(
+                    playersHolder: playersHolder,
+                    targetLayerMask: playerLayerMask,
+                    new PlaceTargetData(
+                        position: new Vector3(0, 0, -15),
+                        colliderInfo: new ColliderInfo
+                        {
+                            Type = ColliderType.BOX,
+                            Size = new Vector2(10, 10)
+                        }
+                    )
+                );
+                readyToStartTask.SetListener(this);
+            }
+
             playerDataManager.OnLocalHeroChangedEvent.AddListener(OnLocalHeroChanged);
         }
 
@@ -53,12 +73,17 @@ namespace Main.Scripts.Levels.Lobby
 
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
-            readyToStartTask.OnTaskCheckChangedEvent.RemoveListener(OnReadyTargetStatusChanged);
+            readyToStartTask?.SetListener(null);
             playerDataManager.OnLocalHeroChangedEvent.RemoveListener(OnLocalHeroChanged);
             
             heroConfigsBank = null!;
             
             base.Despawned(runner, hasState);
+        }
+
+        public void OnTaskCheckChangedEvent(bool isChecked)
+        {
+            OnReadyTargetStatusChanged(isChecked);
         }
 
         protected override void OnPlayerInitialized(PlayerRef playerRef)
@@ -104,6 +129,11 @@ namespace Main.Scripts.Levels.Lobby
                 }
             }
             despawnActions.Clear();
+        }
+
+        protected override void OnPhysicsCheckCollisionsPhase()
+        {
+            readyToStartTask?.OnPhysicsCheckCollisionsPhase();
         }
 
         protected override void OnLevelStrategyPhase()
@@ -156,7 +186,7 @@ namespace Main.Scripts.Levels.Lobby
             
             if (isChecked)
             {
-                readyToStartTask.OnTaskCheckChangedEvent.RemoveListener(OnReadyTargetStatusChanged);
+                readyToStartTask?.SetListener(null);
                 shouldStartMission = true;
             }
         }

@@ -111,5 +111,20 @@ public class SpawnPlace : Place
     {
         
     }
+
+    public List<Vector3> GetPlayerSpawnPositions(
+        int chunksSize
+    )
+    {
+        var positions = new List<Vector3>();
+        var placePosition = Position * chunksSize;
+        var halfSize = chunksSize / 2f;
+
+        positions.Add(new Vector3(placePosition.x + halfSize, 0, placePosition.y + halfSize));
+        positions.Add(new Vector3(placePosition.x + halfSize, 0, placePosition.y - halfSize));
+        positions.Add(new Vector3(placePosition.x - halfSize, 0, placePosition.y + halfSize));
+        positions.Add(new Vector3(placePosition.x - halfSize, 0, placePosition.y - halfSize));
+        return positions;
+    }
 }
 }

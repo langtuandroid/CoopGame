@@ -1,59 +1,54 @@
 using System.Collections.Generic;
 using Fusion;
-using Main.Scripts.Core.GameLogic;
-using Main.Scripts.Core.GameLogic.Phases;
+using Main.Scripts.LevelGeneration.Data;
 using Main.Scripts.Player;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Main.Scripts.Tasks
 {
-    public class PlaceTargetTask : GameLoopEntityNetworked
+    public class PlaceTargetTask
     {
-        [SerializeField]
-        private PlayersHolder playersHolder = default!;
-        [SerializeField]
-        private LayerMask layerMask;
+        private PlayersHolder playersHolder;
+        private LayerMask targetLayerMask;
 
-        [Networked, Capacity(4)]
-        private NetworkDictionary<PlayerRef, bool> playersInPlace => default;
-        [Networked]
+        private HashSet<PlayerRef> playersInPlace = new();
         private bool isTargetChecked { get; set; }
 
-        public UnityEvent<bool> OnTaskCheckChangedEvent = default!;
+        private Listener? listener;
 
         private Collider[] colliders = new Collider[4];
-        private Vector3 placeExtents;
-
-        private GameLoopPhase[] gameLoopPhases =
-        {
-            GameLoopPhase.PhysicsCheckCollisionsPhase
-        };
+        private PlaceTargetData placeTargetData;
+        private Vector3 halfExtends;
 
         public bool IsTargetChecked => isTargetChecked;
 
-        public override void Spawned()
+        public PlaceTargetTask(
+            PlayersHolder playersHolder,
+            LayerMask targetLayerMask,
+            PlaceTargetData placeTargetData
+        )
         {
-            base.Spawned();
-            placeExtents = transform.localScale / 2;
+            this.playersHolder = playersHolder;
+            this.targetLayerMask = targetLayerMask;
+            this.placeTargetData = placeTargetData;
+
+            var size = placeTargetData.ColliderInfo.Size;
+            halfExtends = new Vector3(size.x, 1, size.y) / 2f;
         }
 
-        public override void Despawned(NetworkRunner runner, bool hasState)
+        public void SetListener(Listener? listener)
         {
-            base.Despawned(runner, hasState);
-            OnTaskCheckChangedEvent.RemoveAllListeners();
+            this.listener = listener;
         }
 
-        public override void OnGameLoopPhase(GameLoopPhase phase)
+        public void OnPhysicsCheckCollisionsPhase()
         {
-            if (!Runner.IsSharedModeMasterClient) return;
-            
             var hitsCount = Physics.OverlapBoxNonAlloc(
-                center: transform.position,
-                halfExtents: placeExtents,
+                center: placeTargetData.Position,
+                halfExtents: halfExtends,
                 results: colliders,
-                orientation: transform.rotation,
-                mask: layerMask
+                orientation: Quaternion.identity,
+                mask: targetLayerMask
             );
 
             playersInPlace.Clear();
@@ -62,7 +57,7 @@ namespace Main.Scripts.Tasks
                 var playerController = colliders[i].GetComponent<PlayerController>();
                 if (playerController != null)
                 {
-                    playersInPlace.Add(playerController.Object.StateAuthority, true);
+                    playersInPlace.Add(playerController.Object.StateAuthority);
                 }
             }
 
@@ -72,13 +67,13 @@ namespace Main.Scripts.Tasks
                 var playerController = playersHolder.Get(playerRef);
                 if (playerController.GetPlayerState() != PlayerState.Dead)
                 {
-                    if (!playersInPlace.ContainsKey(playerRef))
+                    if (!playersInPlace.Contains(playerRef))
                     {
                         UpdateTaskStatus(false);
                         return;
                     }
 
-                    if (playersInPlace.ContainsKey(playerRef))
+                    if (playersInPlace.Contains(playerRef))
                     {
                         hasAllAlivePlayersInPlace = true;
                     }
@@ -88,17 +83,17 @@ namespace Main.Scripts.Tasks
             UpdateTaskStatus(hasAllAlivePlayersInPlace);
         }
 
-        public override IEnumerable<GameLoopPhase> GetSubscribePhases()
-        {
-            return gameLoopPhases;
-        }
-
         private void UpdateTaskStatus(bool isCompleted)
         {
             if (isTargetChecked == isCompleted) return;
             
             isTargetChecked = isCompleted;
-            OnTaskCheckChangedEvent.Invoke(isTargetChecked);
+            listener?.OnTaskCheckChangedEvent(isTargetChecked);
+        }
+
+        public interface Listener
+        {
+            public void OnTaskCheckChangedEvent(bool isChecked);
         }
     }
 }

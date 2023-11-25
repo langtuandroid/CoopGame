@@ -23,6 +23,7 @@ namespace Main.Scripts.Levels
         private GameLoopPhase[] gameLoopPhases =
         {
             GameLoopPhase.DespawnPhase,
+            GameLoopPhase.PhysicsCheckCollisionsPhase,
             GameLoopPhase.ObjectsSpawnPhase,
             GameLoopPhase.LevelStrategyPhase
         };
@@ -64,6 +65,9 @@ namespace Main.Scripts.Levels
                     break;
                 case GameLoopPhase.ObjectsSpawnPhase:
                     OnSpawnPhase();
+                    break;
+                case GameLoopPhase.PhysicsCheckCollisionsPhase:
+                    OnPhysicsCheckCollisionsPhase();
                     break;
                 case GameLoopPhase.LevelStrategyPhase:
                     OnLevelStrategyPhase();
@@ -117,6 +121,8 @@ namespace Main.Scripts.Levels
         protected abstract void OnSpawnPhase();
 
         protected abstract void OnDespawnPhase();
+
+        protected abstract void OnPhysicsCheckCollisionsPhase();
 
         protected abstract void OnLevelStrategyPhase();
     }

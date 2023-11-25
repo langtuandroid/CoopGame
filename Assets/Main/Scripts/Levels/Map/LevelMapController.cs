@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using Fusion;
 using Main.Scripts.LevelGeneration;
 using Main.Scripts.LevelGeneration.Chunk;
 using Main.Scripts.LevelGeneration.Configs;
+using Main.Scripts.LevelGeneration.Data;
 using Main.Scripts.LevelGeneration.Data.Colliders;
 using Main.Scripts.LevelGeneration.NavMesh;
 using Main.Scripts.LevelGeneration.Places.Crossroads;
@@ -20,7 +22,7 @@ public class LevelMapController
 {
     private AstarPath pathfinder;
     private Transform collidersParent;
-    private IChunk?[][] chunksMap = null!;
+    private MapData mapData = null!;
     private NavMeshChunkBuilder navMeshChunkBuilder = new();
     private LevelGenerator levelGenerator = new();
     private LevelGenerationConfig levelGenerationConfig;
@@ -75,7 +77,7 @@ public class LevelMapController
                 spawnedFromYIndex = 0;
                 spawnedToYIndex = 0;
 
-                chunksMap = levelGenerator.Generate(
+                mapData = levelGenerator.Generate(
                     seed,
                     levelGenerationConfig,
                     levelStyleConfig.DecorationsPack
@@ -84,7 +86,7 @@ public class LevelMapController
                 GetCollidersData(collidersDataList);
 
                 navMeshChunkBuilder.GenerateNavMesh(
-                    chunksMap,
+                    mapData.ChunksMap,
                     levelGenerationConfig.ChunkSize,
                     out var vertices,
                     out var triangles,
@@ -119,6 +121,17 @@ public class LevelMapController
             .AsUnitObservable();
     }
 
+    public Vector3 GetPlayerSpawnPosition(PlayerRef playerRef)
+    {
+        var spawnPositions = mapData.PlayerSpawnPositions;
+        return spawnPositions[playerRef % spawnPositions.Count];
+    }
+
+    public PlaceTargetData GetFinishPlaceTargetData()
+    {
+        return mapData.FinishPlaceData;
+    }
+
     public void UpdateChunksVisibilityBounds(
         float minX,
         float maxX,
@@ -129,6 +142,7 @@ public class LevelMapController
         if (!IsMapReady) return;
 
         var chunkSize = levelGenerationConfig.ChunkSize;
+        var chunksMap = mapData.ChunksMap;
 
         var fromXIndex = (int)Math.Max(0, Math.Floor(minX / chunkSize));
         var toXIndex = (int)Math.Min(chunksMap.Length, Math.Ceiling(maxX / chunkSize) + 1);
@@ -172,6 +186,7 @@ public class LevelMapController
     )
     {
         var chunkSize = levelGenerationConfig.ChunkSize;
+        var chunksMap = mapData.ChunksMap;
 
         for (var x = Math.Max(fromXIndex - 1, 0); x <= Math.Min(toXIndex, chunksMap.Length - 1); x++)
         {
@@ -244,6 +259,7 @@ public class LevelMapController
     private void GetCollidersData(List<ColliderData> collidersDataList)
     {
         var chunkSize = levelGenerationConfig.ChunkSize;
+        var chunksMap = mapData.ChunksMap;
 
         for (var x = 0; x < chunksMap.Length; x++)
         {

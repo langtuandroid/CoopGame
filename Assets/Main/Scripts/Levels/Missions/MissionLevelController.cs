@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using Fusion;
-using Main.Scripts.Core.Resources;
 using Main.Scripts.LevelGeneration.Configs;
 using Main.Scripts.Levels.Map;
 using Main.Scripts.Levels.Results;
 using Main.Scripts.Player;
-using Main.Scripts.Player.Config;
+using Main.Scripts.Scenarios;
 using Main.Scripts.Scenarios.Missions;
+using Main.Scripts.Scenarios.Missions.Common;
 using Main.Scripts.Tasks;
 using Main.Scripts.Utils;
 using UniRx;
@@ -16,30 +16,25 @@ using Random = UnityEngine.Random;
 
 namespace Main.Scripts.Levels.Missions
 {
-    public class MissionLevelController : LevelControllerBase, PlaceTargetTask.Listener
+    public class MissionLevelController : LevelControllerBase
     {
-        [SerializeField]
-        private PlayerController playerPrefab = null!;
-        [SerializeField]
-        private KillTargetsCountMissionScenario missionScenario = null!;
         [SerializeField]
         private AstarPath pathfinder = null!;
         [SerializeField]
-        private LevelGenerationConfig levelGenerationConfig = null!;
+        private MapGenerationConfig mapGenerationConfig = null!;
         [SerializeField]
         private LevelStyleConfig levelStyleConfig = null!;
         [SerializeField]
-        private LayerMask playerLayerMask;
+        private ScenarioGeneratorConfig scenarioGeneratorConfig = null!;
 
         private PlayerCamera playerCamera = null!;
-        private HeroConfigsBank heroConfigsBank = null!;
         private LevelMapController levelMapController = null!;
         
         private PlaceTargetTask? finishPlaceTargetTask;
+        private Scenario? missionScenario;
 
-        private IDisposable? levelGenerationDisposable;
+        private CompositeDisposable compositeDisposable = new();
 
-        private List<PlayerRef> spawnActions = new();
         private MissionState missionState;
 
         private HashSet<PlayerRef> playersReady = new();
@@ -49,7 +44,7 @@ namespace Main.Scripts.Levels.Missions
         private void Awake()
         {
             levelMapController = new LevelMapController(
-                levelGenerationConfig: levelGenerationConfig,
+                mapGenerationConfig: mapGenerationConfig,
                 levelStyleConfig: levelStyleConfig,
                 pathfinder: pathfinder,
                 collidersParent: pathfinder.transform
@@ -59,33 +54,37 @@ namespace Main.Scripts.Levels.Missions
         public override void Spawned()
         {
             base.Spawned();
-            spawnActions.Clear();
             missionState = MissionState.Loading;
             playersReady.Clear();
             isPlayersReady = false;
             
             playerCamera = PlayerCamera.Instance.ThrowWhenNull();
-            heroConfigsBank = GlobalResources.Instance.ThrowWhenNull().HeroConfigsBank;
 
-            if (HasStateAuthority)
-            {
-                missionScenario.OnScenarioFinishedEvent.AddListener(OnMissionScenarioFinished);
-            }
-
-            levelGenerationDisposable = levelMapController
+            levelMapController
                 .GenerateMap((int)(Random.value * int.MaxValue))
-                .Subscribe();
+                .Do(mapData =>
+                {
+                    if (HasStateAuthority)
+                    {
+                        MissionScenarioGeneratorHelper.GenerateMissionScenario(
+                                scenarioGeneratorConfig: scenarioGeneratorConfig,
+                                runner: Runner,
+                                playersHolder: playersHolder,
+                                mapData: mapData
+                            )
+                            .ObserveOnMainThread()
+                            .Do(scenario => { missionScenario = scenario; })
+                            .Subscribe()
+                            .AddTo(compositeDisposable);
+                    }
+                })
+                .Subscribe()
+                .AddTo(compositeDisposable);
         }
 
         public override void Despawned(NetworkRunner runner, bool hasState)
         {
-            finishPlaceTargetTask?.SetListener(null);
-            missionScenario.OnScenarioFinishedEvent.RemoveListener(OnMissionScenarioFinished);
-
-            heroConfigsBank = null!;
-            
-            levelGenerationDisposable?.Dispose();
-            levelGenerationDisposable = null;
+            compositeDisposable.Clear();
             
             base.Despawned(runner, hasState);
         }
@@ -109,11 +108,6 @@ namespace Main.Scripts.Levels.Missions
             }
         }
 
-        public void OnTaskCheckChangedEvent(bool isChecked)
-        {
-            OnFinishTaskStatus(isChecked);
-        }
-
         protected override void OnPlayerInitialized(PlayerRef playerRef)
         {
             
@@ -126,27 +120,12 @@ namespace Main.Scripts.Levels.Missions
 
         protected override void OnLocalPlayerLoaded()
         {
-            if (HasStateAuthority)
-            {
-                var finishPlaceTargetData = levelMapController.GetFinishPlaceTargetData();
-
-                finishPlaceTargetTask = new PlaceTargetTask(
-                    playersHolder: playersHolder,
-                    targetLayerMask: playerLayerMask,
-                    placeTargetData: finishPlaceTargetData);
-                finishPlaceTargetTask.SetListener(this);
-            }
-
             RPC_OnPlayerReady(Runner.LocalPlayer);
         }
 
         protected override void OnSpawnPhase()
         {
-            foreach (var playerRef in spawnActions)
-            {
-                SpawnLocalPlayer(playerRef);
-            }
-            spawnActions.Clear();
+            
         }
 
         protected override void OnDespawnPhase()
@@ -162,21 +141,33 @@ namespace Main.Scripts.Levels.Missions
         protected override void OnLevelStrategyPhase()
         {
             if (!HasStateAuthority) return;
-            
+
             switch (missionState)
             {
                 case MissionState.Loading:
                     if (isPlayersReady)
                     {
                         missionState = MissionState.Active;
-                        
-                        foreach (var playerRef in Runner.ActivePlayers)
-                        {
-                            RPC_AddSpawnPlayerAction(playerRef);
-                        }
+
+                        missionScenario?.Start();
                     }
                     break;
                 case MissionState.Active:
+                    if (missionScenario != null)
+                    {
+                        missionScenario.Update();
+                        switch (missionScenario.GetStatus())
+                        {
+                            case ScenarioStatus.Success:
+                                missionState = MissionState.Success;
+                                missionScenario.Stop();
+                                break;
+                            case ScenarioStatus.Failed:
+                                missionState = MissionState.Failed;
+                                missionScenario.Stop();
+                                break;
+                        }
+                    }
                     break;
                 case MissionState.Failed:
                     OnMissionFailed();
@@ -191,37 +182,13 @@ namespace Main.Scripts.Levels.Missions
 
         protected override bool IsMapReady()
         {
-            return levelMapController.IsMapReady;
+            return levelMapController.IsMapReady
+                   && (!HasStateAuthority || missionScenario != null);
         }
 
         protected override bool IsLevelReady()
         {
             return Runner.IsSceneReady() && isPlayersReady;
-        }
-
-        private void OnLocalPlayerStateChanged(
-            PlayerRef playerRef,
-            PlayerController playerController,
-            PlayerState playerState
-        )
-        {
-            switch (playerState)
-            {
-                case PlayerState.None:
-                    break;
-                case PlayerState.Despawned:
-                    break;
-                case PlayerState.Spawning:
-                    playerController.Active();
-                    break;
-                case PlayerState.Active:
-                    break;
-                case PlayerState.Dead:
-                    RPC_OnPlayerStateDead();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(playerState), playerState, null);
-            }
         }
 
         private void OnMissionSuccess()
@@ -253,75 +220,6 @@ namespace Main.Scripts.Levels.Missions
             roomManager.OnLevelFinished(levelResults);
         }
 
-        private void OnMissionScenarioFinished()
-        {
-            missionScenario.OnScenarioFinishedEvent.RemoveListener(OnMissionScenarioFinished);
-            
-            if (finishPlaceTargetTask != null)
-            {
-                OnFinishTaskStatus(finishPlaceTargetTask.IsTargetChecked);
-            }
-        }
-
-        private void OnFinishTaskStatus(bool isChecked)
-        {
-            if (missionScenario.IsFinished && isChecked)
-            {
-                finishPlaceTargetTask?.SetListener(null);
-
-                if (missionState == MissionState.Active)
-                {
-                    //todo переделать логику, чтобы не было конфликтов состояний
-                    missionState = MissionState.Success;
-                }
-            }
-        }
-
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_AddSpawnPlayerAction([RpcTarget] PlayerRef playerRef)
-        {
-            spawnActions.Add(playerRef);
-        }
-
-        private void SpawnLocalPlayer(PlayerRef playerRef)
-        {
-            var spawnPosition = levelMapController.GetPlayerSpawnPosition(playerRef);
-            
-            var playerController = Runner.Spawn(
-                prefab: playerPrefab,
-                position: spawnPosition,
-                rotation: Quaternion.identity,
-                inputAuthority: playerRef,
-                onBeforeSpawned: (networkRunner, playerObject) =>
-                {
-                    var playerController = playerObject.GetComponent<PlayerController>();
-
-                    playerController.Init(heroConfigsBank.GetHeroConfigKey(playerDataManager.SelectedHeroId));
-                    playerController.OnPlayerStateChangedEvent.AddListener(OnLocalPlayerStateChanged);
-                }
-            );
-            playerCamera.SetTarget(playerController.GetComponent<NetworkTransform>().InterpolationTarget.transform);
-        }
-        
-        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-        private void RPC_OnPlayerStateDead()
-        {
-            foreach (var playerRef in playersHolder.GetKeys())
-            {
-                var player = playersHolder.Get(playerRef);
-                if (player.GetPlayerState() != PlayerState.Dead)
-                {
-                    return;
-                }
-            }
-
-            if (missionState == MissionState.Active)
-            {
-                //todo переделать логику, чтобы не было конфликтов состояний
-                missionState = MissionState.Failed;
-            }
-        }
-
         [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
         private void RPC_OnPlayerReady(PlayerRef playerRefReady)
         {
@@ -331,8 +229,8 @@ namespace Main.Scripts.Levels.Missions
 
             if (isPlayersReady)
             {
-                //spawn for new connected players
-                RPC_AddSpawnPlayerAction(playerRefReady);
+                //Disconnect new players if mission is started
+                Runner.Disconnect(playerRefReady);
                 return;
             }
             

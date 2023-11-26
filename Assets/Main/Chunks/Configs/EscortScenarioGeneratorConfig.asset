@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ed5c525e92444f9a1a771b43adba05c, type: 3}
+  m_Name: EscortScenarioGeneratorConfig
+  m_EditorClassIdentifier: 
+  playersSpawnTaskPrefab: {fileID: -3314645495666544639, guid: 077b29d74f9706d4887bd9a412d50064, type: 3}
+  escortTaskPrefab: {fileID: -6857564915341638959, guid: 65d72a78e3be07f4aa071bf2bf15b39e, type: 3}

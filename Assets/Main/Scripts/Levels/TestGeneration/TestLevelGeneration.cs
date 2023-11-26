@@ -8,7 +8,7 @@ namespace Main.Scripts.Levels.TestGeneration
 public class TestLevelGeneration : MonoBehaviour
 {
     [SerializeField]
-    private LevelGenerationConfig levelGenerationConfig = null!;
+    private MapGenerationConfig mapGenerationConfig = null!;
     [SerializeField]
     private LevelStyleConfig levelStyleConfig = null!;
     [SerializeField]
@@ -22,7 +22,7 @@ public class TestLevelGeneration : MonoBehaviour
     private void Awake()
     {
         levelMapController = new LevelMapController(
-            levelGenerationConfig: levelGenerationConfig,
+            mapGenerationConfig: mapGenerationConfig,
             levelStyleConfig: levelStyleConfig,
             pathfinder: pathfinder,
             collidersParent: pathfinder.transform

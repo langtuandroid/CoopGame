@@ -25,7 +25,7 @@ public class LevelMapController
     private MapData mapData = null!;
     private NavMeshChunkBuilder navMeshChunkBuilder = new();
     private LevelGenerator levelGenerator = new();
-    private LevelGenerationConfig levelGenerationConfig;
+    private MapGenerationConfig mapGenerationConfig;
     private LevelStyleConfig levelStyleConfig;
 
     private int seed;
@@ -41,19 +41,19 @@ public class LevelMapController
     private int spawnedToYIndex;
 
     public LevelMapController(
-        LevelGenerationConfig levelGenerationConfig,
+        MapGenerationConfig mapGenerationConfig,
         LevelStyleConfig levelStyleConfig,
         AstarPath pathfinder,
         Transform collidersParent
     )
     {
-        this.levelGenerationConfig = levelGenerationConfig;
+        this.mapGenerationConfig = mapGenerationConfig;
         this.levelStyleConfig = levelStyleConfig;
         this.pathfinder = pathfinder;
         this.collidersParent = collidersParent;
     }
 
-    public IObservable<Unit> GenerateMap(int seed)
+    public IObservable<MapData> GenerateMap(int seed)
     {
         IsMapReady = false;
         this.seed = seed;
@@ -79,7 +79,7 @@ public class LevelMapController
 
                 mapData = levelGenerator.Generate(
                     seed,
-                    levelGenerationConfig,
+                    mapGenerationConfig,
                     levelStyleConfig.DecorationsPack
                 );
 
@@ -87,7 +87,7 @@ public class LevelMapController
 
                 navMeshChunkBuilder.GenerateNavMesh(
                     mapData.ChunksMap,
-                    levelGenerationConfig.ChunkSize,
+                    mapGenerationConfig.ChunkSize,
                     out var vertices,
                     out var triangles,
                     out var bounds
@@ -118,7 +118,8 @@ public class LevelMapController
 
                 IsMapReady = true;
             })
-            .AsUnitObservable();
+            .Select(_ => mapData);
+
     }
 
     public Vector3 GetPlayerSpawnPosition(PlayerRef playerRef)
@@ -141,7 +142,7 @@ public class LevelMapController
     {
         if (!IsMapReady) return;
 
-        var chunkSize = levelGenerationConfig.ChunkSize;
+        var chunkSize = mapGenerationConfig.ChunkSize;
         var chunksMap = mapData.ChunksMap;
 
         var fromXIndex = (int)Math.Max(0, Math.Floor(minX / chunkSize));
@@ -185,7 +186,7 @@ public class LevelMapController
         int toYIndex
     )
     {
-        var chunkSize = levelGenerationConfig.ChunkSize;
+        var chunkSize = mapGenerationConfig.ChunkSize;
         var chunksMap = mapData.ChunksMap;
 
         for (var x = Math.Max(fromXIndex - 1, 0); x <= Math.Min(toXIndex, chunksMap.Length - 1); x++)
@@ -258,7 +259,7 @@ public class LevelMapController
 
     private void GetCollidersData(List<ColliderData> collidersDataList)
     {
-        var chunkSize = levelGenerationConfig.ChunkSize;
+        var chunkSize = mapGenerationConfig.ChunkSize;
         var chunksMap = mapData.ChunksMap;
 
         for (var x = 0; x < chunksMap.Length; x++)
@@ -267,7 +268,7 @@ public class LevelMapController
             {
                 chunksMap[x][y]?.GetColliders(
                     chunkPosition: new Vector2(x * chunkSize, y * chunkSize),
-                    levelGenerationConfig: levelGenerationConfig,
+                    mapGenerationConfig: mapGenerationConfig,
                     colliders: collidersDataList
                 );
             }
@@ -283,7 +284,7 @@ public class LevelMapController
             {
                 case ColliderType.BOX:
                     var boxCollider = Object.Instantiate(
-                        original: levelGenerationConfig.BoxCollider,
+                        original: mapGenerationConfig.BoxCollider,
                         position: position,
                         rotation: Quaternion.AngleAxis(colliderData.Rotation, Vector3.up),
                         parent: collidersParent
@@ -293,7 +294,7 @@ public class LevelMapController
                     break;
                 case ColliderType.SPHERE:
                     var sphereCollider = Object.Instantiate(
-                        original: levelGenerationConfig.SphereCollider,
+                        original: mapGenerationConfig.SphereCollider,
                         position: position,
                         rotation: Quaternion.AngleAxis(colliderData.Rotation, Vector3.up),
                         parent: collidersParent

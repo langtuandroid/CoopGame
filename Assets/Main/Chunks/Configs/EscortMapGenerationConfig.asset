@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4256cb9c0eda467d953fbf6a2f8a83fa, type: 3}
-  m_Name: EscortLevelGenerationConfig
+  m_Name: EscortMapGenerationConfig
   m_EditorClassIdentifier: 
   chunkSize: 10
   minRoadWidth: 2

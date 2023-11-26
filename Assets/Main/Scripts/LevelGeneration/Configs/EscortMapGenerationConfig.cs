@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace Main.Scripts.LevelGeneration.Configs
 {
-[CreateAssetMenu(fileName = "EscortLevelGenerationConfig", menuName = "Level/Generation/EscortLevelGeneration")]
-public class EscortLevelGenerationConfig : LevelGenerationConfig
+[CreateAssetMenu(fileName = "EscortMapGenerationConfig", menuName = "Level/Generation/EscortMapGeneration")]
+public class EscortMapGenerationConfig : MapGenerationConfig
 {
     [SerializeField]
     [Min(1)]

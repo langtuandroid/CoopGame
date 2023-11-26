@@ -56,12 +56,12 @@ public class SpawnChunk : IChunk
 
     public bool CanAddDecoration()
     {
-        throw new NotImplementedException();
+        return false;
     }
 
     public void GetColliders(
         Vector2 chunkPosition,
-        LevelGenerationConfig levelGenerationConfig,
+        MapGenerationConfig mapGenerationConfig,
         List<ColliderData> colliders
     ) { }
 }

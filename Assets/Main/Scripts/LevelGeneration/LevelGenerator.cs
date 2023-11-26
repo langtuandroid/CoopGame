@@ -19,17 +19,17 @@ public class LevelGenerator
 {
     public MapData Generate(
         int seed,
-        LevelGenerationConfig levelGenerationConfig,
+        MapGenerationConfig mapGenerationConfig,
         DecorationsPack decorationsPack
     )
     {
         var random = new NetworkRNG(seed);
-        var chunkSize = levelGenerationConfig.ChunkSize;
+        var chunkSize = mapGenerationConfig.ChunkSize;
 
-        var mapGraph = levelGenerationConfig switch
+        var mapGraph = mapGenerationConfig switch
         {
-            EscortLevelGenerationConfig escortLevelGenerationConfig => GenerateEscortMapData(ref random, escortLevelGenerationConfig),
-            _ => throw new ArgumentOutOfRangeException(nameof(levelGenerationConfig), levelGenerationConfig, null)
+            EscortMapGenerationConfig escortLevelGenerationConfig => GenerateEscortMapData(ref random, escortLevelGenerationConfig),
+            _ => throw new ArgumentOutOfRangeException(nameof(mapGenerationConfig), mapGenerationConfig, null)
         };
         
         var chunksMap = GenerateChunks(
@@ -37,9 +37,9 @@ public class LevelGenerator
             seed,
             ref random,
             chunkSize: chunkSize,
-            minRoadWidth: levelGenerationConfig.MinRoadWidth,
-            maxRoadWidth: levelGenerationConfig.MaxRoadWidth,
-            outlineOffset: levelGenerationConfig.OutlineOffset,
+            minRoadWidth: mapGenerationConfig.MinRoadWidth,
+            maxRoadWidth: mapGenerationConfig.MaxRoadWidth,
+            outlineOffset: mapGenerationConfig.OutlineOffset,
             decorationsPack: decorationsPack
         );
 
@@ -77,6 +77,7 @@ public class LevelGenerator
 
         return new MapData(
             mapGraph: mapGraph,
+            chunkSize: chunkSize,
             chunksMap: chunksMap,
             playerSpawnPositions: playerSpawnPositions,
             finishPlaceData: finishTargetPlace
@@ -150,7 +151,7 @@ public class LevelGenerator
 
     private MapGraph GenerateEscortMapData(
         ref NetworkRNG random,
-        EscortLevelGenerationConfig escortConfig
+        EscortMapGenerationConfig escortConfig
     )
     {
         var placesList = new List<Place>();

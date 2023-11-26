@@ -27,7 +27,7 @@ public interface IChunk
 
     public void GetColliders(
         Vector2 chunkPosition,
-        LevelGenerationConfig levelGenerationConfig,
+        MapGenerationConfig mapGenerationConfig,
         List<ColliderData> colliders
     );
 }

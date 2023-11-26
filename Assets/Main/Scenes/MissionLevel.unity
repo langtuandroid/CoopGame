@@ -665,8 +665,9 @@ MonoBehaviour:
   playerPrefab: {fileID: 3130498294766555559, guid: 0adccf08a296b9d4ab62f2205b695f42, type: 3}
   missionScenario: {fileID: 1891384144}
   pathfinder: {fileID: 999388874}
-  levelGenerationConfig: {fileID: 11400000, guid: 6614df84b8f1c13489cd41b1603dbc99, type: 2}
+  mapGenerationConfig: {fileID: 11400000, guid: 6614df84b8f1c13489cd41b1603dbc99, type: 2}
   levelStyleConfig: {fileID: 11400000, guid: 517d88461c8d67f4eb5eb547e3155e1e, type: 2}
+  scenarioGeneratorConfig: {fileID: 11400000, guid: 17df78b4320c65548a0a90e4dcfde061, type: 2}
   playerLayerMask:
     serializedVersion: 2
     m_Bits: 128

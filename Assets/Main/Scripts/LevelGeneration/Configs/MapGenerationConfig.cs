@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Main.Scripts.LevelGeneration.Configs
 {
-public abstract class LevelGenerationConfig : ScriptableObject
+public abstract class MapGenerationConfig : ScriptableObject
 {
     [SerializeField]
     [Min(1)]

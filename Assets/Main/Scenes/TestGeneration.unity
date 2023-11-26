@@ -407,9 +407,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee14075b70b94d18956bdaac9434125b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  levelGenerationConfig: {fileID: 11400000, guid: 6614df84b8f1c13489cd41b1603dbc99, type: 2}
+  mapGenerationConfig: {fileID: 11400000, guid: 6614df84b8f1c13489cd41b1603dbc99, type: 2}
   levelStyleConfig: {fileID: 11400000, guid: 517d88461c8d67f4eb5eb547e3155e1e, type: 2}
   pathfinder: {fileID: 1997973129}
+  visibilityBoundsSize: 25
 --- !u!4 &1915421428
 Transform:
   m_ObjectHideFlags: 0

@@ -93,12 +93,12 @@ public class OutsideChunk : IChunk
 
     public void GetColliders(
         Vector2 chunkPosition,
-        LevelGenerationConfig levelGenerationConfig,
+        MapGenerationConfig mapGenerationConfig,
         List<ColliderData> colliders
     )
     {
         var centerType = FillData.centerType;
-        var chunkSize = levelGenerationConfig.ChunkSize;
+        var chunkSize = mapGenerationConfig.ChunkSize;
 
         if (centerType != ChunkCenterType.None)
         {
